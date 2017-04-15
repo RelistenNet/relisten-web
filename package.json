@@ -1,0 +1,25 @@
+{
+  "name": "relisten-next",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node server.js",
+    "build": "next build",
+    "start": "node server.js"
+  },
+  "author": "Daniel Saewitz",
+  "license": "MIT",
+  "dependencies": {
+    "immutable": "^3.8.1",
+    "isomorphic-fetch": "^2.2.1",
+    "next": "^2.1.1",
+    "next-redux-wrapper": "^1.0.0",
+    "react": "^15.5.3",
+    "react-audio-player": "^0.4.0",
+    "react-dom": "^15.5.3",
+    "react-redux": "^5.0.4",
+    "redux": "^3.6.0",
+    "redux-thunk": "^2.2.0"
+  }
+}
