@@ -4,11 +4,11 @@ import ReactAudioPlayer from 'react-audio-player'
 import { createShowDate } from '../lib/utils';
 
 const Player = ({ playback, currentTrack }) => (
-  <div>
+  <div className="player">
     <style jsx>{`
-      .column {
-        display: flex;
-        flex: 1;
+      .player {
+        max-width: 100vw;
+        overflow: hidden;
       }
     `}</style>
     <pre>{JSON.stringify(playback)}</pre>
@@ -35,7 +35,6 @@ const mapStateToProps = ({ playback, tapes }) => {
     currentTrack = set.tracks.filter(track => track.slug === playback.songSlug)[0] || currentTrack
   )
 
-  console.log(currentTrack)
   if (!currentTrack) return { playback }
 
   return {

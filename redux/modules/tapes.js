@@ -63,10 +63,13 @@ export function receiveTapes(artistSlug, year, showDate, data) {
 export function fetchTapes(artistSlug, year, showDate) {
   return (dispatch, getState) => {
     const state = getState().tapes[artistSlug]
-    console.log(state)
+
     if (state && state[showDate] && state[showDate].meta.loaded) return {}
+
     console.log('fetching tapes', artistSlug, year, showDate)
+
     dispatch(requestTapes(artistSlug, year, showDate))
+
     return fetch(`https://relistenapi.alecgorge.com/api/v2/artists/${artistSlug}/years/${year}/${showDate}`)
       .then(res => res.json())
       .then(json => dispatch(receiveTapes(artistSlug, year, showDate, json.data)))

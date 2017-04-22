@@ -4,9 +4,11 @@ export default ({ children, heading }) => (
       .column {
         display: flex;
         flex-direction: column;
-        flex: 1;
+        flex: 1 1 0;
+        word-break: break-word;
         padding: 0 16px;
-        height: 100%;      }
+        height: 100%;
+      }
 
       .heading {
         background: #279BBC;

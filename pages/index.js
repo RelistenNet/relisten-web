@@ -26,15 +26,15 @@ const Root = ({ app }) => (
       .content {
         display: flex;
         flex-direction: row;
-        height: 100vh;
+        height: calc(100vh - 200px);
       }
     `}</style>
     <div className="content">
       <ArtistsColumn />
       <YearsColumn />
       <ShowsColumn />
-      <TapesColumn />
       <SongsColumn />
+      <TapesColumn />
     </div>
   </Layout>
 )
@@ -55,7 +55,8 @@ const handleRouteChange = (store, url) => {
       year,
       month,
       day,
-      songSlug
+      songSlug,
+      source
     })
   )
 

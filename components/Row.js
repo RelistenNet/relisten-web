@@ -1,21 +1,55 @@
 import Link from 'next/link'
 
-export default ({ children, href }) => (
-  <div className="row">
+export default ({ height, children, href, active }) => (
+  <div className="row" style={{ minHeight: height }}>
     <style jsx>{`
       .row {
-        min-height: 32px;
-        width: 100%;
-        margin-left: 8px;
+        min-height: 34px;
         display: flex;
+        flex-direction: column;
         align-items: center;
-        border-bottom: 1px solid #F7F7F7;
+        border-bottom: 1px solid #F1F1F1;
       }
 
-      .row a {
+      .row .content {
+        flex: 1;
         width: 100%;
+        padding: 4px 0;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .row .content.active {
+        background: #333;
+      }
+
+      .row .content > :global(div) {
+        align-self: stretch;
+        display: flex;
+        padding: 0 2px;
+        justify-content: space-around;
+        flex-direction: column;
+      }
+
+      .row .content :global(.subtext), .row .content > :global(div:nth-child(2)) {
+        color: #979797;
+        font-size: 0.7em;
+      }
+
+      .row .content > :global(div:nth-child(2)) {
+        text-align: right;
+      }
+
+      .row .content.active :global(div) {
+        color: #FFF;
+      }
+
+      .row .content.active :global(.label) {
+        color: #EEE;
       }
     `}</style>
-    <Link href="/" as={href}><a>{children}</a></Link>
+    {href ? <Link href="/" as={href}><a className={`${active ? 'active' : ''} content`}>{children}</a></Link> : <div className="content">{children}</div>}
   </div>
 )
