@@ -2,11 +2,12 @@
   "name": "relisten-next",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "dev": "node server.js",
     "build": "next build",
-    "start": "node server.js"
+    "start": "node server.js",
+    "deploy": "now -e NODE_ENV=production"
   },
   "author": "Daniel Saewitz",
   "license": "MIT",

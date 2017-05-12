@@ -20,6 +20,7 @@ export default class MyDocument extends Document {
         </style>
        </Head>
        <body>
+          <script src="/static/lessgap.js" />
           <Main />
           <NextScript />
        </body>

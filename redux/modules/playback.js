@@ -8,7 +8,9 @@ const defaultState = {
   songSlug: undefined,
   source: undefined,
   currentTrackId: undefined,
-  paused: false
+  paused: false,
+  activeTrack: {},
+  tracks: []
 };
 
 export default function counter(state = defaultState, action) {

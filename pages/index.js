@@ -6,7 +6,7 @@ import { fetchArtists } from '../redux/modules/artists'
 import { fetchYears } from '../redux/modules/years'
 import { fetchShows } from '../redux/modules/shows'
 import { fetchTapes } from '../redux/modules/tapes'
-import { updatePlayback } from '../redux/modules/playback'
+import { updatePlayback, updatePlaybackTrack } from '../redux/modules/playback'
 
 import { updateApp } from '../redux/modules/app'
 import { createShowDate, getParams } from '../lib/utils'
@@ -21,12 +21,12 @@ import TapesColumn from '../components/TapesColumn'
 import SongsColumn from '../components/SongsColumn'
 
 const Root = ({ app }) => (
-  <Layout className="root">
+  <Layout>
     <style jsx>{`
       .content {
+        flex: 1;
         display: flex;
         flex-direction: row;
-        height: calc(100vh - 200px);
       }
     `}</style>
     <div className="content">
@@ -43,7 +43,10 @@ const handleRouteChange = (store, url) => {
   console.log('handleRouteChange', url)
   const dispatches = []
 
+
   const [pathname, params] = url.split('?')
+
+  if (/\/about/.test(pathname)) return;
 
   const [artistSlug, year, month, day, songSlug] = pathname.replace(/^\//, '').split('/')
   const paramsObj = getParams(params)
@@ -74,6 +77,7 @@ const handleRouteChange = (store, url) => {
 
   if (artistSlug && year && month && day && songSlug) {
     dispatches.push(store.dispatch(updatePlayback({ artistSlug, year, showDate: createShowDate(year, month, day), songSlug, source, paused: false })))
+    if (typeof window !== 'undefined') playSong(store)
   }
 
   return dispatches
@@ -91,6 +95,65 @@ Root.getInitialProps = async ({ req, store }) => {
 
 Router.onRouteChangeStart = (url) => {
   handleRouteChange(window.store, url)
+}
+
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    playSong(window.store)
+  }, 0)
+}
+
+const playSong = (store) => {
+  const { playback, tapes } = store.getState()
+  const { artistSlug, showDate, source, songSlug } = playback
+  const activePlaybackSourceId = parseInt(source, 10);
+  const showTapes = tapes[artistSlug] && tapes[artistSlug][showDate] ? tapes[artistSlug][showDate] : null
+  let tape;
+
+  console.log('play song', playback, showTapes)
+  if (!showTapes) return console.log('err showTapes')
+
+  if (showTapes.data && showTapes.data.sources && showTapes.data.sources.length) {
+    const { sources } = showTapes.data
+
+    tape = sources.find(tape => tape.id === activePlaybackSourceId) || sources[0]
+  }
+
+  if (!tape) return console.log('err tape')
+
+  let idx = 0;
+  let currentIdx = 0;
+  let tracks = []
+
+  tape.sets.map((set, setIdx) =>
+    set.tracks.map((track, trackIdx) => {
+      tracks.push(track)
+      if (track.slug === songSlug) currentIdx = idx
+      idx++
+    })
+  )
+
+  if (typeof window === 'undefined') return console.log('err window')
+
+  if (!window.relistenPlayer) {
+    window.relistenPlayer = new GaplessQueue({
+      tracks: tracks.map(track => track.mp3_url),
+      onProgress: (track) => store.dispatch(updatePlayback({ activeTrack: track.completeState }))
+    });
+  }
+  else {
+    window.relistenPlayer.pauseAll()
+    window.relistenPlayer.tracks = [];
+
+    tracks.map((track, trackIdx) => {
+      window.relistenPlayer.addTrack(track.mp3_url)
+    })
+  }
+
+  store.dispatch(updatePlayback({ tracks }))
+
+  window.relistenPlayer.gotoTrack(currentIdx)
+  window.relistenPlayer.play()
 }
 
 export default withRedux(initStore)(Root)

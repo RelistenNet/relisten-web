@@ -30,7 +30,6 @@ const ShowsColumn = ({ artistShows, artistSlug, displayDate }) => {
           tours[tour.id] = true
         }
 
-
         return (
           <div key={show.id}>
             {tourName && <RowHeader>{tourName}</RowHeader>}

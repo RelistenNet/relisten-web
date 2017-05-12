@@ -31,6 +31,7 @@ const SongsColumn = ({ source, artistSlug, songSlug, activePlaybackSourceId }) =
           </div>
         )
        )}
+      {source && <RowHeader>End Show</RowHeader>}
       {artistSlug === 'phish' &&
         [
           <a href="http://phish.net" target="_blank" key="net">

@@ -13,6 +13,11 @@ app.prepare().then(() => {
     const parsedUrl = parse(req.url, true)
     const { pathname, query } = parsedUrl
 
+    // catch about
+    if (/\/about/.test(pathname)) {
+      return handle(req, res, parsedUrl)
+    }
+
     // override custom routing to always go to '/'
     return app.render(req, res, '/', query)
     // if you want the server to handle normally use below:
