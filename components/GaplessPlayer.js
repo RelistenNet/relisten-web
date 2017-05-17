@@ -44,6 +44,7 @@ class GaplessPlayer extends Component {
             display: flex;
             flex-direction: column;
             overflow-y: scroll;
+            cursor: pointer;
           }
 
           .queue .active {
@@ -51,35 +52,32 @@ class GaplessPlayer extends Component {
             color: #FFF;
           }
 
-        `}</style>
+          `}</style>
         {typeof window === 'undefined' || !playback.tracks.length ? null :
-          <div>
-            <div className="progress-container" onClick={this.onProgressClick}>
-              <div className="progress-notch" style={{ transform: `translate(${percentage}px, 0)` }} />
-            </div>
-            <div className="content">
-              <div style={{ width: 300 }}>
-                <pre>{JSON.stringify(playback.activeTrack, null, 2)}</pre>
-              </div>
-              <div className="queue">
-                {playback.tracks.map((track, idx) =>
-                  <div key={idx} className={idx === playback.activeTrack.idx ? 'active' : ''}>{track.title}</div>
-                )}
-              </div>
-              <div>
-                {durationToHHMMSS(playback.activeTrack.currentTime)} / {durationToHHMMSS(playback.activeTrack.duration)}
-              </div>
-              <div className="previous" onClick={() => window.relistenPlayer.playPrevious()}>
-                &lt;
-              </div>
-              <div className="playpause" onClick={() => window.relistenPlayer.togglePlayPause()}>
-                {playback.activeTrack.isPaused ? 'play' : 'pause'}
-              </div>
-              <div className="next" onClick={() => window.relistenPlayer.playNext()}>
-                &gt;
-              </div>
-            </div>
-          </div>
+         <div>
+           <div className="progress-container" onClick={this.onProgressClick}>
+             <div className="progress-notch" style={{ transform: `translate(${percentage}px, 0)` }} />
+           </div>
+           <div className="content">
+             <div style={{ width: 300 }}>
+               <pre>{JSON.stringify(playback.activeTrack, null, 2)}</pre>
+             </div>
+             <div className="queue">
+               {playback.tracks.map((track, idx) =>
+                 <div key={idx} onClick={() => window.relistenPlayer.playTrack(idx) } className={idx === playback.activeTrack.idx ? 'active' : ''}>{track.title}</div>
+               )}
+             </div>
+             <div>
+               {durationToHHMMSS(playback.activeTrack.currentTime)} / {durationToHHMMSS(playback.activeTrack.duration)}
+             </div>
+             <div className="previous" onClick={() => window.relistenPlayer.playPrevious()}>&lt;</div>
+
+             <div className="playpause" onClick={() => window.relistenPlayer.togglePlayPause()}>
+               {playback.activeTrack.isPaused ? 'play' : 'pause'}
+             </div>
+             <div className="next" onClick={() => window.relistenPlayer.playNext()}>&gt;</div>
+           </div>
+         </div>
         }
       </div>
     );

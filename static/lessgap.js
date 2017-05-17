@@ -76,6 +76,16 @@ class GaplessQueue {
     if (this.props.onPlayNextTrack) this.props.onPlayNextTrack(this.currentTrack);
   }
 
+  playTrack(idx) {
+    this.resetCurrentTrack();
+
+    this.state.currentTrackIdx = idx;
+
+    this.play();
+
+    if (this.props.onPlayNextTrack) this.props.onPlayNextTrack(this.currentTrack);
+  }
+
   resetCurrentTrack() {
     if (this.currentTrack) {
       this.currentTrack.seek(0)
@@ -122,18 +132,18 @@ class GaplessQueue {
 
 /*
 
-states:
+   states:
 
-audio
-webaudio
+   audio
+   webaudio
 
-get rid of fetch, just use <audio /> to source it.
-https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/createMediaElementSource
-https://jsfiddle.net/k3op44o5/2/
+   get rid of fetch, just use <audio /> to source it.
+   https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/createMediaElementSource
+   https://jsfiddle.net/k3op44o5/2/
 
-may not be possible. try skipping to end of file and missing middle of audio buffer
+   may not be possible. try skipping to end of file and missing middle of audio buffer
 
-*/
+ */
 class GaplessTrack {
   constructor({ trackUrl, queue, idx }) {
     // playback type state
@@ -191,7 +201,7 @@ class GaplessTrack {
 
         cb();
       })
-    }
+  }
 
   loadBuffer(cb) {
     if (this.webAudioLoadingState !== GaplessPlaybackLoadingState.NONE) return;
