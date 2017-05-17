@@ -76,16 +76,6 @@ class GaplessQueue {
     if (this.props.onPlayNextTrack) this.props.onPlayNextTrack(this.currentTrack);
   }
 
-  playTrack(idx) {
-    this.resetCurrentTrack();
-
-    this.state.currentTrackIdx = idx;
-
-    this.play();
-
-    if (this.props.onPlayNextTrack) this.props.onPlayNextTrack(this.currentTrack);
-  }
-
   resetCurrentTrack() {
     if (this.currentTrack) {
       this.currentTrack.seek(0)
@@ -99,9 +89,13 @@ class GaplessQueue {
     });
   }
 
-  gotoTrack(idx) {
+  gotoTrack(idx, playImmediately = false) {
     this.pauseAll();
     this.state.currentTrackIdx = idx;
+
+    if (playImmediately === true) {
+      this.play();
+    }
   }
 
   loadTrack(idx, loadHTML5) {
