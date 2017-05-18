@@ -7,7 +7,7 @@ import Column from './Column';
 import Row from './Row';
 
 const YearsColumn = ({ artistYears, artistSlug, currentYear }) => (
-  <Column heading="Years">
+  <Column heading="Years" loading={artistYears.meta && artistYears.meta.loading} loadingAmount={12}>
     {artistYears && artistYears.data && artistYears.data.map(year =>
       <Row key={year.id} href={`/${artistSlug}/${year.year}`} active={year.year === currentYear}>
         <div>

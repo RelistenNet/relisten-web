@@ -1,6 +1,8 @@
 import Link from 'next/link'
 
-export default ({ height, children, href, active }) => (
+import RowLoading from './RowLoading'
+
+export default ({ height, children, href, active, loading }) => (
   <div className="row" style={{ minHeight: height }}>
     <style jsx>{`
       .row {
@@ -11,7 +13,7 @@ export default ({ height, children, href, active }) => (
         border-bottom: 1px solid #F1F1F1;
       }
 
-      .row .content {
+      .row > :global(.content) {
         flex: 1;
         width: 100%;
         padding: 4px 0;
@@ -21,11 +23,11 @@ export default ({ height, children, href, active }) => (
         justify-content: space-between;
       }
 
-      .row .content.active {
+      .row > :global(.content).active {
         background: #333;
       }
 
-      .row .content > :global(div) {
+      .row > :global(.content) > :global(div) {
         align-self: stretch;
         display: flex;
         padding: 0 2px;
@@ -33,23 +35,25 @@ export default ({ height, children, href, active }) => (
         flex-direction: column;
       }
 
-      .row .content :global(.subtext), .row .content > :global(div:nth-child(2)) {
+      .row > :global(.content) :global(.subtext), .row > :global(.content) > :global(div:nth-child(2)) {
         color: #979797;
         font-size: 0.7em;
       }
 
-      .row .content > :global(div:nth-child(2)) {
+      .row > :global(.content) > :global(div:nth-child(2)) {
         text-align: right;
       }
 
-      .row .content.active :global(div) {
+      .row > :global(.content).active :global(div) {
         color: #FFF;
       }
 
-      .row .content.active :global(.label) {
+      .row > :global(.content).active :global(.label) {
         color: #EEE;
       }
+
     `}</style>
-    {href ? <Link href="/" as={href}><a className={`${active ? 'active' : ''} content`}>{children}</a></Link> : <div className="content">{children}</div>}
+    {loading && <RowLoading />}
+    {href ? <Link href="/" as={href}><a className={`${active ? 'active' : ''} content`}>{children}</a></Link> : children ? <div className="content">{children}</div> : null}
   </div>
 )

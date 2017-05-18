@@ -16,7 +16,7 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }) => {
   const { year, month, day } = sources ? splitShowDate(sources[0].display_date) : {}
 
   return (
-    <Column heading="Sources">
+    <Column heading="Sources" loading={tapes.meta && tapes.meta.loading} loadingAmount={1}>
       <style jsx>{`
         .details {
           font-size: 0.7em;
@@ -30,7 +30,6 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }) => {
           min-width: 48px;
         }
       `}</style>
-      {tapes.meta && tapes.meta.loading && 'Loading...'}
       {sources && sources.map((source, idx) =>
         <div key={source.id}>
           <RowHeader>

@@ -437,6 +437,7 @@
       console.log(`${this.idx}:${first}`, ...args, this.state);
     }
 
+    // just a helper to quick jump to the end of a track for testing
     seekToEnd() {
       if (this.isUsingWebAudio) {
         this.seekBufferSourceNode(this.audioBuffer.duration - 6);
@@ -447,5 +448,8 @@
     }
   }
 
-  return { Queue, Track };
+  Gapless.Queue = Queue;
+  Gapless.Track = Track;
+
+  return Gapless;
 });

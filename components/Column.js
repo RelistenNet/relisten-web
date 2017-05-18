@@ -1,4 +1,6 @@
-export default ({ children, heading }) => (
+import Row from './Row'
+
+export default ({ children, heading, loading, loadingAmount = 20 }) => (
   <div className="column">
     <style jsx>{`
       .column {
@@ -27,6 +29,7 @@ export default ({ children, heading }) => (
       }
     `}</style>
     {heading && <div className="heading">{heading}</div>}
+    {loading && new Array(loadingAmount).fill(null).map((i, idx) => <Row key={idx} loading />)}
     <div className="content">{children}</div>
   </div>
 )

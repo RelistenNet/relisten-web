@@ -7,10 +7,10 @@ import Column from './Column';
 import Row from './Row';
 import RowHeader from './RowHeader';
 
-const SongsColumn = ({ source, artistSlug, songSlug, activePlaybackSourceId }) => {
+const SongsColumn = ({ source, loading, artistSlug, songSlug, activePlaybackSourceId }) => {
   const { year, month, day } = source ? splitShowDate(source.display_date) : {}
   return (
-    <Column heading="Songs">
+    <Column heading="Songs" loading={loading} loadingAmount={12}>
       <style jsx>{`
         .column {
           display: flex;
@@ -65,10 +65,9 @@ const mapStateToProps = ({ tapes, app, playback }) => {
     source = sources.find(source => source.id === activeSourceId) || sources[0]
   }
 
-  if (!source) return {}
-
   return {
     source,
+    loading: showTapes.meta.loading,
     artistSlug: app.artistSlug,
     songSlug: playback.songSlug,
     activePlaybackSourceId

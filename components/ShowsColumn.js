@@ -10,14 +10,13 @@ const ShowsColumn = ({ artistShows, artistSlug, displayDate }) => {
   const tours = {}
 
   return (
-    <Column heading="Shows">
+    <Column heading="Shows" loading={artistShows.meta && artistShows.meta.loading} loadingAmount={12}>
       <style jsx>{`
         .column {
           display: flex;
           flex: 1;
         }
       `}</style>
-      {artistShows.meta && artistShows.meta.loading && 'Loading...'}
       {artistShows.data && artistShows.data.shows && artistShows.data.shows.map(show => {
         const { year, month, day } = splitShowDate(show.display_date)
         const { venue, avg_duration, tour } = show;
