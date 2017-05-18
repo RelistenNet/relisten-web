@@ -1,7 +1,8 @@
 import { Component } from 'react'
 import { connect } from 'react-redux'
 
-import { createShowDate, durationToHHMMSS } from '../lib/utils';
+import { createShowDate, durationToHHMMSS } from '../lib/utils'
+import player from '../lib/player'
 
 class GaplessPlayer extends Component {
   render() {
@@ -64,17 +65,17 @@ class GaplessPlayer extends Component {
             </div>
             <div className="queue">
               {playback.tracks.map((track, idx) =>
-                <div key={idx} onClick={() => window.relistenPlayer.gotoTrack(idx, true) } className={idx === playback.activeTrack.idx ? 'active' : ''}>{track.title}</div>
+                <div key={idx} onClick={() => player.gotoTrack(idx, true) } className={idx === playback.activeTrack.idx ? 'active' : ''}>{track.title}</div>
               )}
             </div>
             <div>
               {durationToHHMMSS(playback.activeTrack.currentTime)} / {durationToHHMMSS(playback.activeTrack.duration)}
             </div>
-            <div className="previous" onClick={() => window.relistenPlayer.playPrevious()}>&lt;</div>
-            <div className="playpause" onClick={() => window.relistenPlayer.togglePlayPause()}>
+            <div className="previous" onClick={() => player.playPrevious()}>&lt;</div>
+            <div className="playpause" onClick={() => player.togglePlayPause()}>
               {playback.activeTrack.isPaused ? 'play' : 'pause'}
             </div>
-            <div className="next" onClick={() => window.relistenPlayer.playNext()}>&gt;</div>
+            <div className="next" onClick={() => player.playNext()}>&gt;</div>
           </div>
         </div>
       }
@@ -87,7 +88,7 @@ class GaplessPlayer extends Component {
 
     const percentage = e.pageX / window.innerWidth;
 
-    window.relistenPlayer.currentTrack.seek(percentage * playback.activeTrack.duration)
+    player.currentTrack.seek(percentage * playback.activeTrack.duration)
   }
 }
 

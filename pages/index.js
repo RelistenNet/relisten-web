@@ -10,6 +10,7 @@ import { updatePlayback, updatePlaybackTrack } from '../redux/modules/playback'
 
 import { updateApp } from '../redux/modules/app'
 import { createShowDate, getParams } from '../lib/utils'
+import player, { isPlayerMounted, initGaplessPlayer } from '../lib/player'
 
 import Layout from '../layouts'
 
@@ -133,27 +134,22 @@ const playSong = (store) => {
     })
   )
 
-  if (typeof window === 'undefined') return console.log('err window')
-
-  if (!window.relistenPlayer) {
-    window.relistenPlayer = new GaplessQueue({
-      tracks: tracks.map(track => track.mp3_url),
-      onProgress: (track) => store.dispatch(updatePlayback({ activeTrack: track.completeState }))
-    });
+  if (!isPlayerMounted()) {
+    initGaplessPlayer(store)
   }
   else {
-    window.relistenPlayer.pauseAll()
-    window.relistenPlayer.tracks = [];
-
-    tracks.map((track, trackIdx) => {
-      window.relistenPlayer.addTrack(track.mp3_url)
-    })
+    player.pauseAll()
+    player.tracks = []
   }
+
+  tracks.map((track, trackIdx) => {
+    player.addTrack(track.mp3_url)
+  })
 
   store.dispatch(updatePlayback({ tracks }))
 
-  window.relistenPlayer.gotoTrack(currentIdx)
-  window.relistenPlayer.play()
+  player.gotoTrack(currentIdx)
+  player.play()
 }
 
 export default withRedux(initStore)(Root)
