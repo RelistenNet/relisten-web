@@ -61,6 +61,8 @@ class GaplessQueue {
 
     if (--this.state.currentTrackIdx < 0) this.state.currentTrackIdx = 0;
 
+    this.resetCurrentTrack();
+
     this.play();
 
     if (this.props.onPlayNextTrack) this.props.onPlayNextTrack(this.currentTrack);
@@ -70,6 +72,8 @@ class GaplessQueue {
     this.resetCurrentTrack();
 
     this.state.currentTrackIdx++;
+
+    this.resetCurrentTrack();
 
     this.play();
 
@@ -92,6 +96,8 @@ class GaplessQueue {
   gotoTrack(idx, playImmediately = false) {
     this.pauseAll();
     this.state.currentTrackIdx = idx;
+
+    this.resetCurrentTrack();
 
     if (playImmediately === true) {
       this.play();

@@ -40,7 +40,7 @@ const ShowsColumn = ({ artistShows, artistSlug, displayDate }) => {
               </div>
               <div>
                 <div>{durationToHHMMSS(avg_duration)}</div>
-                <div>{simplePluralize('tape', show.sources_count)}</div>
+                <div>{simplePluralize('tape', show.source_count)}</div>
               </div>
             </Row>
           </div>
