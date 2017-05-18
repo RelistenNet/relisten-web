@@ -1,5 +1,5 @@
 import Navigation from '../components/Navigation'
-import GaplessPlayer from '../components/GaplessPlayer'
+import Player from '../components/Player'
 
 export default ({ children, ...props }) => (
   <div {...props} className="layout">
@@ -13,6 +13,6 @@ export default ({ children, ...props }) => (
     `}</style>
     <Navigation />
     {children}
-    <GaplessPlayer />
+    <Player />
   </div>
 )

@@ -1,46 +1,97 @@
+import { Component } from 'react'
 import { connect } from 'react-redux'
-import ReactAudioPlayer from 'react-audio-player'
 
-import { createShowDate } from '../lib/utils';
+import { createShowDate, durationToHHMMSS } from '../lib/utils'
+import player from '../lib/player'
 
-const Player = ({ playback, currentTrack }) => (
-  <div className="player">
-    <style jsx>{`
-      .player {
-        max-width: 100vw;
-        overflow: hidden;
+class Player extends Component {
+  render() {
+    const { playback } = this.props;
+
+    const percentage = typeof window === 'undefined' ? 0 : (playback.activeTrack.currentTime / playback.activeTrack.duration) * window.innerWidth;
+
+    return (
+      <div className="player">
+      <style jsx>{`
+        .player {
+          height: 200px;
+        }
+        .content {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          transition: all 1s ease-in-out;
+        }
+
+        .progress-container {
+          width: 100%;
+          height: 12px;
+          background: #777;
+          position: relative;
+        }
+
+        .progress-notch {
+          position: absolute;
+          top: 0;
+          left: 0;
+          height: 100%;
+          width: 4px;
+          background: #FFF;
+        }
+
+        .queue {
+          width: 200px;
+          max-height: 200px;
+          display: flex;
+          flex-direction: column;
+          overflow-y: scroll;
+          cursor: pointer;
+        }
+
+        .queue .active {
+          background: #333;
+          color: #FFF;
+        }
+
+      `}</style>
+      {typeof window === 'undefined' || !playback.tracks.length ? null :
+        <div>
+          <div className="progress-container" onClick={this.onProgressClick}>
+            <div className="progress-notch" style={{ transform: `translate(${percentage}px, 0)` }} />
+          </div>
+          <div className="content">
+            <div style={{ width: 300 }}>
+              <pre>{JSON.stringify(playback.activeTrack, null, 2)}</pre>
+            </div>
+            <div className="queue">
+              {playback.tracks.map((track, idx) =>
+                <div key={idx} onClick={() => player.gotoTrack(idx, true) } className={idx === playback.activeTrack.idx ? 'active' : ''}>{track.title}</div>
+              )}
+            </div>
+            <div>
+              {durationToHHMMSS(playback.activeTrack.currentTime)} / {durationToHHMMSS(playback.activeTrack.duration)}
+            </div>
+            <div className="previous" onClick={() => player.playPrevious()}>&lt;</div>
+            <div className="playpause" onClick={() => player.togglePlayPause()}>
+              {playback.activeTrack.isPaused ? 'play' : 'pause'}
+            </div>
+            <div className="next" onClick={() => player.playNext()}>&gt;</div>
+          </div>
+        </div>
       }
-    `}</style>
-    <pre>{JSON.stringify(playback)}</pre>
-    <pre>{JSON.stringify(currentTrack)}</pre>
-    {currentTrack && <ReactAudioPlayer
-      src={currentTrack.mp3_url}
-      autoPlay
-    />}
-  </div>
-)
+      </div>
+    );
+  }
 
-const mapStateToProps = ({ playback, tapes }) => {
-  const showTapes = tapes[playback.artistSlug] && tapes[playback.artistSlug][playback.showDate] ? tapes[playback.artistSlug][playback.showDate] : null
+  onProgressClick = (e) => {
+    const { playback } = this.props;
 
-  if (!showTapes) return { playback }
+    const percentage = e.pageX / window.innerWidth;
 
-  const source = showTapes.data.sources.filter(source => String(source.id) === playback.source)[0]
-
-  if (!source) return { playback }
-
-  let currentTrack;
-
-  source.sets.forEach(set =>
-    currentTrack = set.tracks.filter(track => track.slug === playback.songSlug)[0] || currentTrack
-  )
-
-  if (!currentTrack) return { playback }
-
-  return {
-    playback,
-    currentTrack
+    player.currentTrack.seek(percentage * playback.activeTrack.duration)
   }
 }
+
+const mapStateToProps = ({ playback }) => ({ playback })
 
 export default connect(mapStateToProps)(Player)

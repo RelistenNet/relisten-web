@@ -36,12 +36,11 @@ const Navigation = ({ app }) => (
       }
 
       a {
-        width: 120px;
-        padding: 0 5px;
+        padding: 0 8px;
       }
 
       .artist, .default {
-        padding: 0 5px;
+        padding: 0 8px;
         width: auto;
       }
 
