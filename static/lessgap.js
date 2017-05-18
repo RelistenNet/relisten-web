@@ -124,20 +124,6 @@ class GaplessQueue {
   }
 }
 
-/*
-
-   states:
-
-   audio
-   webaudio
-
-   get rid of fetch, just use <audio /> to source it.
-   https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/createMediaElementSource
-   https://jsfiddle.net/k3op44o5/2/
-
-   may not be possible. try skipping to end of file and missing middle of audio buffer
-
- */
 class GaplessTrack {
   constructor({ trackUrl, queue, idx }) {
     // playback type state
