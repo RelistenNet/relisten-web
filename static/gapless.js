@@ -15,7 +15,7 @@
   const PRELOAD_NUM_TRACKS = 2;
 
   const isBrowser = typeof window !== 'undefined';
-  const audioContext = isBrowser ? new (AudioContext || webkitAudioContext)() : null;
+  const audioContext = isBrowser ? new (window.AudioContext || window.webkitAudioContext)() : null;
 
   const GaplessPlaybackType = {
     HTML5: 'HTML5',
