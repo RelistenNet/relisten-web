@@ -9,7 +9,6 @@ export default ({ children, heading, loading, loadingAmount = 20 }) => (
         flex: 1 1 0;
         word-break: break-word;
         padding: 0 16px;
-        height: 100%;
       }
 
       .heading {
@@ -23,7 +22,7 @@ export default ({ children, heading, loading, loadingAmount = 20 }) => (
       }
 
       .content {
-        height: 100%;
+        flex: 1 1 0;
         overflow-y: auto;
         overflow-x: hidden;
       }
