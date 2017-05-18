@@ -5,7 +5,7 @@ import { initStore } from '../redux'
 
 import Layout from '../layouts'
 
-const About = () => (
+const IOS = () => (
   <Layout>
     <style jsx>{`
       .content {
@@ -13,9 +13,9 @@ const About = () => (
       }
     `}</style>
     <div className="content">
-      about
+      ios
     </div>
   </Layout>
 )
 
-export default withRedux(initStore)(About)
+export default withRedux(initStore)(IOS)

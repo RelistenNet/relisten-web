@@ -32,14 +32,14 @@ const SongsColumn = ({ source, loading, artistSlug, songSlug, activePlaybackSour
         )
        )}
       {source && <RowHeader>End Show</RowHeader>}
-      {artistSlug === 'phish' &&
+      {source && artistSlug === 'phish' &&
         [
-          <a href="http://phish.net" target="_blank" key="net">
+          <a href={`http://phish.net/setlists/?d=${source.display_date}`} target="_blank" key="net">
             <Row>
-              View setlist on Phish.net
+              View on Phish.net
             </Row>
           </a>,
-          <a href="http://phish.in" target="_blank" key="in">
+          <a href={`http://phish.in/${source.display_date}`} target="_blank" key="in">
             <Row>
               View on Phish.in
             </Row>

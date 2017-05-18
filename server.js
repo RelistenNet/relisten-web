@@ -6,6 +6,8 @@ const dev = process.env.NODE_ENV !== 'production'
 const app = next({ dev })
 const handle = app.getRequestHandler()
 
+const { routesRegex } = require('lib/customRoutes')
+
 app.prepare().then(() => {
   createServer((req, res) => {
     // Be sure to pass `true` as the second argument to `url.parse`.
@@ -13,8 +15,8 @@ app.prepare().then(() => {
     const parsedUrl = parse(req.url, true)
     const { pathname, query } = parsedUrl
 
-    // catch about
-    if (/\/about/.test(pathname)) {
+    // catch custom routes
+    if (routesRegex.test(pathname)) {
       return handle(req, res, parsedUrl)
     }
 
