@@ -30,9 +30,9 @@
 
   class Queue {
     constructor(props = {}) {
-      const { tracks = [], onProgress, onEnded, onPlayNextTrack } = props;
+      const { tracks = [], onProgress, onEnded, onPlayNextTrack, onPlayPreviousTrack, onStartNewTrack } = props;
 
-      this.props = { onProgress, onEnded };
+      this.props = { onProgress, onEnded, onPlayNextTrack, onPlayPreviousTrack, onStartNewTrack };
       this.state = { volume: 1, currentTrackIdx: 0 };
 
       this.Track = Track;
@@ -83,6 +83,7 @@
       this.play();
 
       if (this.props.onPlayNextTrack) this.props.onPlayNextTrack(this.currentTrack);
+      if (this.props.onPlayPreviousTrack) this.props.onPlayPreviousTrack(this.currentTrack);
     }
 
     playNext() {
@@ -94,6 +95,7 @@
 
       this.play();
 
+      if (this.props.onStartNewTrack) this.props.onStartNewTrack(this.currentTrack);
       if (this.props.onPlayNextTrack) this.props.onPlayNextTrack(this.currentTrack);
     }
 
@@ -118,6 +120,7 @@
 
       if (playImmediately) {
         this.play();
+        if (this.props.onStartNewTrack) this.props.onStartNewTrack(this.currentTrack);
       }
     }
 
@@ -179,7 +182,6 @@
       // WebAudio
       this.audioContext = audioContext;
       this.gainNode = this.audioContext.createGain();
-      // this.gainNode.connect(this.audioContext.destination);
       this.gainNode.gain.value = queue.state.volume;
       this.webAudioStartedPlayingAt = 0;
       this.webAudioPausedDuration = 0;
@@ -261,6 +263,7 @@
     // public-ish functions
     pause() {
       if (this.isUsingWebAudio) {
+        if (this.bufferSourceNode.playbackRate.value === 0) return;
         this.webAudioPausedAt = this.audioContext.currentTime;
         this.bufferSourceNode.playbackRate.value = 0;
         this.gainNode.disconnect(this.audioContext.destination);
