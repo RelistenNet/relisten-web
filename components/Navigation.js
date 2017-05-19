@@ -51,12 +51,14 @@ const Navigation = ({ app }) => (
 
     `}</style>
     <Link href="/" prefetch><a>Relisten</a></Link>
-    <span>to</span>
-    {bands[app.artistSlug] ?
+    {bands[app.artistSlug] && <span>to</span>}
+    {bands[app.artistSlug] &&
       <Link href="/" as={`/${app.artistSlug}`}>
         <a className="artist">{bands[app.artistSlug].the ? 'the ' : ''}{bands[app.artistSlug].name}</a>
-      </Link> :
-      <span className="default">1,028,334 songs on 60,888 tapes from 102 bands</span>
+      </Link>
+      /*
+      : <span className="default">1,028,334 songs on 60,888 tapes from 102 bands</span>
+      */
     }
     <div className="right">
       <Link href="/about" prefetch><a>About</a></Link>
