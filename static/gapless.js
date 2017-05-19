@@ -179,7 +179,7 @@
       // WebAudio
       this.audioContext = audioContext;
       this.gainNode = this.audioContext.createGain();
-      this.gainNode.connect(this.audioContext.destination);
+      // this.gainNode.connect(this.audioContext.destination);
       this.gainNode.gain.value = queue.state.volume;
       this.webAudioStartedPlayingAt = 0;
       this.webAudioPausedDuration = 0;
@@ -247,6 +247,8 @@
       // happen in the middle of a paused track
       this.bufferSourceNode.playbackRate.value = this.currentTime !== 0 && this.isPaused ? 0 : 1;
 
+      this.connectGainNode();
+
       this.webAudioStartedPlayingAt = this.audioContext.currentTime - this.currentTime;
 
       // slight blip, could be improved
@@ -260,9 +262,8 @@
     pause() {
       if (this.isUsingWebAudio) {
         this.webAudioPausedAt = this.audioContext.currentTime;
-        // TODO: actually destroy and re-open bufferSourceNode on pause/play
-        // because Chrome thinks audio is playing (tab icon) even if playbackRate is 0
         this.bufferSourceNode.playbackRate.value = 0;
+        this.gainNode.disconnect(this.audioContext.destination);
       }
       else {
         this.audio.pause();
@@ -274,6 +275,9 @@
       if (this.audioBuffer) {
         // if we've already set up the buffer just set playbackRate to 1
         if (this.isUsingWebAudio) {
+          this.connectGainNode();
+
+          // set playbackRate to 1
           this.bufferSourceNode.playbackRate.value = 1;
 
           if (this.webAudioPausedAt) {
@@ -321,24 +325,34 @@
       else {
         this.audio.currentTime = to;
       }
+
+      this.onProgress();
     }
 
     seekBufferSourceNode(to) {
+      const wasPaused = this.isPaused;
       this.bufferSourceNode.onended = null;
       this.bufferSourceNode.stop();
 
       this.bufferSourceNode = this.audioContext.createBufferSource();
 
-      this.webAudioStartedPlayingAt = this.audioContext.currentTime - to;
-      this.webAudioPausedDuration = 0;
-
       this.bufferSourceNode.buffer = this.audioBuffer;
       this.bufferSourceNode.connect(this.gainNode);
       this.bufferSourceNode.onended = this.onEnded;
 
+      this.webAudioStartedPlayingAt = this.audioContext.currentTime - to;
+      this.webAudioPausedDuration = 0;
+
       this.bufferSourceNode.start(0, to);
+      if (wasPaused) {
+        this.connectGainNode();
+        this.pause();
+      }
     }
 
+    connectGainNode() {
+      this.gainNode.connect(this.audioContext.destination);
+    }
 
     // basic event handlers
     audioOnError(e) {

@@ -8,7 +8,7 @@ class Player extends Component {
   render() {
     const { playback } = this.props;
 
-    const percentage = typeof window === 'undefined' ? 0 : (playback.activeTrack.currentTime / playback.activeTrack.duration) * window.innerWidth;
+    const notchPosition = typeof window === 'undefined' ? 0 : (playback.activeTrack.currentTime / playback.activeTrack.duration) * window.innerWidth - 2;
 
     return (
       <div className="player">
@@ -16,6 +16,7 @@ class Player extends Component {
         .player {
           height: 200px;
         }
+
         .content {
           display: flex;
           flex-direction: row;
@@ -37,11 +38,12 @@ class Player extends Component {
           height: 100%;
           width: 4px;
           background: #FFF;
+          transition: transform 64ms linear;
         }
 
         .queue {
           width: 200px;
-          max-height: 200px;
+          max-height: 188px;
           display: flex;
           flex-direction: column;
           overflow-y: scroll;
@@ -53,29 +55,36 @@ class Player extends Component {
           color: #FFF;
         }
 
+        .controls {
+          display: flex;
+          justify-content: space-between;
+          width: 5%;
+          font-size: 2em;
+        }
+
       `}</style>
       {typeof window === 'undefined' || !playback.tracks.length ? null :
         <div>
           <div className="progress-container" onClick={this.onProgressClick}>
-            <div className="progress-notch" style={{ transform: `translate(${percentage}px, 0)` }} />
+            <div className="progress-notch" style={{ transform: `translate(${notchPosition}px, 0)` }} />
           </div>
           <div className="content">
-            <div style={{ width: 300 }}>
-              <pre>{JSON.stringify(playback.activeTrack, null, 2)}</pre>
-            </div>
             <div className="queue">
               {playback.tracks.map((track, idx) =>
                 <div key={idx} onClick={() => player.gotoTrack(idx, true) } className={idx === playback.activeTrack.idx ? 'active' : ''}>{track.title}</div>
               )}
             </div>
+            <div className="controls">
+              <i className="fa fa-step-backward" onClick={() => player.playNext()} />
+              <i className={`fa fa-${playback.activeTrack.isPaused ? 'play' : 'pause'}`} onClick={() => player.togglePlayPause()} />
+              <i className="fa fa-step-forward" onClick={() => player.playNext()} />
+            </div>
             <div>
               {durationToHHMMSS(playback.activeTrack.currentTime)} / {durationToHHMMSS(playback.activeTrack.duration)}
             </div>
-            <div className="previous" onClick={() => player.playPrevious()}>&lt;</div>
-            <div className="playpause" onClick={() => player.togglePlayPause()}>
-              {playback.activeTrack.isPaused ? 'play' : 'pause'}
+            <div style={{ width: 300 }}>
+              <pre>{JSON.stringify(playback.activeTrack, null, 2)}</pre>
             </div>
-            <div className="next" onClick={() => player.playNext()}>&gt;</div>
           </div>
         </div>
       }

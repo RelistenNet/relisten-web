@@ -12,7 +12,8 @@ export default class MyDocument extends Document {
     return (
      <html>
        <Head>
-         <style>
+        <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" async />
+        <style>
           {`
             body { margin: 0; font-family: Helvetica, sans-serif; }
             a { text-decoration: none; color: #333; }
