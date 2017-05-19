@@ -6,11 +6,11 @@ import Column from './Column'
 import Row from './Row'
 import RowHeader from './RowHeader'
 
-const ShowsColumn = ({ artistShows, artistSlug, displayDate }) => {
+const ShowsColumn = ({ artistShows, artistSlug, year, displayDate }) => {
   const tours = {}
 
   return (
-    <Column heading="Shows" loading={displayDate && !artistShows ? true : artistShows.meta && artistShows.meta.loading} loadingAmount={12}>
+    <Column heading={artistShows ? year : "Shows"} loading={displayDate && !artistShows ? true : artistShows.meta && artistShows.meta.loading} loadingAmount={12}>
       <style jsx>{`
         .column {
           display: flex;
@@ -54,6 +54,7 @@ const mapStateToProps = ({ shows, app }) => {
 
   return {
     artistShows,
+    year: app.year,
     artistSlug: app.artistSlug,
     displayDate: createShowDate(app.year, app.month, app.day)
   }

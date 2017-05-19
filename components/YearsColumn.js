@@ -2,12 +2,13 @@ import Link from 'next/link'
 import { connect } from 'react-redux'
 
 import { simplePluralize } from '../lib/utils'
+import bands from '../lib/bands'
 
 import Column from './Column';
 import Row from './Row';
 
 const YearsColumn = ({ artistYears, artistSlug, currentYear }) => (
-  <Column heading="Years" loading={artistYears && artistYears.meta && artistYears.meta.loading} loadingAmount={12}>
+  <Column heading={artistYears && bands[artistSlug] ? bands[artistSlug].name : "Years"} loading={artistYears && artistYears.meta && artistYears.meta.loading} loadingAmount={12}>
     {artistYears && artistYears.data && artistYears.data.map(year =>
       <Row key={year.id} href={`/${artistSlug}/${year.year}`} active={year.year === currentYear}>
         <div>

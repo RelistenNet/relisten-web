@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { connect } from 'react-redux'
 
-import { createShowDate, splitShowDate, durationToHHMMSS } from '../lib/utils';
+import { createShowDate, splitShowDate, durationToHHMMSS, removeLeadingZero } from '../lib/utils';
 
 import Column from './Column';
 import Row from './Row';
@@ -11,7 +11,7 @@ const SongsColumn = ({ source, loading, artistSlug, songSlug, activePlaybackSour
   const { year, month, day } = source ? splitShowDate(source.display_date) : {}
 
   return (
-    <Column heading="Songs" loading={loading} loadingAmount={12}>
+    <Column heading={source ? `${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)}` : "Songs"} loading={loading} loadingAmount={12}>
       <style jsx>{`
         .column {
           display: flex;
