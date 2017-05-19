@@ -9,7 +9,7 @@ import { fetchTapes } from '../redux/modules/tapes'
 import { updatePlayback, updatePlaybackTrack } from '../redux/modules/playback'
 
 import { updateApp } from '../redux/modules/app'
-import { createShowDate, getParams } from '../lib/utils'
+import { createShowDate, splitShowDate, getParams } from '../lib/utils'
 import player, { isPlayerMounted, initGaplessPlayer } from '../lib/player'
 import routesRegex from '../lib/customRoutes'
 import '../lib/hotkeys'
@@ -46,7 +46,6 @@ const handleRouteChange = (store, url) => {
   console.log('handleRouteChange', url)
   const dispatches = []
 
-
   const [pathname, params] = url.split('?')
 
   if (routesRegex.test(pathname)) return;
@@ -70,6 +69,10 @@ const handleRouteChange = (store, url) => {
     dispatches.push(store.dispatch(fetchYears(artistSlug)))
   }
 
+  if (artistSlug && !year && !month && !day) {
+    dispatches.push(getRandomShow(artistSlug, store))
+  }
+
   if (artistSlug && year) {
     dispatches.push(store.dispatch(fetchShows(artistSlug, year)))
   }
@@ -81,6 +84,24 @@ const handleRouteChange = (store, url) => {
   if (artistSlug && year && month && day && songSlug) {
     dispatches.push(store.dispatch(updatePlayback({ artistSlug, year, showDate: createShowDate(year, month, day), songSlug, source, paused: false })))
     if (typeof window !== 'undefined') playSong(store)
+  }
+
+  if (pathname === '/') {
+    dispatches.push(
+      new Promise(async (resolve) => {
+        await store.dispatch(fetchArtists())
+        const artists = store.getState().artists
+        if (artists && artists.data.length) {
+          const randomArtist = artists.data[Math.floor(Math.random() * artists.data.length)]
+
+          if (randomArtist) {
+            await getRandomShow(randomArtist.slug, store)
+          }
+        }
+
+        resolve()
+      })
+    )
   }
 
   return dispatches
@@ -109,9 +130,9 @@ if (typeof window !== 'undefined') {
 const playSong = (store) => {
   const { playback, tapes } = store.getState()
   const { artistSlug, showDate, source, songSlug } = playback
-  const activePlaybackSourceId = parseInt(source, 10);
+  const activePlaybackSourceId = parseInt(source, 10)
   const showTapes = tapes[artistSlug] && tapes[artistSlug][showDate] ? tapes[artistSlug][showDate] : null
-  let tape;
+  let tape
 
   console.log('play song', playback, showTapes)
   if (!showTapes) return console.log('err showTapes')
@@ -124,8 +145,8 @@ const playSong = (store) => {
 
   if (!tape) return console.log('err tape')
 
-  let idx = 0;
-  let currentIdx = 0;
+  let idx = 0
+  let currentIdx = 0
   let tracks = []
 
   tape.sets.map((set, setIdx) =>
@@ -152,6 +173,19 @@ const playSong = (store) => {
 
   player.gotoTrack(currentIdx)
   player.play()
+}
+
+const getRandomShow = (artistSlug, store) => {
+  return (
+    fetch(`https://relistenapi.alecgorge.com/api/v2/artists/${artistSlug}/shows/random`)
+      .then(res => res.json())
+      .then(json => {
+        if (!json || !json.data) return;
+
+        const { year, month, day } = splitShowDate(json.data.display_date)
+        return Promise.all(handleRouteChange(store, `/${artistSlug}/${year}/${month}/${day}`))
+      })
+    )
 }
 
 export default withRedux(initStore)(Root)

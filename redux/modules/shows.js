@@ -10,6 +10,7 @@ export default function counter(state = defaultState, action) {
       return {
         ...state,
         [action.artistSlug]: {
+          ...state[action.artistSlug],
           [action.year]: {
             data: {},
             meta: {

@@ -47,7 +47,7 @@ export function receiveArtists(data) {
   }
 }
 
-export function fetchArtists(subreddit) {
+export function fetchArtists() {
   return (dispatch, getState) => {
     if (getState().artists.meta.loaded) return {};
     console.log('fetching artists')

@@ -9,6 +9,7 @@ import RowHeader from './RowHeader';
 
 const SongsColumn = ({ source, loading, artistSlug, songSlug, activePlaybackSourceId }) => {
   const { year, month, day } = source ? splitShowDate(source.display_date) : {}
+
   return (
     <Column heading="Songs" loading={loading} loadingAmount={12}>
       <style jsx>{`
