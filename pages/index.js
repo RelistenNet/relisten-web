@@ -12,6 +12,7 @@ import { updateApp } from '../redux/modules/app'
 import { createShowDate, getParams } from '../lib/utils'
 import player, { isPlayerMounted, initGaplessPlayer } from '../lib/player'
 import routesRegex from '../lib/customRoutes'
+import '../lib/hotkeys'
 
 import Layout from '../layouts'
 
