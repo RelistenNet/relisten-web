@@ -58,6 +58,6 @@ export function fetchYears(artistSlug) {
     dispatch(requestYears(artistSlug))
     return fetch(`https://relistenapi.alecgorge.com/api/v2/artists/${artistSlug}/years`)
       .then(res => res.json())
-      .then(json => dispatch(receiveYears(artistSlug, json.data)))
+      .then(json => dispatch(receiveYears(artistSlug, json)))
   }
 }

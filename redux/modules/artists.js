@@ -54,6 +54,6 @@ export function fetchArtists() {
     dispatch(requestArtists())
     return fetch('https://relistenapi.alecgorge.com/api/v2/artists')
       .then(res => res.json())
-      .then(json => dispatch(receiveArtists(json.data)))
+      .then(json => dispatch(receiveArtists(json)))
   }
 }

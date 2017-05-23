@@ -72,6 +72,6 @@ export function fetchTapes(artistSlug, year, showDate) {
 
     return fetch(`https://relistenapi.alecgorge.com/api/v2/artists/${artistSlug}/years/${year}/${showDate}`)
       .then(res => res.json())
-      .then(json => dispatch(receiveTapes(artistSlug, year, showDate, json.data)))
+      .then(json => dispatch(receiveTapes(artistSlug, year, showDate, json)))
   }
 }

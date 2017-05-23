@@ -66,6 +66,6 @@ export function fetchShows(artistSlug, year) {
     dispatch(requestShows(artistSlug, year))
     return fetch(`https://relistenapi.alecgorge.com/api/v2/artists/${artistSlug}/years/${year}`)
       .then(res => res.json())
-      .then(json => dispatch(receiveShows(artistSlug, year, json.data)))
+      .then(json => dispatch(receiveShows(artistSlug, year, json)))
   }
 }
