@@ -91,7 +91,7 @@ const handleRouteChange = (store, url) => {
       new Promise(async (resolve) => {
         await store.dispatch(fetchArtists())
         const artists = store.getState().artists
-        if (artists && artists.data.length) {
+        if (artists && artists.data && artists.data.length) {
           const randomArtist = artists.data[Math.floor(Math.random() * artists.data.length)]
 
           if (randomArtist) {

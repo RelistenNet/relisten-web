@@ -4,7 +4,7 @@
   var root = (typeof self == 'object' && self.self === self && self) ||
             (typeof global == 'object' && global.global === global && global);
 
-  // Node.js or CommonJS
+  // Node.js, CommonJS, or ES6
   if (typeof module === "object" && typeof module.exports === "object") {
     module.exports = factory(root, exports);
   // Finally, as a browser global.
@@ -278,6 +278,7 @@
       if (this.audioBuffer) {
         // if we've already set up the buffer just set playbackRate to 1
         if (this.isUsingWebAudio) {
+          if (this.bufferSourceNode.playbackRate.value === 1) return;
           this.connectGainNode();
 
           // set playbackRate to 1

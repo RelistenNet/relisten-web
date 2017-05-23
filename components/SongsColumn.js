@@ -33,19 +33,14 @@ const SongsColumn = ({ source, loading, artistSlug, songSlug, activePlaybackSour
         )
        )}
       {source && <RowHeader>End Show</RowHeader>}
-      {source && artistSlug === 'phish' &&
-        [
-          <a href={`http://phish.net/setlists/?d=${source.display_date}`} target="_blank" key="net">
+      {source && source.links &&
+        source.links.map(link =>
+          <a href={link.url} target="_blank" key={link.id}>
             <Row>
-              View on Phish.net
-            </Row>
-          </a>,
-          <a href={`http://phish.in/${source.display_date}`} target="_blank" key="in">
-            <Row>
-              View on Phish.in
+              {link.label}
             </Row>
           </a>
-        ]
+        )
       }
     </Column>
   )
