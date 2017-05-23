@@ -180,9 +180,9 @@ const getRandomShow = (artistSlug, store) => {
     fetch(`https://relistenapi.alecgorge.com/api/v2/artists/${artistSlug}/shows/random`)
       .then(res => res.json())
       .then(json => {
-        if (!json || !json.data) return;
+        if (!json) return;
 
-        const { year, month, day } = splitShowDate(json.data.display_date)
+        const { year, month, day } = splitShowDate(json.display_date)
         return Promise.all(handleRouteChange(store, `/${artistSlug}/${year}/${month}/${day}`))
       })
     )

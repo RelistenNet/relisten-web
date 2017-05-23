@@ -10,7 +10,7 @@ const ShowsColumn = ({ artistShows, artistSlug, year, displayDate }) => {
   const tours = {}
 
   return (
-    <Column heading={artistShows ? year : "Shows"} loading={displayDate && !artistShows ? true : artistShows.meta && artistShows.meta.loading} loadingAmount={12}>
+    <Column heading={year ? year : "Shows"} loading={displayDate && !artistShows ? true : artistShows.meta && artistShows.meta.loading} loadingAmount={12}>
       <style jsx>{`
         .column {
           display: flex;
