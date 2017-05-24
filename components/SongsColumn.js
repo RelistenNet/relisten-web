@@ -25,7 +25,7 @@ const SongsColumn = ({ source, loading, artistSlug, songSlug, activePlaybackSour
             <Row key={track.id} active={track.slug === songSlug && source.id === activePlaybackSourceId} href={`/${artistSlug}/${year}/${month}/${day}/${track.slug}?source=${source.id}`}>
               <div>
                 <div>{track.title}</div>
-                <div className="subtext">{durationToHHMMSS(track.duration)}</div>
+                {track.duration && <div className="subtext">{durationToHHMMSS(track.duration)}</div>}
               </div>
               <div></div>
             </Row>

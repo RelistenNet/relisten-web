@@ -2,8 +2,8 @@ import Link from 'next/link'
 
 import RowLoading from './RowLoading'
 
-export default ({ height, children, href, active, loading }) => (
-  <div className="row" style={{ minHeight: height }}>
+export default ({ height, children, href, active, loading, ...props }) => (
+  <div className="row" style={{ minHeight: height }} {...props}>
     <style jsx>{`
       .row {
         min-height: 34px;
@@ -21,10 +21,15 @@ export default ({ height, children, href, active, loading }) => (
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
+        position: relative;
       }
 
-      .row > :global(.content).active {
+      .row > :global(.content).active:after {
+        content: "";
+        width: 8px;
+        height: 100%;
         background: #333;
+        position: absolute;
       }
 
       .row > :global(.content) > :global(div) {
@@ -40,20 +45,16 @@ export default ({ height, children, href, active, loading }) => (
         font-size: 0.7em;
       }
 
+      .row > :global(.content).active > :global(div:nth-child(1)) {
+        padding-left: 12px;
+      }
+
       .row > :global(.content) > :global(div:nth-child(2)) {
         text-align: right;
       }
 
-      .row > :global(.content).active :global(div) {
-        color: #FFF;
-      }
-
-      .row > :global(.content).active :global(.label) {
-        color: #EEE;
-      }
-
     `}</style>
     {loading && <RowLoading />}
-    {href ? <Link href="/" as={href}><a className={`${active ? 'active' : ''} content`}>{children}</a></Link> : children ? <div className="content">{children}</div> : null}
+    {href ? <Link href="/" as={href}><a className={`${active ? 'active' : ''} content`}>{children}</a></Link> : children ? <div className={`content ${active ? 'active' : ''}`}>{children}</div> : null}
   </div>
 )

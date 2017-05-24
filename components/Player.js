@@ -4,9 +4,11 @@ import { connect } from 'react-redux'
 import { createShowDate, durationToHHMMSS } from '../lib/utils'
 import player from '../lib/player'
 
+import Queue from './Queue'
+
 class Player extends Component {
   render() {
-    const { playback } = this.props;
+    const { playback, tapes } = this.props;
 
     const notchPosition = typeof window === 'undefined' ? 0 : (playback.activeTrack.currentTime / playback.activeTrack.duration) * window.innerWidth - 2;
 
@@ -41,20 +43,6 @@ class Player extends Component {
           transition: transform 64ms linear;
         }
 
-        .queue {
-          width: 200px;
-          max-height: 188px;
-          display: flex;
-          flex-direction: column;
-          overflow-y: scroll;
-          cursor: pointer;
-        }
-
-        .queue .active {
-          background: #333;
-          color: #FFF;
-        }
-
         .controls {
           display: flex;
           justify-content: space-between;
@@ -69,11 +57,7 @@ class Player extends Component {
             <div className="progress-notch" style={{ transform: `translate(${notchPosition}px, 0)` }} />
           </div>
           <div className="content">
-            <div className="queue">
-              {playback.tracks.map((track, idx) =>
-                <div key={idx} onClick={() => player.gotoTrack(idx, true) } className={idx === playback.activeTrack.idx ? 'active' : ''}>{track.title}</div>
-              )}
-            </div>
+            <Queue playback={playback} tapes={tapes} />
             <div className="controls">
               <i className="fa fa-step-backward" onClick={() => player.playNext()} />
               <i className={`fa fa-${playback.activeTrack.isPaused ? 'play' : 'pause'}`} onClick={() => player.togglePlayPause()} />
@@ -101,6 +85,6 @@ class Player extends Component {
   }
 }
 
-const mapStateToProps = ({ playback }) => ({ playback })
+const mapStateToProps = ({ playback, tapes }) => ({ playback, tapes })
 
 export default connect(mapStateToProps)(Player)
