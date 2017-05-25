@@ -16,6 +16,12 @@ const ShowsColumn = ({ artistShows, artistSlug, year, displayDate }) => {
           display: flex;
           flex: 1;
         }
+
+        .tag {
+          border-radius: 4px;
+          background: green;
+          padding: 1px 2px;
+        }
       `}</style>
       {artistShows.data && artistShows.data.shows && artistShows.data.shows.map(show => {
         const { year, month, day } = splitShowDate(show.display_date)
@@ -34,7 +40,7 @@ const ShowsColumn = ({ artistShows, artistSlug, year, displayDate }) => {
             {tourName && <RowHeader>{tourName}</RowHeader>}
             <Row href={`/${artistSlug}/${year}/${month}/${day}`} active={displayDate === show.display_date} height={44}>
               <div>
-                <div>{removeLeadingZero(month)}/{day}</div>
+                <div>{removeLeadingZero(month)}/{day} {show.has_soundboard_source && <div className="tag">SBD</div>}</div>
                 {venue && <div className="subtext"><div>{venue.name}</div><div>{venue.location}</div></div>}
               </div>
               <div>
