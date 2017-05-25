@@ -1,7 +1,7 @@
 import { Component } from 'react'
 import Router from 'next/router'
 
-import { splitShowDate } from '../lib/utils'
+import { splitShowDate, durationToHHMMSS } from '../lib/utils'
 import bands from '../lib/bands'
 import player from '../lib/player'
 
@@ -54,7 +54,10 @@ export default class Queue extends Component {
               active={idx === playback.activeTrack.idx}
               data-idx={idx}
               key={idx}>
-              <div>{track.title}</div>
+              <div>
+                <div>{track.title}</div>
+                <div>{durationToHHMMSS(track.duration)}</div>
+              </div>
               <div onClick={this.goToShow}>
                 {band && <div>{band.name}</div>}
                 {tape && <div>{tape.data.display_date}</div>}
