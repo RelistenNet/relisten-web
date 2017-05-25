@@ -18,6 +18,9 @@ const ShowsColumn = ({ artistShows, artistSlug, year, displayDate }) => {
         }
 
         .tag {
+          color: #FFF;
+          font-weight: bold;
+          font-size: 0.8em;
           border-radius: 4px;
           background: green;
           padding: 1px 2px;
@@ -40,7 +43,7 @@ const ShowsColumn = ({ artistShows, artistSlug, year, displayDate }) => {
             {tourName && <RowHeader>{tourName}</RowHeader>}
             <Row href={`/${artistSlug}/${year}/${month}/${day}`} active={displayDate === show.display_date} height={44}>
               <div>
-                <div>{removeLeadingZero(month)}/{day} {show.has_soundboard_source && <div className="tag">SBD</div>}</div>
+                <div>{removeLeadingZero(month)}/{day} {show.has_soundboard_source && <span className="tag">SBD</span>}</div>
                 {venue && <div className="subtext"><div>{venue.name}</div><div>{venue.location}</div></div>}
               </div>
               <div>
