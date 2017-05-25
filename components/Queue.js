@@ -56,7 +56,7 @@ export default class Queue extends Component {
               key={idx}>
               <div>
                 <div>{track.title}</div>
-                <div>{durationToHHMMSS(track.duration)}</div>
+                <div className="subtext">{durationToHHMMSS(track.duration)}</div>
               </div>
               <div onClick={this.goToShow}>
                 {band && <div>{band.name}</div>}
