@@ -30,6 +30,8 @@ export default ({ height, children, href, active, loading, ...props }) => (
         height: 100%;
         background: #333;
         position: absolute;
+        left: 0;
+        top: 0;
       }
 
       .row > :global(.content) > :global(div) {
