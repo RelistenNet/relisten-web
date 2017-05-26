@@ -125,7 +125,6 @@
     }
 
     loadTrack(idx, loadHTML5) {
-      console.log(idx, loadHTML5, this)
       // only preload if song is within the next 2
       if (this.state.currentTrackIdx + PRELOAD_NUM_TRACKS <= idx) return;
       const track = this.tracks[idx];
@@ -279,14 +278,18 @@
         // if we've already set up the buffer just set playbackRate to 1
         if (this.isUsingWebAudio) {
           if (this.bufferSourceNode.playbackRate.value === 1) return;
-          this.connectGainNode();
-
-          // set playbackRate to 1
-          this.bufferSourceNode.playbackRate.value = 1;
 
           if (this.webAudioPausedAt) {
             this.webAudioPausedDuration += this.audioContext.currentTime - this.webAudioPausedAt;
           }
+
+          // use seek to avoid bug where track wouldn't play properly
+          // if paused for longer than length of track
+          // TODO: fix bug -- must be related to bufferSourceNode
+          this.seek(this.currentTime);
+          // was paused, now force play
+          this.connectGainNode();
+          this.bufferSourceNode.playbackRate.value = 1;
 
           this.webAudioPausedAt = 0;
         }

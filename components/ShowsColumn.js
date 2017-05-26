@@ -5,6 +5,7 @@ import { splitShowDate, createShowDate, removeLeadingZero, durationToHHMMSS, sim
 import Column from './Column'
 import Row from './Row'
 import RowHeader from './RowHeader'
+import Tag from './Tag'
 
 const ShowsColumn = ({ artistShows, artistSlug, year, displayDate }) => {
   const tours = {}
@@ -12,18 +13,8 @@ const ShowsColumn = ({ artistShows, artistSlug, year, displayDate }) => {
   return (
     <Column heading={year ? year : "Shows"} loading={displayDate && !artistShows ? true : artistShows.meta && artistShows.meta.loading} loadingAmount={12}>
       <style jsx>{`
-        .column {
+        .main {
           display: flex;
-          flex: 1;
-        }
-
-        .tag {
-          color: #FFF;
-          font-weight: bold;
-          font-size: 0.8em;
-          border-radius: 4px;
-          background: green;
-          padding: 1px 2px;
         }
       `}</style>
       {artistShows.data && artistShows.data.shows && artistShows.data.shows.map(show => {
@@ -41,9 +32,12 @@ const ShowsColumn = ({ artistShows, artistSlug, year, displayDate }) => {
         return (
           <div key={show.id}>
             {tourName && <RowHeader>{tourName}</RowHeader>}
-            <Row href={`/${artistSlug}/${year}/${month}/${day}`} active={displayDate === show.display_date} height={44}>
+            <Row href={`/${artistSlug}/${year}/${month}/${day}`} active={displayDate === show.display_date} height={48}>
               <div>
-                <div>{removeLeadingZero(month)}/{day} {show.has_soundboard_source && <span className="tag">SBD</span>}</div>
+                <div className="main">
+                  {removeLeadingZero(month)}/{day}
+                  {show.has_soundboard_source && <Tag>SBD</Tag>}
+                </div>
                 {venue && <div className="subtext"><div>{venue.name}</div><div>{venue.location}</div></div>}
               </div>
               <div>

@@ -6,6 +6,7 @@ import { createShowDate, splitShowDate, durationToHHMMSS } from '../lib/utils'
 import Column from './Column'
 import Row from './Row'
 import RowHeader from './RowHeader'
+import Tag from './Tag'
 
 const exists = (str) => {
   return str && !/unknown/i.test(str)
@@ -28,6 +29,16 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }) => {
         .details > .label {
           color: #696969;
           min-width: 48px;
+          padding-right: 9px;
+        }
+
+        .main {
+          display: flex;
+          margin-bottom: 4px;
+        }
+
+        .duration {
+          min-width: 53px;
         }
       `}</style>
       {sources && sources.map((source, idx) =>
@@ -37,10 +48,12 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }) => {
           </RowHeader>
           <Row href={`/${artistSlug}/${year}/${month}/${day}?source=${source.id}`} active={(source.id === activeSourceId) || (!activeSourceId && idx === 0)}>
             <div>
-              <div>{durationToHHMMSS(source.duration)}</div>
+              <div className="main"><div className="duration">{durationToHHMMSS(source.duration)}</div> {source.is_soundboard && <Tag>SBD</Tag>} {source.flac_type !== 'NoFlac' && <Tag>FLAC</Tag>}</div>
               {exists(source.taper) && <div className="details"><div className="label">Taper:</div> <div>{source.taper}</div></div>}
+              {exists(source.avg_rating > 0) && <div className="details"><div className="label">{artistSlug === 'phish' ? 'Dot Net' : 'Rating'}:</div> <div>{Number(source.avg_rating).toFixed(2)}</div></div>}
               {exists(source.source) && <div className="details"><div className="label">Source:</div> <div>{source.source}</div></div>}
               {exists(source.lineage) && <div className="details"><div className="label">Lineage:</div> <div>{source.lineage}</div></div>}
+              {exists(source.taper_notes) && <div className="details"><div className="label">Notes:</div> <div>{source.taper_notes}</div></div>}
             </div>
           </Row>
         </div>
