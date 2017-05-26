@@ -124,6 +124,12 @@ Router.onRouteChangeStart = (url) => {
 if (typeof window !== 'undefined') {
   setTimeout(() => {
     playSong(window.store)
+      const paramsObj = getParams(window.location.search)
+      if (paramsObj.t) {
+        const [min, sec] = paramsObj.t.split('m')
+
+        player.currentTrack && player.currentTrack.seek(parseInt(min, 10) * 60 + parseInt(sec, 10))
+      }
   }, 0)
 }
 
