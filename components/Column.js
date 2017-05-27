@@ -11,6 +11,14 @@ export default ({ children, heading, loading, loadingAmount = 20 }) => (
         padding: 0 16px;
       }
 
+      @media only screen
+        and (max-device-width: 736px)
+        and (-webkit-min-device-pixel-ratio: 2) {
+          .column {
+            padding: 0;
+          }
+      }
+
       .heading {
         background: #279BBC;
         min-height: 32px;

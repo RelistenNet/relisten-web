@@ -30,9 +30,24 @@
 
   class Queue {
     constructor(props = {}) {
-      const { tracks = [], onProgress, onEnded, onPlayNextTrack, onPlayPreviousTrack, onStartNewTrack } = props;
+      const {
+        tracks = [],
+        onProgress,
+        onEnded,
+        onPlayNextTrack,
+        onPlayPreviousTrack,
+        onStartNewTrack,
+        disableWebAudio = false
+      } = props;
 
-      this.props = { onProgress, onEnded, onPlayNextTrack, onPlayPreviousTrack, onStartNewTrack };
+      this.props = {
+        onProgress,
+        onEnded,
+        onPlayNextTrack,
+        onPlayPreviousTrack,
+        onStartNewTrack,
+        disableWebAudio
+      };
       this.state = { volume: 1, currentTrackIdx: 0 };
 
       this.Track = Track;
@@ -178,6 +193,8 @@
       this.audio.src = trackUrl;
       // this.audio.onprogress = () => this.debug(this.idx, this.audio.buffered)
 
+      if (queue.props.disableWebAudio) return;
+
       // WebAudio
       this.audioContext = audioContext;
       this.gainNode = this.audioContext.createGain();
@@ -306,7 +323,7 @@
       else {
         this.audio.preload = 'auto';
         this.audio.play();
-        this.loadHEAD(() => this.loadBuffer());
+        if (!this.queue.props.disableWebAudio) this.loadHEAD(() => this.loadBuffer());
       }
 
       this.onProgress();
@@ -321,8 +338,8 @@
       if (HTML5 && this.audio.preload !== 'auto') {
         this.audio.preload = 'auto';
       }
-      else if (!this.audioBuffer) {
-        this.loadBuffer();
+      else if (!this.audioBuffer && !this.queue.props.disableWebAudio) {
+        this.loadHEAD(() => this.loadBuffer());
       }
     }
 
