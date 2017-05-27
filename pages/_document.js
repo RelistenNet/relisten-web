@@ -18,12 +18,6 @@ export default class MyDocument extends Document {
             {`
               body { margin: 0; font-family: Helvetica, sans-serif; }
               a { text-decoration: none; color: #333; }
-              @media only screen
-                and (max-device-width: 736px)
-                and (-webkit-min-device-pixel-ratio: 2) {
-
-                .page-container { font-size: 1.4em; }
-              }
             `}
           </style>
           <title>Relisten</title>
