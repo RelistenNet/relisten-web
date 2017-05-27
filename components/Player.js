@@ -21,7 +21,7 @@ class Player extends Component {
       <div>
         <style jsx>{`
           .player {
-            height: 200px;
+            height: 25vh;
           }
 
           .content {

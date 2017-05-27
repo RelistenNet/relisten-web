@@ -28,8 +28,8 @@ export default class Queue extends Component {
         <style jsx>{`
           .queue {
             width: 33%;
-            max-height: 188px;
             display: flex;
+            max-height: calc(25vh - 12px);
             flex-direction: column;
             overflow-y: scroll;
             cursor: pointer;
