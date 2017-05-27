@@ -48,8 +48,15 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }) => {
           </RowHeader>
           <Row href={`/${artistSlug}/${year}/${month}/${day}?source=${source.id}`} active={(source.id === activeSourceId) || (!activeSourceId && idx === 0)}>
             <div>
-              <div className="main"><div className="duration">{durationToHHMMSS(source.duration)}</div> {source.is_soundboard && <Tag>SBD</Tag>} {source.flac_type !== 'NoFlac' && <Tag>FLAC</Tag>}</div>
+              <div className="main">
+                <div className="duration">
+                {durationToHHMMSS(source.duration)}</div>
+                {source.is_soundboard && <Tag>SBD</Tag>}
+                {source.flac_type !== 'NoFlac' && <Tag>FLAC</Tag>}
+                {source.is_remaster && <Tag>REMASTER</Tag>}
+              </div>
               {exists(source.taper) && <div className="details"><div className="label">Taper:</div> <div>{source.taper}</div></div>}
+              {exists(source.transferer) && <div className="details"><div className="label">Transferer:</div> <div>{source.transferer}</div></div>}
               {exists(source.avg_rating > 0) && <div className="details"><div className="label">{artistSlug === 'phish' ? 'Dot Net' : 'Rating'}:</div> <div>{Number(source.avg_rating).toFixed(2)}</div></div>}
               {exists(source.source) && <div className="details"><div className="label">Source:</div> <div>{source.source}</div></div>}
               {exists(source.lineage) && <div className="details"><div className="label">Lineage:</div> <div>{source.lineage}</div></div>}

@@ -1,5 +1,7 @@
+import React from 'react'
 import withRedux from 'next-redux-wrapper'
 import Router from 'next/router'
+import { Helmet } from 'react-helmet'
 
 import { initStore } from '../redux'
 import { fetchArtists } from '../redux/modules/artists'
@@ -8,8 +10,9 @@ import { fetchShows } from '../redux/modules/shows'
 import { fetchTapes } from '../redux/modules/tapes'
 import { updatePlayback, updatePlaybackTrack } from '../redux/modules/playback'
 
+import bands from '../lib/bands'
 import { updateApp } from '../redux/modules/app'
-import { createShowDate, splitShowDate, getParams } from '../lib/utils'
+import { createShowDate, splitShowDate, getParams, removeLeadingZero } from '../lib/utils'
 import player, { isPlayerMounted, initGaplessPlayer } from '../lib/player'
 import routesRegex from '../lib/customRoutes'
 import '../lib/hotkeys'
@@ -23,27 +26,58 @@ import ShowsColumn from '../components/ShowsColumn'
 import TapesColumn from '../components/TapesColumn'
 import SongsColumn from '../components/SongsColumn'
 
-const Root = ({ app }) => (
-  <Layout>
-    <style jsx>{`
-      .content {
-        flex: 1;
-        display: flex;
-        flex-direction: row;
-      }
-    `}</style>
-    <div className="content">
-      <ArtistsColumn />
-      <YearsColumn />
-      <ShowsColumn />
-      <SongsColumn />
-      <TapesColumn />
-    </div>
-  </Layout>
-)
+const Root = ({ app = {}, playback, url }) => {
+  let title = false;
+
+  if (!url) url = window.location.pathname
+
+  const [artistSlug, year, month, day, songSlug] = url.replace(/^\//, '').split('/')
+  const bandTitle = bands[artistSlug] ? bands[artistSlug].name : '';
+
+  if (artistSlug && year && month && day && songSlug) {
+    // TODO: hook up actual title (this doesn't work on the server since playback.tracks hasn't been added yet)
+    const track = playback.tracks.find(track => track.slug === songSlug)
+    title = track ? `${track.title} ${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)} ${bandTitle}` : ''
+  }
+
+  else if (artistSlug && year && month && day) {
+    title = `${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)} ${bandTitle}`
+  }
+
+  else if (artistSlug && year) {
+    title = `${year} ${bandTitle}`
+  }
+
+  else if (artistSlug) {
+    title = bandTitle
+  }
+
+  return (
+    <Layout>
+      <style jsx>{`
+        .content {
+          flex: 1;
+          display: flex;
+          flex-direction: row;
+        }
+      `}</style>
+      <div className="content">
+        {title &&
+          <Helmet>
+            <title>{title}</title>
+          </Helmet>
+        }
+        <ArtistsColumn />
+        <YearsColumn />
+        <ShowsColumn />
+        <SongsColumn />
+        <TapesColumn />
+      </div>
+    </Layout>
+  );
+}
 
 const handleRouteChange = (store, url) => {
-  console.log('handleRouteChange', url)
   const dispatches = []
 
   const [pathname, params] = url.split('?')
@@ -69,6 +103,7 @@ const handleRouteChange = (store, url) => {
     dispatches.push(store.dispatch(fetchYears(artistSlug)))
   }
 
+  // just artist slug, get random show
   if (artistSlug && !year && !month && !day) {
     dispatches.push(getRandomShow(artistSlug, store))
   }
@@ -114,7 +149,9 @@ Root.getInitialProps = async ({ req, store }) => {
 
   await Promise.all(dispatches)
 
-  return {}
+  const { app, playback } = store.getState()
+
+  return { app, playback, url: req ? req.url : null }
 }
 
 Router.onRouteChangeStart = (url) => {

@@ -47,7 +47,6 @@ export default class Queue extends Component {
           }
         `}</style>
         {playback.tracks.map((track, idx) => {
-
           return (
             <Row
               onClick={() => player.gotoTrack(idx, true)}
