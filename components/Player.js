@@ -78,9 +78,9 @@ class Player extends Component {
               <div>
                 {durationToHHMMSS(playback.activeTrack.currentTime)} / {durationToHHMMSS(playback.activeTrack.duration)}
               </div>
-              <div style={{ width: 300 }}>
+              {process.env.NODE_ENV === 'development' && <div style={{ width: 300 }}>
                 <pre>{JSON.stringify(playback.activeTrack, null, 2)}</pre>
-              </div>
+              </div>}
             </div>
           </div>
         }
