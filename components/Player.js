@@ -61,7 +61,7 @@ class Player extends Component {
 
         `}</style>
         {activeTrack && <Head>
-          <title>{`${activeTrack.title} ${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)} ${bandTitle}`} | Relisten</title>
+          <title>{`${playback.activeTrack.isPaused ? '❚❚' : '▶'} ${activeTrack.title} ${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)} ${bandTitle}`} | Relisten</title>
         </Head>}
         {typeof window === 'undefined' || !playback.tracks.length ? null :
           <div className="player">
