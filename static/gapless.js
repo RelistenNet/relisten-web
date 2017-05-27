@@ -201,8 +201,6 @@
       this.audio.src = trackUrl;
       // this.audio.onprogress = () => this.debug(this.idx, this.audio.buffered)
 
-      console.log('web audio is disableWebAudio', queue.state.webAudioIsDisabled);
-
       if (queue.state.webAudioIsDisabled) return;
 
       // WebAudio
