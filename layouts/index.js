@@ -1,13 +1,8 @@
-import { Helmet } from 'react-helmet'
 import Navigation from '../components/Navigation'
 import Player from '../components/Player'
 
 export default ({ children, ...props }) => (
   <div {...props} className="layout">
-    <Helmet
-      titleTemplate="%s | Relisten"
-      defaultTitle="Relisten"
-    />
     <style jsx>{`
       .layout {
         display: flex;

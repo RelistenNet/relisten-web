@@ -12,7 +12,7 @@ export default class Queue extends Component {
     const { playback } = this.props;
 
     if (playback.activeTrack.idx !== nextProps.playback.activeTrack.idx && this.queue) {
-      const nextTrack = this.queue.querySelector(`[data-idx="${nextProps.playback.activeTrack.idx}"`)
+      const nextTrack = this.queue.querySelector(`[data-idx="${nextProps.playback.activeTrack.idx}"]`)
       if (nextTrack) this.scrollToPos(this.queue, nextTrack.offsetTop - this.queue.offsetTop - 16, 600)
     }
   }

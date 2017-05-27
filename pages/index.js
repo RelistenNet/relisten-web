@@ -1,7 +1,7 @@
 import React from 'react'
 import withRedux from 'next-redux-wrapper'
 import Router from 'next/router'
-import { Helmet } from 'react-helmet'
+import Head from 'next/head'
 
 import { initStore } from '../redux'
 import { fetchArtists } from '../redux/modules/artists'
@@ -62,10 +62,10 @@ const Root = ({ app = {}, playback, url }) => {
         }
       `}</style>
       <div className="content">
-        {title &&
-          <Helmet>
-            <title>{title}</title>
-          </Helmet>
+        {title && (!player || !player.tracks.length) &&
+          <Head>
+            <title>{title} | Relisten</title>
+          </Head>
         }
         <ArtistsColumn />
         <YearsColumn />

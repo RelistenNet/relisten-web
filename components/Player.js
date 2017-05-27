@@ -1,6 +1,6 @@
 import { Component } from 'react'
 import { connect } from 'react-redux'
-import { Helmet } from 'react-helmet'
+import Head from 'next/head'
 
 import bands from '../lib/bands'
 import { createShowDate, durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils'
@@ -15,10 +15,10 @@ class Player extends Component {
     const { year, month, day } = splitShowDate(playback.showDate)
     const bandTitle = bands[playback.artistSlug] ? bands[playback.artistSlug].name : ''
     const activeTrack = playback.tracks.find((track, idx) => idx === playback.activeTrack.idx);
-    const notchPosition = typeof window === 'undefined' ? 0 : (playback.activeTrack.currentTime / playback.activeTrack.duration) * window.innerWidth - 2;
+    const notchPosition = typeof window === 'undefined' ? 0 : (playback.activeTrack.currentTime / playback.activeTrack.duration) * window.innerWidth - 4;
 
     return (
-      <div className="player">
+      <div>
         <style jsx>{`
           .player {
             height: 200px;
@@ -34,18 +34,22 @@ class Player extends Component {
           .progress-container {
             width: 100%;
             height: 12px;
-            background: #777;
+            background: #444;
             position: relative;
+            cursor: pointer;
           }
 
           .progress-notch {
             position: absolute;
-            top: 0;
+            top: -3px;
             left: 0;
             height: 100%;
-            width: 4px;
+            width: 8px;
+            height: 16px;
+            border: 1px solid #333;
             background: #FFF;
             transition: transform 64ms linear;
+            z-index: 1;
           }
 
           .controls {
@@ -56,12 +60,12 @@ class Player extends Component {
           }
 
         `}</style>
-        {activeTrack && <Helmet>
-          <title>{`${activeTrack.title} ${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)} ${bandTitle}`}</title>
-        </Helmet>}
+        {activeTrack && <Head>
+          <title>{`${activeTrack.title} ${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)} ${bandTitle}`} | Relisten</title>
+        </Head>}
         {typeof window === 'undefined' || !playback.tracks.length ? null :
-          <div>
-            <div className="progress-container" onClick={this.onProgressClick}>
+          <div className="player">
+            <div className="progress-container" onClick={this.onProgressClick} style={{ opacity: playback.activeTrack.currentTime < 0.1 ? 0.8 : null }}>
               <div className="progress-notch" style={{ transform: `translate(${notchPosition}px, 0)` }} />
             </div>
             <div className="content">
