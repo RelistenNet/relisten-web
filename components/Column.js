@@ -21,14 +21,15 @@ export default ({ children, heading, loading, loadingAmount = 20 }) => (
         justify-content: center;
       }
 
-      .content {
+      .column-content {
         flex: 1 1 0;
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
         overflow-x: hidden;
       }
     `}</style>
     {heading && <div className="heading">{heading}</div>}
     {loading && new Array(loadingAmount).fill(null).map((i, idx) => <Row key={idx} loading />)}
-    <div className="content">{children}</div>
+    <div className="column-content">{children}</div>
   </div>
 )

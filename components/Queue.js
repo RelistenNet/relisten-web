@@ -32,6 +32,7 @@ export default class Queue extends Component {
             max-height: calc(25vh - 12px);
             flex-direction: column;
             overflow-y: scroll;
+            -webkit-overflow-scrolling: touch;
             cursor: pointer;
             transition: scroll
           }
