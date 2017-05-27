@@ -37,7 +37,7 @@
         onPlayNextTrack,
         onPlayPreviousTrack,
         onStartNewTrack,
-        disableWebAudio = false
+        webAudioIsDisabled = false
       } = props;
 
       this.props = {
@@ -45,10 +45,14 @@
         onEnded,
         onPlayNextTrack,
         onPlayPreviousTrack,
-        onStartNewTrack,
-        disableWebAudio
+        onStartNewTrack
       };
-      this.state = { volume: 1, currentTrackIdx: 0 };
+
+      this.state = {
+        volume: 1,
+        currentTrackIdx: 0,
+        webAudioIsDisabled
+      };
 
       this.Track = Track;
 
@@ -166,6 +170,10 @@
     get nextTrack() {
       return this.tracks[this.state.currentTrackIdx + 1];
     }
+
+    disableWebAudio() {
+      this.state.webAudioIsDisabled = true;
+    }
   }
 
   class Track {
@@ -193,7 +201,9 @@
       this.audio.src = trackUrl;
       // this.audio.onprogress = () => this.debug(this.idx, this.audio.buffered)
 
-      if (queue.props.disableWebAudio) return;
+      console.log('web audio is disableWebAudio', queue.state.webAudioIsDisabled);
+
+      if (queue.state.webAudioIsDisabled) return;
 
       // WebAudio
       this.audioContext = audioContext;
@@ -323,7 +333,7 @@
       else {
         this.audio.preload = 'auto';
         this.audio.play();
-        if (!this.queue.props.disableWebAudio) this.loadHEAD(() => this.loadBuffer());
+        if (!this.queue.state.webAudioIsDisabled) this.loadHEAD(() => this.loadBuffer());
       }
 
       this.onProgress();
@@ -338,7 +348,7 @@
       if (HTML5 && this.audio.preload !== 'auto') {
         this.audio.preload = 'auto';
       }
-      else if (!this.audioBuffer && !this.queue.props.disableWebAudio) {
+      else if (!this.audioBuffer && !this.queue.state.webAudioIsDisabled) {
         this.loadHEAD(() => this.loadBuffer());
       }
     }

@@ -17,6 +17,10 @@ export default ({ children, heading, loading, loadingAmount = 20 }) => (
           .column {
             padding: 0;
           }
+
+          .column-content {
+            padding-left: 8px;
+          }
       }
 
       .heading {
@@ -37,7 +41,6 @@ export default ({ children, heading, loading, loadingAmount = 20 }) => (
       }
     `}</style>
     {heading && <div className="heading">{heading}</div>}
-    {loading && new Array(loadingAmount).fill(null).map((i, idx) => <Row key={idx} loading />)}
-    <div className="column-content">{children}</div>
+    <div className="column-content">{loading ? new Array(loadingAmount).fill(null).map((i, idx) => <Row key={idx} loading />) : children}</div>
   </div>
 )
