@@ -125,7 +125,9 @@ const handleRouteChange = (store, url) => {
     dispatches.push(
       new Promise(async (resolve) => {
         await store.dispatch(fetchArtists())
-        const artists = store.getState().artists
+
+        const { artists } = store.getState()
+
         if (artists && artists.data && artists.data.length) {
           const randomArtist = artists.data[Math.floor(Math.random() * artists.data.length)]
 
@@ -155,6 +157,10 @@ Root.getInitialProps = async ({ req, store }) => {
 }
 
 Router.onRouteChangeStart = (url) => {
+  if (typeof window !== 'undefined' && window.UPDATED_TRACK_VIA_GAPLESS) {
+    window.UPDATED_TRACK_VIA_GAPLESS = false
+    return 'nonsense'
+  }
   handleRouteChange(window.store, url)
 }
 

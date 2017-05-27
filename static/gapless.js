@@ -82,7 +82,7 @@
 
       this.play();
 
-      if (this.props.onPlayNextTrack) this.props.onPlayNextTrack(this.currentTrack);
+      if (this.props.onStartNewTrack) this.props.onStartNewTrack(this.currentTrack);
       if (this.props.onPlayPreviousTrack) this.props.onPlayPreviousTrack(this.currentTrack);
     }
 
