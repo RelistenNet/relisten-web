@@ -2,6 +2,7 @@ import React from 'react'
 import withRedux from 'next-redux-wrapper'
 import Router from 'next/router'
 import Head from 'next/head'
+import UAParser from 'ua-parser-js'
 
 import { initStore } from '../redux'
 import { fetchArtists } from '../redux/modules/artists'
@@ -26,8 +27,9 @@ import ShowsColumn from '../components/ShowsColumn'
 import TapesColumn from '../components/TapesColumn'
 import SongsColumn from '../components/SongsColumn'
 
-const Root = ({ app = {}, playback, url }) => {
+const Root = ({ app = {}, playback, url, isMobile }) => {
   let title = false;
+  let activeColumn = 'artists'
 
   if (!url) url = window.location.pathname
 
@@ -38,40 +40,44 @@ const Root = ({ app = {}, playback, url }) => {
     // TODO: hook up actual title (this doesn't work on the server since playback.tracks hasn't been added yet)
     const track = playback.tracks.find(track => track.slug === songSlug)
     title = track ? `${track.title} ${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)} ${bandTitle}` : ''
+    activeColumn = 'songs'
   }
 
   else if (artistSlug && year && month && day) {
     title = `${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)} ${bandTitle}`
+    activeColumn = 'songs'
   }
 
   else if (artistSlug && year) {
     title = `${year} ${bandTitle}`
+    activeColumn = 'shows'
   }
 
   else if (artistSlug) {
     title = bandTitle
+    activeColumn = 'years'
   }
 
   return (
     <Layout>
       <style jsx>{`
-        .content {
+        .page-container {
           flex: 1;
           display: flex;
           flex-direction: row;
         }
       `}</style>
-      <div className="content">
+      <div className="page-container">
         {title && (!player || !player.tracks.length) &&
           <Head>
             <title>{title} | Relisten</title>
           </Head>
         }
-        <ArtistsColumn />
-        <YearsColumn />
-        <ShowsColumn />
-        <SongsColumn />
-        <TapesColumn />
+        {(!isMobile || activeColumn === 'artists') && <ArtistsColumn />}
+        {(!isMobile || activeColumn === 'years') && <YearsColumn />}
+        {(!isMobile || activeColumn === 'shows') && <ShowsColumn />}
+        {(!isMobile || activeColumn === 'songs') && <SongsColumn />}
+        {(!isMobile || activeColumn === 'tapes') && <TapesColumn />}
       </div>
     </Layout>
   );
@@ -79,6 +85,7 @@ const Root = ({ app = {}, playback, url }) => {
 
 const handleRouteChange = (store, url) => {
   const dispatches = []
+  const { isMobile } = store.getState().app
 
   const [pathname, params] = url.split('?')
 
@@ -104,7 +111,7 @@ const handleRouteChange = (store, url) => {
   }
 
   // just artist slug, get random show
-  if (artistSlug && !year && !month && !day) {
+  if (artistSlug && !year && !month && !day && !isMobile) {
     dispatches.push(getRandomShow(artistSlug, store))
   }
 
@@ -121,7 +128,7 @@ const handleRouteChange = (store, url) => {
     if (typeof window !== 'undefined') playSong(store)
   }
 
-  if (pathname === '/') {
+  if (pathname === '/' && !isMobile) {
     dispatches.push(
       new Promise(async (resolve) => {
         await store.dispatch(fetchArtists())
@@ -145,7 +152,10 @@ const handleRouteChange = (store, url) => {
 }
 
 Root.getInitialProps = async ({ req, store }) => {
-  let dispatches = [store.dispatch(fetchArtists())]
+  const { type } = new UAParser(req ? req.headers['user-agent'] : navigator.userAgent).getDevice()
+  const isMobile = type === 'mobile'
+
+  let dispatches = [store.dispatch(fetchArtists()), store.dispatch(updateApp({ isMobile }))]
 
   if (req) dispatches = dispatches.concat(handleRouteChange(store, req.url))
 
@@ -153,7 +163,7 @@ Root.getInitialProps = async ({ req, store }) => {
 
   const { app, playback } = store.getState()
 
-  return { app, playback, url: req ? req.url : null }
+  return { app, playback, url: req ? req.url : null, isMobile }
 }
 
 Router.onRouteChangeStart = (url) => {

@@ -8,11 +8,11 @@ import Layout from '../layouts'
 const About = () => (
   <Layout>
     <style jsx>{`
-      .content {
+      .page-container {
         flex: 1;
       }
     `}</style>
-    <div className="content">
+    <div className="page-container">
       about
     </div>
   </Layout>

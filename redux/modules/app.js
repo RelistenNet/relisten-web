@@ -6,7 +6,8 @@ const defaultState = {
   day: undefined,
   year: undefined,
   songSlug: undefined,
-  source: undefined
+  source: undefined,
+  isMobile: undefined
 };
 
 export default function counter(state = defaultState, action) {

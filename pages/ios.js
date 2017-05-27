@@ -8,11 +8,11 @@ import Layout from '../layouts'
 const IOS = () => (
   <Layout>
     <style jsx>{`
-      .content {
+      .page-container {
         flex: 1;
       }
     `}</style>
-    <div className="content">
+    <div className="page-container">
       ios
     </div>
   </Layout>

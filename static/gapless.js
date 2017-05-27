@@ -192,7 +192,7 @@
     }
 
     // private functions
-    loadHead(cb) {
+    loadHEAD(cb) {
       if (this.loadedHEAD) return cb();
 
       const options = {
@@ -215,22 +215,24 @@
       if (this.webAudioLoadingState !== GaplessPlaybackLoadingState.NONE) return;
 
       this.webAudioLoadingState = GaplessPlaybackLoadingState.LOADING;
-      const options = {
-        // headers: new Headers({
-        //     Range: "bytes=-" + 1024 * 1024
-        // })
-      };
 
-      fetch(this.trackUrl, options)
+      fetch(this.trackUrl)
         .then(res => res.arrayBuffer())
         .then(res =>
           this.audioContext.decodeAudioData(res, buffer => {
             this.debug('finished downloading track');
+
             this.webAudioLoadingState = GaplessPlaybackLoadingState.LOADED;
+
             this.bufferSourceNode.buffer = this.audioBuffer = buffer;
             this.bufferSourceNode.connect(this.gainNode);
+
+            // try to preload next track
             this.queue.loadTrack(this.idx + 1);
+
+            // if we loaded the active track, switch to web audio
             if (this.isActiveTrack) this.switchToWebAudio();
+
             cb && cb(buffer);
           })
         )
@@ -304,7 +306,7 @@
       else {
         this.audio.preload = 'auto';
         this.audio.play();
-        this.loadHead(() => this.loadBuffer());
+        this.loadHEAD(() => this.loadBuffer());
       }
 
       this.onProgress();
@@ -375,12 +377,12 @@
     onProgress() {
       if (!this.isActiveTrack) return;
 
-      const isWithinLastTenSeconds = (this.duration - this.currentTime) <= 10;
+      const isWithinLastTwentyFiveSeconds = (this.duration - this.currentTime) <= 25;
       const nextTrack = this.queue.nextTrack;
 
-      // if in last 10 seconds and next track hasn't loaded yet
+      // if in last 25 seconds and next track hasn't loaded yet
       // start loading next track's HTML5
-      if (isWithinLastTenSeconds && nextTrack && !nextTrack.isLoaded) {
+      if (isWithinLastTwentyFiveSeconds && nextTrack && !nextTrack.isLoaded) {
         this.queue.loadTrack(this.idx + 1, true);
       }
 
