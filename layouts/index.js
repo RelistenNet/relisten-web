@@ -21,6 +21,5 @@ export default ({ children, ...props }) => (
     `}</style>
     <Navigation />
     {children}
-    <Player />
   </div>
 )

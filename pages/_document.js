@@ -18,7 +18,7 @@ export default class MyDocument extends Document {
           <link rel="icon" href="/static/favicon.ico" />
           <style>
             {`
-              body { margin: 0; font-family: Helvetica, sans-serif; }
+              body { margin: 0; font-family: Helvetica, Helvetica Neue, sans-serif; -webkit-font-smoothing: antialiased; }
               a { text-decoration: none; color: #333; }
             `}
           </style>
