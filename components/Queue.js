@@ -8,6 +8,19 @@ import player from '../lib/player'
 import Row from './Row'
 
 export default class Queue extends Component {
+  componentDidMount() {
+    document.addEventListener('click', this.onGlobalClick)
+
+    const { playback } = this.props;
+
+    const nextTrack = this.queue.querySelector(`[data-idx="${playback.activeTrack.idx}"]`)
+    if (nextTrack) setTimeout(() => this.queue.scrollTop = (nextTrack.offsetTop - this.queue.offsetTop) / 2, 0)
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('click', this.onGlobalClick)
+  }
+
   componentWillReceiveProps(nextProps) {
     const { playback } = this.props;
 
@@ -27,14 +40,18 @@ export default class Queue extends Component {
       <div className="queue" ref={ref => this.queue = ref}>
         <style jsx>{`
           .queue {
-            width: 33%;
-            display: flex;
-            max-height: calc(25vh - 12px);
+            position: absolute;
+            max-height: 75vh;
             flex-direction: column;
             overflow-y: scroll;
+            text-align: left;
             -webkit-overflow-scrolling: touch;
             cursor: pointer;
-            transition: scroll
+            background: #FFF;
+            z-index: 1;
+            right: 0;
+            top: 50px;
+            border: 2px solid #CCC;
           }
 
           .queue .active {
@@ -105,5 +122,11 @@ export default class Queue extends Component {
     const { year, month, day } = splitShowDate(showDate)
 
     Router.push('/', `/${artistSlug}/${year}/${month}/${day}?source=${source}`);
+  }
+
+  onGlobalClick = (e) => {
+    if (this.queue.contains(e.target)) return;
+
+    this.props.closeQueue()
   }
 }

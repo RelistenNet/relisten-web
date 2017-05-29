@@ -24,7 +24,6 @@ class Navigation extends Component {
           .navigation {
             display: flex;
             flex-direction: row;
-            justify-content: space-between;
             height: 50px;
             border-bottom: 1px solid #AEAEAE;
           }
@@ -46,11 +45,19 @@ class Navigation extends Component {
 
           .left {
             display: flex;
+            flex: 2;
           }
 
-          .right {
+          .player {
+            width: 40vw;
+            text-align: center;
+          }
+
+          .right, .right-mobile {
             height: 100%;
             display: flex;
+            flex: 2;
+            justify-content: flex-end;
           }
 
           .right a {
@@ -70,11 +77,6 @@ class Navigation extends Component {
           a:hover {
             background: #333;
             color: #FFF;
-          }
-
-          .player {
-            flex: 1;
-            text-align: center;
           }
 
           .navigation .right-mobile-menu a {
