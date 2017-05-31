@@ -162,7 +162,7 @@ class Player extends Component {
               </div>
               <div className="timing">
                 <div><i className="fa fa-forward" onClick={() => player.playNext()} /></div>
-                <div onClick={this.toggleRemainingDuration}>{durationToHHMMSS(showRemainingDuration ? playback.activeTrack.duration - playback.activeTrack.currentTime : playback.activeTrack.duration)}</div>
+                <div onClick={this.toggleRemainingDuration}>{durationToHHMMSS(showRemainingDuration ? playback.activeTrack.currentTime - playback.activeTrack.duration : playback.activeTrack.duration)}</div>
               </div>
             </div>
             <div className="progress-container" onClick={this.onProgressClick} style={{ opacity: playback.activeTrack.currentTime < 0.1 ? 0.8 : null }}>
