@@ -65,7 +65,7 @@ class Navigation extends Component {
           }
 
           a {
-            padding: 0 8px;
+            padding: 0 4px;
           }
 
           .artist, .default {

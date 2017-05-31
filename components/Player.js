@@ -14,12 +14,14 @@ class Player extends Component {
     super(props, ctx)
 
     this.state = {
-      showQueue: false
+      showQueue: false,
+      showRemainingDuration: false
     }
   }
 
   render() {
     const { playback, tapes } = this.props;
+    const { showRemainingDuration, showQueue } = this.state
 
     const { year, month, day } = splitShowDate(playback.showDate)
     const { artistSlug, source } = playback
@@ -160,7 +162,7 @@ class Player extends Component {
               </div>
               <div className="timing">
                 <div><i className="fa fa-forward" onClick={() => player.playNext()} /></div>
-                <div>{durationToHHMMSS(playback.activeTrack.duration)}</div>
+                <div onClick={this.toggleRemainingDuration}>{showRemainingDuration ? '-' + durationToHHMMSS(playback.activeTrack.duration - playback.activeTrack.currentTime) : durationToHHMMSS(playback.activeTrack.duration)}</div>
               </div>
             </div>
             <div className="progress-container" onClick={this.onProgressClick} style={{ opacity: playback.activeTrack.currentTime < 0.1 ? 0.8 : null }}>
@@ -170,7 +172,7 @@ class Player extends Component {
           </div>
         }
         <div className="queue-button" onClick={this.toggleQueue}><i className="fa fa-list-ol" /></div>
-        {this.state.showQueue && <Queue playback={playback} tapes={tapes} closeQueue={this.toggleQueue} />}
+        {showQueue && <Queue playback={playback} tapes={tapes} closeQueue={this.toggleQueue} />}
       </div>
     );
   }
@@ -187,6 +189,10 @@ class Player extends Component {
 
   toggleQueue = () => {
     this.setState({ showQueue: !this.state.showQueue })
+  }
+
+  toggleRemainingDuration = () => {
+    this.setState({ showRemainingDuration: !this.state.showRemainingDuration })
   }
 }
 
