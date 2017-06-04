@@ -31,7 +31,7 @@ const ShowsColumn = ({ artistShows, artistSlug, year, displayDate }) => {
 
         return (
           <div key={show.id}>
-            {tourName && <RowHeader>{tourName}</RowHeader>}
+            {tourName && <RowHeader>{tourName === 'Not Part of a Tour' ? '' : tourName}</RowHeader>}
             <Row href={`/${artistSlug}/${year}/${month}/${day}`} active={displayDate === show.display_date} height={48}>
               <div>
                 <div className="main">

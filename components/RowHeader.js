@@ -1,5 +1,5 @@
 export default ({ height, children }) => (
-  <div className="header" style={{ minHeight: height }}>
+  <div className="header" style={{ minHeight: !children ? 16 : height }}>
     <style jsx>{`
       .header {
         min-height: 24px;

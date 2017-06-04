@@ -32,7 +32,7 @@ const SongsColumn = ({ source, loading, artistSlug, songSlug, activePlaybackSour
           </div>
         )
        )}
-      {source && <RowHeader>End Show</RowHeader>}
+      {source && <RowHeader>FIN</RowHeader>}
       {source && source.links &&
         source.links.map(link =>
           <a href={link.url} target="_blank" key={link.id}>

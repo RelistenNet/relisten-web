@@ -28,7 +28,7 @@ class Navigation extends Component {
             border-bottom: 1px solid #AEAEAE;
           }
 
-          .navigation .relisten-mobile, .navigation .right-mobile {
+          .navigation .relisten-mobile {
             display: none;
           }
 
@@ -46,6 +46,7 @@ class Navigation extends Component {
           .left {
             display: flex;
             flex: 2;
+            margin-left: 4px;
           }
 
           .player {
@@ -53,15 +54,17 @@ class Navigation extends Component {
             text-align: center;
           }
 
-          .right, .right-mobile {
+          .right {
             height: 100%;
             display: flex;
             flex: 2;
             justify-content: flex-end;
-          }
-
-          .right a {
-            width: 100px;
+            font-size: 1.4em;
+            text-align: center;
+            font-weight: bold;
+            align-items: center;
+            cursor: pointer;
+            margin-right: 8px;
           }
 
           a {
@@ -79,11 +82,6 @@ class Navigation extends Component {
             color: #FFF;
           }
 
-          .navigation .right-mobile-menu a {
-            font-size: 1em;
-            height: auto;
-          }
-
           @media only screen and (max-width: 1024px) {
             .navigation .relisten {
               display: none;
@@ -93,20 +91,7 @@ class Navigation extends Component {
               display: flex;
             }
 
-            .navigation .right-mobile {
-              display: flex;
-              padding: 0 8px;
-            }
-
-            .navigation .right-mobile .fa-bars {
-              align-self: center;
-            }
-
             .navigation .left > span.to, .navigation .artist {
-              display: none;
-            }
-
-            .navigation .right {
               display: none;
             }
           }
@@ -128,20 +113,8 @@ class Navigation extends Component {
         <div className="player">
           <Player />
         </div>
-        <div className="right-mobile">
-          {this.state.showMobileMenu && <div className="right-mobile-menu">
-            <Link href="/today" prefetch><a>TODAY</a></Link>
-            <Link href="/live" prefetch><a>LIVE</a></Link>
-            <Link href="/ios" prefetch><a>iOS</a></Link>
-            <Link href="/about" prefetch><a>ABOUT</a></Link>
-          </div>}
-          <i className="fa fa-bars" onClick={this.toggleMobileMenu} />
-        </div>
-        <div className="right">
-          <Link href="/today" prefetch><a>TODAY</a></Link>
-          <Link href="/live" prefetch><a>LIVE</a></Link>
-          <Link href="/ios" prefetch><a>iOS</a></Link>
-          <Link href="/about" prefetch><a>ABOUT</a></Link>
+        <div className="right" onClick={this.toggleMobileMenu}>
+          MENU
         </div>
       </div>
     )

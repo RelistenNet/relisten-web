@@ -139,9 +139,9 @@ class Player extends Component {
         {activeTrack && <Head>
           <title>{`${playback.activeTrack.isPaused ? '❚ ❚' : '▶'} ${activeTrack.title} ${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)} ${bandTitle}`} | Relisten</title>
         </Head>}
-        <div className="playpause" onClick={() => player.togglePlayPause()}>
+        {activeTrack && <div className="playpause" onClick={() => player.togglePlayPause()}>
           <i className={`fa fa-${playback.activeTrack.isPaused ? 'play' : 'pause'}`} />
-        </div>
+        </div>}
         {typeof window === 'undefined' || !activeTrack ? null :
           <div className="player" ref={ref => this.player = ref}>
             <div className="content">
@@ -171,7 +171,7 @@ class Player extends Component {
             </div>
           </div>
         }
-        <div className="queue-button" onClick={this.toggleQueue}><i className="fa fa-list-ol" /></div>
+        {activeTrack && <div className="queue-button" onClick={this.toggleQueue}><i className="fa fa-list-ol" /></div>}
         {showQueue && <Queue playback={playback} tapes={tapes} closeQueue={this.toggleQueue} />}
       </div>
     );
