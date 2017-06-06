@@ -5,16 +5,10 @@ import { connect } from 'react-redux'
 import bands from '../lib/bands'
 
 import Player from './Player'
+import Modal from './Modal'
+import Menu from './Menu'
 
 class Navigation extends Component {
-  constructor(props, ctx) {
-    super(props, ctx)
-
-    this.state = {
-      showMobileMenu: false
-    }
-  }
-
   render() {
     const { app } = this.props;
 
@@ -32,7 +26,7 @@ class Navigation extends Component {
             display: none;
           }
 
-          .navigation .left > span, .navigation a {
+          .navigation .left > span, .navigation a, .navigation .right > div {
             height: 100%;
             font-size: 1.4em;
             text-align: center;
@@ -46,11 +40,10 @@ class Navigation extends Component {
           .left {
             display: flex;
             flex: 2;
-            margin-left: 4px;
           }
 
           .player {
-            width: 40vw;
+            min-width: 40vw;
             text-align: center;
           }
 
@@ -59,15 +52,13 @@ class Navigation extends Component {
             display: flex;
             flex: 2;
             justify-content: flex-end;
-            font-size: 1.4em;
             text-align: center;
             font-weight: bold;
             align-items: center;
             cursor: pointer;
-            margin-right: 8px;
           }
 
-          a {
+          a, .right > div {
             padding: 0 4px;
           }
 
@@ -77,7 +68,7 @@ class Navigation extends Component {
             text-transform: uppercase;
           }
 
-          a:hover {
+          a:hover, .right > div:hover {
             background: #333;
             color: #FFF;
           }
@@ -113,15 +104,18 @@ class Navigation extends Component {
         <div className="player">
           <Player />
         </div>
-        <div className="right" onClick={this.toggleMobileMenu}>
-          MENU
+        <div className="right" onClick={this.toggleMenu}>
+          <div>MENU</div>
         </div>
+        <Modal ref={ref => this.modal = ref}>
+          <Menu />
+        </Modal>
       </div>
     )
   }
 
-  toggleMobileMenu = () => {
-    this.setState({ showMobileMenu: !this.state.showMobileMenu })
+  toggleMenu = async () => {
+    this.modal.toggleModal()
   }
 }
 

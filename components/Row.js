@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 import RowLoading from './RowLoading'
 
-export default ({ height, children, href, active, loading, ...props }) => (
+export default ({ height, children, href, active, loading, baseHrefOverride, ...props }) => (
   <div className="row" style={{ minHeight: height }} {...props}>
     <style jsx>{`
       .row {
@@ -57,6 +57,6 @@ export default ({ height, children, href, active, loading, ...props }) => (
 
     `}</style>
     {loading && <RowLoading />}
-    {href ? <Link href="/" as={href}><a className={`${active ? 'active' : ''} content`}>{children}</a></Link> : children ? <div className={`content ${active ? 'active' : ''}`}>{children}</div> : null}
+    {href || baseHrefOverride ? <Link href={baseHrefOverride ? baseHrefOverride : '/'} as={href}><a className={`${active ? 'active' : ''} content`}>{children}</a></Link> : children ? <div className={`content ${active ? 'active' : ''}`}>{children}</div> : null}
   </div>
 )

@@ -60,7 +60,6 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }) => {
               {exists(source.avg_rating > 0) && <div className="details"><div className="label">{artistSlug === 'phish' ? 'Dot Net' : 'Rating'}:</div> <div>{Number(source.avg_rating).toFixed(2)}</div></div>}
               {exists(source.source) && <div className="details"><div className="label">Source:</div> <div>{source.source}</div></div>}
               {exists(source.lineage) && <div className="details"><div className="label">Lineage:</div> <div>{source.lineage}</div></div>}
-              {exists(source.taper_notes) && <div className="details"><div className="label">Notes:</div> <div>{source.taper_notes}</div></div>}
             </div>
           </Row>
         </div>
