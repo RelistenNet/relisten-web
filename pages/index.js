@@ -193,12 +193,6 @@ const playSong = (store) => {
   const showTapes = tapes[artistSlug] && tapes[artistSlug][showDate] ? tapes[artistSlug][showDate] : null
   let tape
 
-  if (typeof window.Notification !== 'undefined') {
-    if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-      Notification.requestPermission()
-    }
-  }
-
   console.log('play song', playback, showTapes)
   if (!showTapes) return console.log('err showTapes')
 
@@ -221,6 +215,12 @@ const playSong = (store) => {
       idx++
     })
   )
+
+  if (tracks.length && typeof window.Notification !== 'undefined') {
+    if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+      Notification.requestPermission()
+    }
+  }
 
   if (!isPlayerMounted()) {
     initGaplessPlayer(store)
