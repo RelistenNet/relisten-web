@@ -22,7 +22,7 @@ export default function counter(state = defaultState, action) {
       return {
         ...state,
         [action.artistSlug]: {
-          data: action.data,
+          data: Array.isArray(action.data) ? action.data : [],
           meta: {
             loaded: true,
             loading: false,
