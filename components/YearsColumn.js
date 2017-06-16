@@ -2,13 +2,12 @@ import Link from 'next/link'
 import { connect } from 'react-redux'
 
 import { simplePluralize } from '../lib/utils'
-import bands from '../lib/bands'
 
 import Column from './Column';
 import Row from './Row';
 
-const YearsColumn = ({ artistYears, artistSlug, currentYear }) => (
-  <Column heading={artistYears && bands[artistSlug] ? bands[artistSlug].name : "Years"} loading={artistYears && artistYears.meta && artistYears.meta.loading} loadingAmount={12}>
+const YearsColumn = ({ artistYears, artistSlug, currentYear, artists }) => (
+  <Column heading={artistYears && artists.data[artistSlug] ? artists.data[artistSlug].name : "Years"} loading={artistYears && artistYears.meta && artistYears.meta.loading} loadingAmount={12}>
     {artistYears && artistYears.data && artistYears.data.map(year =>
       <Row key={year.id} href={`/${artistSlug}/${year.year}`} active={year.year === currentYear}>
         <div>
@@ -23,6 +22,6 @@ const YearsColumn = ({ artistYears, artistSlug, currentYear }) => (
   </Column>
 )
 
-const mapStateToProps = ({ years, app }) => ({ artistYears: years[app.artistSlug], artistSlug: app.artistSlug, currentYear: app.year })
+const mapStateToProps = ({ years, app, artists }) => ({ artistYears: years[app.artistSlug], artistSlug: app.artistSlug, currentYear: app.year, artists })
 
 export default connect(mapStateToProps)(YearsColumn)

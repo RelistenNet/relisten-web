@@ -41,9 +41,13 @@ export function requestArtists() {
 }
 
 export function receiveArtists(data) {
+  const obj = {}
+
+  data.map(artist => obj[artist.slug] = artist)
+
   return {
     type: RECEIVE_ARTISTS,
-    data
+    data: obj
   }
 }
 

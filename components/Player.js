@@ -3,7 +3,6 @@ import { connect } from 'react-redux'
 import Head from 'next/head'
 import Link from 'next/link'
 
-import bands from '../lib/bands'
 import { createShowDate, durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils'
 import player from '../lib/player'
 
@@ -20,12 +19,12 @@ class Player extends Component {
   }
 
   render() {
-    const { playback, tapes } = this.props;
+    const { playback, tapes, artists } = this.props;
     const { showRemainingDuration, showQueue } = this.state
 
     const { year, month, day } = splitShowDate(playback.showDate)
     const { artistSlug, source } = playback
-    const bandTitle = bands[artistSlug] ? bands[artistSlug].name : ''
+    const bandTitle = artists.data[artistSlug] ? artists.data[artistSlug].name : ''
     const activeTrack = playback.tracks.find((track, idx) => idx === playback.activeTrack.idx);
     const nextTrack = playback.tracks.find((track, idx) => idx === playback.activeTrack.idx + 1);
     const notchPosition = typeof window === 'undefined' || !this.player ? 0 : (playback.activeTrack.currentTime / playback.activeTrack.duration) * this.player.clientWidth;
@@ -172,7 +171,7 @@ class Player extends Component {
           </div>
         }
         {activeTrack && <div className="queue-button" onClick={this.toggleQueue}><i className="fa fa-list-ol" /></div>}
-        {showQueue && <Queue playback={playback} tapes={tapes} closeQueue={this.toggleQueue} />}
+        {showQueue && <Queue playback={playback} tapes={tapes} closeQueue={this.toggleQueue} artists={artists} />}
       </div>
     );
   }
@@ -196,6 +195,6 @@ class Player extends Component {
   }
 }
 
-const mapStateToProps = ({ playback, tapes }) => ({ playback, tapes })
+const mapStateToProps = ({ playback, tapes, artists }) => ({ playback, tapes, artists })
 
 export default connect(mapStateToProps)(Player)

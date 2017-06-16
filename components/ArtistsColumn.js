@@ -9,7 +9,7 @@ const ArtistsColumn = ({ artists = {}, artistSlug }) => (
   <Column heading="Artists">
     <style jsx>{`
     `}</style>
-    {artists && artists.data && artists.data.map(artist =>
+    {artists && artists.data && Object.values(artists.data).map(artist =>
       <Row key={artist.id} href={`/${artist.slug}`} active={artist.slug === artistSlug}>
         <div>{artist.name}</div>
         <div>

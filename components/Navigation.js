@@ -2,15 +2,13 @@ import { Component } from 'react'
 import Link from 'next/link'
 import { connect } from 'react-redux'
 
-import bands from '../lib/bands'
-
 import Player from './Player'
 import Modal from './Modal'
 import Menu from './Menu'
 
 class Navigation extends Component {
   render() {
-    const { app } = this.props;
+    const { app, artists } = this.props;
 
     return (
       <div className="navigation">
@@ -91,10 +89,10 @@ class Navigation extends Component {
         <div className="left">
           <Link href="/" prefetch><a className="relisten">RELISTEN</a></Link>
           <Link href="/" prefetch><a className="relisten-mobile">R</a></Link>
-          {bands[app.artistSlug] && <span className="to">TO</span>}
-          {bands[app.artistSlug] &&
+          {artists.data[app.artistSlug] && <span className="to">TO</span>}
+          {artists.data[app.artistSlug] &&
             <Link href="/" as={`/${app.artistSlug}`}>
-              <a className="artist">{bands[app.artistSlug].the ? 'THE ' : ''}{bands[app.artistSlug].name}</a>
+              <a className="artist">{artists.data[app.artistSlug].the ? 'THE ' : ''}{artists.data[app.artistSlug].name}</a>
             </Link>
             /*
             : <span className="default">1,028,334 songs on 60,888 tapes from 102 bands</span>
@@ -120,9 +118,10 @@ class Navigation extends Component {
 }
 
 
-const mapStateToProps = ({ app }) => {
+const mapStateToProps = ({ app, artists }) => {
   return {
-    app
+    app,
+    artists
   }
 }
 

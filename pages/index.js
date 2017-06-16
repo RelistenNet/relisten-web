@@ -11,7 +11,6 @@ import { fetchShows } from '../redux/modules/shows'
 import { fetchTapes } from '../redux/modules/tapes'
 import { updatePlayback, updatePlaybackTrack } from '../redux/modules/playback'
 
-import bands from '../lib/bands'
 import { updateApp } from '../redux/modules/app'
 import { createShowDate, splitShowDate, getParams, removeLeadingZero } from '../lib/utils'
 import player, { isPlayerMounted, initGaplessPlayer } from '../lib/player'
@@ -27,14 +26,14 @@ import ShowsColumn from '../components/ShowsColumn'
 import TapesColumn from '../components/TapesColumn'
 import SongsColumn from '../components/SongsColumn'
 
-const Root = ({ app = {}, playback, url, isMobile }) => {
+const Root = ({ app = {}, playback, url, isMobile, artists }) => {
   let title = false;
   let activeColumn = 'artists'
 
   if (!url) url = window.location.pathname
 
   const [artistSlug, year, month, day, songSlug] = url.replace(/^\//, '').split('/')
-  const bandTitle = bands[artistSlug] ? bands[artistSlug].name : '';
+  const bandTitle = artists.data[artistSlug] ? artists.data[artistSlug].name : '';
 
   if (artistSlug && year && month && day && songSlug) {
     // TODO: hook up actual title (this doesn't work on the server since playback.tracks hasn't been added yet)
@@ -161,9 +160,9 @@ Root.getInitialProps = async ({ req, store }) => {
 
   await Promise.all(dispatches)
 
-  const { app, playback } = store.getState()
+  const { app, playback, artists } = store.getState()
 
-  return { app, playback, url: req ? req.url : null, isMobile }
+  return { app, playback, url: req ? req.url : null, isMobile, artists }
 }
 
 Router.onRouteChangeStart = (url) => {

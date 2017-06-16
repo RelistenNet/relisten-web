@@ -2,7 +2,6 @@ import { Component } from 'react'
 import Router from 'next/router'
 
 import { splitShowDate, durationToHHMMSS } from '../lib/utils'
-import bands from '../lib/bands'
 import player from '../lib/player'
 
 import Row from './Row'
@@ -33,7 +32,7 @@ export default class Queue extends Component {
   render() {
     const { playback, tapes } = this.props;
 
-    const band = bands[playback.artistSlug]
+    const band = artists.data[playback.artistSlug]
     const tape = tapes[playback.artistSlug] ? tapes[playback.artistSlug][playback.showDate] : null
 
     return (

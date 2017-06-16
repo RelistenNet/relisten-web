@@ -53,6 +53,7 @@ export default ({ height, children, href, active, loading, baseHrefOverride, ...
 
       .row > :global(.content) > :global(div:nth-child(2)) {
         text-align: right;
+        min-width: 20%;
       }
 
     `}</style>
