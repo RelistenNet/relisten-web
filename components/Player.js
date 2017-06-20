@@ -133,11 +133,13 @@ class Player extends Component {
             left: 8px;
             top: 50%;
             transform: translate(0, -50%);
+            text-align: left;
           }
 
           .duration {
             left: initial;
             right: 8px;
+            text-align: right;
           }
 
         `}</style>
