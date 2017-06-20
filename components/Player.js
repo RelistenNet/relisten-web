@@ -6,21 +6,18 @@ import Link from 'next/link'
 import { createShowDate, durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils'
 import player from '../lib/player'
 
-import Queue from './Queue'
-
 class Player extends Component {
   constructor(props, ctx) {
     super(props, ctx)
 
     this.state = {
-      showQueue: false,
       showRemainingDuration: false
     }
   }
 
   render() {
     const { playback, tapes, artists } = this.props;
-    const { showRemainingDuration, showQueue } = this.state
+    const { showRemainingDuration } = this.state
 
     const { year, month, day } = splitShowDate(playback.showDate)
     const { artistSlug, source } = playback
@@ -178,8 +175,7 @@ class Player extends Component {
             </div>
           </div>
         }
-        {activeTrack && <div className="queue-button" onClick={this.toggleQueue}><i className="fa fa-list-ol" /></div>}
-        {showQueue && <Queue playback={playback} tapes={tapes} closeQueue={this.toggleQueue} artists={artists} />}
+        {activeTrack && <Link href="/" as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}><div className="queue-button"><i className="fa fa-list-ol" /></div></Link>}
       </div>
     );
   }
@@ -192,10 +188,6 @@ class Player extends Component {
     const percentage = (e.pageX - left) / width;
 
     player.currentTrack.seek(percentage * playback.activeTrack.duration)
-  }
-
-  toggleQueue = () => {
-    this.setState({ showQueue: !this.state.showQueue })
   }
 
   toggleRemainingDuration = () => {
