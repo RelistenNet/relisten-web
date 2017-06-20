@@ -60,7 +60,7 @@ class Player extends Component {
           .content {
             display: flex;
             flex-direction: row;
-            justify-content: space-between;
+            justify-content: center;
             transition: all 1s ease-in-out;
             height: 100%;
           }
@@ -128,10 +128,16 @@ class Player extends Component {
 
           .timing {
             color: #7A7A7A;
-            margin: 0 8px;
-            margin-top: auto;
-            margin-bottom: 8px;
             font-size: 0.8em;
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translate(0, -50%);
+          }
+
+          .duration {
+            left: initial;
+            right: 8px;
           }
 
         `}</style>
@@ -159,7 +165,7 @@ class Player extends Component {
 
                 <Link href="/" as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}><a className="band-title">{bandTitle} – {removeLeadingZero(month)}/{removeLeadingZero(day)}/{year.slice(2)}</a></Link>
               </div>
-              <div className="timing">
+              <div className="timing duration">
                 <div><i className="fa fa-forward" onClick={() => player.playNext()} /></div>
                 <div onClick={this.toggleRemainingDuration}>{durationToHHMMSS(showRemainingDuration ? playback.activeTrack.currentTime - playback.activeTrack.duration : playback.activeTrack.duration)}</div>
               </div>
