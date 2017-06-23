@@ -48,6 +48,10 @@ class Player extends Component {
             cursor: pointer;
           }
 
+          .playpause:active, .queue-button:active {
+            color: #4A4A4A;
+          }
+
           .player {
             height: 100%;
             flex: 1;
