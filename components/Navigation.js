@@ -43,7 +43,22 @@ class Navigation extends Component {
           .player {
             min-width: 40vw;
             text-align: center;
+
           }
+
+          @media screen
+            and (max-width: 980px) {
+              .player {
+                min-width: 60%;
+              }
+            }
+
+          @media screen
+            and (max-width: 480px) {
+              .player {
+                min-width: 80%;
+              }
+            }
 
           .right {
             height: 100%;
