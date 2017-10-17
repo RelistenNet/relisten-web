@@ -83,7 +83,7 @@ class Player extends Component {
             left: 0;
             height: 4px;
             background: #707070;
-            transition: width 64ms linear;
+            // transition: width 64ms linear;
           }
 
           .progress-notch {
@@ -93,7 +93,7 @@ class Player extends Component {
             width: 3px;
             height: 8px;
             background: #000;
-            transition: transform 64ms linear;
+            // transition: transform 64ms linear;
             z-index: 1;
           }
 

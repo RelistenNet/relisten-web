@@ -10,7 +10,8 @@ const defaultState = {
   currentTrackId: undefined,
   paused: false,
   activeTrack: {},
-  tracks: []
+  tracks: [],
+  gaplessTracksMetadata: [],
 };
 
 export default function counter(state = defaultState, action) {

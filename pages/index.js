@@ -230,7 +230,12 @@ const playSong = (store) => {
   }
 
   tracks.map((track, trackIdx) => {
-    player.addTrack(window.FLAC ? track.flac_url || track.mp3_url : track.mp3_url)
+    player.addTrack({
+      trackUrl: window.FLAC ? track.flac_url || track.mp3_url : track.mp3_url,
+      metadata: {
+        trackId: track.id,
+      }
+    });
   })
 
   store.dispatch(updatePlayback({ tracks }))

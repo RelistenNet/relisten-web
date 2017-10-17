@@ -7,8 +7,9 @@ import Column from './Column';
 import Row from './Row';
 import RowHeader from './RowHeader';
 
-const SongsColumn = ({ source, loading, artistSlug, songSlug, activePlaybackSourceId }) => {
+const SongsColumn = ({ source, loading, artistSlug, songSlug, activePlaybackSourceId, gaplessTracksMetadata }) => {
   const { year, month, day } = source ? splitShowDate(source.display_date) : {}
+  const isActiveSource = source ? source.id === activePlaybackSourceId : false;
 
   return (
     <Column heading={source ? `${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)}` : "Songs"} loading={loading} loadingAmount={12}>
@@ -19,17 +20,30 @@ const SongsColumn = ({ source, loading, artistSlug, songSlug, activePlaybackSour
         }
       `}</style>
       {source && source.sets.map((set, setIdx) =>
-        set.tracks.map((track, trackIdx) =>
-          <div key={track.id}>
-            {trackIdx === 0 && source.sets.length > 1 && <RowHeader>{set.name || `Set ${setIdx + 1}`}</RowHeader>}
-            <Row key={track.id} active={track.slug === songSlug && source.id === activePlaybackSourceId} href={`/${artistSlug}/${year}/${month}/${day}/${track.slug}?source=${source.id}`}>
-              <div>
-                <div>{track.title}</div>
-                {track.duration && <div className="subtext">{durationToHHMMSS(track.duration)}</div>}
-              </div>
-              <div></div>
-            </Row>
-          </div>
+        set.tracks.map((track, trackIdx) => {
+          const trackIsActive = track.slug === songSlug && isActiveSource;
+          const trackMetadata = isActiveSource
+            ? gaplessTracksMetadata.find(gaplessTrack =>
+                gaplessTrack.trackMetadata && gaplessTrack.trackMetadata.trackId === track.id
+              )
+            : null;
+
+          return (
+            <div key={track.id}>
+              {trackIdx === 0 && source.sets.length > 1 && <RowHeader>{set.name || `Set ${setIdx + 1}`}</RowHeader>}
+              <Row key={track.id} active={trackIsActive} href={`/${artistSlug}/${year}/${month}/${day}/${track.slug}?source=${source.id}`}>
+                <div>
+                  <div>{track.title}</div>
+                  {track.duration && <div className="subtext">{durationToHHMMSS(track.duration)}</div>}
+                </div>
+                <div>
+                  <div>{trackMetadata && trackMetadata.webAudioLoadingState !== 'NONE' ? trackMetadata.webAudioLoadingState : ''}</div>
+                  {trackMetadata && trackIsActive && <div>{trackMetadata.playbackType}</div>}
+                </div>
+              </Row>
+            </div>
+          );
+        }
         )
        )}
       {source && <RowHeader>FIN</RowHeader>}
@@ -66,7 +80,8 @@ const mapStateToProps = ({ tapes, app, playback }) => {
     loading: showTapes.meta.loading,
     artistSlug: app.artistSlug,
     songSlug: playback.songSlug,
-    activePlaybackSourceId
+    gaplessTracksMetadata: playback.gaplessTracksMetadata,
+    activePlaybackSourceId,
   }
 }
 

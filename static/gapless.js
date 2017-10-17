@@ -65,10 +65,11 @@
       );
     }
 
-    addTrack(trackUrl) {
+    addTrack({ trackUrl, metadata = {} }) {
       this.tracks.push(
         new Track({
           trackUrl,
+          metadata,
           idx: this.tracks.length,
           queue: this
         })
@@ -177,7 +178,7 @@
   }
 
   class Track {
-    constructor({ trackUrl, queue, idx }) {
+    constructor({ trackUrl, queue, idx, metadata }) {
       // playback type state
       this.playbackType = GaplessPlaybackType.HTML5;
       this.webAudioLoadingState = GaplessPlaybackLoadingState.NONE;
@@ -187,6 +188,7 @@
       this.idx = idx;
       this.queue = queue;
       this.trackUrl = trackUrl;
+      this.metadata = metadata;
 
       this.onEnded = this.onEnded.bind(this);
       this.onProgress = this.onProgress.bind(this);
