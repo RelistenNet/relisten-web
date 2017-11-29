@@ -3,9 +3,9 @@ import Link from 'next/link'
 import RowLoading from './RowLoading'
 
 export default ({ height, children, href, active, loading, baseHrefOverride, ...props }) => (
-  <div className="row" style={{ minHeight: height }} {...props}>
-    <style jsx>{`
-      .row {
+  <div className="relisten-row" style={{ minHeight: height }} {...props}>
+    <style jsx global>{`
+      .relisten-row {
         min-height: 34px;
         display: flex;
         flex-direction: column;
@@ -13,7 +13,7 @@ export default ({ height, children, href, active, loading, baseHrefOverride, ...
         border-bottom: 1px solid #F1F1F1;
       }
 
-      .row > :global(.content) {
+      .relisten-row > .content {
         flex: 1;
         width: 100%;
         padding: 4px 0;
@@ -24,7 +24,7 @@ export default ({ height, children, href, active, loading, baseHrefOverride, ...
         position: relative;
       }
 
-      .row > :global(.content).active:after {
+      .relisten-row > .content.active:after {
         content: "";
         width: 8px;
         height: 100%;
@@ -34,7 +34,7 @@ export default ({ height, children, href, active, loading, baseHrefOverride, ...
         top: 0;
       }
 
-      .row > :global(.content) > :global(div) {
+      .relisten-row > .content > div {
         align-self: stretch;
         display: flex;
         padding: 0 2px;
@@ -42,16 +42,16 @@ export default ({ height, children, href, active, loading, baseHrefOverride, ...
         flex-direction: column;
       }
 
-      .row > :global(.content) :global(.subtext), .row > :global(.content) > :global(div:nth-child(2)) {
+      .relisten-row > .content .subtext, .relisten-row > .content > div:nth-child(2) {
         color: #979797;
         font-size: 0.7em;
       }
 
-      .row > :global(.content).active > :global(div:nth-child(1)) {
+      .relisten-row > .content.active > div:nth-child(1) {
         padding-left: 12px;
       }
 
-      .row > :global(.content) > :global(div:nth-child(2)) {
+      .relisten-row > .content > div:nth-child(2) {
         text-align: right;
         min-width: 20%;
       }
