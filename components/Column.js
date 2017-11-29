@@ -1,7 +1,7 @@
 import Row from './Row'
 
-export default ({ children, heading, loading, loadingAmount = 20 }) => (
-  <div className="column">
+export default ({ children, heading, loading, loadingAmount = 20, className }) => (
+  <div className={`column ${className}`}>
     <style jsx>{`
       .column {
         display: flex;
@@ -38,6 +38,11 @@ export default ({ children, heading, loading, loadingAmount = 20 }) => (
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         overflow-x: hidden;
+      }
+
+      .column.let-flow .column-content {
+        overflow-x: initial;
+        overflow-y: initial;
       }
     `}</style>
     {heading && <div className="heading">{heading}</div>}

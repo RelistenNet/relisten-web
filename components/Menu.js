@@ -5,13 +5,10 @@ export default () => (
   <div className="menu">
     <style jsx>{`
       .menu {
-        display: flex;
-        width: 100vw;
-        height: 100vh;
-        max-width: 414px;
+        width: 120px;
       }
     `}</style>
-    <Column heading="Menu">
+    <Column className="let-flow">
       <Row baseHrefOverride="/about">About</Row>
       <Row baseHrefOverride="/ios">iOS</Row>
       <Row baseHrefOverride="/today">Today</Row>

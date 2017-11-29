@@ -4,6 +4,7 @@ import { connect } from 'react-redux'
 
 import Player from './Player'
 import Modal from './Modal'
+import InlinePopup from './InlinePopup'
 import Menu from './Menu'
 
 class Navigation extends Component {
@@ -18,6 +19,7 @@ class Navigation extends Component {
             flex-direction: row;
             height: 50px;
             border-bottom: 1px solid #AEAEAE;
+            position: relative;
           }
 
           .navigation .relisten-mobile {
@@ -120,9 +122,9 @@ class Navigation extends Component {
         <div className="right" onClick={this.toggleMenu}>
           <div>MENU</div>
         </div>
-        <Modal ref={ref => this.modal = ref}>
+        <InlinePopup ref={ref => this.modal = ref}>
           <Menu />
-        </Modal>
+        </InlinePopup>
       </div>
     )
   }
