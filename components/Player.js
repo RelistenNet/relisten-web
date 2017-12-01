@@ -11,7 +11,8 @@ class Player extends Component {
     super(props, ctx)
 
     this.state = {
-      showRemainingDuration: false
+      showRemainingDuration: false,
+      volume: 1,
     }
   }
 
@@ -143,6 +144,23 @@ class Player extends Component {
             text-align: right;
           }
 
+          .volume-container {
+            height: 100%;
+            width: 6px;
+            background: rgba(0, 0, 0, 0.1);
+            position: relative;
+          }
+
+          .volume-bar {
+            background: #707070;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            pointer-events: none;
+          }
+
         `}</style>
         {activeTrack && <Head>
           <title>{`${playback.activeTrack.isPaused ? '❚ ❚' : '▶'} ${activeTrack.title} ${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)} ${bandTitle}`} | Relisten</title>
@@ -179,6 +197,14 @@ class Player extends Component {
             </div>
           </div>
         }
+        {activeTrack && <div className="volume-container" onClick={this.setVolume}>
+          <div
+            className="volume-bar"
+            style={{
+              top: `${(1 - this.state.volume) * 100}%`
+            }}
+          />
+        </div>}
         {activeTrack && <Link href="/" as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}><div className="queue-button"><i className="fa fa-list-ol" /></div></Link>}
       </div>
     );
@@ -196,6 +222,15 @@ class Player extends Component {
 
   toggleRemainingDuration = () => {
     this.setState({ showRemainingDuration: !this.state.showRemainingDuration })
+  }
+
+  setVolume = (e) => {
+    const height = e.currentTarget.offsetHeight;
+    const nextVolume = (height - e.pageY) / height;
+
+    this.setState({ volume: nextVolume });
+
+    player.setVolume(nextVolume);
   }
 }
 
