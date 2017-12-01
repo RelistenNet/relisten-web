@@ -175,6 +175,15 @@
     disableWebAudio() {
       this.state.webAudioIsDisabled = true;
     }
+
+    setVolume(nextVolume) {
+      if (nextVolume < 0) nextVolume = 0;
+      else if (nextVolume > 1) nextVolume = 1;
+
+      this.state.volume = nextVolume;
+
+      this.tracks.map(track => track.setVolume(nextVolume));
+    }
   }
 
   class Track {
@@ -424,6 +433,11 @@
       // setTimeout(this.onProgress, 33.33); // 30fps
     }
 
+    setVolume(nextVolume) {
+      this.audio.volume = nextVolume;
+      this.gainNode.gain.value = nextVolume;
+    }
+
     // getter helpers
     get isUsingWebAudio() {
       return this.playbackType === GaplessPlaybackType.WEBAUDIO;
@@ -496,6 +510,7 @@
         this.audio.currentTime = this.audio.duration - 6;
       }
     }
+
   }
 
   Gapless.Queue = Queue;

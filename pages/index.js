@@ -225,8 +225,16 @@ const playSong = (store) => {
     initGaplessPlayer(store)
   }
   else {
-    player.pauseAll()
-    player.tracks = []
+    const prevFirstTrack = player.tracks[0];
+    const nextFirstTrack = tracks[0];
+    if (prevFirstTrack && nextFirstTrack && prevFirstTrack.metadata.trackId === nextFirstTrack.id) {
+      player.gotoTrack(currentIdx, true)
+      return;
+    }
+    else {
+      player.pauseAll()
+      player.tracks = []
+    }
   }
 
   tracks.map((track, trackIdx) => {
