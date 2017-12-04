@@ -7,6 +7,7 @@ import tapes from './tapes'
 
 import app from './app'
 import playback from './playback'
+import live from './live'
 
 export default combineReducers({
   artists,
@@ -14,5 +15,6 @@ export default combineReducers({
   shows,
   tapes,
   playback,
-  app
+  app,
+  live,
 });

@@ -9,6 +9,7 @@ import { fetchArtists } from '../redux/modules/artists'
 import { fetchYears } from '../redux/modules/years'
 import { fetchShows } from '../redux/modules/shows'
 import { fetchTapes } from '../redux/modules/tapes'
+import { scrobblePlay } from '../redux/modules/live'
 import { updatePlayback, updatePlaybackTrack } from '../redux/modules/playback'
 
 import { updateApp } from '../redux/modules/app'
@@ -205,12 +206,16 @@ const playSong = (store) => {
 
   let idx = 0
   let currentIdx = 0
+  let activeTrackId;
   let tracks = []
 
   tape.sets.map((set, setIdx) =>
     set.tracks.map((track, trackIdx) => {
       tracks.push(track)
-      if (track.slug === songSlug) currentIdx = idx
+      if (track.slug === songSlug) {
+        currentIdx = idx
+        activeTrackId = track.id
+      }
       idx++
     })
   )
@@ -225,6 +230,7 @@ const playSong = (store) => {
     initGaplessPlayer(store)
   }
   else {
+    // check if track is already in queue, and re-use
     const prevFirstTrack = player.tracks[0];
     const nextFirstTrack = tracks[0];
     if (prevFirstTrack && nextFirstTrack && prevFirstTrack.metadata.trackId === nextFirstTrack.id) {
@@ -249,6 +255,10 @@ const playSong = (store) => {
   store.dispatch(updatePlayback({ tracks }))
 
   player.gotoTrack(currentIdx, true)
+
+  if (activeTrackId) {
+    store.dispatch(scrobblePlay({ id: activeTrackId }))
+  }
 }
 
 const getRandomShow = (artistSlug, store) => {
