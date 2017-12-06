@@ -15,7 +15,7 @@ import { updatePlayback, updatePlaybackTrack } from '../redux/modules/playback'
 import { updateApp } from '../redux/modules/app'
 import { createShowDate, splitShowDate, getParams, removeLeadingZero } from '../lib/utils'
 import player, { isPlayerMounted, initGaplessPlayer } from '../lib/player'
-import routesRegex from '../lib/customRoutes'
+import artistSlugs from '../lib/artistSlugs'
 import '../lib/hotkeys'
 
 import Layout from '../layouts'
@@ -89,11 +89,14 @@ const handleRouteChange = (store, url) => {
 
   const [pathname, params] = url.split('?')
 
-  if (routesRegex.test(pathname)) return;
-
   const [artistSlug, year, month, day, songSlug] = pathname.replace(/^\//, '').split('/')
   const paramsObj = getParams(params)
   const { source } = paramsObj
+
+  // if not a band, fallback
+  if (artistSlugs.indexOf(artistSlug) === -1) {
+    return null;
+  }
 
   store.dispatch(
     updateApp({

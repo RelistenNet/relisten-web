@@ -6,7 +6,7 @@ const dev = process.env.NODE_ENV !== 'production'
 const app = next({ dev })
 const handle = app.getRequestHandler()
 
-const routesRegex = require('./lib/customRoutes')
+const artistSlugs = require('./lib/artistSlugs')
 
 app.prepare().then(() => {
   createServer((req, res) => {
@@ -15,15 +15,15 @@ app.prepare().then(() => {
     const parsedUrl = parse(req.url, true)
     const { pathname, query } = parsedUrl
 
+    const [artistSlug] = pathname.replace(/^\//, '').split('/')
+    console.log("artist slug", artistSlug)
+
     // catch custom routes
-    if (routesRegex.test(pathname)) {
-      return handle(req, res, parsedUrl)
+    if (artistSlugs.indexOf(artistSlug) !== -1) {
+      return app.render(req, res, '/', query)
     }
 
-    // override custom routing to always go to '/'
-    return app.render(req, res, '/', query)
-    // if you want the server to handle normally use below:
-    // handle(req, res, parsedUrl)
+    return handle(req, res, parsedUrl)
   })
   .listen(process.env.PORT || 3000, (err) => {
     if (err) throw err
