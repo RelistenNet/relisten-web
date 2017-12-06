@@ -38,7 +38,6 @@ const SongsColumn = ({ source, loading, artistSlug, songSlug, activePlaybackSour
                 </div>
                 <div>
                   <div>{trackMetadata && trackMetadata.webAudioLoadingState !== 'NONE' ? trackMetadata.webAudioLoadingState : ''}</div>
-                  {trackMetadata && trackIsActive && <div>{trackMetadata.playbackType}</div>}
                 </div>
               </Row>
             </div>
