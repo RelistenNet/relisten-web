@@ -12,6 +12,10 @@ const exists = (str) => {
   return str && !/unknown/i.test(str)
 }
 
+const cleanFlac = (str) => {
+  return str ? (str.replace(/Flac|Bit/g, '') + '-BIT ') : '';
+}
+
 const TapesColumn = ({ tapes, artistSlug, activeSourceId }) => {
   const sources = tapes.data && tapes.data.sources && tapes.data.sources.length ? tapes.data.sources : null
   const { year, month, day } = sources ? splitShowDate(sources[0].display_date) : {}
@@ -52,7 +56,7 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }) => {
                 <div className="duration">
                 {durationToHHMMSS(source.duration)}</div>
                 {source.is_soundboard && <Tag>SBD</Tag>}
-                {source.flac_type !== 'NoFlac' && <Tag>FLAC</Tag>}
+                {source.flac_type !== 'NoFlac' && <Tag>{cleanFlac(source.flac_type)}FLAC</Tag>}
                 {source.is_remaster && <Tag>REMASTER</Tag>}
               </div>
               {exists(source.taper) && <div className="details"><div className="label">Taper:</div> <div>{source.taper}</div></div>}
