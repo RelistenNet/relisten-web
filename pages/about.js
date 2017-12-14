@@ -17,6 +17,8 @@ const About = () => (
       }
     `}</style>
     <div className="page-container">
+      <button onclick="window.FLAC = true;">FLAC</button>
+  
       <p>
         Welcome to Relisten.
       </p>
