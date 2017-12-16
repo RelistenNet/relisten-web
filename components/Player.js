@@ -25,7 +25,7 @@ class Player extends Component {
     const bandTitle = artists.data[artistSlug] ? artists.data[artistSlug].name : ''
     const activeTrack = playback.tracks.find((track, idx) => idx === playback.activeTrack.idx);
     const nextTrack = playback.tracks.find((track, idx) => idx === playback.activeTrack.idx + 1);
-    const notchPosition = typeof window === 'undefined' || !this.player ? 0 : (playback.activeTrack.currentTime / playback.activeTrack.duration) * this.player.clientWidth;
+    const notchPosition = typeof window === 'undefined' || !this.player ? 0 : (playback.activeTrack.currentTime / playback.activeTrack.duration) * (this.player.clientWidth - 3);
 
     return (
       <div className="container">
@@ -148,7 +148,9 @@ class Player extends Component {
             height: 100%;
             width: 6px;
             background: rgba(0, 0, 0, 0.1);
-            position: relative;
+            position: absolute;
+            right: -6px;
+            top: 0;
           }
 
           .volume-bar {
@@ -195,16 +197,16 @@ class Player extends Component {
               <div className="progress-background" style={{ width: notchPosition ? notchPosition + 2 : null }} />
               <div className="progress-notch" style={{ transform: `translate(${notchPosition}px, 0)` }} />
             </div>
+            <div className="volume-container" onClick={this.setVolume}>
+              <div
+                className="volume-bar"
+                style={{
+                  top: `${(1 - this.state.volume) * 100}%`
+                }}
+              />
+            </div>
           </div>
         }
-        {activeTrack && <div className="volume-container" onClick={this.setVolume}>
-          <div
-            className="volume-bar"
-            style={{
-              top: `${(1 - this.state.volume) * 100}%`
-            }}
-          />
-        </div>}
         {activeTrack && <Link href="/" as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}><div className="queue-button"><i className="fa fa-list-ol" /></div></Link>}
       </div>
     );
