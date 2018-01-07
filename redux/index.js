@@ -1,6 +1,5 @@
 import { createStore, applyMiddleware, compose } from 'redux'
 import thunk from 'redux-thunk'
-import 'isomorphic-fetch'
 
 import reducers from './modules'
 

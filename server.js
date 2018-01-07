@@ -1,6 +1,7 @@
 const { createServer } = require('http')
 const { parse } = require('url')
 const next = require('next')
+require('isomorphic-fetch')
 
 const dev = process.env.NODE_ENV !== 'production'
 const app = next({ dev })
