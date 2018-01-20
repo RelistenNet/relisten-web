@@ -238,6 +238,9 @@ const playSong = (store) => {
     const nextFirstTrack = tracks[0];
     if (prevFirstTrack && nextFirstTrack && prevFirstTrack.metadata.trackId === nextFirstTrack.id) {
       player.gotoTrack(currentIdx, true)
+        if (activeTrackId) {
+          store.dispatch(scrobblePlay({ id: activeTrackId }))
+        }
       return;
     }
     else {
