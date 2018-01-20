@@ -35,9 +35,9 @@ class Live extends Component {
           Live
 
           {live.data.map(data =>
-            <div key={data.track.id}>
+            data.track && data.source ? <div key={data.track.id}>
               {data.track.title} - {data.source.artist.name}
-            </div>
+            </div> : null
           )}
         </div>
         <style jsx>{`
