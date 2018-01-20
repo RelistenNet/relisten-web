@@ -59,7 +59,7 @@ export function receiveLive(data) {
 export function fetchLive() {
   return (dispatch, getState) => {
     dispatch(requestLive())
-    return fetch('https://relistenapi.alecgorge.com/api/v2/live/recently-played', { method: 'post' })
+    return fetch('https://relistenapi.alecgorge.com/api/v2/live/recently-played')
       .then(res => res.json())
       .then(json => dispatch(receiveLive(json)))
   }
