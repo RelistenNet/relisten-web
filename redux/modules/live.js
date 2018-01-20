@@ -67,7 +67,7 @@ export function fetchLive() {
 
 export function scrobblePlay({ id }) {
   return (dispatch, getState) => {
-    return fetch(`https://relistenapi.alecgorge.com/api/v2/live/play?track_id=${id}`, { method: 'post' })
+    return fetch(`https://relistenapi.alecgorge.com/api/v2/live/play?track_id=${id}&app_type=web`, { method: 'post' })
       .then(res => res.json())
       .then(json => json)
   }
