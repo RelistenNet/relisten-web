@@ -9,7 +9,6 @@ import { fetchArtists } from '../redux/modules/artists'
 import { fetchYears } from '../redux/modules/years'
 import { fetchShows } from '../redux/modules/shows'
 import { fetchTapes } from '../redux/modules/tapes'
-import { scrobblePlay } from '../redux/modules/live'
 import { updatePlayback, updatePlaybackTrack } from '../redux/modules/playback'
 
 import { updateApp } from '../redux/modules/app'
@@ -238,9 +237,6 @@ const playSong = (store) => {
     const nextFirstTrack = tracks[0];
     if (prevFirstTrack && nextFirstTrack && prevFirstTrack.metadata.trackId === nextFirstTrack.id) {
       player.gotoTrack(currentIdx, true)
-        if (activeTrackId) {
-          store.dispatch(scrobblePlay({ id: activeTrackId }))
-        }
       return;
     }
     else {
@@ -261,10 +257,6 @@ const playSong = (store) => {
   store.dispatch(updatePlayback({ tracks }))
 
   player.gotoTrack(currentIdx, true)
-
-  if (activeTrackId) {
-    store.dispatch(scrobblePlay({ id: activeTrackId }))
-  }
 }
 
 const getRandomShow = (artistSlug, store) => {
