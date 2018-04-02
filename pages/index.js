@@ -84,6 +84,7 @@ const Root = ({ app = {}, playback, url, isMobile, artists }) => {
 
 const handleRouteChange = (store, url) => {
   const dispatches = []
+  const afterDispatches = []
   const { isMobile } = store.getState().app
 
   const [pathname, params] = url.split('?')
@@ -94,7 +95,7 @@ const handleRouteChange = (store, url) => {
 
   // if not a band, fallback
   if (artistSlugs.indexOf(artistSlug) === -1) {
-    return null;
+    return [];
   }
 
   store.dispatch(
@@ -127,7 +128,12 @@ const handleRouteChange = (store, url) => {
 
   if (artistSlug && year && month && day && songSlug) {
     dispatches.push(store.dispatch(updatePlayback({ artistSlug, year, showDate: createShowDate(year, month, day), songSlug, source, paused: false })))
-    if (typeof window !== 'undefined') playSong(store)
+    if (typeof window !== 'undefined') {
+      afterDispatches.push(() => new Promise((resolve) => {
+        playSong(window.store)
+        resolve()
+      }))
+    }
   }
 
   if (pathname === '/' && !isMobile) {
@@ -150,7 +156,7 @@ const handleRouteChange = (store, url) => {
     )
   }
 
-  return dispatches
+  return [dispatches, afterDispatches]
 }
 
 Root.getInitialProps = async ({ req, store }) => {
@@ -159,21 +165,27 @@ Root.getInitialProps = async ({ req, store }) => {
 
   let dispatches = [store.dispatch(fetchArtists()), store.dispatch(updateApp({ isMobile }))]
 
-  if (req) dispatches = dispatches.concat(handleRouteChange(store, req.url))
+  const [nextDispatches = [], afterDispatches = []] = req ? handleRouteChange(store, req.url) : [[], []];
+
+  if (req) dispatches = dispatches.concat(nextDispatches)
 
   await Promise.all(dispatches)
+  await Promise.all(afterDispatches.map(f => f()))
 
   const { app, playback, artists } = store.getState()
 
   return { app, playback, url: req ? req.url : null, isMobile, artists }
 }
 
-Router.onRouteChangeStart = (url) => {
+Router.onRouteChangeStart = async (url) => {
   if (typeof window !== 'undefined' && window.UPDATED_TRACK_VIA_GAPLESS) {
     window.UPDATED_TRACK_VIA_GAPLESS = false
     return 'nonsense'
   }
-  handleRouteChange(window.store, url)
+  const [nextDispatches = [], afterDispatches = []] = handleRouteChange(window.store, url)
+
+  await Promise.all(nextDispatches)
+  await Promise.all(afterDispatches.map(f => f()))
 }
 
 if (typeof window !== 'undefined') {
@@ -267,7 +279,9 @@ const getRandomShow = (artistSlug, store) => {
         if (!json) return;
 
         const { year, month, day } = splitShowDate(json.display_date)
-        return Promise.all(handleRouteChange(store, `/${artistSlug}/${year}/${month}/${day}`))
+        const [dispatches] = handleRouteChange(store, `/${artistSlug}/${year}/${month}/${day}`);
+
+        return Promise.all(dispatches);
       })
     )
 }
