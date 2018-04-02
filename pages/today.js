@@ -1,3 +1,4 @@
+import React, { Component } from 'react';
 import withRedux from 'next-redux-wrapper'
 import Router from 'next/router'
 
@@ -5,17 +6,56 @@ import { initStore } from '../redux'
 
 import Layout from '../layouts'
 
-const Today = () => (
-  <Layout>
-    <style jsx>{`
-      .page-container {
-        flex: 1;
-      }
-    `}</style>
-    <div className="page-container">
-      Today
-    </div>
-  </Layout>
-)
+import { groupBy } from '../lib/utils'
 
-export default withRedux(initStore)(Today)
+import { fetchToday } from '../redux/modules/today'
+
+import TodayTrack from '../components/TodayTrack';
+
+class Today extends Component {
+  static async getInitialProps({ store, isServer, pathname, query }) {
+    await store.dispatch(fetchToday());
+
+    return {
+      today: store.getState().today,
+    };
+  }
+
+  render() {
+    const { today } = this.props;
+
+    const artists = today.data.map(day => ({ ...day, artistName: day.artist.name }));
+    const groupedBy = groupBy(artists, 'artistName');
+
+    return (
+      <Layout>
+        <div className="page-container">
+
+          {Object.entries(groupedBy).map(([artistName, days]) =>
+            <div key={artistName}>
+              <div className="artist-name">{artistName}</div>
+              <div>
+                {days.map(day => <TodayTrack day={day} key={day.id} />)}
+              </div>
+            </div>
+          )}
+        </div>
+        <style jsx>{`
+          .page-container {
+            flex: 1;
+            width: 768px;
+            margin: 0 auto;
+          }
+
+          .artist-name
+            margin 12px 12px 0
+            font-weight bold
+            font-size 1.3em
+        `}</style>
+      </Layout>
+    );
+  }
+
+}
+
+export default withRedux(initStore, ({ today }) => ({ today }))(Today)

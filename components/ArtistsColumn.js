@@ -1,17 +1,10 @@
 import { connect } from 'react-redux'
 
-import { simplePluralize } from '../lib/utils'
+import { simplePluralize, groupBy } from '../lib/utils'
 
 import Column from './Column'
 import Row from './Row'
 import RowHeader from './RowHeader'
-
-const groupBy = function(xs, key) {
-  return xs.reduce(function(rv, x) {
-    (rv[x[key]] = rv[x[key]] || []).push(x);
-    return rv;
-  }, {});
-};
 
 const ArtistsColumn = ({ artists = {}, artistSlug }) => (
   <Column heading="Artists">
