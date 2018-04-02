@@ -18,6 +18,8 @@ class Navigation extends Component {
             display: flex;
             flex-direction: row;
             height: 50px;
+            min-height: 50px;
+            max-height: 50px;
             border-bottom: 1px solid #AEAEAE;
             position: relative;
           }

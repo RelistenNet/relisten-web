@@ -17,7 +17,6 @@ app.prepare().then(() => {
     const { pathname, query } = parsedUrl
 
     const [artistSlug] = pathname.replace(/^\//, '').split('/')
-    console.log("artist slug", artistSlug)
 
     // catch custom routes
     if (artistSlugs.indexOf(artistSlug) !== -1) {

@@ -15,7 +15,7 @@
     "immutable": "3.8.1",
     "isomorphic-fetch": "2.2.1",
     "mousetrap": "1.6.1",
-    "next": "^4.2.0-canary.1",
+    "next": "^5.1.0",
     "next-redux-wrapper": "1.3.4",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
@@ -23,6 +23,8 @@
     "react-transition-group": "^1.1.3",
     "redux": "^3.7.2",
     "redux-thunk": "^2.2.0",
+    "styled-jsx-plugin-stylus": "^0.0.4",
+    "stylus": "^0.54.5",
     "ua-parser-js": "0.7.12"
   }
 }
