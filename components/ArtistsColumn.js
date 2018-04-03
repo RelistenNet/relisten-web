@@ -7,7 +7,7 @@ import Row from './Row'
 import RowHeader from './RowHeader'
 
 const ArtistsColumn = ({ artists = {}, artistSlug }) => (
-  <Column heading="Artists">
+  <Column heading="Bands">
     {artists && artists.data && Object.entries(groupBy(Object.values(artists.data), 'featured')).sort(([a], [b]) => b - a).map(([type, artists]) =>
       [
         <RowHeader key={`header-${type}`}>{type === '1' ? 'Featured' : 'Bands'}</RowHeader>,
