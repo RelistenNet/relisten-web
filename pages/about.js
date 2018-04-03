@@ -1,5 +1,6 @@
 import withRedux from 'next-redux-wrapper'
 import Router from 'next/router'
+import Head from 'next/head'
 
 import { initStore } from '../redux'
 
@@ -7,6 +8,9 @@ import Layout from '../layouts'
 
 const About = () => (
   <Layout>
+    <Head>
+      <title>About | Relisten</title>
+    </Head>
     <style jsx>{`
       .page-container {
         flex: 1;
