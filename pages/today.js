@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import withRedux from 'next-redux-wrapper'
 import Router from 'next/router'
+import Head from 'next/head'
 
 import { initStore } from '../redux'
 
@@ -30,7 +31,9 @@ class Today extends Component {
     return (
       <Layout>
         <div className="page-container">
-
+          <Head>
+            <title>Today | Relisten</title>
+          </Head>
           {Object.entries(groupedBy).map(([artistName, days]) =>
             <div key={artistName}>
               <div className="artist-name">{artistName}</div>
