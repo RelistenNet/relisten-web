@@ -22,6 +22,7 @@ class Navigation extends Component {
             max-height: 50px;
             border-bottom: 1px solid #AEAEAE;
             position: relative;
+            color: #333;
           }
 
           .navigation .relisten-mobile {
@@ -30,7 +31,7 @@ class Navigation extends Component {
 
           .navigation .left > span, .navigation a, .navigation .right > div {
             height: 100%;
-            font-size: 1.4em;
+            font-size: 1.1em;
             text-align: center;
             font-weight: bold;
 
@@ -45,9 +46,8 @@ class Navigation extends Component {
           }
 
           .player {
-            min-width: 40vw;
+            min-width: 50vw;
             text-align: center;
-
           }
 
           @media screen
@@ -80,18 +80,22 @@ class Navigation extends Component {
           }
 
           .artist, .default {
-            padding: 0 8px;
             width: auto;
             text-transform: uppercase;
           }
 
           a:hover, .right > div:hover {
-            background: #333;
-            color: #FFF;
+            color: #000;
+            position: relative;
+            top: -1px;
+          }
+
+          .right.nav > div {
+            margin-left: 8px;
           }
 
           @media only screen and (max-width: 1024px) {
-            .navigation .relisten {
+            .navigation .desktop {
               display: none;
             }
 
@@ -106,7 +110,7 @@ class Navigation extends Component {
 
         `}</style>
         <div className="left">
-          <Link href="/" prefetch><a className="relisten">RELISTEN</a></Link>
+          <Link href="/" prefetch><a className="relisten-title desktop">RELISTEN</a></Link>
           <Link href="/" prefetch><a className="relisten-mobile">R</a></Link>
           {artists.data[app.artistSlug] && <span className="to">TO</span>}
           {artists.data[app.artistSlug] &&
@@ -121,12 +125,19 @@ class Navigation extends Component {
         <div className="player">
           <Player />
         </div>
-        <div className="right" onClick={this.toggleMenu}>
+        <div className="right relisten-mobile" onClick={this.toggleMenu}>
           <div>MENU</div>
+          <InlinePopup ref={ref => this.modal = ref}>
+            <Menu />
+          </InlinePopup>
         </div>
-        <InlinePopup ref={ref => this.modal = ref}>
-          <Menu />
-        </InlinePopup>
+        <div className="right nav desktop">
+          <div><a href="https://github.com/RelistenNet/relisten-web" target="_blank">GITHUB</a></div>
+          <div><Link href="/today" prefetch><a>TODAY</a></Link></div>
+          <div><Link href="/live" prefetch><a>LIVE</a></Link></div>
+          <div><Link href="/ios" prefetch><a>iOS</a></Link></div>
+          <div><Link href="/about" prefetch><a>ABOUT</a></Link></div>
+        </div>
       </div>
     )
   }

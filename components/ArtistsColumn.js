@@ -10,9 +10,9 @@ const ArtistsColumn = ({ artists = {}, artistSlug }) => (
   <Column heading="Artists">
     {artists && artists.data && Object.entries(groupBy(Object.values(artists.data), 'featured')).sort(([a], [b]) => b - a).map(([type, artists]) =>
       [
-        <RowHeader key={type}>{type === '1' ? 'Featured' : 'Bands'}</RowHeader>,
-        artists.map(artist =>
-          <Row key={artist.id} href={`/${artist.slug}`} active={artist.slug === artistSlug}>
+        <RowHeader key={`header-${type}`}>{type === '1' ? 'Featured' : 'Bands'}</RowHeader>,
+        ...artists.map((artist, idx) =>
+          <Row key={[idx, artist.id].join(':')} href={`/${artist.slug}`} active={artist.slug === artistSlug}>
             <div>{artist.name}</div>
             <div>
               <div>{simplePluralize('show', artist.show_count)}</div>
