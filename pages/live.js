@@ -59,6 +59,7 @@ class Live extends Component {
         <style jsx>{`
           .page-container {
             flex: 1;
+            max-width: 768px;
             width: 768px;
             margin: 0 auto;
           }

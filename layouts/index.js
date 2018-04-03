@@ -11,6 +11,12 @@ export default ({ children, ...props }) => (
         min-width: 768px;
       }
 
+      .content {
+        overflow-y: auto;
+        display: flex;
+        flex: 1;
+      }
+
       @media only screen
         and (max-device-width: 736px)
         and (-webkit-min-device-pixel-ratio: 2) {
@@ -20,6 +26,6 @@ export default ({ children, ...props }) => (
       }
     `}</style>
     <Navigation />
-    {children}
+    <div className="content">{children}</div>
   </div>
 )
