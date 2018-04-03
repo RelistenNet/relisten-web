@@ -8,7 +8,7 @@ export default ({ children, ...props }) => (
         display: flex;
         flex-direction: column;
         height: 100vh;
-        min-width: 768px;
+        max-width: 100vw;
       }
 
       .content {
@@ -18,10 +18,10 @@ export default ({ children, ...props }) => (
       }
 
       @media only screen
-        and (max-device-width: 736px)
-        and (-webkit-min-device-pixel-ratio: 2) {
+        and (min-width: 768px) {
           .layout {
-            min-width: initial;
+            min-width: 768px;
+            max-width: initial;
           }
       }
     `}</style>
