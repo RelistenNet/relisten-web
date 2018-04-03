@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import withRedux from 'next-redux-wrapper'
 import Router from 'next/router'
+import Head from 'next/head'
 
 import { initStore } from '../redux'
 
@@ -50,6 +51,9 @@ class Live extends Component {
 
     return (
       <Layout>
+        <Head>
+          <title>Live | Relisten</title>
+        </Head>
         <div className="page-container">
 
           {removeDuplicates(live.data, 'track', 'track', 'id').map(data =>
