@@ -36,7 +36,7 @@ class Player extends Component {
             position: relative;
           }
 
-          .container .fa {
+          .container .fas {
             cursor: pointer;
           }
 
@@ -168,13 +168,13 @@ class Player extends Component {
           <title>{`${playback.activeTrack.isPaused ? '❚ ❚' : '▶'} ${activeTrack.title} ${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)} ${bandTitle}`} | Relisten</title>
         </Head>}
         {activeTrack && <div className="playpause" onClick={() => player.togglePlayPause()}>
-          <i className={`fa fa-${playback.activeTrack.isPaused ? 'play' : 'pause'}`} />
+          <i className={`fas fa-${playback.activeTrack.isPaused ? 'play' : 'pause'}`} />
         </div>}
         {typeof window === 'undefined' || !activeTrack ? null :
           <div className="player" ref={ref => this.player = ref}>
             <div className="content">
               <div className="timing">
-                <div><i className="fa fa-backward" onClick={() => player.playPrevious()} /></div>
+                <div><i className="fas fa-backward" onClick={() => player.playPrevious()} /></div>
                 <div>{durationToHHMMSS(playback.activeTrack.currentTime)}</div>
               </div>
               <div className="info">
@@ -182,14 +182,14 @@ class Player extends Component {
                   {activeTrack.title}
                   {false &&<div className="after-song-title">
                     <div>Next: {nextTrack && nextTrack.title}&nbsp;</div>
-                    <i className="fa fa-angle-down" />
+                    <i className="fas fa-angle-down" />
                   </div>}
                 </div>
 
                 <Link href="/" as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}><a className="band-title">{bandTitle} – {removeLeadingZero(month)}/{removeLeadingZero(day)}/{year.slice(2)}</a></Link>
               </div>
               <div className="timing duration">
-                <div><i className="fa fa-forward" onClick={() => player.playNext()} /></div>
+                <div><i className="fas fa-forward" onClick={() => player.playNext()} /></div>
                 <div onClick={this.toggleRemainingDuration}>{durationToHHMMSS(showRemainingDuration ? playback.activeTrack.currentTime - playback.activeTrack.duration : playback.activeTrack.duration)}</div>
               </div>
             </div>
@@ -207,7 +207,7 @@ class Player extends Component {
             </div>
           </div>
         }
-        {activeTrack && <Link href="/" as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}><div className="queue-button"><i className="fa fa-list-ol" /></div></Link>}
+        {activeTrack && <Link href="/" as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}><div className="queue-button"><i className="fas fa-list-ol" /></div></Link>}
       </div>
     );
   }

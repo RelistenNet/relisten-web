@@ -36,8 +36,12 @@ class Navigation extends Component {
             font-weight: bold;
 
             display: flex;
-            flex-direction: column;
-            justify-content: center;
+            flex-direction: row;
+            align-items: center;
+          }
+
+          .relisten-title {
+            margin-left: 4px;
           }
 
           .left {
@@ -90,8 +94,10 @@ class Navigation extends Component {
             top: -1px;
           }
 
-          .right.nav > div {
-            margin-left: 8px;
+          i {
+            font-size: 0.6em;
+            margin-left: 4px;
+            opacity: 0.8;
           }
 
           @media only screen and (max-width: 1024px) {
@@ -132,10 +138,10 @@ class Navigation extends Component {
           </InlinePopup>
         </div>
         <div className="right nav desktop">
-          <div><a href="https://github.com/RelistenNet/relisten-web" target="_blank">GITHUB</a></div>
+          <div><a href="https://github.com/RelistenNet/relisten-web" target="_blank">GITHUB <i className="fas fa-external-link-alt" /></a></div>
+          <div><a href="https://itunes.apple.com/us/app/relisten-formerly-listen-to-dead-listen-to-recordings/id715886886?mt=8" target="_blank">iOS <i className="fas fa-external-link-alt" /></a></div>
           <div><Link href="/today" prefetch><a>TODAY</a></Link></div>
           <div><Link href="/live" prefetch><a>LIVE</a></Link></div>
-          <div><Link href="/ios" prefetch><a>iOS</a></Link></div>
           <div><Link href="/about" prefetch><a>ABOUT</a></Link></div>
         </div>
       </div>
