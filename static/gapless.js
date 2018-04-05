@@ -299,6 +299,7 @@
 
     // public-ish functions
     pause() {
+      this.debug('pause');
       if (this.isUsingWebAudio) {
         if (this.bufferSourceNode.playbackRate.value === 0) return;
         this.webAudioPausedAt = this.audioContext.currentTime;

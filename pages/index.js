@@ -190,18 +190,20 @@ Router.onRouteChangeStart = async (url) => {
 
 if (typeof window !== 'undefined') {
   setTimeout(async () => {
+    const { currentTime, duration } = localStorage;
     const cachedUrl = window.location.pathname + window.location.search;
     const [artistSlug, year, month, day, songSlug] = window.location.pathname.replace(/^\//, '').split('/')
 
     if (!songSlug && localStorage.lastPlayedUrl) {
       const [nextDispatches = [], afterDispatches = []] = handleRouteChange(window.store, localStorage.lastPlayedUrl, true);
-      const { currentTime } = localStorage;
 
       await Promise.all(nextDispatches)
       await Promise.all(afterDispatches.map(f => f()))
 
       if (currentTime && player.currentTrack) {
         player.currentTrack.seek(currentTime);
+
+        window.store.dispatch(updatePlaybackTrack({ currentTime: parseFloat(currentTime), duration: parseFloat(duration) }));
       }
 
       if (artistSlugs.indexOf(artistSlug) === -1) {

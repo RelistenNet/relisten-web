@@ -1,4 +1,5 @@
 const UPDATE = 'playback/UPDATE';
+const UPDATE_TRACK = 'playback/UPDATE_TRACK';
 
 const defaultState = {
   artistSlug: undefined,
@@ -21,6 +22,15 @@ export default function counter(state = defaultState, action) {
         ...state,
         ...action.data
       };
+    case UPDATE_TRACK: {
+      return {
+        ...state,
+        activeTrack: {
+          ...state.activeTrack,
+          ...action.data,
+        }
+      }
+    }
     default:
       return state
   }
@@ -29,6 +39,13 @@ export default function counter(state = defaultState, action) {
 export function updatePlayback(data = {}) {
   return {
     type: UPDATE,
+    data
+  }
+}
+
+export function updatePlaybackTrack(data = {}) {
+  return {
+    type: UPDATE_TRACK,
     data
   }
 }
