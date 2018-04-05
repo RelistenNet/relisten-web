@@ -15,7 +15,6 @@ app.prepare().then(() => {
     // This tells it to parse the query portion of the URL.
     const parsedUrl = parse(req.url, true)
     const { pathname, query } = parsedUrl
-
     const [artistSlug] = pathname.replace(/^\//, '').split('/')
 
     // catch custom routes

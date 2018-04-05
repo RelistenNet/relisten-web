@@ -82,7 +82,7 @@ const Root = ({ app = {}, playback, url, isMobile, artists }) => {
   );
 }
 
-const handleRouteChange = (store, url) => {
+const handleRouteChange = (store, url, forceIsPaused) => {
   const dispatches = []
   const afterDispatches = []
   const { isMobile } = store.getState().app
@@ -130,7 +130,7 @@ const handleRouteChange = (store, url) => {
     dispatches.push(store.dispatch(updatePlayback({ artistSlug, year, showDate: createShowDate(year, month, day), songSlug, source, paused: false })))
     if (typeof window !== 'undefined') {
       afterDispatches.push(() => new Promise((resolve) => {
-        playSong(window.store)
+        playSong(window.store, forceIsPaused)
         resolve()
       }))
     }
@@ -189,7 +189,31 @@ Router.onRouteChangeStart = async (url) => {
 }
 
 if (typeof window !== 'undefined') {
-  setTimeout(() => {
+  setTimeout(async () => {
+    const cachedUrl = window.location.pathname + window.location.search;
+    const [artistSlug, year, month, day, songSlug] = window.location.pathname.replace(/^\//, '').split('/')
+
+    if (!songSlug && localStorage.lastPlayedUrl) {
+      const [nextDispatches = [], afterDispatches = []] = handleRouteChange(window.store, localStorage.lastPlayedUrl, true);
+      const { currentTime } = localStorage;
+
+      await Promise.all(nextDispatches)
+      await Promise.all(afterDispatches.map(f => f()))
+
+      if (currentTime && player.currentTrack) {
+        player.currentTrack.seek(currentTime);
+      }
+
+      if (artistSlugs.indexOf(artistSlug) === -1) {
+        Router.replace(cachedUrl);
+      }
+      else {
+        Router.replace('/', cachedUrl);
+      }
+
+      return;
+    }
+
     playSong(window.store)
       const paramsObj = getParams(window.location.search)
       if (paramsObj.t) {
@@ -200,11 +224,12 @@ if (typeof window !== 'undefined') {
   }, 0)
 }
 
-const playSong = (store) => {
+const playSong = (store, forceIsPaused) => {
   const { playback, tapes } = store.getState()
   const { artistSlug, showDate, source, songSlug } = playback
   const activePlaybackSourceId = parseInt(source, 10)
   const showTapes = tapes[artistSlug] && tapes[artistSlug][showDate] ? tapes[artistSlug][showDate] : null
+  const playImmediately = forceIsPaused ? false : true
   let tape
 
   console.log('play song', playback, showTapes)
@@ -248,7 +273,7 @@ const playSong = (store) => {
     const prevFirstTrack = player.tracks[0];
     const nextFirstTrack = tracks[0];
     if (prevFirstTrack && nextFirstTrack && prevFirstTrack.metadata.trackId === nextFirstTrack.id) {
-      player.gotoTrack(currentIdx, true)
+      player.gotoTrack(currentIdx, playImmediately)
       return;
     }
     else {
@@ -268,7 +293,7 @@ const playSong = (store) => {
 
   store.dispatch(updatePlayback({ tracks }))
 
-  player.gotoTrack(currentIdx, true)
+  player.gotoTrack(currentIdx, playImmediately)
 }
 
 const getRandomShow = (artistSlug, store) => {

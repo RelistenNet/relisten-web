@@ -12,7 +12,7 @@ class Player extends Component {
 
     this.state = {
       showRemainingDuration: false,
-      volume: 1,
+      volume: typeof localStorage !== 'undefined' && localStorage.volume || 1,
     }
   }
 
@@ -233,6 +233,8 @@ class Player extends Component {
     this.setState({ volume: nextVolume });
 
     player.setVolume(nextVolume);
+
+    localStorage.volume = nextVolume;
   }
 }
 
