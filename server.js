@@ -1,5 +1,6 @@
 const { createServer } = require('http')
 const { parse } = require('url')
+const { readFileSync } = require('fs')
 const next = require('next')
 require('isomorphic-fetch')
 
@@ -16,6 +17,14 @@ app.prepare().then(() => {
     const parsedUrl = parse(req.url, true)
     const { pathname, query } = parsedUrl
     const [artistSlug] = pathname.replace(/^\//, '').split('/')
+
+    console.log(parsedUrl);
+    if (parsedUrl.pathname === "/apple-app-site-association") {
+      res.setHeader('Content-Type', 'application/json')
+      res.end(readFileSync('./static/apple-app-site-association'));
+      
+      return;
+    }
 
     // catch custom routes
     if (artistSlugs.indexOf(artistSlug) !== -1) {
