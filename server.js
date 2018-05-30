@@ -18,11 +18,10 @@ app.prepare().then(() => {
     const { pathname, query } = parsedUrl
     const [artistSlug] = pathname.replace(/^\//, '').split('/')
 
-    console.log(parsedUrl);
     if (parsedUrl.pathname === "/apple-app-site-association") {
       res.setHeader('Content-Type', 'application/json')
       res.end(readFileSync('./static/apple-app-site-association'));
-      
+
       return;
     }
 
