@@ -55,7 +55,6 @@ class Live extends Component {
           <title>Live | Relisten</title>
         </Head>
         <div className="page-container">
-
           {removeDuplicates(live.data, 'track', 'track', 'id').map(data =>
             <LiveTrack {...data} key={data.track.track.id} />
           )}
