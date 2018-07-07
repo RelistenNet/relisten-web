@@ -29,7 +29,7 @@ class Navigation extends Component {
             display: none;
           }
 
-          .navigation .left > span, .navigation a, .navigation .right > div {
+          .navigation .left > span, .navigation a {
             height: 100%;
             font-size: 1.1em;
             text-align: center;

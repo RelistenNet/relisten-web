@@ -24,8 +24,6 @@ const About = () => (
       }
     `}</style>
     <div className="page-container">
-      <button onClick={() => window.FLAC = true}>FLAC</button>
-
       <p>
         Welcome to Relisten.
       </p>
@@ -35,16 +33,16 @@ const About = () => (
       </p>
 
       <p>
-        This site is powered by Archive.org, Phish.in, and PanicStream.
+        This site is powered by Archive.org and Phish.in.
       </p>
 
       <p>
-        Everything on our end is open source at <a href="https://github.com/relistennet" target="_blank">https://github.com/relistennet</a>
+        This entire platform is open source at <a href="https://github.com/relistennet" target="_blank">https://github.com/relistennet</a>
       </p>
 
       <p>
         Enjoy <br />
-        - Daniel Saewitz and Alec Gorge, admin@relisten.net
+        - Daniel Saewitz and Alec Gorge, <a href="mailto:team@relisten.net">team@relisten.net</a>
       </p>
 
       <br />
