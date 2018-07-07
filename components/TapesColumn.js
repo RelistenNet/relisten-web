@@ -56,7 +56,7 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }) => {
                 <div className="duration">
                 {durationToHHMMSS(source.duration)}</div>
                 {source.is_soundboard && <Tag>SBD</Tag>}
-                {source.flac_type !== 'NoFlac' && <Tag>{cleanFlac(source.flac_type)}FLAC</Tag>}
+                {false && source.flac_type !== 'NoFlac' && <Tag>{cleanFlac(source.flac_type)}FLAC</Tag>}
                 {source.is_remaster && <Tag>REMASTER</Tag>}
               </div>
               {exists(source.taper) && <div className="details"><div className="label">Taper:</div> <div>{source.taper}</div></div>}
