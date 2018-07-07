@@ -138,8 +138,8 @@ class Navigation extends Component {
           </InlinePopup>
         </div>
         <div className="right nav desktop">
-          <div><a href="https://github.com/RelistenNet/relisten-web" target="_blank">GITHUB <i className="fas fa-external-link-alt" /></a></div>
           <div><a href="https://discord.gg/73fdDSS" target="_blank">CHAT <i className="fas fa-external-link-alt" /></a></div>
+          <div><a href="https://github.com/RelistenNet/relisten-web" target="_blank">GITHUB <i className="fas fa-external-link-alt" /></a></div>
           <div><a href="https://itunes.apple.com/us/app/relisten-formerly-listen-to-dead-listen-to-recordings/id715886886?mt=8" target="_blank">iOS <i className="fas fa-external-link-alt" /></a></div>
           <div><Link href="/today" prefetch><a>TODAY</a></Link></div>
           <div><Link href="/live" prefetch><a>LIVE</a></Link></div>
