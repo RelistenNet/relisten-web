@@ -11,21 +11,16 @@ import { fetchLive } from '../redux/modules/live'
 
 import LiveTrack from '../components/LiveTrack';
 
-// lol
-function removeDuplicates(originalArray, prop1, prop2, prop3) {
-  var newArray = [];
-  var lookupObject  = {};
+function uniqBy(a, key) {
+  var seen = new Set();
+  return a.filter(item => {
+      var k = key(item);
+      return seen.has(k) ? false : seen.add(k);
+  });
+}
 
-  for(var i in originalArray) {
-    if (lookupObject[originalArray[i][prop1][prop2][prop3]]) continue;
-    lookupObject[originalArray[i][prop1][prop2][prop3]] = originalArray[i];
-  }
-
-  for (i in lookupObject) {
-    newArray.push(lookupObject[i]);
-  }
-
-  return newArray;
+const keyFn = (item) => {
+  return item && item.track && item.track.track && item.track.track.id;
 }
 
 class Live extends Component {
@@ -55,7 +50,7 @@ class Live extends Component {
           <title>Live | Relisten</title>
         </Head>
         <div className="page-container">
-          {removeDuplicates(live.data, 'track', 'track', 'id').map(data =>
+          {uniqBy(live.data, keyFn).map(data =>
             <LiveTrack {...data} key={data.track.track.id} />
           )}
         </div>
