@@ -81,6 +81,7 @@ class Navigation extends Component {
 
           a, .right > div {
             padding: 0 4px;
+            height: 100%;
           }
 
           .artist, .default {
