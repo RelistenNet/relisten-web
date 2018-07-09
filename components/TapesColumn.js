@@ -16,6 +16,13 @@ const cleanFlac = (str) => {
   return str ? (str.replace(/Flac|Bit/g, '') + '-BIT ') : '';
 }
 
+// TODO: i18n
+const pluralize = (str, count) => {
+  if (count === 1) return str;
+
+  return str + 's';
+}
+
 const TapesColumn = ({ tapes, artistSlug, activeSourceId }) => {
   const sources = tapes.data && tapes.data.sources && tapes.data.sources.length ? tapes.data.sources : null
   const { year, month, day } = sources ? splitShowDate(sources[0].display_date) : {}
@@ -61,7 +68,7 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }) => {
               </div>
               {exists(source.taper) && <div className="details"><div className="label">Taper:</div> <div>{source.taper}</div></div>}
               {exists(source.transferer) && <div className="details"><div className="label">Transferer:</div> <div>{source.transferer}</div></div>}
-              {exists(source.avg_rating > 0) && <div className="details"><div className="label">{artistSlug === 'phish' ? 'Dot Net' : 'Rating'}:</div> <div>{Number(source.avg_rating).toFixed(2)}</div></div>}
+              {exists(source.avg_rating > 0) && <div className="details"><div className="label">{artistSlug === 'phish' ? 'Dot Net' : 'Rating'}:</div> <div>{Number(source.avg_rating).toFixed(2)} / {source.num_ratings || source.num_reviews} {pluralize('rating', source.num_ratings || source.num_reviews)}</div></div>}
               {exists(source.source) && <div className="details"><div className="label">Source:</div> <div>{source.source}</div></div>}
               {exists(source.lineage) && <div className="details"><div className="label">Lineage:</div> <div>{source.lineage}</div></div>}
             </div>
