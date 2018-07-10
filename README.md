@@ -1,10 +1,18 @@
-# relisten next
+# Relisten (web)
+
+Relisten is a simple free music streaming platform for recorded live concerts.
+
+Visit https://relisten.net to find out more.
+
+We also have iOS and Sonos apps you can use.
 
 ## To run
 ```
-  $ npm i # or yarn install
-  $ npm start # or node server.js
+  # install node
+  # install yarn (https://yarnpkg.com/en/docs/install)
+  $ yarn
+  $ npm start
 ```
 
 ## License
-MIT - do as you please
+MIT
