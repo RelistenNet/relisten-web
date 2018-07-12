@@ -279,7 +279,7 @@
       // if we've switched tracks, don't switch to web audio
       if (!this.isActiveTrack) return;
 
-      this.debug('switch to web audio', this.currentTime, this.isPaused, this.audio.duration - this.audioBuffer.duration);
+      this.debug('switch to web audio', this.currentTime, this.isPaused, this.audio.duration, this.audioBuffer.duration, this.audio.duration - this.audioBuffer.duration);
 
       // if currentTime === 0, this is a new track, so play it
       // otherwise we're hitting this mid-track which may
