@@ -1,7 +1,4 @@
-import withRedux from 'next-redux-wrapper'
 import Router from 'next/router'
-
-import { initStore } from '../redux'
 
 import Layout from '../layouts'
 
@@ -18,4 +15,4 @@ const IOS = () => (
   </Layout>
 )
 
-export default withRedux(initStore)(IOS)
+export default IOS

@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
-import withRedux from 'next-redux-wrapper'
 import Router from 'next/router'
 import Head from 'next/head'
-
-import { initStore } from '../redux'
+import { connect } from 'react-redux'
 
 import Layout from '../layouts'
 
@@ -68,4 +66,4 @@ class Live extends Component {
 
 }
 
-export default withRedux(initStore, ({ live }) => ({ live }))(Live)
+export default connect(({ live }) => ({ live }))(Live)

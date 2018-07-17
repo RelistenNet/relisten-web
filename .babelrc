@@ -5,7 +5,11 @@
   "plugins": [
     [
       "styled-jsx/babel",
-      { "plugins": ["styled-jsx-plugin-stylus"] }
+      {
+        "plugins": [
+          "styled-jsx-plugin-stylus"
+        ]
+      }
     ]
   ]
 }

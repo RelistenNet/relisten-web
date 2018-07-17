@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
-import withRedux from 'next-redux-wrapper'
 import Router from 'next/router'
 import Head from 'next/head'
-
-import { initStore } from '../redux'
+import { connect } from 'react-redux'
 
 import Layout from '../layouts'
 
@@ -62,4 +60,4 @@ class Today extends Component {
 
 }
 
-export default withRedux(initStore, ({ today }) => ({ today }))(Today)
+export default connect(({ today }) => ({ today }))(Today)

@@ -1,10 +1,8 @@
 import React from 'react'
-import withRedux from 'next-redux-wrapper'
 import Router from 'next/router'
 import Head from 'next/head'
 import UAParser from 'ua-parser-js'
 
-import { initStore } from '../redux'
 import { fetchArtists } from '../redux/modules/artists'
 import { fetchYears } from '../redux/modules/years'
 import { fetchShows } from '../redux/modules/shows'
@@ -313,4 +311,4 @@ const getRandomShow = (artistSlug, store) => {
     )
 }
 
-export default withRedux(initStore)(Root)
+export default Root
