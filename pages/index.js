@@ -3,6 +3,8 @@ import Router from 'next/router'
 import Head from 'next/head'
 import UAParser from 'ua-parser-js'
 
+import 'isomorphic-fetch';
+
 import { fetchArtists } from '../redux/modules/artists'
 import { fetchYears } from '../redux/modules/years'
 import { fetchShows } from '../redux/modules/shows'
