@@ -46,7 +46,6 @@ export function receiveArtists(data) {
   const obj = {}
 
   data
-    .filter(artist => artist.slug !== 'wsp')
     .map(artist => {
       const the = bandsWithThe.indexOf(artist.slug) !== -1;
       obj[artist.slug] = {
