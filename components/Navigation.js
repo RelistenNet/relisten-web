@@ -1,4 +1,4 @@
-import { Component } from 'react'
+import { Component, Fragment } from 'react'
 import Link from 'next/link'
 import { connect } from 'react-redux'
 
@@ -9,8 +9,6 @@ import Menu from './Menu'
 
 class Navigation extends Component {
   render() {
-    const { app, artists } = this.props;
-
     return (
       <div className="navigation">
         <style jsx>{`
@@ -23,6 +21,7 @@ class Navigation extends Component {
             border-bottom: 1px solid #AEAEAE;
             position: relative;
             color: #333;
+            background: #FFF;
           }
 
           .navigation .relisten-mobile {
@@ -31,9 +30,7 @@ class Navigation extends Component {
 
           .navigation .left > span, .navigation a {
             height: 100%;
-            font-size: 1.1em;
             text-align: center;
-            font-weight: bold;
 
             display: flex;
             flex-direction: row;
@@ -47,22 +44,25 @@ class Navigation extends Component {
           .left {
             display: flex;
             flex: 2;
+            font-weight: bold;
           }
 
           .player {
-            min-width: 50vw;
+            min-width: 42vw;
             text-align: center;
           }
 
-          @media screen
-            and (max-width: 980px) {
+          .menu-button
+            display flex
+            align-items center
+
+          @media (max-width: 980px) {
               .player {
                 min-width: 60%;
               }
             }
 
-          @media screen
-            and (max-width: 480px) {
+          @media (max-width: 480px) {
               .player {
                 min-width: 80%;
               }
@@ -89,10 +89,10 @@ class Navigation extends Component {
             text-transform: uppercase;
           }
 
-          a:hover, .right > div:hover {
-            color: #000;
+          a:active, .right > div:active {
+            color: #333;
             position: relative;
-            top: -1px;
+            top: 1px;
           }
 
           i {
@@ -119,35 +119,56 @@ class Navigation extends Component {
         <div className="left">
           <Link href="/" prefetch><a className="relisten-title desktop">RELISTEN</a></Link>
           <Link href="/" prefetch><a className="relisten-mobile">R</a></Link>
-          {artists.data[app.artistSlug] && <span className="to">TO</span>}
-          {artists.data[app.artistSlug] &&
-            <Link href="/" as={`/${app.artistSlug}`}>
-              <a className="artist">{artists.data[app.artistSlug].the ? 'THE ' : ''}{artists.data[app.artistSlug].name}</a>
-            </Link>
-            /*
-            : <span className="default">1,028,334 songs on 60,888 tapes from 102 bands</span>
-            */
-          }
+          {this.secondaryNavTitle}
         </div>
         <div className="player">
           <Player />
         </div>
         <div className="right relisten-mobile" onClick={this.toggleMenu}>
-          <div>MENU</div>
+          <div className="menu-button">MENU</div>
           <InlinePopup ref={ref => this.modal = ref}>
             <Menu />
           </InlinePopup>
         </div>
         <div className="right nav desktop">
-          <div><a href="https://discord.gg/73fdDSS" target="_blank">CHAT <i className="fas fa-external-link-alt" /></a></div>
-          <div><a href="https://github.com/RelistenNet/relisten-web" target="_blank">GITHUB <i className="fas fa-external-link-alt" /></a></div>
-          <div><a href="https://itunes.apple.com/us/app/relisten-formerly-listen-to-dead-listen-to-recordings/id715886886?mt=8" target="_blank">iOS <i className="fas fa-external-link-alt" /></a></div>
-          <div><Link href="/today" prefetch><a>TODAY</a></Link></div>
+          <div><Link href="/today" prefetch><a>TIH</a></Link></div>
           <div><Link href="/live" prefetch><a>LIVE</a></Link></div>
+          <div><Link href="/chat" prefetch><a>CHAT</a></Link></div>
+          <div><Link href="/ios" prefetch><a>iOS</a></Link></div>
+          <div><Link href="/sonos" prefetch><a>SONOS</a></Link></div>
           <div><Link href="/about" prefetch><a>ABOUT</a></Link></div>
         </div>
       </div>
     )
+  }
+
+  get secondaryNavTitle() {
+    const { artists, app, navPrefix, navSubtitle, navURL } = this.props;
+
+    if (navSubtitle) {
+      return (
+        <Fragment>
+          <span className="to">{navPrefix}</span>
+          <Link href="/" as={navURL}>
+            <a className="artist">{navSubtitle}</a>
+          </Link>
+        </Fragment>
+      );
+    }
+
+    return (
+      <Fragment>
+        {artists.data[app.artistSlug] && <span className="to">TO</span>}
+        {artists.data[app.artistSlug] &&
+          <Link href="/" as={`/${app.artistSlug}`}>
+            <a className="artist">{artists.data[app.artistSlug].the ? 'THE ' : ''}{artists.data[app.artistSlug].name}</a>
+          </Link>
+          /*
+          : <span className="default">1,028,334 songs on 60,888 tapes from 102 bands</span>
+          */
+        }
+      </Fragment>
+    );
   }
 
   toggleMenu = async () => {

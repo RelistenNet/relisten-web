@@ -43,11 +43,13 @@ class Live extends Component {
     const { live } = this.props;
 
     return (
-      <Layout>
+      <Layout navPrefix="TO" navSubtitle="Recently Played" navURL="/live">
         <Head>
           <title>Live | Relisten</title>
         </Head>
         <div className="page-container">
+          <h1>Recently Played</h1>
+
           {uniqBy(live.data, keyFn).map(data =>
             <LiveTrack {...data} key={data.track.track.id} />
           )}

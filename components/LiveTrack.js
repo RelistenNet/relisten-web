@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import TimeAgo from 'react-timeago'
 
 import { splitShowDate } from '../lib/utils';
 
@@ -23,9 +24,15 @@ export default ({ app_type, played_at, track } = {}) => !track || !track.track ?
       </div>
 
       <div>
-        <div>{track.track.title}</div>
+        <div>
+          {track.track.title}
+        </div>
         <div>
           {track.source.artist.name}
+          &nbsp;
+          <span className="time-ago">
+            <TimeAgo date={played_at} />
+          </span>
         </div>
       </div>
 
@@ -49,6 +56,9 @@ export default ({ app_type, played_at, track } = {}) => !track || !track.track ?
         .listen
           margin-left auto
           align-self center
+
+        .time-ago
+          opacity 0.7
       `}</style>
     </div>
   </Link>

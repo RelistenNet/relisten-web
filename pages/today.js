@@ -27,11 +27,12 @@ class Today extends Component {
     const groupedBy = groupBy(artists, 'artistName');
 
     return (
-      <Layout>
+      <Layout navPrefix="TO" navSubtitle="Today In History" navURL="/today">
         <div className="page-container">
           <Head>
             <title>Today | Relisten</title>
           </Head>
+          <h1>Today in History</h1>
           {Object.entries(groupedBy).map(([artistName, days]) =>
             <div key={artistName}>
               <div className="artist-name">{artistName}</div>

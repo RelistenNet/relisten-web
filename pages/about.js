@@ -11,31 +11,40 @@ const About = () => (
     <style jsx>{`
       .page-container {
         flex: 1;
-        max-width: 768px;
-        width: 768px;
+        max-width: 800px;
+        width: 800px;
         margin: 0 auto;
       }
 
       .italic {
         font-style: italic;
+        font-size: 0.8em;
       }
     `}</style>
     <div className="page-container">
-      <p>
-        Welcome to Relisten.
-      </p>
+      <h3>
+        Welcome to Relisten
+      </h3>
 
       <p>
         Peruse the various bands and enjoy their extensive live catalogues for free.
       </p>
 
       <p>
-        This site is powered by Archive.org and Phish.in.
+        This site is powered by <a href="https://archive.org" target="_blank">Archive.org</a>, <a href="https://phish.in" target="_blank">Phish.in</a>, and <a href="https://panicstream.com" target="_blank">PanicStream.com</a>.
       </p>
 
+      <h3>Mission</h3>
+
+      <p>We want to provide you with a simple and powerful experience that you <em>love</em>.</p>
+
+      <h3>Open Source</h3>
+
       <p>
-        This entire platform is open source at <a href="https://github.com/relistennet" target="_blank">https://github.com/relistennet</a>
+        This entire platform is open source at <a href="https://github.com/relistennet" target="_blank">https://github.com/relistennet</a>.
       </p>
+
+      <h3>Thank you</h3>
 
       <p>
         Enjoy <br />
@@ -46,7 +55,7 @@ const About = () => (
       <br />
 
       <p>
-        This site complies with Archive.org's <a href="https://archive.org/post/261115/hotlinking-allowed" target="_blank">policy</a>.
+        This site complies with <a href="https://archive.org/post/261115/hotlinking-allowed" target="_blank">Archive.org's policy</a>.
       </p>
 
       <p className="italic">

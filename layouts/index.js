@@ -2,13 +2,14 @@ import Navigation from '../components/Navigation'
 import Player from '../components/Player'
 
 export default ({ children, ...props }) => (
-  <div {...props} className="layout">
+  <div className="layout">
     <style jsx>{`
       .layout {
         display: flex;
         flex-direction: column;
         height: 100vh;
         max-width: 100vw;
+        background: #F5F8FA;
       }
 
       .content {
@@ -25,7 +26,7 @@ export default ({ children, ...props }) => (
           }
       }
     `}</style>
-    <Navigation />
+    <Navigation {...props} />
     <div className="content">{children}</div>
   </div>
 )
