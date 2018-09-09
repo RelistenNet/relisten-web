@@ -15,24 +15,32 @@ const createURL = (track) => {
   ].join('/') + `?source=${track.source.id}`;
 }
 
+// shorten date
+const formatterFn = (value, unit, suffix) => value + unit.slice(0, 1)
+
 export default ({ app_type, played_at, track } = {}) => !track || !track.track ? null : (
   <Link href="/" as={createURL(track)}>
     <div className="container">
       <div className="info">
         <div className="date">{track.source.display_date}</div>
-        <div>{app_type}</div>
+        <div className="app-info">
+          {app_type}
+          &nbsp;
+          <span className="time-ago">
+            <TimeAgo
+              date={played_at}
+              formatter={formatterFn}
+            />
+          </span>
+        </div>
       </div>
-
       <div>
-        <div>
+        <div className="content">
           {track.track.title}
         </div>
         <div>
           {track.source.artist.name}
-          &nbsp;
-          <span className="time-ago">
-            <TimeAgo date={played_at} />
-          </span>
+
         </div>
       </div>
 
@@ -50,12 +58,16 @@ export default ({ app_type, played_at, track } = {}) => !track || !track.track ?
         .info
           margin-right 12px
 
-        .date
+        .date, .content
           font-weight bold
 
         .listen
           margin-left auto
           align-self center
+
+        .app-info
+          display flex
+          justify-content space-between
 
         .time-ago
           opacity 0.7
