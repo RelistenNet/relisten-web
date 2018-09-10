@@ -285,10 +285,13 @@ const playSong = (store, forceIsPaused) => {
   }
 
   tracks.map((track, trackIdx) => {
+    const url = window.FLAC ? track.flac_url || track.mp3_url : track.mp3_url;
+
     player.addTrack({
-      trackUrl: window.FLAC ? track.flac_url || track.mp3_url : track.mp3_url,
+      trackUrl: url,
       metadata: {
         trackId: track.id,
+        skipHEAD: /phish\.in/.test(url), // skip phish from loading head due to cloudflare
       }
     });
   })

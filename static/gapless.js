@@ -343,7 +343,14 @@
       else {
         this.audio.preload = 'auto';
         this.audio.play();
-        if (!this.queue.state.webAudioIsDisabled) this.loadHEAD(() => this.loadBuffer());
+        if (!this.queue.state.webAudioIsDisabled) {
+          if (this.metadata.skipHEAD) {
+            this.loadBuffer();
+          }
+          else {
+            this.loadHEAD(() => this.loadBuffer());
+          }
+        }
       }
 
       this.onProgress();
@@ -359,7 +366,12 @@
         this.audio.preload = 'auto';
       }
       else if (!this.audioBuffer && !this.queue.state.webAudioIsDisabled) {
-        this.loadHEAD(() => this.loadBuffer());
+        if (this.metadata.skipHEAD) {
+          this.loadBuffer();
+        }
+        else {
+          this.loadHEAD(() => this.loadBuffer());
+        }
       }
     }
 
