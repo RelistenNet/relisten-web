@@ -65,10 +65,11 @@
       );
     }
 
-    addTrack({ trackUrl, metadata = {} }) {
+    addTrack({ trackUrl, skipHEAD, metadata = {} }) {
       this.tracks.push(
         new Track({
           trackUrl,
+          skipHEAD,
           metadata,
           idx: this.tracks.length,
           queue: this
@@ -187,7 +188,7 @@
   }
 
   class Track {
-    constructor({ trackUrl, queue, idx, metadata }) {
+    constructor({ trackUrl, skipHEAD, queue, idx, metadata }) {
       // playback type state
       this.playbackType = GaplessPlaybackType.HTML5;
       this.webAudioLoadingState = GaplessPlaybackLoadingState.NONE;
@@ -197,6 +198,7 @@
       this.idx = idx;
       this.queue = queue;
       this.trackUrl = trackUrl;
+      this.skipHEAD = skipHEAD;
       this.metadata = metadata;
 
       this.onEnded = this.onEnded.bind(this);
@@ -344,7 +346,7 @@
         this.audio.preload = 'auto';
         this.audio.play();
         if (!this.queue.state.webAudioIsDisabled) {
-          if (this.metadata.skipHEAD) {
+          if (this.skipHEAD) {
             this.loadBuffer();
           }
           else {
@@ -366,7 +368,7 @@
         this.audio.preload = 'auto';
       }
       else if (!this.audioBuffer && !this.queue.state.webAudioIsDisabled) {
-        if (this.metadata.skipHEAD) {
+        if (this.skipHEAD) {
           this.loadBuffer();
         }
         else {

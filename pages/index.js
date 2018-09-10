@@ -289,9 +289,9 @@ const playSong = (store, forceIsPaused) => {
 
     player.addTrack({
       trackUrl: url,
+      skipHEAD: /phish\.in/.test(url), // skip phish from loading head due to cloudflare
       metadata: {
         trackId: track.id,
-        skipHEAD: /phish\.in/.test(url), // skip phish from loading head due to cloudflare
       }
     });
   })
