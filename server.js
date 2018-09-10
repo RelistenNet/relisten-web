@@ -20,7 +20,13 @@ app.prepare().then(() => {
 
     if (parsedUrl.pathname === "/apple-app-site-association") {
       res.setHeader('Content-Type', 'application/json')
-      res.end(readFileSync('./static/apple-app-site-association'));
+
+      if(parsedUrl.hostname === 'beta.relisten.live' || parsedUrl.hostname === 'beta.relisten.net') {
+        res.end(readFileSync('./static/beta-apple-app-site-association'));
+      }
+      else {
+        res.end(readFileSync('./static/apple-app-site-association'));
+      }
 
       return;
     }

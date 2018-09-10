@@ -1,0 +1,19 @@
+{
+  "applinks": {
+    "apps": [ ],
+    "details": [
+      {
+        "appID": "HT7ELV3Q35.com.alecgorge.ios.Listen-to-the-Dead",
+        "paths": [
+          "NOT *"
+        ]
+      },
+      {
+        "appID": "HT7ELV3Q35.com.alecgorge.Phish-Tracks",
+        "paths": [
+          "NOT *"
+        ]
+      }
+    ]
+  }
+}
