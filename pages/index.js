@@ -72,7 +72,9 @@ const Root = ({ app = {}, playback, url, isMobile, artists, serverRendererdMP3, 
         {title && (!player || !player.tracks.length) &&
           <Head>
             <title>{title} | Relisten</title>
+            <meta property="og:title" content={title} />
             {serverRendererdMP3 && <meta property="og:audio" content={serverRendererdMP3} />}
+            {serverRendererdMP3 && <meta property="og:audio:secure_url" content={serverRendererdMP3} />}
             {serverRendererdMP3 && <meta property="og:audio:type" content="audio/mp3" />}
           </Head>
         }
