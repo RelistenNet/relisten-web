@@ -26,7 +26,7 @@ import ShowsColumn from '../components/ShowsColumn'
 import TapesColumn from '../components/TapesColumn'
 import SongsColumn from '../components/SongsColumn'
 
-const Root = ({ app = {}, playback, url, isMobile, artists, serverRendererdMP3, serverRenderedSongTitle }) => {
+const Root = ({ app = {}, playback, url, isMobile, artists, serverRenderedMP3, serverRenderedSongTitle }) => {
   let title = false;
   let activeColumn = 'artists'
   let activeSongURL;
@@ -73,9 +73,10 @@ const Root = ({ app = {}, playback, url, isMobile, artists, serverRendererdMP3, 
           <Head>
             <title>{title} | Relisten</title>
             <meta property="og:title" content={title} />
-            {serverRendererdMP3 && <meta property="og:audio:url" content={serverRendererdMP3} />}
-            {serverRendererdMP3 && <meta property="og:audio:secure_url" content={serverRendererdMP3} />}
-            {serverRendererdMP3 && <meta property="og:audio:type" content="audio/mp3" />}
+            {serverRenderedMP3 && <meta property="og:type" content="music.song" />}
+            {serverRenderedMP3 && <meta property="og:audio:url" content={serverRenderedMP3} />}
+            {serverRenderedMP3 && <meta property="og:audio:secure_url" content={serverRenderedMP3} />}
+            {serverRenderedMP3 && <meta property="og:audio:type" content="audio/mp3" />}
           </Head>
         }
         {(!isMobile || activeColumn === 'artists') && <ArtistsColumn />}
@@ -206,7 +207,7 @@ Root.getInitialProps = async ({ req, store }) => {
     }
   }
 
-  return { app, playback, url: req ? req.url : null, isMobile, artists, serverRendererdMP3: activeTrack ? activeTrack.mp3_url : null, serverRenderedSongTitle: activeTrack ? activeTrack.title : null }
+  return { app, playback, url: req ? req.url : null, isMobile, artists, serverRenderedMP3: activeTrack ? activeTrack.mp3_url : null, serverRenderedSongTitle: activeTrack ? activeTrack.title : null }
 }
 
 Router.onRouteChangeStart = async (url) => {
