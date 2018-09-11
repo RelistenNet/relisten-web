@@ -54,7 +54,7 @@ export function fetchYears(artistSlug) {
   return (dispatch, getState) => {
     const state = getState().years[artistSlug];
     if (state && state.meta.loaded) return {};
-    console.log('fetching years', artistSlug)
+    // console.log('fetching years', artistSlug)
     dispatch(requestYears(artistSlug))
     return fetch(`https://relistenapi.alecgorge.com/api/v2/artists/${artistSlug}/years`)
       .then(res => res.json())

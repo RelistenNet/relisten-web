@@ -26,7 +26,13 @@ app.prepare().then(() => {
 
     // redirect relisten.live to relisten.net
     if (req.headers.host === 'relisten.live') {
-      return res.redirect(301, `https://relisten.net${req.url}`);
+      res.writeHead(301, {
+        'Location': `https://relisten.net${req.url}`
+      })
+
+      res.end()
+
+      return
     }
 
     // catch custom routes

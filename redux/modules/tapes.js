@@ -66,7 +66,7 @@ export function fetchTapes(artistSlug, year, showDate) {
 
     if (state && state[showDate] && state[showDate].meta.loaded) return {}
 
-    console.log('fetching tapes', artistSlug, year, showDate)
+    // console.log('fetching tapes', artistSlug, year, showDate)
 
     dispatch(requestTapes(artistSlug, year, showDate))
 

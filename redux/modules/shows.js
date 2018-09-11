@@ -62,7 +62,7 @@ export function fetchShows(artistSlug, year) {
   return (dispatch, getState) => {
     const state = getState().shows[artistSlug];
     if (state && state[year] && state[year].meta && state[year].meta.loaded) return {};
-    console.log('fetching shows', artistSlug, year)
+    // console.log('fetching shows', artistSlug, year)
     dispatch(requestShows(artistSlug, year))
     return fetch(`https://relistenapi.alecgorge.com/api/v2/artists/${artistSlug}/years/${year}`)
       .then(res => res.json())
