@@ -73,6 +73,7 @@ const Root = ({ app = {}, playback, url, isMobile, artists, serverRenderedMP3, s
           <Head>
             <title>{title} | Relisten</title>
             <meta property="og:title" content={title} />
+            <meta property="og:image" content="https://cdn.rawgit.com/RelistenNet/relisten-ios/485488eb/Assets/RelistenAppIcon.png" />
             {serverRenderedMP3 && <meta property="og:type" content="music.song" />}
             {serverRenderedMP3 && <meta property="og:audio:url" content={serverRenderedMP3} />}
             {serverRenderedMP3 && <meta property="og:audio:secure_url" content={serverRenderedMP3} />}
