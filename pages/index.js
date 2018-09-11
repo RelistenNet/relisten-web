@@ -26,9 +26,10 @@ import ShowsColumn from '../components/ShowsColumn'
 import TapesColumn from '../components/TapesColumn'
 import SongsColumn from '../components/SongsColumn'
 
-const Root = ({ app = {}, playback, url, isMobile, artists }) => {
+const Root = ({ app = {}, playback, url, isMobile, artists, serverRendererdMP3, serverRenderedSongTitle }) => {
   let title = false;
   let activeColumn = 'artists'
+  let activeSongURL;
 
   if (!url) url = window.location.pathname
 
@@ -38,7 +39,8 @@ const Root = ({ app = {}, playback, url, isMobile, artists }) => {
   if (artistSlug && year && month && day && songSlug) {
     // TODO: hook up actual title (this doesn't work on the server since playback.tracks hasn't been added yet)
     const track = playback.tracks.find(track => track.slug === songSlug)
-    title = track ? `${track.title} ${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)} ${bandTitle}` : ''
+    const trackTitle = track ? track.title : serverRenderedSongTitle;
+    title = trackTitle ? `${trackTitle} ${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)} ${bandTitle}` : ''
     activeColumn = 'songs'
   }
 
@@ -70,6 +72,8 @@ const Root = ({ app = {}, playback, url, isMobile, artists }) => {
         {title && (!player || !player.tracks.length) &&
           <Head>
             <title>{title} | Relisten</title>
+            {serverRendererdMP3 && <meta property="og:audio" content={serverRendererdMP3} />}
+            {serverRendererdMP3 && <meta property="og:audio:type" content="audio/mp3" />}
           </Head>
         }
         {(!isMobile || activeColumn === 'artists') && <ArtistsColumn />}
@@ -172,9 +176,35 @@ Root.getInitialProps = async ({ req, store }) => {
   await Promise.all(dispatches)
   await Promise.all(afterDispatches.map(f => f()))
 
-  const { app, playback, artists } = store.getState()
+  const { app, playback, artists, tapes } = store.getState()
 
-  return { app, playback, url: req ? req.url : null, isMobile, artists }
+  const { artistSlug, showDate, source, songSlug } = playback
+  const activePlaybackSourceId = parseInt(source, 10)
+  const showTapes = tapes[artistSlug] && tapes[artistSlug][showDate] ? tapes[artistSlug][showDate] : null
+  let activeTrack;
+
+  if (showTapes && showTapes.data && showTapes.data.sources && showTapes.data.sources.length) {
+    const { sources } = showTapes.data
+
+    const tape = sources.find(tape => tape.id === activePlaybackSourceId) || sources[0]
+
+    if (tape) {
+      let idx = 0
+      let currentIdx = 0
+      let activeTrackId;
+      let tracks = []
+
+      tape.sets.map((set, setIdx) =>
+        set.tracks.map((track, trackIdx) => {
+          if (track.slug === songSlug) {
+            activeTrack = track;
+          }
+        })
+      )
+    }
+  }
+
+  return { app, playback, url: req ? req.url : null, isMobile, artists, serverRendererdMP3: activeTrack ? activeTrack.mp3_url : null, serverRenderedSongTitle: activeTrack ? activeTrack.title : null }
 }
 
 Router.onRouteChangeStart = async (url) => {
