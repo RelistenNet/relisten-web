@@ -1,5 +1,6 @@
-import App, { Container } from 'next/app';
 import React from 'react';
+import App, { Container } from 'next/app';
+import Head from 'next/head'
 import { Provider } from 'react-redux';
 import withRedux from 'next-redux-wrapper'
 import Raven from 'raven-js'
@@ -35,8 +36,13 @@ class MyApp extends App {
   render() {
     const { Component, pageProps, store } = this.props;
 
+    const fullPath = this.props.router.asPath;
+
     return (
       <Container>
+        <Head>
+          <meta name="apple-itunes-app" content={`app-id=715886886, app-argument=https://relisten.net${fullPath}`} />
+        </Head>
         <Provider store={store}>
           <Component {...pageProps} />
         </Provider>
