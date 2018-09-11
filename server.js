@@ -31,6 +31,11 @@ app.prepare().then(() => {
       return;
     }
 
+    // redirect relisten.live to relisten.net
+    if (/relisten\/.live/.test(req.headers.host)) {
+      return res.redirect(`https://relisten.net/${pathname}`);
+    }
+
     // catch custom routes
     if (artistSlugs.indexOf(artistSlug) !== -1) {
       return app.render(req, res, '/', query)
