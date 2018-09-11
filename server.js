@@ -15,25 +15,18 @@ app.prepare().then(() => {
     // Be sure to pass `true` as the second argument to `url.parse`.
     // This tells it to parse the query portion of the URL.
     const parsedUrl = parse(req.url, true)
-    const { pathname, query, hostname } = parsedUrl
+    const { pathname, query } = parsedUrl
     const [artistSlug] = pathname.replace(/^\//, '').split('/')
 
     if (pathname === '/apple-app-site-association') {
       res.setHeader('Content-Type', 'application/json')
 
-      if (hostname === 'beta.relisten.live' || hostname === 'beta.relisten.net') {
-        res.end(readFileSync('./static/beta-apple-app-site-association'));
-      }
-      else {
-        res.end(readFileSync('./static/apple-app-site-association'));
-      }
-
-      return;
+      return res.end(readFileSync('./static/apple-app-site-association'));
     }
 
     // redirect relisten.live to relisten.net
-    if (hostname === 'relisten.live') {
-      return res.redirect(`https://relisten.net/${pathname}${query}`);
+    if (req.headers.host === 'relisten.live') {
+      return res.redirect(301, `https://relisten.net/${pathname}${query}`);
     }
 
     // catch custom routes
