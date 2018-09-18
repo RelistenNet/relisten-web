@@ -5,6 +5,14 @@ import { Provider } from 'react-redux';
 import withRedux from 'next-redux-wrapper'
 import Raven from 'raven-js'
 
+// next.js polyfills for IE11
+import 'core-js/fn/object/assign'
+import 'core-js/fn/string/ends-with'// unsure if needed
+import 'core-js/fn/string/starts-with'
+import 'core-js/fn/string/includes'
+import 'core-js/fn/array/includes'
+import 'core-js/fn/array/find'
+
 import { initStore } from '../redux'
 
 const SENTRY_PUBLIC_DSN = 'https://d8fe64a30ead43e2ac70c750bc79a806@sentry.io/1261843'
