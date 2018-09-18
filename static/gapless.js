@@ -63,6 +63,12 @@
           queue: this
         })
       );
+
+      // if the browser doesn't support web audio
+      // disable it!
+      if (!this.audioContext) {
+        this.disableWebAudio();
+      }
     }
 
     addTrack({ trackUrl, skipHEAD, metadata = {} }) {
@@ -218,14 +224,14 @@
 
       // WebAudio
       this.audioContext = audioContext;
-      this.gainNode = this.audioContext.createGain();
+      this.gainNode = this.audioContext ? this.audioContext.createGain() : null;
       this.gainNode.gain.value = queue.state.volume;
       this.webAudioStartedPlayingAt = 0;
       this.webAudioPausedDuration = 0;
       this.webAudioPausedAt = 0;
       this.audioBuffer = null;
 
-      this.bufferSourceNode = this.audioContext.createBufferSource();
+      this.bufferSourceNode = this.audioContext ? this.audioContext.createBufferSource() : null;
       this.bufferSourceNode.onended = this.onEnded;
     }
 
