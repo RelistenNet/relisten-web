@@ -66,7 +66,7 @@
 
       // if the browser doesn't support web audio
       // disable it!
-      if (!this.audioContext) {
+      if (!audioContext) {
         this.disableWebAudio();
       }
     }
