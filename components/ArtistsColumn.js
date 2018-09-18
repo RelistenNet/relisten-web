@@ -20,7 +20,7 @@ const ArtistsColumn = ({ artists = {}, artistSlug }) => (
           <Row key={[idx, artist.id].join(':')} href={`/${artist.slug}`} active={artist.slug === artistSlug}>
             <div>
               {artist.name}
-              {byObject[artist.slug] && <span className="by">Powered by {byObject[artist.slug]}</span>}
+              {byObject[artist.slug] && <span className="subtext">Powered by {byObject[artist.slug]}</span>}
             </div>
             <div>
               <div>{simplePluralize('show', artist.show_count)}</div>
@@ -30,10 +30,6 @@ const ArtistsColumn = ({ artists = {}, artistSlug }) => (
         )
       ]
     )}
-    <style jsx>{`
-      .by
-        font-size 8px
-    `}</style>
   </Column>
 )
 
