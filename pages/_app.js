@@ -7,6 +7,7 @@ import Raven from 'raven-js'
 
 // next.js polyfills for IE11
 import 'core-js/fn/object/assign'
+import 'core-js/fn/object/values'
 import 'core-js/fn/string/ends-with'// unsure if needed
 import 'core-js/fn/string/starts-with'
 import 'core-js/fn/string/includes'
