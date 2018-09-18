@@ -2,3 +2,5 @@ node_modules/
 .next/
 *.log
 db/
+*.swp
+
