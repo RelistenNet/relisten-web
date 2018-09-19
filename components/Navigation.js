@@ -12,7 +12,7 @@ class Navigation extends Component {
     return (
       <div className="navigation">
         <style jsx>{`
-          .navigation {
+          .navigation
             display: flex;
             flex-direction: row;
             height: 50px;
@@ -22,13 +22,12 @@ class Navigation extends Component {
             position: relative;
             color: #333;
             background: #FFF;
-          }
 
           .navigation .relisten-mobile {
             display: none;
           }
 
-          .navigation .left > span, .navigation a {
+          :global(.navigation a, .navigation > .left > span) {
             height: 100%;
             text-align: center;
 
@@ -79,12 +78,12 @@ class Navigation extends Component {
             cursor: pointer;
           }
 
-          a, .right > div {
+          :global(.navigation a), .right > div {
             padding: 0 4px;
             height: 100%;
           }
 
-          .artist, .default {
+          :global(.artist, .default) {
             width: auto;
             text-transform: uppercase;
           }
@@ -110,7 +109,7 @@ class Navigation extends Component {
               display: flex;
             }
 
-            .navigation .left > span.to, .navigation .artist {
+            :global(.navigation .left > span.to), :global(.navigation .artist) {
               display: none;
             }
           }
