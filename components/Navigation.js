@@ -117,7 +117,7 @@ class Navigation extends Component {
         `}</style>
         <div className="left">
           <Link href="/" prefetch><a className="relisten-title desktop">RELISTEN</a></Link>
-          <Link href="/" prefetch><a className="relisten-mobile">R</a></Link>
+          <Link href="/" prefetch><a className="relisten-mobile">Re</a></Link>
           {this.secondaryNavTitle}
         </div>
         <div className="player">
