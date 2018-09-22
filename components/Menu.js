@@ -10,11 +10,11 @@ export default () => (
     `}</style>
     <Column className="let-flow">
       <Row baseHrefOverride="/about">About</Row>
+      <Row baseHrefOverride="/today">Today</Row>
+      <Row baseHrefOverride="/live">Live</Row>
       <Row baseHrefOverride="/sonos">Sonos</Row>
       <Row baseHrefOverride="/ios">iOS</Row>
       <Row baseHrefOverride="/chat">Chat</Row>
-      <Row baseHrefOverride="/live">Live</Row>
-      <Row baseHrefOverride="/today">Today</Row>
     </Column>
   </div>
 )
