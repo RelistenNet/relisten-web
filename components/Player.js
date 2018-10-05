@@ -4,6 +4,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 
 import { createShowDate, durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils'
+import ChromecastButton from './ChromecastButton';
 import player from '../lib/player'
 
 class Player extends Component {
@@ -192,6 +193,7 @@ class Player extends Component {
                 <div><i className="fas fa-forward" onClick={() => player.playNext()} /></div>
                 <div onClick={this.toggleRemainingDuration}>{durationToHHMMSS(showRemainingDuration ? playback.activeTrack.currentTime - playback.activeTrack.duration : playback.activeTrack.duration)}</div>
               </div>
+              <ChromecastButton />
             </div>
             <div className="progress-container" onClick={this.onProgressClick} style={{ opacity: playback.activeTrack.currentTime < 0.1 ? 0.8 : null }}>
               <div className="progress-background" style={{ width: notchPosition ? notchPosition + 2 : null }} />
