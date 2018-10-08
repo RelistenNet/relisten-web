@@ -165,7 +165,7 @@ class Player extends Component {
 
         `}</style>
         {activeTrack && <Head>
-          <title>{`${playback.activeTrack.isPaused ? '❚ ❚' : '▶'} ${activeTrack.title} ${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)} ${bandTitle}`} | Relisten</title>
+          <title>{`${playback.activeTrack.isPaused ? '❚❚' : '▶'} ${activeTrack.title} ${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)} ${bandTitle}`} | Relisten</title>
         </Head>}
         {activeTrack && <div className="playpause" onClick={() => player.togglePlayPause()}>
           <i className={`fas fa-${playback.activeTrack.isPaused ? 'play' : 'pause'}`} />
