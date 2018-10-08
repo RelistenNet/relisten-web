@@ -36,7 +36,7 @@ const About = () => (
 
       <h3>Mission</h3>
 
-      <p>We want to provide you with a simple and powerful experience that you <em>love</em>.</p>
+      <p>We want to provide you with a simple and powerful experience that you can enjoy in the home or in the rain.</p>
 
       <h3>Open Source</h3>
 
