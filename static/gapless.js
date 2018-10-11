@@ -321,8 +321,20 @@
 
     play() {
       this.debug('play');
+
+      if (chrome.cast && window.cast) {
+        var castSession = cast.framework.CastContext.getInstance().getCurrentSession();
+
+        if (castSession) {
+          var mediaInfo = new chrome.cast.media.MediaInfo(this.trackUrl, 'media');
+          var request = new chrome.cast.media.LoadRequest(mediaInfo);
+          castSession.loadMedia(request);
+        }
+      }
+
       if (this.audioBuffer) {
         // if we've already set up the buffer just set playbackRate to 1
+
         if (this.isUsingWebAudio) {
           if (this.bufferSourceNode.playbackRate.value === 1) return;
 
