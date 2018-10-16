@@ -43,6 +43,11 @@ const Chat = () => (
       <a className="button" href="https://discordapp.com/invite/73fdDSS" target="_blank">
         Join us!
       </a>
+
+      <br />
+      <br />
+
+      <iframe src="https://titanembeds.com/embed/395033814008594436?theme=IceWyvern" height="600" width="800" frameborder="0" />
     </div>
   </Layout>
 )
