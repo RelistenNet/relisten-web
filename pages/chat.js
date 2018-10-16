@@ -47,7 +47,7 @@ const Chat = () => (
       <br />
       <br />
 
-      <iframe src="https://titanembeds.com/embed/395033814008594436?theme=IceWyvern&user=relisten-guest" height="600" width="800" frameBorder="0" />
+      <iframe src="https://titanembeds.com/embed/395033814008594436?theme=IceWyvern&username=guest" height="600" width="800" frameBorder="0" />
     </div>
   </Layout>
 )
