@@ -15,7 +15,7 @@ const merge = (newData = [], oldData = []) => {
   return [
     ...cleanData,
     ...newData,
-  ];
+  ].reverse();
 }
 
 export default function counter(state = defaultState, action) {
@@ -59,15 +59,15 @@ export function receiveLive(data) {
 export function fetchLive() {
   return (dispatch, getState) => {
     dispatch(requestLive())
-    return fetch('https://relistenapi.alecgorge.com/api/v2/live/recently-played')
+    return fetch('https://relistenapi.alecgorge.com/api/v2/live/history')
       .then(res => res.json())
       .then(json => dispatch(receiveLive(json)))
   }
 }
 
-export function scrobblePlay({ id }) {
+export function scrobblePlay({ uuid }) {
   return (dispatch, getState) => {
-    return fetch(`https://relistenapi.alecgorge.com/api/v2/live/play?track_id=${id}&app_type=web`, { method: 'post' })
+    return fetch(`https://relistenapi.alecgorge.com/api/v2/live/play?track_uuid=${uuid}&app_type=web`, { method: 'post' })
       .then(res => res.json())
       .then(json => json)
   }
