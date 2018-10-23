@@ -18,13 +18,13 @@ const createURL = (track) => {
 // shorten date
 const formatterFn = (value, unit, suffix) => value + unit.slice(0, 1)
 
-export default ({ app_type, created_at, track } = {}) => !track || !track.track ? null : (
+export default ({ app_type_description = '', created_at, track } = {}) => !track || !track.track ? null : (
   <Link href="/" as={createURL(track)}>
     <div className="container">
       <div className="info">
         <div className="date">{track.source.display_date}</div>
         <div className="app-info">
-          {app_type}
+          {app_type_description}
           &nbsp;
           <span className="time-ago">
             <TimeAgo
