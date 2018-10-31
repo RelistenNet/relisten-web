@@ -17,18 +17,18 @@
     "import": "^0.0.6",
     "isomorphic-fetch": "2.2.1",
     "mousetrap": "1.6.2",
-    "next": "^7.0.0",
+    "next": "^7.0.2",
     "next-redux-wrapper": "2.0.0",
     "raven-js": "^3.26.4",
-    "react": "^16.5.2",
-    "react-dom": "^16.5.2",
-    "react-redux": "^5.0.6",
+    "react": "^16.6.0",
+    "react-dom": "^16.6.0",
+    "react-redux": "^5.1.0",
     "react-timeago": "^4.1.9",
     "react-transition-group": "^1.1.3",
     "redux": "^3.7.2",
-    "redux-thunk": "^2.2.0",
+    "redux-thunk": "^2.3.0",
     "styled-jsx-plugin-stylus": "^0.0.4",
     "stylus": "^0.54.5",
-    "ua-parser-js": "0.7.12"
+    "ua-parser-js": "0.7.19"
   }
 }
