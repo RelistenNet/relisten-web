@@ -1,6 +1,7 @@
 import { connect } from 'react-redux'
 
 import { splitShowDate, createShowDate, removeLeadingZero, durationToHHMMSS, simplePluralize } from '../lib/utils'
+import sortActiveBands from '../lib/sortActiveBands'
 
 import Column from './Column'
 import Row from './Row'
@@ -17,7 +18,7 @@ const ShowsColumn = ({ artistShows, artistSlug, year, displayDate }) => {
           display: flex;
         }
       `}</style>
-      {artistShows.data && artistShows.data.shows && artistShows.data.shows.map(show => {
+      {artistShows.data && artistShows.data.shows && sortActiveBands(artistSlug, artistShows.data.shows).map(show => {
         const { year, month, day } = splitShowDate(show.display_date)
         const { venue, avg_duration, tour } = show;
         let tourName;
