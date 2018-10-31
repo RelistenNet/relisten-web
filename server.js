@@ -2,10 +2,11 @@ const { createServer } = require('http')
 const { parse } = require('url')
 const { readFileSync } = require('fs')
 const next = require('next')
+const nextConfig = require('./next.config.js');
 require('isomorphic-fetch')
 
 const dev = process.env.NODE_ENV !== 'production'
-const app = next({ dev })
+const app = next({ dev, conf: nextConfig })
 const handle = app.getRequestHandler()
 
 const artistSlugs = require('./lib/artistSlugs')

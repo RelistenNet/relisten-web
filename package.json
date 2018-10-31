@@ -12,7 +12,10 @@
   "author": "Daniel Saewitz",
   "license": "MIT",
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^5.4.1",
+    "@zeit/next-css": "^1.0.1",
     "core-js": "^2.5.7",
+    "file-loader": "^2.0.0",
     "immutable": "3.8.2",
     "import": "^0.0.6",
     "isomorphic-fetch": "2.2.1",
@@ -29,6 +32,7 @@
     "redux-thunk": "^2.3.0",
     "styled-jsx-plugin-stylus": "^0.0.4",
     "stylus": "^0.54.5",
-    "ua-parser-js": "0.7.19"
+    "ua-parser-js": "0.7.19",
+    "url-loader": "^1.1.2"
   }
 }

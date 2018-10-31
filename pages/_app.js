@@ -5,6 +5,8 @@ import { Provider } from 'react-redux';
 import withRedux from 'next-redux-wrapper'
 import Raven from 'raven-js'
 
+require('@fortawesome/fontawesome-free/css/all.css');
+
 // next.js polyfills for IE11
 import 'core-js/fn/object/assign'
 import 'core-js/fn/object/values'
