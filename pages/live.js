@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import Router from 'next/router'
 import Head from 'next/head'
 import { connect } from 'react-redux'
+import { CSSTransitionGroup } from 'react-transition-group'
 
 import Layout from '../layouts'
 
@@ -50,9 +51,14 @@ class Live extends Component {
         <div className="page-container">
           <h1>Recently Played</h1>
 
-          {uniqBy(live.data, keyFn).map(data =>
-            <LiveTrack {...data} key={data.track.track.id} />
-          )}
+          <CSSTransitionGroup
+            transitionName="live-track"
+            transitionEnterTimeout={700}
+          >
+            {uniqBy(live.data, keyFn).map(data =>
+              <LiveTrack {...data} key={data.track.track.id} />
+            )}
+          </CSSTransitionGroup>
         </div>
         <style jsx>{`
           .page-container {

@@ -71,6 +71,15 @@ export default ({ app_type_description = '', created_at, track } = {}) => !track
 
         .time-ago
           opacity 0.7
+
+        .live-track-enter {
+          background: #3DCC91;
+        }
+
+        .live-track-enter.live-track-enter-active {
+          background: transparent;
+          transition: background 650ms ease-in;
+        }
       `}</style>
     </div>
   </Link>
