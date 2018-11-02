@@ -53,7 +53,7 @@ class Live extends Component {
 
           <CSSTransitionGroup
             transitionName="live-track"
-            transitionEnterTimeout={700}
+            transitionEnterTimeout={7000}
           >
             {uniqBy(live.data, keyFn).map(data =>
               <LiveTrack {...data} key={data.track.track.id} />

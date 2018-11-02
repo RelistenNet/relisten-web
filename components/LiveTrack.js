@@ -78,7 +78,7 @@ export default ({ app_type_description = '', created_at, track } = {}) => !track
 
         .live-track-enter.live-track-enter-active {
           background: transparent;
-          transition: background 650ms ease-in;
+          transition: background 6500ms ease-in;
         }
       `}</style>
     </div>
