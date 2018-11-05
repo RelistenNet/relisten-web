@@ -1,5 +1,7 @@
 # Relisten (web)
 
+[![Build Status](https://travis-ci.org/RelistenNet/relisten-web.svg?branch=master)](https://travis-ci.org/RelistenNet/relisten-web)
+
 Relisten is a simple free music streaming platform for recorded live concerts.
 
 Visit https://relisten.net to find out more.
