@@ -1,7 +1,7 @@
 # Relisten (web)
 
-[![Build Status](https://travis-ci.org/RelistenNet/relisten-web.svg?branch=master)](https://travis-ci.org/RelistenNet/relisten-web) 
-[![Build Status](https://ci.alecgorge.com/job/RelistenNet/job/relisten-web/job/master/badge/icon)](https://ci.alecgorge.com/job/RelistenNet/job/relisten-web/job/master/)
+CI: [![Build Status](https://travis-ci.org/RelistenNet/relisten-web.svg?branch=master)](https://travis-ci.org/RelistenNet/relisten-web) 
+Deploy: [![Build Status](https://ci.alecgorge.com/job/RelistenNet/job/relisten-web/job/master/badge/icon)](https://ci.alecgorge.com/job/RelistenNet/job/relisten-web/job/master/)
 
 Relisten is a simple free music streaming platform for recorded live concerts.
 
