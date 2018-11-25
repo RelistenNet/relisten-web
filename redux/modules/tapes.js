@@ -50,7 +50,8 @@ const getEtreeId = (s = '') => Number(s.split('.').reverse().find(x => /^[0-9]+$
 const sortTapes = (data = {}) => {
   const sortedTapes = [...data.sources].sort(
     firstBy(t => t.is_soundboard)
-    .thenBy(t => /charlie miller/i.test([t.taper, t.transferrer, t.source].join('')))
+    // Charlie for GD, Pete for JRAD
+    .thenBy(t => /(charlie miller)|(peter costello)/i.test([t.taper, t.transferrer, t.source].join('')))
     .thenBy((t1, t2) => getEtreeId(t1.upstream_identifier) - getEtreeId(t2.upstream_identifier))
     .thenBy(t => t.avg_rating_weighted)
   );
