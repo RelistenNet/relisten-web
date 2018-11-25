@@ -1,3 +1,5 @@
+import { firstBy } from 'thenby';
+
 const REQUEST_TAPES = 'years/REQUEST_TAPES';
 const RECEIVE_TAPES = 'years/RECEIVE_TAPES';
 
@@ -41,6 +43,26 @@ export default function counter(state = defaultState, action) {
   }
 }
 
+const getEtreeId = (s = '') => Number(s.split('.').reverse().find(x => /^[0-9]+$/.test(x)))
+
+// tapes: TODO: GD sort (charlie miller, sbd + etree id, weighted average), sbd + etree id, weighted avg, asc, desc
+// for now, hardcode sort: sbd, charlie miller, etree id, weighted average
+const sortTapes = (data = {}) => {
+  const sortedTapes = [...data.sources].sort(
+    firstBy(t => t.is_soundboard)
+    .thenBy(t => /charlie miller/i.test([t.taper, t.transferrer, t.source].join('')))
+    .thenBy((t1, t2) => getEtreeId(t1.upstream_identifier) - getEtreeId(t2.upstream_identifier))
+    .thenBy(t => t.avg_rating_weighted)
+  );
+
+  console.log(sortedTapes.map(t => [t.is_soundboard, /charlie miller/i.test([t.taper, t.transferrer, t.source].join('')), getEtreeId(t.upstream_identifier), t.avg_rating_weighted]))
+
+  return {
+    ...data,
+    sources: sortedTapes.reverse(),
+  };
+}
+
 export function requestTapes(artistSlug, year, showDate) {
   return {
     type: REQUEST_TAPES,
@@ -56,7 +78,7 @@ export function receiveTapes(artistSlug, year, showDate, data) {
     artistSlug,
     year,
     showDate,
-    data
+    data: sortTapes(data),
   }
 }
 

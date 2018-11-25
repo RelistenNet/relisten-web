@@ -4913,6 +4913,11 @@ terser@^3.8.1:
     source-map "~0.6.1"
     source-map-support "~0.5.6"
 
+thenby@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/thenby/-/thenby-1.3.0.tgz#6658e6bac38c396382cba50b840b1d7867d5fa7c"
+  integrity sha512-h41Zl8QWDcMmpAphiSgZrx8XAb2TDxJfU8kqEUB1xRfUlvCcE1snDcf8mv9IOFoAXT5f2ItHC2fkmp+3RCWZOQ==
+
 through2@^2.0.0:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/through2/-/through2-2.0.3.tgz#0004569b37c7c74ba39c43f3ced78d1ad94140be"
