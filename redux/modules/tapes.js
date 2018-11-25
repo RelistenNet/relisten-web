@@ -56,8 +56,6 @@ const sortTapes = (data = {}) => {
     .thenBy(t => t.avg_rating_weighted)
   );
 
-  console.log(sortedTapes.map(t => [t.is_soundboard, /charlie miller/i.test([t.taper, t.transferrer, t.source].join('')), getEtreeId(t.upstream_identifier), t.avg_rating_weighted]))
-
   return {
     ...data,
     sources: sortedTapes.reverse(),
