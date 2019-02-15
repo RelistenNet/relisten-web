@@ -16,15 +16,17 @@ const createURL = (track) => {
 }
 
 const getVenueInfo = (track) => {
-  if (track.source.artist.features.per_show_venues && track.source.artist.features.per_source_venues) {
-    return track.source.show.venue;
+  if (track.source.artist && track.source.artist.features) {
+    if (track.source.artist.features.per_show_venues && track.source.artist.features.per_source_venues) {
+      return track.source.show.venue;
+    }
+  
+    if (track.source.artist.features.per_show_venues) {
+      return track.source.show.venue;
+    }
+  
+    return track.source.venue;
   }
-
-  if (track.source.artist.features.per_show_venues) {
-    return track.source.show.venue;
-  }
-
-  return track.source.venue;
 }
 
 const createVenueMarkup = (track) => {
