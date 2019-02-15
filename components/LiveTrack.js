@@ -29,7 +29,7 @@ const getVenueInfo = (track) => {
   }
 }
 
-const createVenueMarkup = (track) => {
+const VenueInfo = ({ track }) => {
   var info = getVenueInfo(track);
   return info ? <div>
     <div>{info.name}</div>
@@ -64,7 +64,7 @@ export default ({ app_type_description = '', created_at, track } = {}) => !track
           {track.source.artist.name}
         </div>
         <div className="subtext">
-          {createVenueMarkup(track)}
+          <VenueInfo track={track} />
         </div>
       </div>
 
