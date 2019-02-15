@@ -15,6 +15,28 @@ const createURL = (track) => {
   ].join('/') + `?source=${track.source.id}`;
 }
 
+const getVenueInfo = (track) => {
+  if (track.source.artist && track.source.artist.features) {
+    if (track.source.artist.features.per_show_venues && track.source.artist.features.per_source_venues) {
+      return track.source.show.venue;
+    }
+  
+    if (track.source.artist.features.per_show_venues) {
+      return track.source.show.venue;
+    }
+  
+    return track.source.venue;
+  }
+}
+
+const VenueInfo = ({ track }) => {
+  var info = getVenueInfo(track);
+  return info ? <div>
+    <div>{info.name}</div>
+    <div>{info.location}</div>
+  </div> : null;
+}
+
 // shorten date
 const formatterFn = (value, unit, suffix) => value + unit.slice(0, 1)
 
@@ -40,7 +62,9 @@ export default ({ app_type_description = '', created_at, track } = {}) => !track
         </div>
         <div>
           {track.source.artist.name}
-
+        </div>
+        <div className="subtext">
+          <VenueInfo track={track} />
         </div>
       </div>
 
@@ -60,6 +84,10 @@ export default ({ app_type_description = '', created_at, track } = {}) => !track
 
         .date, .content
           font-weight bold
+
+        .subtext
+          color: #979797;
+          font-size: 0.7em;
 
         .listen
           margin-left auto
