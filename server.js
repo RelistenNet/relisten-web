@@ -20,9 +20,14 @@ app.prepare().then(() => {
     const [artistSlug] = pathname.replace(/^\//, '').split('/')
 
     if (pathname === '/apple-app-site-association') {
-      res.setHeader('Content-Type', 'application/json')
+      res.setHeader('Content-Type', 'application/json');
 
       return res.end(readFileSync('./static/apple-app-site-association'));
+    }
+    else if (pathname == '/privacy_policy.html') {
+      res.setHeader('Content-Type', 'text/html');
+
+      return res.end(readFileSync('./static/privacy_policy.html'));
     }
 
     // redirect relisten.live to relisten.net
