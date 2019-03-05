@@ -7,9 +7,9 @@ class Column extends Component {
   }
 
   componentDidMount() {
-    document.querySelectorAll('.column .active').forEach(activeRow => {
+    Array.prototype.forEach.call(document.querySelectorAll('.column .active'), activeRow => {
       activeRow.scrollIntoView();
-    })
+    });
   }
 
   render() {
