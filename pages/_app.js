@@ -55,6 +55,7 @@ class MyApp extends App {
     return (
       <Container>
         <Head>
+          <title>Relisten</title>
           <meta name="apple-itunes-app" content={`app-id=715886886, app-argument=https://relisten.net${fullPath}`} />
         </Head>
         <Provider store={store}>

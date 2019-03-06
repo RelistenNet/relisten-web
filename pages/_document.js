@@ -15,7 +15,6 @@ export default class MyDocument extends Document {
     return (
       <html>
         <Head>
-          <title>Relisten</title>
           <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" />
           <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
           <meta httpEquiv="Content-Language" content="en" />
