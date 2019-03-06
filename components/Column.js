@@ -2,13 +2,11 @@ import Row from './Row'
 import { Component } from 'react';
 
 class Column extends Component {
-  constructor (props) {
-    super(props);
-  }
-
   componentDidMount() {
     Array.prototype.forEach.call(document.querySelectorAll('.column .active'), activeRow => {
-      activeRow.scrollIntoView();
+      activeRow.scrollIntoView({
+        block: 'center',
+      });
     });
   }
 
