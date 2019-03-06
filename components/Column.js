@@ -1,7 +1,20 @@
 import Row from './Row'
+import { Component } from 'react';
 
-export default ({ children, heading, loading, loadingAmount = 20, className }) => (
-  <div className={`column ${className}`}>
+class Column extends Component {
+  constructor (props) {
+    super(props);
+  }
+
+  componentDidMount() {
+    Array.prototype.forEach.call(document.querySelectorAll('.column .active'), activeRow => {
+      activeRow.scrollIntoView();
+    });
+  }
+
+  render() {
+    const loadingAmount = this.props.loadingAmount ? this.props.loadingAmount : 20;
+    return <div className={`column ${this.props.className}`}>
     <style jsx>{`
       .column {
         display: flex;
@@ -45,7 +58,10 @@ export default ({ children, heading, loading, loadingAmount = 20, className }) =
         overflow-y: initial;
       }
     `}</style>
-    {heading && <div className="heading">{heading}</div>}
-    <div className="column-content">{loading ? new Array(loadingAmount).fill(null).map((i, idx) => <Row key={idx} loading />) : children}</div>
-  </div>
-)
+    {this.props.heading && <div className="heading">{this.props.heading}</div>}
+    <div className="column-content">{this.props.loading ? new Array(loadingAmount).fill(null).map((i, idx) => <Row key={idx} loading />) : this.props.children}</div>
+  </div>;
+  }
+}
+
+export default Column;
