@@ -23,6 +23,11 @@ const keyFn = (item) => {
 }
 
 class Live extends Component {
+  state = {
+    isMounted: false,
+    lastSeenId: null,
+  }
+
   static async getInitialProps({ store, isServer, pathname, query }) {
     await store.dispatch(fetchLive());
     return {
@@ -31,9 +36,15 @@ class Live extends Component {
   }
 
   componentDidMount() {
-    this.intervalId = setInterval(() =>
-      this.props.dispatch(fetchLive())
-    , 7000);
+    this.intervalId = setInterval(async () => {
+      const action = await this.props.dispatch(fetchLive());
+
+      if (action.data.length) {
+        this.setState({ lastSeenId: action.data.slice(-1)[0].id })
+      }
+    }, 7000);
+
+    this.setState({ isMounted: true });
   }
 
   componentWillUnmount() {
@@ -41,6 +52,7 @@ class Live extends Component {
   }
 
   render() {
+    const { isMounted, lastSeenId } = this.state;
     const { live } = this.props;
 
     return (
@@ -51,14 +63,9 @@ class Live extends Component {
         <div className="page-container">
           <h1>Recently Played</h1>
 
-          <CSSTransitionGroup
-            transitionName="live-track"
-            transitionEnterTimeout={7000}
-          >
-            {uniqBy(live.data, keyFn).map(data =>
-              <LiveTrack {...data} key={data.track.track.id} />
-            )}
-          </CSSTransitionGroup>
+          {uniqBy(live.data, keyFn).map(data =>
+            <LiveTrack {...data} key={data.track.track.id} isFirstRender={!isMounted} isLastSeen={lastSeenId === data.id} />
+          )}
         </div>
         <style jsx>{`
           .page-container {
