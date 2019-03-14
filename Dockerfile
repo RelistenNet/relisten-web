@@ -1,4 +1,4 @@
-FROM node:10.11.0
+FROM node:10.15.3
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
@@ -12,9 +12,10 @@ RUN yarn install
 
 COPY . /usr/src/app
 
+RUN npm run bands
+
 RUN npm run build
 
 EXPOSE 3000
 
-CMD ["npm", "run", "start"]
-
+CMD ["NODE_ENV=production", npm", "run", "start"]
