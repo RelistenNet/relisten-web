@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "dev": "node server.js",
+    "production": "NODE_ENV=production node server.js",
     "build": "next build",
     "start": "node server.js",
     "deploy": "now -e NODE_ENV=production",
