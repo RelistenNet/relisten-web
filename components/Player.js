@@ -126,6 +126,7 @@ class Player extends Component {
           .band-title {
             color: #7A7A7A;
             font-size: 0.8em;
+            justify-content: center;
           }
 
           .timing {
