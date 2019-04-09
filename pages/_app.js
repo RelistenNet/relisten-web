@@ -8,16 +8,16 @@ import Raven from 'raven-js'
 require('@fortawesome/fontawesome-free/css/all.css');
 
 // next.js polyfills for IE11
-import 'core-js/fn/object/assign'
-import 'core-js/fn/object/values'
-import 'core-js/fn/object/entries'
-import 'core-js/fn/string/ends-with'// unsure if needed
-import 'core-js/fn/string/starts-with'
-import 'core-js/fn/string/includes'
-import 'core-js/fn/array/includes'
-import 'core-js/fn/array/find'
-import 'core-js/fn/array/fill'
-import 'core-js/es6/promise'
+import 'core-js/features/object/assign'
+import 'core-js/features/object/values'
+import 'core-js/features/object/entries'
+import 'core-js/features/string/ends-with'// unsure if needed
+import 'core-js/features/string/starts-with'
+import 'core-js/features/string/includes'
+import 'core-js/features/array/includes'
+import 'core-js/features/array/find'
+import 'core-js/features/array/fill'
+import 'core-js/features/promise'
 
 import { initStore } from '../redux'
 
