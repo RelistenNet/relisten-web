@@ -1,7 +1,7 @@
-import Router from 'next/router'
-import Head from 'next/head'
+import React from 'react';
+import Head from 'next/head';
 
-import Layout from '../layouts'
+import Layout from '../layouts';
 
 const About = () => (
   <Layout>
@@ -63,6 +63,6 @@ const About = () => (
       </p>
     </div>
   </Layout>
-)
+);
 
-export default About
+export default About;

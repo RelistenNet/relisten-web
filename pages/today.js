@@ -1,18 +1,17 @@
 import React, { Component } from 'react';
-import Router from 'next/router'
-import Head from 'next/head'
-import { connect } from 'react-redux'
+import Head from 'next/head';
+import { connect } from 'react-redux';
 
-import Layout from '../layouts'
+import Layout from '../layouts';
 
-import { groupBy } from '../lib/utils'
+import { groupBy } from '../lib/utils';
 
-import { fetchToday } from '../redux/modules/today'
+import { fetchToday } from '../redux/modules/today';
 
 import TodayTrack from '../components/TodayTrack';
 
 class Today extends Component {
-  static async getInitialProps({ store, isServer, pathname, query }) {
+  static async getInitialProps({ store }) {
     await store.dispatch(fetchToday());
 
     return {
@@ -61,4 +60,4 @@ class Today extends Component {
 
 }
 
-export default connect(({ today }) => ({ today }))(Today)
+export default connect(({ today }) => ({ today }))(Today);

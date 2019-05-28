@@ -1,26 +1,24 @@
 import React, { Component } from 'react';
-import Router from 'next/router'
-import Head from 'next/head'
-import { connect } from 'react-redux'
-import { CSSTransitionGroup } from 'react-transition-group'
+import Head from 'next/head';
+import { connect } from 'react-redux';
 
-import Layout from '../layouts'
+import Layout from '../layouts';
 
-import { fetchLive } from '../redux/modules/live'
+import { fetchLive } from '../redux/modules/live';
 
 import LiveTrack from '../components/LiveTrack';
 
 function uniqBy(a, key) {
-  var seen = new Set();
+  const seen = new Set();
   return a.filter(item => {
-      var k = key(item);
-      return seen.has(k) ? false : seen.add(k);
+    const k = key(item);
+    return seen.has(k) ? false : seen.add(k);
   });
 }
 
 const keyFn = (item) => {
   return item && item.track && item.track.track && item.track.track.id;
-}
+};
 
 class Live extends Component {
   state = {
@@ -40,7 +38,7 @@ class Live extends Component {
       const action = await this.props.dispatch(fetchLive());
 
       if (action.data.length) {
-        this.setState({ lastSeenId: action.data.slice(-1)[0].id })
+        this.setState({ lastSeenId: action.data.slice(-1)[0].id });
       }
     }, 7000);
 
@@ -81,4 +79,4 @@ class Live extends Component {
 
 }
 
-export default connect(({ live }) => ({ live }))(Live)
+export default connect(({ live }) => ({ live }))(Live);

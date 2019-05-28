@@ -1,17 +1,14 @@
-import React from 'react'
-import Document, { Head, Main, NextScript } from 'next/document'
-import flush from 'styled-jsx/server'
+import React from 'react';
+import Document, { Head, Main, NextScript } from 'next/document';
 
 export default class MyDocument extends Document {
   static async getInitialProps(ctx) {
-    const initialProps = await Document.getInitialProps(ctx)
+    const initialProps = await Document.getInitialProps(ctx);
 
-    return { ...initialProps }
+    return { ...initialProps };
   }
 
   render() {
-    const { fullPath } = this.props;
-
     return (
       <html>
         <Head>
@@ -39,11 +36,11 @@ export default class MyDocument extends Document {
                 gtag('js', new Date());
 
                 gtag('config', 'UA-54000407-2');
-              `
+              `,
             }}
           />
         </body>
-     </html>
-    )
+      </html>
+    );
   }
 }
