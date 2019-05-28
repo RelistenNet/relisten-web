@@ -17,35 +17,35 @@ const defaultState = {
 
 export default function counter(state = defaultState, action) {
   switch (action.type) {
-    case UPDATE:
-      return {
-        ...state,
-        ...action.data
-      };
-    case UPDATE_TRACK: {
-      return {
-        ...state,
-        activeTrack: {
-          ...state.activeTrack,
-          ...action.data,
-        }
-      }
-    }
-    default:
-      return state
+  case UPDATE:
+    return {
+      ...state,
+      ...action.data,
+    };
+  case UPDATE_TRACK: {
+    return {
+      ...state,
+      activeTrack: {
+        ...state.activeTrack,
+        ...action.data,
+      },
+    };
+  }
+  default:
+    return state;
   }
 }
 
 export function updatePlayback(data = {}) {
   return {
     type: UPDATE,
-    data
-  }
+    data,
+  };
 }
 
 export function updatePlaybackTrack(data = {}) {
   return {
     type: UPDATE_TRACK,
-    data
-  }
+    data,
+  };
 }

@@ -6,44 +6,44 @@ const defaultState = {
   meta: {
     loading: false,
     loaded: false,
-    error: false
-  }
+    error: false,
+  },
 };
 
 const bandsWithThe = ['duo', 'bernie-worrell', 'disco-biscuits', 'drive-by-truckers', 'g-nome', 'grateful-dead', 'jazz-mandolin-project', 'phish', 'sci', 'smashing-pumpkins', 'steve-kimock-band', 'stringdusters', 'tedeschi-trucks'];
 
 export default function counter(state = defaultState, action) {
   switch (action.type) {
-    case REQUEST_ARTISTS:
-      return {
-        ...state,
-        meta: {
-          ...state.meta,
-          loading: true
-        }
-      };
-    case RECEIVE_ARTISTS:
-      return {
-        data: action.data,
-        meta: {
-          ...state.meta,
-          loaded: true,
-          loading: true
-        }
-      };
-    default:
-      return state
+  case REQUEST_ARTISTS:
+    return {
+      ...state,
+      meta: {
+        ...state.meta,
+        loading: true,
+      },
+    };
+  case RECEIVE_ARTISTS:
+    return {
+      data: action.data,
+      meta: {
+        ...state.meta,
+        loaded: true,
+        loading: true,
+      },
+    };
+  default:
+    return state;
   }
 }
 
 export function requestArtists() {
   return {
-    type: REQUEST_ARTISTS
-  }
+    type: REQUEST_ARTISTS,
+  };
 }
 
 export function receiveArtists(data) {
-  const obj = {}
+  const obj = {};
 
   data
     .map(artist => {
@@ -56,17 +56,17 @@ export function receiveArtists(data) {
 
   return {
     type: RECEIVE_ARTISTS,
-    data: obj
-  }
+    data: obj,
+  };
 }
 
 export function fetchArtists() {
   return (dispatch, getState) => {
     if (getState().artists.meta.loaded) return {};
 
-    dispatch(requestArtists())
+    dispatch(requestArtists());
     return fetch('https://relistenapi.alecgorge.com/api/v2/artists')
       .then(res => res.json())
-      .then(json => dispatch(receiveArtists(json)))
-  }
+      .then(json => dispatch(receiveArtists(json)));
+  };
 }

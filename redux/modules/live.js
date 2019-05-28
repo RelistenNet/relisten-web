@@ -10,45 +10,45 @@ const defaultState = {
 
 export default function counter(state = defaultState, action) {
   switch (action.type) {
-    case REQUEST_LIVE:
-      return {
-        data: state.data,
-        meta: {
-          ...state.meta,
-          loading: true,
-          error: false
-        }
-      };
-    case RECEIVE_LIVE:
-      return {
-        data: [...action.data.reverse(), ...state.data],
-        meta: {
-          ...state.meta,
-          loading: true,
-          error: false
-        }
-      };
-    default:
-      return state
+  case REQUEST_LIVE:
+    return {
+      data: state.data,
+      meta: {
+        ...state.meta,
+        loading: true,
+        error: false,
+      },
+    };
+  case RECEIVE_LIVE:
+    return {
+      data: [...action.data.reverse(), ...state.data],
+      meta: {
+        ...state.meta,
+        loading: true,
+        error: false,
+      },
+    };
+  default:
+    return state;
   }
 }
 
 export function requestLive() {
   return {
     type: REQUEST_LIVE,
-  }
+  };
 }
 
 export function receiveLive(data) {
   return {
     type: RECEIVE_LIVE,
-    data
-  }
+    data,
+  };
 }
 
 export function fetchLive() {
   return async (dispatch, getState) => {
-    dispatch(requestLive())
+    dispatch(requestLive());
 
     const lastSeen = getState().live.data[0];
     let paramsStr = '';
@@ -61,13 +61,13 @@ export function fetchLive() {
       .then(res => res.json());
 
     return dispatch(receiveLive(json));
-  }
+  };
 }
 
 export function scrobblePlay({ uuid }) {
-  return (dispatch, getState) => {
+  return () => {
     return fetch(`https://relistenapi.alecgorge.com/api/v2/live/play?track_uuid=${uuid}&app_type=web`, { method: 'post' })
       .then(res => res.json())
-      .then(json => json)
-  }
+      .then(json => json);
+  };
 }
