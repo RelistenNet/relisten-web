@@ -1,5 +1,6 @@
-import Column from './Column'
-import Row from './Row'
+import React from 'react';
+import Column from './Column';
+import Row from './Row';
 
 export default () => (
   <div className="menu">
@@ -17,4 +18,4 @@ export default () => (
       <Row baseHrefOverride="/chat">Chat</Row>
     </Column>
   </div>
-)
+);

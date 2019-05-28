@@ -1,11 +1,12 @@
-import { Component, Fragment } from 'react'
-import Link from 'next/link'
-import { connect } from 'react-redux'
+import React from 'react';
+import { Component, Fragment } from 'react';
+import Link from 'next/link';
+import { connect } from 'react-redux';
 
-import Player from './Player'
-import Modal from './Modal'
-import InlinePopup from './InlinePopup'
-import Menu from './Menu'
+import Player from './Player';
+import Modal from './Modal';
+import InlinePopup from './InlinePopup';
+import Menu from './Menu';
 
 class Navigation extends Component {
   render() {
@@ -138,7 +139,7 @@ class Navigation extends Component {
           <div><Link href="/about" prefetch><a>ABOUT</a></Link></div>
         </div>
       </div>
-    )
+    );
   }
 
   get secondaryNavTitle() {
@@ -171,7 +172,7 @@ class Navigation extends Component {
   }
 
   toggleMenu = async () => {
-    this.modal.toggleModal()
+    this.modal.toggleModal();
   }
 }
 
@@ -179,8 +180,8 @@ class Navigation extends Component {
 const mapStateToProps = ({ app, artists }) => {
   return {
     app,
-    artists
-  }
-}
+    artists,
+  };
+};
 
-export default connect(mapStateToProps)(Navigation)
+export default connect(mapStateToProps)(Navigation);

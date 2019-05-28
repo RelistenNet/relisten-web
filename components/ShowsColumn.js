@@ -1,33 +1,34 @@
-import { connect } from 'react-redux'
+import React from 'react';
+import { connect } from 'react-redux';
 
-import { splitShowDate, createShowDate, removeLeadingZero, durationToHHMMSS, simplePluralize } from '../lib/utils'
-import sortActiveBands from '../lib/sortActiveBands'
+import { splitShowDate, createShowDate, removeLeadingZero, durationToHHMMSS, simplePluralize } from '../lib/utils';
+import sortActiveBands from '../lib/sortActiveBands';
 
-import Column from './Column'
-import Row from './Row'
-import RowHeader from './RowHeader'
-import Tag from './Tag'
+import Column from './Column';
+import Row from './Row';
+import RowHeader from './RowHeader';
+import Tag from './Tag';
 
 const ShowsColumn = ({ artistShows, artistSlug, year, displayDate }) => {
-  const tours = {}
+  const tours = {};
 
   return (
-    <Column heading={year ? year : "Shows"} loading={displayDate && !artistShows ? true : artistShows.meta && artistShows.meta.loading} loadingAmount={12}>
+    <Column heading={year ? year : 'Shows'} loading={displayDate && !artistShows ? true : artistShows.meta && artistShows.meta.loading} loadingAmount={12}>
       <style jsx>{`
         .main {
           display: flex;
         }
       `}</style>
       {artistShows.data && artistShows.data.shows && sortActiveBands(artistSlug, artistShows.data.shows).map(show => {
-        const { year, month, day } = splitShowDate(show.display_date)
+        const { year, month, day } = splitShowDate(show.display_date);
         const { venue, avg_duration, tour } = show;
         let tourName;
 
         // keep track of which tours we've displayed
         if (tour) {
-          if (!tours[tour.id]) tourName = tour.name
+          if (!tours[tour.id]) tourName = tour.name;
 
-          tours[tour.id] = true
+          tours[tour.id] = true;
         }
 
         return (
@@ -47,21 +48,21 @@ const ShowsColumn = ({ artistShows, artistSlug, year, displayDate }) => {
               </div>
             </Row>
           </div>
-        )
+        );
       })}
     </Column>
   );
-}
+};
 
 const mapStateToProps = ({ shows, app }) => {
-  const artistShows = shows[app.artistSlug] && shows[app.artistSlug][app.year] ? shows[app.artistSlug][app.year] : {}
+  const artistShows = shows[app.artistSlug] && shows[app.artistSlug][app.year] ? shows[app.artistSlug][app.year] : {};
 
   return {
     artistShows,
     year: app.year,
     artistSlug: app.artistSlug,
-    displayDate: createShowDate(app.year, app.month, app.day)
-  }
-}
+    displayDate: createShowDate(app.year, app.month, app.day),
+  };
+};
 
-export default connect(mapStateToProps)(ShowsColumn)
+export default connect(mapStateToProps)(ShowsColumn);

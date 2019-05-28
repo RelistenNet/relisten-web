@@ -1,3 +1,5 @@
+import React from 'react';
+
 export default ({ children }) => (
   <span className="tag">
     <style jsx>{`
@@ -15,4 +17,4 @@ export default ({ children }) => (
     `}</style>
     {children}
   </span>
-)
+);

@@ -1,4 +1,5 @@
-import Link from 'next/link'
+import React from 'react';
+import Link from 'next/link';
 
 import { splitShowDate } from '../lib/utils';
 
@@ -11,7 +12,7 @@ const createURL = (obj) => {
     month,
     day,
   ].join('/');
-}
+};
 
 export default ({ day = {} }) => !day ? null : (
   <Link href="/" as={createURL(day)}>
@@ -47,4 +48,4 @@ export default ({ day = {} }) => !day ? null : (
       `}</style>
     </div>
   </Link>
-)
+);

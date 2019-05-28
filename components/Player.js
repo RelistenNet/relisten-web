@@ -1,28 +1,29 @@
-import { Component } from 'react'
-import { connect } from 'react-redux'
-import Head from 'next/head'
-import Link from 'next/link'
+import React from 'react';
+import { Component } from 'react';
+import { connect } from 'react-redux';
+import Head from 'next/head';
+import Link from 'next/link';
 
-import { createShowDate, durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils'
-import player from '../lib/player'
+import { createShowDate, durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
+import player from '../lib/player';
 
 class Player extends Component {
   constructor(props, ctx) {
-    super(props, ctx)
+    super(props, ctx);
 
     this.state = {
       showRemainingDuration: false,
       volume: typeof localStorage !== 'undefined' && localStorage.volume || 1,
-    }
+    };
   }
 
   render() {
     const { playback, tapes, artists } = this.props;
-    const { showRemainingDuration } = this.state
+    const { showRemainingDuration } = this.state;
 
-    const { year, month, day } = splitShowDate(playback.showDate)
-    const { artistSlug, source } = playback
-    const bandTitle = artists.data[artistSlug] ? artists.data[artistSlug].name : ''
+    const { year, month, day } = splitShowDate(playback.showDate);
+    const { artistSlug, source } = playback;
+    const bandTitle = artists.data[artistSlug] ? artists.data[artistSlug].name : '';
     const activeTrack = playback.tracks.find((track, idx) => idx === playback.activeTrack.idx);
     const nextTrack = playback.tracks.find((track, idx) => idx === playback.activeTrack.idx + 1);
     const notchPosition = typeof window === 'undefined' || !this.player ? 0 : (playback.activeTrack.currentTime / playback.activeTrack.duration) * (this.player.clientWidth - 3);
@@ -202,7 +203,7 @@ class Player extends Component {
               <div
                 className="volume-bar"
                 style={{
-                  top: `${(1 - this.state.volume) * 100}%`
+                  top: `${(1 - this.state.volume) * 100}%`,
                 }}
               />
             </div>
@@ -216,15 +217,15 @@ class Player extends Component {
   onProgressClick = (e) => {
     const { playback } = this.props;
 
-    const { left, width } = this.player.getBoundingClientRect()
+    const { left, width } = this.player.getBoundingClientRect();
 
     const percentage = (e.pageX - left) / width;
 
-    player.currentTrack.seek(percentage * playback.activeTrack.duration)
+    player.currentTrack.seek(percentage * playback.activeTrack.duration);
   }
 
   toggleRemainingDuration = () => {
-    this.setState({ showRemainingDuration: !this.state.showRemainingDuration })
+    this.setState({ showRemainingDuration: !this.state.showRemainingDuration });
   }
 
   setVolume = (e) => {
@@ -239,6 +240,6 @@ class Player extends Component {
   }
 }
 
-const mapStateToProps = ({ playback, tapes, artists }) => ({ playback, tapes, artists })
+const mapStateToProps = ({ playback, tapes, artists }) => ({ playback, tapes, artists });
 
-export default connect(mapStateToProps)(Player)
+export default connect(mapStateToProps)(Player);

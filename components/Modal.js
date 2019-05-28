@@ -1,18 +1,18 @@
-import { Component } from 'react'
-import { CSSTransitionGroup } from 'react-transition-group'
+import React from 'react';
+import { Component } from 'react';
 
 class Modal extends Component {
   constructor(props, ctx) {
-    super(props, ctx)
+    super(props, ctx);
 
     this.state = {
-      isVisible: false
-    }
+      isVisible: false,
+    };
   }
 
   render() {
-    const { isVisible } = this.state
-    const { children } = this.props
+    const { isVisible } = this.state;
+    const { children } = this.props;
 
     return (
       <div className={`modal-container ${isVisible ? 'is-visible' : ''}`} onClick={this.toggleModal}>
@@ -42,13 +42,13 @@ class Modal extends Component {
         `}</style>
         <div className="modal-content">{children}</div>
       </div>
-    )
+    );
   }
 
-  toggleModal = (e) => {
+  toggleModal = () => {
     // if (e && !/container/.test(e.target.className)) return;
-    this.setState({ isVisible: !this.state.isVisible })
+    this.setState({ isVisible: !this.state.isVisible });
   }
 }
 
-export default Modal
+export default Modal;

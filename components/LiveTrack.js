@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import TimeAgo from 'react-timeago';
@@ -12,9 +13,9 @@ const createURL = (track) => {
     year,
     month,
     day,
-    track.track.slug
+    track.track.slug,
   ].join('/') + `?source=${track.source.id}`;
-}
+};
 
 const getVenueInfo = (track) => {
   if (track.source.artist && track.source.artist.features) {
@@ -28,18 +29,18 @@ const getVenueInfo = (track) => {
 
     return track.source.venue;
   }
-}
+};
 
 const VenueInfo = ({ track }) => {
-  var info = getVenueInfo(track);
+  const info = getVenueInfo(track);
   return info ? <div>
     <div>{info.name}</div>
     <div>{info.location}</div>
   </div> : null;
-}
+};
 
 // shorten date
-const formatterFn = (value, unit, suffix) => value + unit.slice(0, 1)
+const formatterFn = (value, unit) => value + unit.slice(0, 1);
 
 export default ({ app_type_description = '', created_at, track, isFirstRender, isLastSeen } = {}) => {
   const [isMounted, setMounted] = useState(false);
@@ -118,4 +119,4 @@ export default ({ app_type_description = '', created_at, track, isFirstRender, i
       </Link>
     )
   );
-}
+};

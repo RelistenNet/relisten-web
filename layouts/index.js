@@ -1,5 +1,5 @@
-import Navigation from '../components/Navigation'
-import Player from '../components/Player'
+import React from 'react';
+import Navigation from '../components/Navigation';
 
 export default ({ children, ...props }) => (
   <div className="layout">
@@ -29,4 +29,4 @@ export default ({ children, ...props }) => (
     <Navigation {...props} />
     <div className="content">{children}</div>
   </div>
-)
+);

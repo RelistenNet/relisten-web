@@ -1,5 +1,6 @@
-import Link from 'next/link'
-import { connect } from 'react-redux'
+import React from 'react';
+import Link from 'next/link';
+import { connect } from 'react-redux';
 
 import { createShowDate, splitShowDate, durationToHHMMSS, removeLeadingZero } from '../lib/utils';
 
@@ -8,11 +9,11 @@ import Row from './Row';
 import RowHeader from './RowHeader';
 
 const SongsColumn = ({ source, loading, artistSlug, songSlug, activePlaybackSourceId, gaplessTracksMetadata }) => {
-  const { year, month, day } = source ? splitShowDate(source.display_date) : {}
+  const { year, month, day } = source ? splitShowDate(source.display_date) : {};
   const isActiveSource = source ? source.id === activePlaybackSourceId : false;
 
   return (
-    <Column heading={source ? `${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)}` : "Songs"} loading={loading} loadingAmount={12}>
+    <Column heading={source ? `${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)}` : 'Songs'} loading={loading} loadingAmount={12}>
       <style jsx>{`
         .column {
           display: flex;
@@ -24,8 +25,8 @@ const SongsColumn = ({ source, loading, artistSlug, songSlug, activePlaybackSour
           const trackIsActive = track.slug === songSlug && isActiveSource;
           const trackMetadata = isActiveSource
             ? gaplessTracksMetadata.find(gaplessTrack =>
-                gaplessTrack.trackMetadata && gaplessTrack.trackMetadata.trackId === track.id
-              )
+              gaplessTrack.trackMetadata && gaplessTrack.trackMetadata.trackId === track.id
+            )
             : null;
 
           return (
@@ -44,7 +45,7 @@ const SongsColumn = ({ source, loading, artistSlug, songSlug, activePlaybackSour
           );
         }
         )
-       )}
+      )}
       {source && <RowHeader>FIN</RowHeader>}
       {source && source.links &&
         source.links.map(link =>
@@ -56,22 +57,22 @@ const SongsColumn = ({ source, loading, artistSlug, songSlug, activePlaybackSour
         )
       }
     </Column>
-  )
-}
+  );
+};
 
 const mapStateToProps = ({ tapes, app, playback }) => {
   const activeSourceId = parseInt(app.source, 10);
   const activePlaybackSourceId = parseInt(playback.source, 10);
-  const showDate = createShowDate(app.year, app.month, app.day)
-  const showTapes = tapes[app.artistSlug] && tapes[app.artistSlug][showDate] ? tapes[app.artistSlug][showDate] : null
+  const showDate = createShowDate(app.year, app.month, app.day);
+  const showTapes = tapes[app.artistSlug] && tapes[app.artistSlug][showDate] ? tapes[app.artistSlug][showDate] : null;
   let source;
 
-  if (!showTapes) return {}
+  if (!showTapes) return {};
 
   if (showTapes.data && showTapes.data.sources && showTapes.data.sources.length) {
     const { sources } = showTapes.data;
 
-    source = sources.find(source => source.id === activeSourceId) || sources[0]
+    source = sources.find(source => source.id === activeSourceId) || sources[0];
   }
 
   return {
@@ -81,7 +82,7 @@ const mapStateToProps = ({ tapes, app, playback }) => {
     songSlug: playback.songSlug,
     gaplessTracksMetadata: playback.gaplessTracksMetadata,
     activePlaybackSourceId,
-  }
-}
+  };
+};
 
-export default connect(mapStateToProps)(SongsColumn)
+export default connect(mapStateToProps)(SongsColumn);

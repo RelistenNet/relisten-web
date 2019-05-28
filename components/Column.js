@@ -1,4 +1,5 @@
-import Row from './Row'
+import React from 'react';
+import Row from './Row';
 import { Component } from 'react';
 
 class Column extends Component {
@@ -12,8 +13,9 @@ class Column extends Component {
 
   render() {
     const loadingAmount = this.props.loadingAmount ? this.props.loadingAmount : 20;
+
     return <div className={`column ${this.props.className}`}>
-    <style jsx>{`
+      <style jsx>{`
       .column {
         display: flex;
         flex-direction: column;
@@ -56,9 +58,9 @@ class Column extends Component {
         overflow-y: initial;
       }
     `}</style>
-    {this.props.heading && <div className="heading">{this.props.heading}</div>}
-    <div className="column-content">{this.props.loading ? new Array(loadingAmount).fill(null).map((i, idx) => <Row key={idx} loading />) : this.props.children}</div>
-  </div>;
+      {this.props.heading && <div className="heading">{this.props.heading}</div>}
+      <div className="column-content">{this.props.loading ? new Array(loadingAmount).fill(null).map((i, idx) => <Row key={idx} loading />) : this.props.children}</div>
+    </div>;
   }
 }
 

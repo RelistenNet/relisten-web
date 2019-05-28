@@ -1,3 +1,5 @@
+import React from 'react';
+
 export default ({ height, children }) => (
   <div className="header" style={{ minHeight: !children ? 16 : height }}>
     <style jsx>{`
@@ -13,4 +15,4 @@ export default ({ height, children }) => (
     `}</style>
     <div>{children}</div>
   </div>
-)
+);
