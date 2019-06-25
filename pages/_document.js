@@ -21,12 +21,14 @@ export default class MyDocument extends Document {
             {`
               body { margin: 0; font-family: Roboto, Helvetica, Helvetica Neue, sans-serif; -webkit-font-smoothing: antialiased; color: #333; }
               a { text-decoration: none; color: #333; }
+              #thanks-jeff { position: fixed; top: 0; left: 0; right: 0; height 2px; background: #000; pointer-events: none; }
             `}
           </style>
         </Head>
         <body>
           <Main />
           <NextScript />
+          <div id="thanks-jeff"></div>
           <script async src="https://www.googletagmanager.com/gtag/js?id=UA-54000407-2" />
           <script
             dangerouslySetInnerHTML={{
