@@ -3,72 +3,71 @@ const RECEIVE_LIVE = 'live/RECEIVE_LIVE';
 
 const defaultState = {
   data: [],
-  meta: {},
+  meta: {
+    firstNewId: null,
+  },
 };
-
-const merge = (newData = [], oldData = []) => {
-  const newIds = newData.map(data => data.track.id);
-  const cleanData = oldData.filter(data =>
-    newIds.indexOf(data.track.id) === -1
-  );
-
-  return [
-    ...cleanData,
-    ...newData,
-  ].reverse();
-}
 
 export default function counter(state = defaultState, action) {
   switch (action.type) {
-    case REQUEST_LIVE:
-      return {
-        data: state.data,
-        meta: {
-          ...state.meta,
-          loading: true,
-          error: false
-        }
-      };
-    case RECEIVE_LIVE:
-      return {
-        data: merge(action.data, state.data),
-        meta: {
-          ...state.meta,
-          loading: true,
-          error: false
-        }
-      };
-    default:
-      return state
+  case REQUEST_LIVE:
+    return {
+      data: state.data,
+      meta: {
+        ...state.meta,
+        loading: true,
+        error: false,
+      },
+    };
+  case RECEIVE_LIVE:
+    return {
+      data: [...action.data.reverse(), ...state.data],
+      meta: {
+        ...state.meta,
+        loading: true,
+        error: false,
+      },
+    };
+  default:
+    return state;
   }
 }
 
 export function requestLive() {
   return {
     type: REQUEST_LIVE,
-  }
+  };
 }
 
 export function receiveLive(data) {
   return {
     type: RECEIVE_LIVE,
-    data
-  }
+    data,
+  };
 }
 
 export function fetchLive() {
-  return (dispatch, getState) => {
-    dispatch(requestLive())
-    return fetch('https://relistenapi.alecgorge.com/api/v2/live/history')
-      .then(res => res.json())
-      .then(json => dispatch(receiveLive(json)))
-  }
+  return async (dispatch, getState) => {
+    dispatch(requestLive());
+
+    const lastSeen = getState().live.data[0];
+    let paramsStr = '';
+
+    if (lastSeen) {
+      paramsStr = `?lastSeenId=${lastSeen.id}`;
+    }
+
+    const json = await fetch(`https://relistenapi.alecgorge.com/api/v2/live/history${paramsStr}`)
+      .then(res => res.json());
+
+    return dispatch(receiveLive(json));
+  };
 }
 
 export function scrobblePlay({ uuid }) {
-  return (dispatch, getState) => {
+  return () => {
     return fetch(`https://relistenapi.alecgorge.com/api/v2/live/play?track_uuid=${uuid}&app_type=web`, { method: 'post' })
       .then(res => res.json())
-      .then(json => json)
-  }
+      .then(json => json);
+  };
 }

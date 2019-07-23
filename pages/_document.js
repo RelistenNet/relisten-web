@@ -1,21 +1,17 @@
-import React from 'react'
-import Document, { Head, Main, NextScript } from 'next/document'
-import flush from 'styled-jsx/server'
+import React from 'react';
+import Document, { Head, Main, NextScript } from 'next/document';
 
 export default class MyDocument extends Document {
-  static getInitialProps ({ renderPage }) {
-    const { html, head, errorHtml, chunks } = renderPage()
-    const styles = flush()
+  static async getInitialProps(ctx) {
+    const initialProps = await Document.getInitialProps(ctx);
 
-    return { html, head, errorHtml, chunks, styles }
+    return { ...initialProps };
   }
-  render () {
-    const { fullPath } = this.props;
 
+  render() {
     return (
       <html>
         <Head>
-          <title>Relisten</title>
           <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" />
           <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
           <meta httpEquiv="Content-Language" content="en" />
@@ -40,11 +36,11 @@ export default class MyDocument extends Document {
                 gtag('js', new Date());
 
                 gtag('config', 'UA-54000407-2');
-              `
+              `,
             }}
           />
         </body>
-     </html>
-    )
+      </html>
+    );
   }
 }

@@ -1,15 +1,16 @@
-import { connect } from 'react-redux'
+import React from 'react';
+import { connect } from 'react-redux';
 
-import { simplePluralize, groupBy } from '../lib/utils'
+import { simplePluralize, groupBy } from '../lib/utils';
 
-import Column from './Column'
-import Row from './Row'
-import RowHeader from './RowHeader'
+import Column from './Column';
+import Row from './Row';
+import RowHeader from './RowHeader';
 
 const byObject = {
   wsp: 'PanicStream',
-  phish: 'Phish.in'
-}
+  phish: 'Phish.in',
+};
 
 const ArtistsColumn = ({ artists = {}, artistSlug }) => (
   <Column heading="Bands">
@@ -27,12 +28,12 @@ const ArtistsColumn = ({ artists = {}, artistSlug }) => (
               <div>{simplePluralize('tape', artist.source_count)}</div>
             </div>
           </Row>
-        )
+        ),
       ]
     )}
   </Column>
-)
+);
 
-const mapStateToProps = ({ artists, app }) => ({ artists, artistSlug: app.artistSlug })
+const mapStateToProps = ({ artists, app }) => ({ artists, artistSlug: app.artistSlug });
 
-export default connect(mapStateToProps)(ArtistsColumn)
+export default connect(mapStateToProps)(ArtistsColumn);

@@ -1,31 +1,31 @@
-import Link from 'next/link'
-import { connect } from 'react-redux'
+import React from 'react';
+import { connect } from 'react-redux';
 
-import { createShowDate, splitShowDate, durationToHHMMSS } from '../lib/utils'
+import { createShowDate, splitShowDate, durationToHHMMSS } from '../lib/utils';
 
-import Column from './Column'
-import Row from './Row'
-import RowHeader from './RowHeader'
-import Tag from './Tag'
+import Column from './Column';
+import Row from './Row';
+import RowHeader from './RowHeader';
+import Tag from './Tag';
 
 const exists = (str) => {
-  return str && !/unknown/i.test(str)
-}
+  return str && !/unknown/i.test(str);
+};
 
 const cleanFlac = (str) => {
   return str ? (str.replace(/Flac|Bit/g, '') + '-BIT ') : '';
-}
+};
 
 // TODO: i18n
 const pluralize = (str, count) => {
   if (count === 1) return str;
 
   return str + 's';
-}
+};
 
 const TapesColumn = ({ tapes, artistSlug, activeSourceId }) => {
-  const sources = tapes.data && tapes.data.sources && tapes.data.sources.length ? tapes.data.sources : null
-  const { year, month, day } = sources ? splitShowDate(sources[0].display_date) : {}
+  const sources = tapes.data && tapes.data.sources && tapes.data.sources.length ? tapes.data.sources : null;
+  const { year, month, day } = sources ? splitShowDate(sources[0].display_date) : {};
 
   return (
     <Column heading="Sources" loading={tapes.meta && tapes.meta.loading} loadingAmount={1}>
@@ -61,7 +61,7 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }) => {
             <div>
               <div className="main">
                 <div className="duration">
-                {durationToHHMMSS(source.duration)}</div>
+                  {durationToHHMMSS(source.duration)}</div>
                 {source.is_soundboard && <Tag>SBD</Tag>}
                 {false && source.flac_type !== 'NoFlac' && <Tag>{cleanFlac(source.flac_type)}FLAC</Tag>}
                 {source.is_remaster && <Tag>REMASTER</Tag>}
@@ -75,20 +75,20 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }) => {
             </div>
           </Row>
         </div>
-       )}
+      )}
     </Column>
-  )
-}
+  );
+};
 
 const mapStateToProps = ({ tapes, app }) => {
-  const showDate = createShowDate(app.year, app.month, app.day)
-  const showTapes = tapes[app.artistSlug] && tapes[app.artistSlug][showDate] ? tapes[app.artistSlug][showDate] : {}
+  const showDate = createShowDate(app.year, app.month, app.day);
+  const showTapes = tapes[app.artistSlug] && tapes[app.artistSlug][showDate] ? tapes[app.artistSlug][showDate] : {};
 
   return {
     tapes: showTapes,
     artistSlug: app.artistSlug,
-    activeSourceId: parseInt(app.source, 10)
-  }
-}
+    activeSourceId: parseInt(app.source, 10),
+  };
+};
 
-export default connect(mapStateToProps)(TapesColumn)
+export default connect(mapStateToProps)(TapesColumn);

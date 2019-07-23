@@ -456,7 +456,7 @@
 
     setVolume(nextVolume) {
       this.audio.volume = nextVolume;
-      this.gainNode.gain.value = nextVolume;
+      if (this.gainNode) this.gainNode.gain.value = nextVolume;
     }
 
     // getter helpers

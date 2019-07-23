@@ -1,7 +1,7 @@
-import Router from 'next/router'
-import Head from 'next/head'
+import React from 'react';
+import Head from 'next/head';
 
-import Layout from '../layouts'
+import Layout from '../layouts';
 
 const Sonos = () => (
   <Layout navPrefix="ON" navSubtitle="Sonos" navURL="/sonos">
@@ -41,6 +41,6 @@ const Sonos = () => (
       </div>
     </div>
   </Layout>
-)
+);
 
-export default Sonos
+export default Sonos;

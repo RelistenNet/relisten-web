@@ -1,27 +1,27 @@
 import React from 'react';
 import App, { Container } from 'next/app';
-import Head from 'next/head'
+import Head from 'next/head';
 import { Provider } from 'react-redux';
-import withRedux from 'next-redux-wrapper'
-import Raven from 'raven-js'
+import withRedux from 'next-redux-wrapper';
+import Raven from 'raven-js';
 
 require('@fortawesome/fontawesome-free/css/all.css');
 
 // next.js polyfills for IE11
-import 'core-js/fn/object/assign'
-import 'core-js/fn/object/values'
-import 'core-js/fn/object/entries'
-import 'core-js/fn/string/ends-with'// unsure if needed
-import 'core-js/fn/string/starts-with'
-import 'core-js/fn/string/includes'
-import 'core-js/fn/array/includes'
-import 'core-js/fn/array/find'
-import 'core-js/fn/array/fill'
-import 'core-js/es6/promise'
+import 'core-js/features/object/assign';
+import 'core-js/features/object/values';
+import 'core-js/features/object/entries';
+import 'core-js/features/string/ends-with';// unsure if needed
+import 'core-js/features/string/starts-with';
+import 'core-js/features/string/includes';
+import 'core-js/features/array/includes';
+import 'core-js/features/array/find';
+import 'core-js/features/array/fill';
+import 'core-js/features/promise';
 
-import { initStore } from '../redux'
+import { initStore } from '../redux';
 
-const SENTRY_PUBLIC_DSN = 'https://d8fe64a30ead43e2ac70c750bc79a806@sentry.io/1261843'
+const SENTRY_PUBLIC_DSN = 'https://d8fe64a30ead43e2ac70c750bc79a806@sentry.io/1261843';
 
 class MyApp extends App {
   constructor(...args) {
@@ -30,7 +30,7 @@ class MyApp extends App {
     Raven.config(SENTRY_PUBLIC_DSN).install();
   }
 
-  static async getInitialProps({ Component, router, ctx }) {
+  static async getInitialProps({ Component, ctx }) {
     let pageProps = {};
 
     if (Component.getInitialProps) {
@@ -41,10 +41,10 @@ class MyApp extends App {
   }
 
   componentDidCatch(error, errorInfo) {
-    Raven.captureException(error, { extra: errorInfo })
+    Raven.captureException(error, { extra: errorInfo });
 
     // This is needed to render errors correctly in development / production
-    super.componentDidCatch(error, errorInfo)
+    super.componentDidCatch(error, errorInfo);
   }
 
   render() {
@@ -55,6 +55,7 @@ class MyApp extends App {
     return (
       <Container>
         <Head>
+          <title>Relisten</title>
           <meta name="apple-itunes-app" content={`app-id=715886886, app-argument=https://relisten.net${fullPath}`} />
         </Head>
         <Provider store={store}>

@@ -1,7 +1,7 @@
-import Router from 'next/router'
-import Head from 'next/head'
+import React from 'react';
+import Head from 'next/head';
 
-import Layout from '../layouts'
+import Layout from '../layouts';
 
 const Chat = () => (
   <Layout navPrefix="WITH" navSubtitle="US" navURL="/sonos">
@@ -50,6 +50,6 @@ const Chat = () => (
       <iframe src="https://titanembeds.com/embed/395033814008594436?theme=IceWyvern&username=guest" height="600" width="800" frameBorder="0" />
     </div>
   </Layout>
-)
+);
 
-export default Chat
+export default Chat;

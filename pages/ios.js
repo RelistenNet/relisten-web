@@ -1,7 +1,7 @@
-import Router from 'next/router'
-import Head from 'next/head'
+import React from 'react';
+import Head from 'next/head';
 
-import Layout from '../layouts'
+import Layout from '../layouts';
 
 const IOS = () => (
   <Layout navPrefix="ON" navSubtitle="iOS" navURL="/ios">
@@ -51,6 +51,6 @@ const IOS = () => (
 
     </div>
   </Layout>
-)
+);
 
-export default IOS
+export default IOS;

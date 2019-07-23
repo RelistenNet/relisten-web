@@ -1,6 +1,7 @@
-import Link from 'next/link'
+import React from 'react';
+import Link from 'next/link';
 
-import RowLoading from './RowLoading'
+import RowLoading from './RowLoading';
 
 export default ({ height, children, href, active, loading, baseHrefOverride, ...props }) => (
   <div className="relisten-row" style={{ minHeight: height }} {...props}>
@@ -60,4 +61,4 @@ export default ({ height, children, href, active, loading, baseHrefOverride, ...
     {loading && <RowLoading />}
     {href || baseHrefOverride ? <Link href={baseHrefOverride ? baseHrefOverride : '/'} as={href}><a className={`${active ? 'active' : ''} content`}>{children}</a></Link> : children ? <div className={`content ${active ? 'active' : ''}`}>{children}</div> : null}
   </div>
-)
+);
