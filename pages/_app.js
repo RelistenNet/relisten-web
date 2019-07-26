@@ -51,12 +51,13 @@ class MyApp extends App {
     const { Component, pageProps, store } = this.props;
 
     const fullPath = this.props.router.asPath;
+    const content = 'app-id=715886886, app-argument=https://relisten.net' + fullPath;
 
     return (
       <Container>
         <Head>
           <title>Relisten</title>
-          <meta name="apple-itunes-app" content={`app-id=715886886, app-argument=https://relisten.net${fullPath}`} />
+          <meta name="apple-itunes-app" content={content} />
         </Head>
         <Provider store={store}>
           <Component {...pageProps} />
