@@ -1,17 +1,17 @@
 (function(factory) {
   // Establish the root object, `window` (`self`) in the browser, or `global` on the server.
   // We use `self` instead of `window` for `WebWorker` support.
-  var root = (typeof self == 'object' && self.self === self && self) ||
+  const root = (typeof self == 'object' && self.self === self && self) ||
             (typeof global == 'object' && global.global === global && global);
 
   // Node.js, CommonJS, or ES6
-  if (typeof module === "object" && typeof module.exports === "object") {
+  if (typeof module === 'object' && typeof module.exports === 'object') {
     module.exports = factory(root, exports);
   // Finally, as a browser global.
   } else {
     root.Gapless = factory(root, {});
   }
-})(function(root, Gapless) {
+})((root, Gapless) => {
   const PRELOAD_NUM_TRACKS = 2;
 
   const isBrowser = typeof window !== 'undefined';
@@ -19,13 +19,13 @@
 
   const GaplessPlaybackType = {
     HTML5: 'HTML5',
-    WEBAUDIO: 'WEBAUDIO'
+    WEBAUDIO: 'WEBAUDIO',
   };
 
   const GaplessPlaybackLoadingState = {
     NONE: 'NONE',
     LOADING: 'LOADING',
-    LOADED: 'LOADED'
+    LOADED: 'LOADED',
   };
 
   class Queue {
@@ -37,7 +37,7 @@
         onPlayNextTrack,
         onPlayPreviousTrack,
         onStartNewTrack,
-        webAudioIsDisabled = false
+        webAudioIsDisabled = false,
       } = props;
 
       this.props = {
@@ -45,13 +45,13 @@
         onEnded,
         onPlayNextTrack,
         onPlayPreviousTrack,
-        onStartNewTrack
+        onStartNewTrack,
       };
 
       this.state = {
         volume: 1,
         currentTrackIdx: 0,
-        webAudioIsDisabled
+        webAudioIsDisabled,
       };
 
       this.Track = Track;
@@ -60,7 +60,7 @@
         new Track({
           trackUrl,
           idx,
-          queue: this
+          queue: this,
         })
       );
 
@@ -78,7 +78,7 @@
           skipHEAD,
           metadata,
           idx: this.tracks.length,
-          queue: this
+          queue: this,
         })
       );
     }
@@ -128,7 +128,7 @@
 
     resetCurrentTrack() {
       if (this.currentTrack) {
-        this.currentTrack.seek(0)
+        this.currentTrack.seek(0);
         this.currentTrack.pause();
       }
     }
@@ -240,7 +240,7 @@
       if (this.loadedHEAD) return cb();
 
       const options = {
-        method: 'HEAD'
+        method: 'HEAD',
       };
 
       fetch(this.trackUrl, options)
@@ -252,7 +252,7 @@
           this.loadedHEAD = true;
 
           cb();
-        })
+        });
     }
 
     loadBuffer(cb) {
@@ -288,6 +288,12 @@
       if (!this.isActiveTrack) return;
 
       this.debug('switch to web audio', this.currentTime, this.isPaused, this.audio.duration, this.audioBuffer.duration, this.audio.duration - this.audioBuffer.duration);
+
+      if (isNaN(this.audio.duration)) {
+        this.debug('For some reason this.audio.duration === NaN. Weird.', this.audio);
+
+        return;
+      }
 
       // if currentTime === 0, this is a new track, so play it
       // otherwise we're hitting this mid-track which may
@@ -502,7 +508,7 @@
     get state() {
       return {
         playbackType: this.playbackType,
-        webAudioLoadingState: this.webAudioLoadingState
+        webAudioLoadingState: this.webAudioLoadingState,
       };
     }
 
@@ -513,7 +519,7 @@
         isPaused: this.isPaused,
         currentTime: this.currentTime,
         duration: this.duration,
-        idx: this.idx
+        idx: this.idx,
       };
     }
 
