@@ -289,7 +289,7 @@
 
       this.debug('switch to web audio', this.currentTime, this.isPaused, this.audio.duration, this.audioBuffer.duration, this.audio.duration - this.audioBuffer.duration);
 
-      if (isNaN(this.audio.duration)) {
+      if (this.currentTime !== 0 && isNaN(this.audio.duration)) {
         this.debug('For some reason this.audio.duration === NaN. Weird.', this.audio);
 
         return;
