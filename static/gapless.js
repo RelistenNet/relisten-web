@@ -319,6 +319,7 @@
         this.webAudioPausedAt = this.audioContext.currentTime;
         this.bufferSourceNode.playbackRate.value = 0;
         this.gainNode.disconnect(this.audioContext.destination);
+        this.bufferSourceNode.onended = null;
       }
       else {
         this.audio.pause();
@@ -343,6 +344,9 @@
           // was paused, now force play
           this.connectGainNode();
           this.bufferSourceNode.playbackRate.value = 1;
+          if (!this.bufferSourceNode.onended) {
+            this.bufferSourceNode.onended = () => this.onEnded('webaudio3');
+          }
 
           this.webAudioPausedAt = 0;
         }
@@ -433,6 +437,12 @@
 
     onEnded(from) {
       this.debug('onEnded', from, this.isActiveTrack, this);
+
+      // debug: try clearing the onended callback
+      if (this.bufferSourceNode.onended) {
+        this.bufferSourceNode.onended = null;
+      }
+
       this.queue.playNext();
       this.queue.onEnded();
     }
