@@ -395,6 +395,7 @@
 
     // TODO: add checks for to > duration or null or negative (duration - to)
     seek(to = 0) {
+      this.debug('seek', to);
       if (this.isUsingWebAudio) {
         this.seekBufferSourceNode(to);
       }
@@ -535,7 +536,7 @@
 
     // debug helper
     debug(first, ...args) {
-      console.log(new Date(), `${this.idx}:${first}`, ...args, this.state);
+      console.log(new Date(), `${this.idx}:${first}`, ...args, this.state, this);
     }
 
     // just a helper to quick jump to the end of a track for testing
