@@ -213,7 +213,7 @@
       // HTML5 Audio
       this.audio = new Audio();
       this.audio.onerror = this.audioOnError;
-      this.audio.onended = this.onEnded;
+      this.audio.onended = () => this.onEnded('HTML5');
       this.audio.controls = false;
       this.audio.volume = queue.state.volume;
       this.audio.preload = 'none';
@@ -232,7 +232,7 @@
       this.audioBuffer = null;
 
       this.bufferSourceNode = this.audioContext ? this.audioContext.createBufferSource() : null;
-      this.bufferSourceNode.onended = this.onEnded;
+      this.bufferSourceNode.onended = () => this.onEnded('webaudio');
     }
 
     // private functions
@@ -410,7 +410,7 @@
 
       this.bufferSourceNode.buffer = this.audioBuffer;
       this.bufferSourceNode.connect(this.gainNode);
-      this.bufferSourceNode.onended = this.onEnded;
+      this.bufferSourceNode.onended = () => this.onEnded('webaudio2');
 
       this.webAudioStartedPlayingAt = this.audioContext.currentTime - to;
       this.webAudioPausedDuration = 0;
@@ -431,8 +431,8 @@
       this.debug('audioOnError', e);
     }
 
-    onEnded() {
-      this.debug('onEnded');
+    onEnded(from) {
+      this.debug('onEnded', from, this.isActiveTrack, this);
       this.queue.playNext();
       this.queue.onEnded();
     }
