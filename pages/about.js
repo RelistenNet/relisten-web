@@ -7,7 +7,6 @@ import Layout from '../layouts';
 const About = () => {
   const toggleGapless = () => {
     localStorage.forceGaplessOn = Number(localStorage.forceGaplessOn) ? 0 : 1;
-    console.log(localStorage.forceGaplessOn)
 
     setTimeout(() =>
       window.location.reload()
@@ -64,7 +63,7 @@ const About = () => {
           - Daniel Saewitz and Alec Gorge, <a href="mailto:team@relisten.net">team@relisten.net</a>
         </p>
 
-        <div onClick={toggleGapless}>Force Gapless Playback On: {isGaplessEnabled ? 'yes' : 'no'} (may be buggy, please reach out on '<Link href="/chat"><a>Chat</a></Link>' with any issues)</div>
+        {null && <div onClick={toggleGapless}>Force Gapless Playback On: {isGaplessEnabled ? 'yes' : 'no'} (may be buggy, please reach out on '<Link href="/chat"><a>Chat</a></Link>' with any issues)</div>}
 
         <br />
         <br />
@@ -79,6 +78,6 @@ const About = () => {
       </div>
     </Layout>
   );
-}
+};
 
 export default About;
