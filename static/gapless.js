@@ -379,11 +379,13 @@
     }
 
     preload(HTML5) {
-      this.debug('preload', HTML5);
       if (HTML5 && this.audio.preload !== 'auto') {
+        this.debug('preload', HTML5);
         this.audio.preload = 'auto';
       }
       else if (!this.audioBuffer && !this.queue.state.webAudioIsDisabled) {
+        this.debug('preload', HTML5);
+
         if (this.skipHEAD) {
           this.loadBuffer();
         }
@@ -440,7 +442,7 @@
       this.debug('onEnded', from, this.isActiveTrack, this);
 
       // debug: try clearing the onended callback
-      if (this.bufferSourceNode.onended) {
+      if (this.bufferSourceNode && this.bufferSourceNode.onended) {
         this.bufferSourceNode.onended = null;
       }
 
