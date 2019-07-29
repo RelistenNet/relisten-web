@@ -525,7 +525,7 @@
 
     // debug helper
     debug(first, ...args) {
-      console.log(`${this.idx}:${first}`, ...args, this.state);
+      console.log(new Date(), `${this.idx}:${first}`, ...args, this.state);
     }
 
     // just a helper to quick jump to the end of a track for testing
