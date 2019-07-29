@@ -295,6 +295,10 @@
         return;
       }
 
+      if (this.isPaused) {
+        this.webAudioPausedAt = this.audioContext.currentTime;
+      }
+
       // if currentTime === 0, this is a new track, so play it
       // otherwise we're hitting this mid-track which may
       // happen in the middle of a paused track
