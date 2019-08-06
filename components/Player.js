@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { createShowDate, durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
 import player from '../lib/player';
 
+import Twitter from './TwitterShare';
+
 class Player extends Component {
   constructor(props, ctx) {
     super(props, ctx);
@@ -210,6 +212,7 @@ class Player extends Component {
           </div>
         }
         {activeTrack && <Link href="/" as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}><div className="queue-button"><i className="fas fa-list-ol" /></div></Link>}
+        <Twitter title={activeTrack && activeTrack.title} bandTitle={bandTitle} yearString={removeLeadingZero(month) + '/' + removeLeadingZero(day) + '/' + year.slice(2)}/>
       </div>
     );
   }
