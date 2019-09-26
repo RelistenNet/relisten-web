@@ -232,7 +232,7 @@
       this.audioBuffer = null;
 
       this.bufferSourceNode = this.audioContext ? this.audioContext.createBufferSource() : null;
-      this.bufferSourceNode.onended = () => this.onEnded('webaudio');
+      this.bufferSourceNode.onended = this.onEnded;
     }
 
     // private functions
@@ -295,10 +295,6 @@
         return;
       }
 
-      if (this.isPaused) {
-        this.webAudioPausedAt = this.audioContext.currentTime;
-      }
-
       // if currentTime === 0, this is a new track, so play it
       // otherwise we're hitting this mid-track which may
       // happen in the middle of a paused track
@@ -310,6 +306,14 @@
 
       // slight blip, could be improved
       this.bufferSourceNode.start(0, this.currentTime);
+
+      if (this.isPaused) {
+        this.webAudioPausedAt = this.audioContext.currentTime;
+        this.bufferSourceNode.playbackRate.value = 0;
+        this.gainNode.disconnect(this.audioContext.destination);
+        this.bufferSourceNode.onended = null;
+      }
+
       this.audio.pause();
 
       this.playbackType = GaplessPlaybackType.WEBAUDIO;
@@ -414,6 +418,7 @@
 
     seekBufferSourceNode(to) {
       const wasPaused = this.isPaused;
+      console.log(this.bufferSourceNode);
       this.bufferSourceNode.onended = null;
       this.bufferSourceNode.stop();
 
