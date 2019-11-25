@@ -37,7 +37,6 @@ export default class MyDocument extends Document {
         <body>
           <Main />
           <NextScript />
-          <a href={`/${randomSlug()}`} id="thanks-neal-and-rh"><div></div></a>
           <script async src="https://www.googletagmanager.com/gtag/js?id=UA-54000407-2" />
           <script
             dangerouslySetInnerHTML={{
