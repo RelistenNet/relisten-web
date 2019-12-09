@@ -1,14 +1,6 @@
 import React from 'react';
 import Document, { Head, Main, NextScript } from 'next/document';
 
-const artists = [
-  'robert-hunter',
-  'circles-around-the-sun',
-  'hard-working-americans',
-];
-
-const randomSlug = () => artists[Math.floor(Math.random() * artists.length)];
-
 export default class MyDocument extends Document {
   static async getInitialProps(ctx) {
     const initialProps = await Document.getInitialProps(ctx);
@@ -29,8 +21,6 @@ export default class MyDocument extends Document {
             {`
               body { margin: 0; font-family: Roboto, Helvetica, Helvetica Neue, sans-serif; -webkit-font-smoothing: antialiased; color: #333; }
               a { text-decoration: none; color: #333; }
-              #thanks-neal-and-rh { display: block; position: fixed; top: 1px; left: 0; right: 0; height: 4px; background: #000; }
-              #thanks-neal-and-rh > div { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
             `}
           </style>
         </Head>
