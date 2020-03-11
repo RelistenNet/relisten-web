@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 
 import Layout from '../layouts';
 
-import { fetchLive } from '../redux/modules/live';
+import { fetchRecentStreams } from '../redux/modules/recent-streams';
 
 import LiveTrack from '../components/LiveTrack';
 
@@ -20,22 +20,22 @@ const keyFn = (item) => {
   return item && item.track && item.track.track && item.track.track.id;
 };
 
-class Live extends Component {
+class RecentStreams extends Component {
   state = {
     isMounted: false,
     lastSeenId: null,
   }
 
   static async getInitialProps({ store, isServer, pathname, query }) {
-    await store.dispatch(fetchLive());
+    await store.dispatch(fetchRecentStreams());
     return {
-      live: store.getState().live,
+      recentStreams: store.getState().recentStreams,
     };
   }
 
   componentDidMount() {
     this.intervalId = setInterval(async () => {
-      const action = await this.props.dispatch(fetchLive());
+      const action = await this.props.dispatch(fetchRecentStreams());
 
       if (action.data.length) {
         this.setState({ lastSeenId: action.data.slice(-1)[0].id });
@@ -51,17 +51,17 @@ class Live extends Component {
 
   render() {
     const { isMounted, lastSeenId } = this.state;
-    const { live } = this.props;
+    const { recentStreams } = this.props;
 
     return (
-      <Layout navPrefix="TO" navSubtitle="Recently Played" navURL="/live">
+      <Layout navPrefix="TO" navSubtitle="Recently Streamed" navURL="/recentstreams">
         <Head>
-          <title>Live | Relisten</title>
+          <title>Recently Streamed | Relisten</title>
         </Head>
         <div className="page-container">
-          <h1>Recently Played</h1>
+          <h1>Recently Streamed</h1>
 
-          {uniqBy(live.data, keyFn).map(data =>
+          {uniqBy(recentStreams.data, keyFn).map(data =>
             <LiveTrack {...data} key={data.track.track.id} isFirstRender={!isMounted} isLastSeen={lastSeenId === data.id} />
           )}
         </div>
@@ -79,4 +79,4 @@ class Live extends Component {
 
 }
 
-export default connect(({ live }) => ({ live }))(Live);
+export default connect(({ recentStreams }) => ({ recentStreams }))(RecentStreams);

@@ -1,5 +1,5 @@
-const REQUEST_LIVE = 'live/REQUEST_LIVE';
-const RECEIVE_LIVE = 'live/RECEIVE_LIVE';
+const REQUEST_RECENT_STREAMS = 'recent-streams/REQUEST_RECENT_STREAMS';
+const RECEIVE_RECENT_STREAMS = 'recent-streams/RECEIVE_RECENT_STREAMS';
 
 const defaultState = {
   data: [],
@@ -10,7 +10,7 @@ const defaultState = {
 
 export default function counter(state = defaultState, action) {
   switch (action.type) {
-  case REQUEST_LIVE:
+  case REQUEST_RECENT_STREAMS:
     return {
       data: state.data,
       meta: {
@@ -19,7 +19,7 @@ export default function counter(state = defaultState, action) {
         error: false,
       },
     };
-  case RECEIVE_LIVE:
+  case RECEIVE_RECENT_STREAMS:
     return {
       data: [...action.data.reverse(), ...state.data],
       meta: {
@@ -33,24 +33,24 @@ export default function counter(state = defaultState, action) {
   }
 }
 
-export function requestLive() {
+export function requestRecentStreams() {
   return {
-    type: REQUEST_LIVE,
+    type: REQUEST_RECENT_STREAMS,
   };
 }
 
-export function receiveLive(data) {
+export function receiveRecentStreams(data) {
   return {
-    type: RECEIVE_LIVE,
+    type: RECEIVE_RECENT_STREAMS,
     data,
   };
 }
 
-export function fetchLive() {
+export function fetchRecentStreams() {
   return async (dispatch, getState) => {
-    dispatch(requestLive());
+    dispatch(requestRecentStreams());
 
-    const lastSeen = getState().live.data[0];
+    const lastSeen = getState().recentStreams.data[0];
     let paramsStr = '';
 
     if (lastSeen) {
@@ -60,7 +60,7 @@ export function fetchLive() {
     const json = await fetch(`https://relistenapi.alecgorge.com/api/v2/live/history${paramsStr}`)
       .then(res => res.json());
 
-    return dispatch(receiveLive(json));
+    return dispatch(receiveRecentStreams(json));
   };
 }
 

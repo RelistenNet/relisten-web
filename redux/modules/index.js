@@ -7,7 +7,7 @@ import tapes from './tapes';
 
 import app from './app';
 import playback from './playback';
-import live from './live';
+import recentStreams from './recent-streams';
 import today from './today';
 
 export default combineReducers({
@@ -17,6 +17,6 @@ export default combineReducers({
   tapes,
   playback,
   app,
-  live,
+  recentStreams,
   today,
 });

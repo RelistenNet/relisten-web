@@ -132,7 +132,7 @@ class Navigation extends Component {
         </div>
         <div className="right nav desktop">
           <div><Link href="/today" prefetch><a>TIH</a></Link></div>
-          <div><Link href="/live" prefetch><a>LIVE</a></Link></div>
+          <div><Link href="/recent-streams" prefetch><a>RECENT STREAMS</a></Link></div>
           <div><Link href="/chat" prefetch><a>CHAT</a></Link></div>
           <div><Link href="/ios" prefetch><a>iOS</a></Link></div>
           <div><Link href="/sonos" prefetch><a>SONOS</a></Link></div>
