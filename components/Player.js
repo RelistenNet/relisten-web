@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Component } from "react";
 import { connect } from "react-redux";
 import Head from "next/head";
