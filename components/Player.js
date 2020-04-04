@@ -1,11 +1,16 @@
-import React from 'react';
-import { Component } from 'react';
-import { connect } from 'react-redux';
-import Head from 'next/head';
-import Link from 'next/link';
-
-import { createShowDate, durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
-import player from '../lib/player';
+import React, { useEffect } from "react";
+import { Component } from "react";
+import { connect } from "react-redux";
+import Head from "next/head";
+import Link from "next/link";
+import { TwitterShareButton, TwitterIcon } from "react-share";
+import {
+  createShowDate,
+  durationToHHMMSS,
+  removeLeadingZero,
+  splitShowDate,
+} from "../lib/utils";
+import player from "../lib/player";
 
 class Player extends Component {
   constructor(props, ctx) {
@@ -13,8 +18,19 @@ class Player extends Component {
 
     this.state = {
       showRemainingDuration: false,
-      volume: typeof localStorage !== 'undefined' && localStorage.volume || 1,
+      volume: (typeof localStorage !== "undefined" && localStorage.volume) || 1,
     };
+  }
+
+  getHashtags(artistSlug, year) {
+    switch (artistSlug) {
+      case "grateful-dead":
+        return ["GratefulDead", `${year}GratefulDead`, "LiveGratefulDead", "RelistenApp"];
+      case "phish":
+        return ["Phish", `${year}Phish`, "LivePhish", "RelistenApp"];
+      default:
+        return ["Reslisten", "RelistenApp"];
+    }
   }
 
   render() {
@@ -23,10 +39,20 @@ class Player extends Component {
 
     const { year, month, day } = splitShowDate(playback.showDate);
     const { artistSlug, source } = playback;
-    const bandTitle = artists.data[artistSlug] ? artists.data[artistSlug].name : '';
-    const activeTrack = playback.tracks.find((track, idx) => idx === playback.activeTrack.idx);
-    const nextTrack = playback.tracks.find((track, idx) => idx === playback.activeTrack.idx + 1);
-    const notchPosition = typeof window === 'undefined' || !this.player ? 0 : (playback.activeTrack.currentTime / playback.activeTrack.duration) * (this.player.clientWidth - 3);
+    const bandTitle = artists.data[artistSlug]
+      ? artists.data[artistSlug].name
+      : "";
+    const activeTrack = playback.tracks.find(
+      (track, idx) => idx === playback.activeTrack.idx
+    );
+    const nextTrack = playback.tracks.find(
+      (track, idx) => idx === playback.activeTrack.idx + 1
+    );
+    const notchPosition =
+      typeof window === "undefined" || !this.player
+        ? 0
+        : (playback.activeTrack.currentTime / playback.activeTrack.duration) *
+          (this.player.clientWidth - 3);
 
     return (
       <div className="container">
@@ -41,17 +67,19 @@ class Player extends Component {
             cursor: pointer;
           }
 
-          .playpause, .queue-button {
+          .playpause,
+          .queue-button {
             width: 50px;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: #7A7A7A;
+            color: #7a7a7a;
             cursor: pointer;
           }
 
-          .playpause:active, .queue-button:active {
-            color: #4A4A4A;
+          .playpause:active,
+          .queue-button:active {
+            color: #4a4a4a;
           }
 
           .player {
@@ -71,7 +99,7 @@ class Player extends Component {
           .progress-container {
             width: 100%;
             height: 4px;
-            background: #BCBCBC;
+            background: #bcbcbc;
             position: absolute;
             left: 0;
             bottom: 0;
@@ -107,7 +135,7 @@ class Player extends Component {
           }
 
           .song-title {
-            color: #3C3C3C;
+            color: #3c3c3c;
             font-size: 1em;
             position: relative;
           }
@@ -121,23 +149,27 @@ class Player extends Component {
             top: 2px;
             margin-left: 8px;
             font-size: 0.8em;
-            color: #7A7A7A;
+            color: #7a7a7a;
           }
 
           .band-title {
-            color: #7A7A7A;
+            color: #7a7a7a;
             font-size: 0.8em;
             justify-content: center;
           }
 
           .timing {
-            color: #7A7A7A;
+            color: #7a7a7a;
             font-size: 0.8em;
             position: absolute;
             left: 8px;
             top: 50%;
             transform: translate(0, -50%);
             text-align: left;
+          }
+
+          .twitter-share {
+            display: flex;
           }
 
           .duration {
@@ -164,40 +196,93 @@ class Player extends Component {
             right: 0;
             pointer-events: none;
           }
-
         `}</style>
-        {activeTrack && <Head>
-          <title>{`${playback.activeTrack.isPaused ? '❚❚' : '▶'} ${activeTrack.title} ${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)} ${bandTitle}`} | Relisten</title>
-        </Head>}
-        {activeTrack && <div className="playpause" onClick={() => player.togglePlayPause()}>
-          <i className={`fas fa-${playback.activeTrack.isPaused ? 'play' : 'pause'}`} />
-        </div>}
-        {typeof window === 'undefined' || !activeTrack ? null :
-          <div className="player" ref={ref => this.player = ref}>
+        {activeTrack && (
+          <Head>
+            <title>
+              {`${playback.activeTrack.isPaused ? "❚❚" : "▶"} ${
+                activeTrack.title
+              } ${removeLeadingZero(month)}/${removeLeadingZero(
+                day
+              )}/${year.slice(2)} ${bandTitle}`}{" "}
+              | Relisten
+            </title>
+          </Head>
+        )}
+        {activeTrack && (
+          <div className="playpause" onClick={() => player.togglePlayPause()}>
+            <i
+              className={`fas fa-${
+                playback.activeTrack.isPaused ? "play" : "pause"
+              }`}
+            />
+          </div>
+        )}
+        {typeof window === "undefined" || !activeTrack ? null : (
+          <div className="player" ref={(ref) => (this.player = ref)}>
             <div className="content">
               <div className="timing">
-                <div><i className="fas fa-backward" onClick={() => player.playPrevious()} /></div>
+                <div>
+                  <i
+                    className="fas fa-backward"
+                    onClick={() => player.playPrevious()}
+                  />
+                </div>
                 <div>{durationToHHMMSS(playback.activeTrack.currentTime)}</div>
               </div>
               <div className="info">
                 <div className="song-title">
                   {activeTrack.title}
-                  {false &&<div className="after-song-title">
-                    <div>Next: {nextTrack && nextTrack.title}&nbsp;</div>
-                    <i className="fas fa-angle-down" />
-                  </div>}
+                  {false && (
+                    <div className="after-song-title">
+                      <div>Next: {nextTrack && nextTrack.title}&nbsp;</div>
+                      <i className="fas fa-angle-down" />
+                    </div>
+                  )}
                 </div>
 
-                <Link href="/" as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}><a className="band-title">{bandTitle} – {removeLeadingZero(month)}/{removeLeadingZero(day)}/{year.slice(2)}</a></Link>
+                <Link
+                  href="/"
+                  as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
+                >
+                  <a className="band-title">
+                    {bandTitle} – {removeLeadingZero(month)}/
+                    {removeLeadingZero(day)}/{year.slice(2)}
+                  </a>
+                </Link>
               </div>
               <div className="timing duration">
-                <div><i className="fas fa-forward" onClick={() => player.playNext()} /></div>
-                <div onClick={this.toggleRemainingDuration}>{durationToHHMMSS(showRemainingDuration ? playback.activeTrack.currentTime - playback.activeTrack.duration : playback.activeTrack.duration)}</div>
+                <div>
+                  <i
+                    className="fas fa-forward"
+                    onClick={() => player.playNext()}
+                  />
+                </div>
+                <div onClick={this.toggleRemainingDuration}>
+                  {durationToHHMMSS(
+                    showRemainingDuration
+                      ? playback.activeTrack.currentTime -
+                          playback.activeTrack.duration
+                      : playback.activeTrack.duration
+                  )}
+                </div>
               </div>
             </div>
-            <div className="progress-container" onClick={this.onProgressClick} style={{ opacity: playback.activeTrack.currentTime < 0.1 ? 0.8 : null }}>
-              <div className="progress-background" style={{ width: notchPosition ? notchPosition + 2 : null }} />
-              <div className="progress-notch" style={{ transform: `translate(${notchPosition}px, 0)` }} />
+            <div
+              className="progress-container"
+              onClick={this.onProgressClick}
+              style={{
+                opacity: playback.activeTrack.currentTime < 0.1 ? 0.8 : null,
+              }}
+            >
+              <div
+                className="progress-background"
+                style={{ width: notchPosition ? notchPosition + 2 : null }}
+              />
+              <div
+                className="progress-notch"
+                style={{ transform: `translate(${notchPosition}px, 0)` }}
+              />
             </div>
             <div className="volume-container" onClick={this.setVolume}>
               <div
@@ -208,8 +293,26 @@ class Player extends Component {
               />
             </div>
           </div>
-        }
-        {activeTrack && <Link href="/" as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}><div className="queue-button"><i className="fas fa-list-ol" /></div></Link>}
+        )}
+        {activeTrack && (
+          <>
+            <Link
+              href="/"
+              as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
+            >
+              <div className="queue-button">
+                <i className="fas fa-list-ol" />
+              </div>
+            </Link>
+            <TwitterShareButton
+              title={`I'm listening to ${activeTrack.title} by ${bandTitle} from ${year}-${month}-${day} on Relisten.net - ${window.location.href}`}
+              hashtags={this.getHashtags(artistSlug, year)}
+              className="twitter-share"
+            >
+              <TwitterIcon size={32} round />
+            </TwitterShareButton>
+          </>
+        )}
       </div>
     );
   }
@@ -222,11 +325,11 @@ class Player extends Component {
     const percentage = (e.pageX - left) / width;
 
     player.currentTrack.seek(percentage * playback.activeTrack.duration);
-  }
+  };
 
   toggleRemainingDuration = () => {
     this.setState({ showRemainingDuration: !this.state.showRemainingDuration });
-  }
+  };
 
   setVolume = (e) => {
     const height = e.currentTarget.offsetHeight;
@@ -237,9 +340,13 @@ class Player extends Component {
     player.setVolume(nextVolume);
 
     localStorage.volume = nextVolume;
-  }
+  };
 }
 
-const mapStateToProps = ({ playback, tapes, artists }) => ({ playback, tapes, artists });
+const mapStateToProps = ({ playback, tapes, artists }) => ({
+  playback,
+  tapes,
+  artists,
+});
 
 export default connect(mapStateToProps)(Player);
