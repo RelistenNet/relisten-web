@@ -2,7 +2,7 @@ import React from 'react';
 import Head from 'next/head';
 import Raven from 'raven-js';
 
-import '@fortawesome/fontawesome-free/css/all.min.css';
+import '@fortawesome/fontawesome-free/css/all.css'; // import Font Awesome CSS
 
 // next.js polyfills for IE11
 import 'core-js/features/object/assign';
