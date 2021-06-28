@@ -1,3 +1,5 @@
+import { HYDRATE } from 'next-redux-wrapper';
+
 const UPDATE_APP = 'app/UPDATE_APP';
 
 const defaultState = {
@@ -12,13 +14,18 @@ const defaultState = {
 
 export default function counter(state = defaultState, action) {
   switch (action.type) {
-  case UPDATE_APP:
-    return {
-      ...state,
-      ...action.data,
-    };
-  default:
-    return state;
+    case HYDRATE:
+      return {
+        ...state,
+        ...action.payload?.app,
+      };
+    case UPDATE_APP:
+      return {
+        ...state,
+        ...action.data,
+      };
+    default:
+      return state;
   }
 }
 

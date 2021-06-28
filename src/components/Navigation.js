@@ -117,8 +117,12 @@ class Navigation extends Component {
 
         `}</style>
         <div className="left">
-          <Link href="/" prefetch><a className="relisten-title desktop">RELISTEN</a></Link>
-          <Link href="/" prefetch><a className="relisten-mobile">Re</a></Link>
+          <Link href="/">
+            <a className="relisten-title desktop">RELISTEN</a>
+          </Link>
+          <Link href="/">
+            <a className="relisten-mobile">Re</a>
+          </Link>
           {this.secondaryNavTitle}
         </div>
         <div className="player">
@@ -126,17 +130,41 @@ class Navigation extends Component {
         </div>
         <div className="right relisten-mobile" onClick={this.toggleMenu}>
           <div className="menu-button">MENU</div>
-          <InlinePopup ref={ref => this.modal = ref}>
+          <InlinePopup ref={(ref) => (this.modal = ref)}>
             <Menu />
           </InlinePopup>
         </div>
         <div className="right nav desktop">
-          <div><Link href="/today" prefetch><a>TIH</a></Link></div>
-          <div><Link href="/live" prefetch><a>LIVE</a></Link></div>
-          <div><Link href="/chat" prefetch><a>CHAT</a></Link></div>
-          <div><Link href="/ios" prefetch><a>iOS</a></Link></div>
-          <div><Link href="/sonos" prefetch><a>SONOS</a></Link></div>
-          <div><Link href="/about" prefetch><a>ABOUT</a></Link></div>
+          <div>
+            <Link href="/today">
+              <a>TIH</a>
+            </Link>
+          </div>
+          <div>
+            <Link href="/live">
+              <a>LIVE</a>
+            </Link>
+          </div>
+          <div>
+            <Link href="/chat">
+              <a>CHAT</a>
+            </Link>
+          </div>
+          <div>
+            <Link href="/ios">
+              <a>iOS</a>
+            </Link>
+          </div>
+          <div>
+            <Link href="/sonos">
+              <a>SONOS</a>
+            </Link>
+          </div>
+          <div>
+            <Link href="/about">
+              <a>ABOUT</a>
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -159,10 +187,15 @@ class Navigation extends Component {
     return (
       <Fragment>
         {artists.data[app.artistSlug] && <span className="to">TO</span>}
-        {artists.data[app.artistSlug] &&
-          <Link href="/" as={`/${app.artistSlug}`}>
-            <a className="artist">{artists.data[app.artistSlug].the ? 'THE ' : ''}{artists.data[app.artistSlug].name}</a>
-          </Link>
+        {
+          artists.data[app.artistSlug] && (
+            <Link href="/" as={`/${app.artistSlug}`}>
+              <a className="artist">
+                {artists.data[app.artistSlug].the ? 'THE ' : ''}
+                {artists.data[app.artistSlug].name}
+              </a>
+            </Link>
+          )
           /*
           : <span className="default">1,028,334 songs on 60,888 tapes from 102 bands</span>
           */
@@ -173,9 +206,8 @@ class Navigation extends Component {
 
   toggleMenu = async () => {
     this.modal.toggleModal();
-  }
+  };
 }
-
 
 const mapStateToProps = ({ app, artists }) => {
   return {

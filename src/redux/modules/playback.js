@@ -1,3 +1,5 @@
+import { HYDRATE } from 'next-redux-wrapper';
+
 const UPDATE = 'playback/UPDATE';
 const UPDATE_TRACK = 'playback/UPDATE_TRACK';
 
@@ -17,22 +19,27 @@ const defaultState = {
 
 export default function counter(state = defaultState, action) {
   switch (action.type) {
-  case UPDATE:
-    return {
-      ...state,
-      ...action.data,
-    };
-  case UPDATE_TRACK: {
-    return {
-      ...state,
-      activeTrack: {
-        ...state.activeTrack,
+    case HYDRATE:
+      return {
+        ...state,
+        ...action.payload?.playback,
+      };
+    case UPDATE:
+      return {
+        ...state,
         ...action.data,
-      },
-    };
-  }
-  default:
-    return state;
+      };
+    case UPDATE_TRACK: {
+      return {
+        ...state,
+        activeTrack: {
+          ...state.activeTrack,
+          ...action.data,
+        },
+      };
+    }
+    default:
+      return state;
   }
 }
 

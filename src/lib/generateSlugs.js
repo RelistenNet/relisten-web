@@ -1,7 +1,7 @@
 const fs = require('fs');
 require('isomorphic-fetch');
 
-fetch('https://relistenapi.alecgorge.com/api/v2/artists')
+fetch('https://api.relisten.net/api/v2/artists')
   .then(res => res.json())
   .then(json => {
     const str = json.map(artist => `"${artist.slug}"`).join(',');

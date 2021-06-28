@@ -5,6 +5,7 @@ import UAParser from 'ua-parser-js';
 
 import 'isomorphic-fetch';
 
+import { wrapper } from '../redux';
 import { fetchArtists } from '../redux/modules/artists';
 import { fetchYears } from '../redux/modules/years';
 import { fetchShows } from '../redux/modules/shows';
@@ -24,10 +25,84 @@ import YearsColumn from '../components/YearsColumn';
 import ShowsColumn from '../components/ShowsColumn';
 import TapesColumn from '../components/TapesColumn';
 import SongsColumn from '../components/SongsColumn';
+import { useStore } from 'react-redux';
 
-const Root = ({ app = {}, playback, url, isMobile, artists, serverRenderedMP3, serverRenderedSongTitle }) => {
+const routeChangeStart = (store) => async (url) => {
+  if (typeof window !== 'undefined' && window.UPDATED_TRACK_VIA_GAPLESS) {
+    window.UPDATED_TRACK_VIA_GAPLESS = false;
+    return 'nonsense';
+  }
+  const [nextDispatches = [], afterDispatches = []] = handleRouteChange(store, url);
+
+  await Promise.all(nextDispatches);
+  await Promise.all(afterDispatches.map((f) => f()));
+};
+
+const Root = ({
+  app = {},
+  playback,
+  url,
+  isMobile,
+  artists,
+  serverRenderedMP3,
+  serverRenderedSongTitle,
+}) => {
+  const store = useStore();
   let title = false;
   let activeColumn = 'artists';
+
+  React.useEffect(() => {
+    const localRouteChange = routeChangeStart(store);
+    Router.events.on('routeChangeStart', localRouteChange);
+
+    setTimeout(async () => {
+      const { currentTime, duration } = localStorage;
+      const cachedUrl = window.location.pathname + window.location.search;
+      const [artistSlug, , , , songSlug] = window.location.pathname.replace(/^\//, '').split('/');
+
+      if (!songSlug && localStorage.lastPlayedUrl) {
+        const [nextDispatches = [], afterDispatches = []] = handleRouteChange(
+          store,
+          localStorage.lastPlayedUrl,
+          true
+        );
+
+        await Promise.all(nextDispatches);
+        await Promise.all(afterDispatches.map((f) => f()));
+
+        if (currentTime && player.currentTrack) {
+          player.currentTrack.seek(currentTime);
+
+          store.dispatch(
+            updatePlaybackTrack({
+              currentTime: parseFloat(currentTime),
+              duration: parseFloat(duration),
+            })
+          );
+        }
+
+        if (artistSlugs.indexOf(artistSlug) === -1) {
+          Router.replace(cachedUrl);
+        } else {
+          Router.replace('/', cachedUrl);
+        }
+
+        return;
+      }
+
+      playSong(store);
+      const paramsObj = getParams(window.location.search);
+      if (paramsObj.t) {
+        const [min, sec] = paramsObj.t.split('m');
+
+        player.currentTrack && player.currentTrack.seek(parseInt(min, 10) * 60 + parseInt(sec, 10));
+      }
+    }, 0);
+
+    return () => {
+      Router.events.off('routeChangeStart', localRouteChange);
+    };
+  }, []);
 
   if (!url) url = window.location.pathname;
 
@@ -36,23 +111,21 @@ const Root = ({ app = {}, playback, url, isMobile, artists, serverRenderedMP3, s
 
   if (artistSlug && year && month && day && songSlug) {
     // TODO: hook up actual title (this doesn't work on the server since playback.tracks hasn't been added yet)
-    const track = playback.tracks.find(track => track.slug === songSlug);
+    const track = playback.tracks.find((track) => track.slug === songSlug);
     const trackTitle = track ? track.title : serverRenderedSongTitle;
-    title = trackTitle ? `${trackTitle} ${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)} ${bandTitle}` : '';
+    title = trackTitle
+      ? `${trackTitle} ${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(
+          2
+        )} ${bandTitle}`
+      : '';
     activeColumn = 'songs';
-  }
-
-  else if (artistSlug && year && month && day) {
+  } else if (artistSlug && year && month && day) {
     title = `${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)} ${bandTitle}`;
     activeColumn = 'songs';
-  }
-
-  else if (artistSlug && year) {
+  } else if (artistSlug && year) {
     title = `${year} ${bandTitle}`;
     activeColumn = 'shows';
-  }
-
-  else if (artistSlug) {
+  } else if (artistSlug) {
     title = bandTitle;
     activeColumn = 'years';
   }
@@ -67,17 +140,22 @@ const Root = ({ app = {}, playback, url, isMobile, artists, serverRenderedMP3, s
         }
       `}</style>
       <div className="page-container">
-        {title && (!player || !player.tracks.length) &&
+        {title && (!player || !player.tracks.length) && (
           <Head>
             <title>{title} | Relisten</title>
             <meta property="og:title" content={title} />
-            <meta property="og:image" content="https://cdn.rawgit.com/RelistenNet/relisten-ios/485488eb/Assets/RelistenAppIcon.png" />
+            <meta
+              property="og:image"
+              content="https://cdn.rawgit.com/RelistenNet/relisten-ios/485488eb/Assets/RelistenAppIcon.png"
+            />
             {serverRenderedMP3 && <meta property="og:type" content="music.song" />}
             {serverRenderedMP3 && <meta property="og:audio:url" content={serverRenderedMP3} />}
-            {serverRenderedMP3 && <meta property="og:audio:secure_url" content={serverRenderedMP3} />}
+            {serverRenderedMP3 && (
+              <meta property="og:audio:secure_url" content={serverRenderedMP3} />
+            )}
             {serverRenderedMP3 && <meta property="og:audio:type" content="audio/mp3" />}
           </Head>
-        }
+        )}
         {(!isMobile || activeColumn === 'artists') && <ArtistsColumn />}
         {(!isMobile || activeColumn === 'years') && <YearsColumn />}
         {(!isMobile || activeColumn === 'shows') && <ShowsColumn />}
@@ -133,12 +211,26 @@ const handleRouteChange = (store, url, forceIsPaused) => {
   }
 
   if (artistSlug && year && month && day && songSlug) {
-    dispatches.push(store.dispatch(updatePlayback({ artistSlug, year, showDate: createShowDate(year, month, day), songSlug, source, paused: false })));
+    dispatches.push(
+      store.dispatch(
+        updatePlayback({
+          artistSlug,
+          year,
+          showDate: createShowDate(year, month, day),
+          songSlug,
+          source,
+          paused: false,
+        })
+      )
+    );
     if (typeof window !== 'undefined') {
-      afterDispatches.push(() => new Promise((resolve) => {
-        playSong(window.store, forceIsPaused);
-        resolve();
-      }));
+      afterDispatches.push(
+        () =>
+          new Promise((resolve) => {
+            playSong(store, forceIsPaused);
+            resolve();
+          })
+      );
     }
   }
 
@@ -165,34 +257,37 @@ const handleRouteChange = (store, url, forceIsPaused) => {
   return [dispatches, afterDispatches];
 };
 
-Root.getInitialProps = async ({ req, store }) => {
+Root.getInitialProps = wrapper.getInitialPageProps((store) => async ({ req }) => {
   const { type } = new UAParser(req ? req.headers['user-agent'] : navigator.userAgent).getDevice();
   const isMobile = type === 'mobile';
 
   let dispatches = [store.dispatch(fetchArtists()), store.dispatch(updateApp({ isMobile }))];
 
-  const [nextDispatches = [], afterDispatches = []] = req ? handleRouteChange(store, req.url) : [[], []];
+  const [nextDispatches = [], afterDispatches = []] = req
+    ? handleRouteChange(store, req.url)
+    : [[], []];
 
   if (req) dispatches = dispatches.concat(nextDispatches);
 
   await Promise.all(dispatches);
-  await Promise.all(afterDispatches.map(f => f()));
+  await Promise.all(afterDispatches.map((f) => f()));
 
   const { app, playback, artists, tapes } = store.getState();
 
   const { artistSlug, showDate, source, songSlug } = playback;
   const activePlaybackSourceId = parseInt(source, 10);
-  const showTapes = tapes[artistSlug] && tapes[artistSlug][showDate] ? tapes[artistSlug][showDate] : null;
+  const showTapes =
+    tapes[artistSlug] && tapes[artistSlug][showDate] ? tapes[artistSlug][showDate] : null;
   let activeTrack;
 
   if (showTapes && showTapes.data && showTapes.data.sources && showTapes.data.sources.length) {
     const { sources } = showTapes.data;
 
-    const tape = sources.find(tape => tape.id === activePlaybackSourceId) || sources[0];
+    const tape = sources.find((tape) => tape.id === activePlaybackSourceId) || sources[0];
 
     if (tape) {
-      tape.sets.map(set =>
-        set.tracks.map(track => {
+      tape.sets.map((set) =>
+        set.tracks.map((track) => {
           if (track.slug === songSlug) {
             activeTrack = track;
           }
@@ -201,73 +296,33 @@ Root.getInitialProps = async ({ req, store }) => {
     }
   }
 
-  return { app, playback, url: req ? req.url : null, isMobile, artists, serverRenderedMP3: activeTrack ? activeTrack.mp3_url : null, serverRenderedSongTitle: activeTrack ? activeTrack.title : null };
-};
-
-Router.onRouteChangeStart = async (url) => {
-  if (typeof window !== 'undefined' && window.UPDATED_TRACK_VIA_GAPLESS) {
-    window.UPDATED_TRACK_VIA_GAPLESS = false;
-    return 'nonsense';
-  }
-  const [nextDispatches = [], afterDispatches = []] = handleRouteChange(window.store, url);
-
-  await Promise.all(nextDispatches);
-  await Promise.all(afterDispatches.map(f => f()));
-};
-
-if (typeof window !== 'undefined') {
-  setTimeout(async () => {
-    const { currentTime, duration } = localStorage;
-    const cachedUrl = window.location.pathname + window.location.search;
-    const [artistSlug, ,,, songSlug] = window.location.pathname.replace(/^\//, '').split('/');
-
-    if (!songSlug && localStorage.lastPlayedUrl) {
-      const [nextDispatches = [], afterDispatches = []] = handleRouteChange(window.store, localStorage.lastPlayedUrl, true);
-
-      await Promise.all(nextDispatches);
-      await Promise.all(afterDispatches.map(f => f()));
-
-      if (currentTime && player.currentTrack) {
-        player.currentTrack.seek(currentTime);
-
-        window.store.dispatch(updatePlaybackTrack({ currentTime: parseFloat(currentTime), duration: parseFloat(duration) }));
-      }
-
-      if (artistSlugs.indexOf(artistSlug) === -1) {
-        Router.replace(cachedUrl);
-      }
-      else {
-        Router.replace('/', cachedUrl);
-      }
-
-      return;
-    }
-
-    playSong(window.store);
-    const paramsObj = getParams(window.location.search);
-    if (paramsObj.t) {
-      const [min, sec] = paramsObj.t.split('m');
-
-      player.currentTrack && player.currentTrack.seek(parseInt(min, 10) * 60 + parseInt(sec, 10));
-    }
-  }, 0);
-}
+  return {
+    store,
+    app,
+    playback,
+    url: req ? req.url : null,
+    isMobile,
+    artists,
+    serverRenderedMP3: activeTrack ? activeTrack.mp3_url : null,
+    serverRenderedSongTitle: activeTrack ? activeTrack.title : null,
+  };
+});
 
 const playSong = (store, forceIsPaused) => {
   const { playback, tapes } = store.getState();
   const { artistSlug, showDate, source, songSlug } = playback;
   const activePlaybackSourceId = parseInt(source, 10);
-  const showTapes = tapes[artistSlug] && tapes[artistSlug][showDate] ? tapes[artistSlug][showDate] : null;
+  const showTapes =
+    tapes[artistSlug] && tapes[artistSlug][showDate] ? tapes[artistSlug][showDate] : null;
   const playImmediately = forceIsPaused ? false : true;
   let tape;
 
-  console.log('play song', playback, showTapes);
   if (!showTapes) return console.log('err showTapes');
 
   if (showTapes.data && showTapes.data.sources && showTapes.data.sources.length) {
     const { sources } = showTapes.data;
 
-    tape = sources.find(tape => tape.id === activePlaybackSourceId) || sources[0];
+    tape = sources.find((tape) => tape.id === activePlaybackSourceId) || sources[0];
   }
 
   if (!tape) return console.log('err tape');
@@ -276,8 +331,8 @@ const playSong = (store, forceIsPaused) => {
   let currentIdx = 0;
   const tracks = [];
 
-  tape.sets.map(set =>
-    set.tracks.map(track => {
+  tape.sets.map((set) =>
+    set.tracks.map((track) => {
       tracks.push(track);
       if (track.slug === songSlug) {
         currentIdx = idx;
@@ -294,22 +349,20 @@ const playSong = (store, forceIsPaused) => {
 
   if (!isPlayerMounted()) {
     initGaplessPlayer(store);
-  }
-  else {
+  } else {
     // check if track is already in queue, and re-use
     const prevFirstTrack = player.tracks[0];
     const nextFirstTrack = tracks[0];
     if (prevFirstTrack && nextFirstTrack && prevFirstTrack.metadata.trackId === nextFirstTrack.id) {
       player.gotoTrack(currentIdx, playImmediately);
       return;
-    }
-    else {
+    } else {
       player.pauseAll();
       player.tracks = [];
     }
   }
 
-  tracks.map(track => {
+  tracks.map((track) => {
     const url = window.FLAC ? track.flac_url || track.mp3_url : track.mp3_url;
 
     player.addTrack({
@@ -327,18 +380,16 @@ const playSong = (store, forceIsPaused) => {
 };
 
 const getRandomShow = (artistSlug, store) => {
-  return (
-    fetch(`https://relistenapi.alecgorge.com/api/v2/artists/${artistSlug}/shows/random`)
-      .then(res => res.json())
-      .then(json => {
-        if (!json) return;
+  return fetch(`https://api.relisten.net/api/v2/artists/${artistSlug}/shows/random`)
+    .then((res) => res.json())
+    .then((json) => {
+      if (!json) return;
 
-        const { year, month, day } = splitShowDate(json.display_date);
-        const [dispatches] = handleRouteChange(store, `/${artistSlug}/${year}/${month}/${day}`);
+      const { year, month, day } = splitShowDate(json.display_date);
+      const [dispatches] = handleRouteChange(store, `/${artistSlug}/${year}/${month}/${day}`);
 
-        return Promise.all(dispatches);
-      })
-  );
+      return Promise.all(dispatches);
+    });
 };
 
 export default Root;

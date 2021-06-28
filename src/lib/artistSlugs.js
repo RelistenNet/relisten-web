@@ -1,6 +1,6 @@
 const artistSlugs = require('./rawSlugs');
 
-fetch('https://relistenapi.alecgorge.com/api/v2/artists')
+fetch('https://api.relisten.net/api/v2/artists')
   .then(res => res.json())
   .then(json => json.map(artist => {
     if (artistSlugs.indexOf(artist.slug) === -1) {

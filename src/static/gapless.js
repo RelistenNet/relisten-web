@@ -1,13 +1,14 @@
-(function(factory) {
+(function (factory) {
   // Establish the root object, `window` (`self`) in the browser, or `global` on the server.
   // We use `self` instead of `window` for `WebWorker` support.
-  const root = (typeof self == 'object' && self.self === self && self) ||
-            (typeof global == 'object' && global.global === global && global);
+  const root =
+    (typeof self == 'object' && self.self === self && self) ||
+    (typeof global == 'object' && global.global === global && global);
 
   // Node.js, CommonJS, or ES6
   if (typeof module === 'object' && typeof module.exports === 'object') {
     module.exports = factory(root, exports);
-  // Finally, as a browser global.
+    // Finally, as a browser global.
   } else {
     root.Gapless = factory(root, {});
   }
@@ -15,7 +16,10 @@
   const PRELOAD_NUM_TRACKS = 2;
 
   const isBrowser = typeof window !== 'undefined';
-  const audioContext = isBrowser && (window.AudioContext || window.webkitAudioContext) ? new (window.AudioContext || window.webkitAudioContext)() : null;
+  const audioContext =
+    isBrowser && (window.AudioContext || window.webkitAudioContext)
+      ? new (window.AudioContext || window.webkitAudioContext)()
+      : null;
 
   const GaplessPlaybackType = {
     HTML5: 'HTML5',
@@ -56,12 +60,13 @@
 
       this.Track = Track;
 
-      this.tracks = tracks.map((trackUrl, idx) =>
-        new Track({
-          trackUrl,
-          idx,
-          queue: this,
-        })
+      this.tracks = tracks.map(
+        (trackUrl, idx) =>
+          new Track({
+            trackUrl,
+            idx,
+            queue: this,
+          })
       );
 
       // if the browser doesn't support web audio
@@ -134,7 +139,7 @@
     }
 
     pauseAll() {
-      Object.values(this.tracks).map(track => {
+      Object.values(this.tracks).map((track) => {
         track.pause();
       });
     }
@@ -189,7 +194,7 @@
 
       this.state.volume = nextVolume;
 
-      this.tracks.map(track => track.setVolume(nextVolume));
+      this.tracks.map((track) => track.setVolume(nextVolume));
     }
   }
 
@@ -243,16 +248,15 @@
         method: 'HEAD',
       };
 
-      fetch(this.trackUrl, options)
-        .then(res => {
-          if (res.redirected) {
-            this.trackUrl = res.url;
-          }
+      fetch(this.trackUrl, options).then((res) => {
+        if (res.redirected) {
+          this.trackUrl = res.url;
+        }
 
-          this.loadedHEAD = true;
+        this.loadedHEAD = true;
 
-          cb();
-        });
+        cb();
+      });
     }
 
     loadBuffer(cb) {
@@ -261,9 +265,9 @@
       this.webAudioLoadingState = GaplessPlaybackLoadingState.LOADING;
 
       fetch(this.trackUrl)
-        .then(res => res.arrayBuffer())
-        .then(res =>
-          this.audioContext.decodeAudioData(res, buffer => {
+        .then((res) => res.arrayBuffer())
+        .then((res) =>
+          this.audioContext.decodeAudioData(res, (buffer) => {
             this.debug('finished downloading track');
 
             this.webAudioLoadingState = GaplessPlaybackLoadingState.LOADED;
@@ -280,14 +284,21 @@
             cb && cb(buffer);
           })
         )
-        .catch(e => this.debug('caught fetch error', e));
+        .catch((e) => this.debug('caught fetch error', e));
     }
 
     switchToWebAudio() {
       // if we've switched tracks, don't switch to web audio
       if (!this.isActiveTrack) return;
 
-      this.debug('switch to web audio', this.currentTime, this.isPaused, this.audio.duration, this.audioBuffer.duration, this.audio.duration - this.audioBuffer.duration);
+      this.debug(
+        'switch to web audio',
+        this.currentTime,
+        this.isPaused,
+        this.audio.duration,
+        this.audioBuffer.duration,
+        this.audio.duration - this.audioBuffer.duration
+      );
 
       if (this.currentTime !== 0 && isNaN(this.audio.duration)) {
         this.debug('For some reason this.audio.duration === NaN. Weird.', this.audio);
@@ -328,8 +339,7 @@
         this.bufferSourceNode.playbackRate.value = 0;
         this.gainNode.disconnect(this.audioContext.destination);
         this.bufferSourceNode.onended = null;
-      }
-      else {
+      } else {
         this.audio.pause();
       }
     }
@@ -365,15 +375,13 @@
 
         // Try to preload the next track
         this.queue.loadTrack(this.idx + 1);
-      }
-      else {
+      } else {
         this.audio.preload = 'auto';
         this.audio.play();
         if (!this.queue.state.webAudioIsDisabled) {
           if (this.skipHEAD) {
             this.loadBuffer();
-          }
-          else {
+          } else {
             this.loadHEAD(() => this.loadBuffer());
           }
         }
@@ -390,14 +398,12 @@
       if (HTML5 && this.audio.preload !== 'auto') {
         this.debug('preload', HTML5);
         this.audio.preload = 'auto';
-      }
-      else if (!this.audioBuffer && !this.queue.state.webAudioIsDisabled) {
+      } else if (!this.audioBuffer && !this.queue.state.webAudioIsDisabled) {
         this.debug('preload', HTML5);
 
         if (this.skipHEAD) {
           this.loadBuffer();
-        }
-        else {
+        } else {
           this.loadHEAD(() => this.loadBuffer());
         }
       }
@@ -408,8 +414,7 @@
       this.debug('seek', to);
       if (this.isUsingWebAudio) {
         this.seekBufferSourceNode(to);
-      }
-      else {
+      } else {
         this.audio.currentTime = to;
       }
 
@@ -418,7 +423,6 @@
 
     seekBufferSourceNode(to) {
       const wasPaused = this.isPaused;
-      console.log(this.bufferSourceNode);
       this.bufferSourceNode.onended = null;
       this.bufferSourceNode.stop();
 
@@ -462,7 +466,7 @@
     onProgress() {
       if (!this.isActiveTrack) return;
 
-      const isWithinLastTwentyFiveSeconds = (this.duration - this.currentTime) <= 25;
+      const isWithinLastTwentyFiveSeconds = this.duration - this.currentTime <= 25;
       const nextTrack = this.queue.nextTrack;
 
       // if in last 25 seconds and next track hasn't loaded yet
@@ -495,17 +499,19 @@
     get isPaused() {
       if (this.isUsingWebAudio) {
         return this.bufferSourceNode.playbackRate.value === 0;
-      }
-      else {
+      } else {
         return this.audio.paused;
       }
     }
 
     get currentTime() {
       if (this.isUsingWebAudio) {
-        return this.audioContext.currentTime - this.webAudioStartedPlayingAt - this.webAudioPausedDuration;
-      }
-      else {
+        return (
+          this.audioContext.currentTime -
+          this.webAudioStartedPlayingAt -
+          this.webAudioPausedDuration
+        );
+      } else {
         return this.audio.currentTime;
       }
     }
@@ -513,8 +519,7 @@
     get duration() {
       if (this.isUsingWebAudio) {
         return this.audioBuffer.duration;
-      }
-      else {
+      } else {
         return this.audio.duration;
       }
     }
@@ -554,12 +559,10 @@
     seekToEnd() {
       if (this.isUsingWebAudio) {
         this.seekBufferSourceNode(this.audioBuffer.duration - 6);
-      }
-      else {
+      } else {
         this.audio.currentTime = this.audio.duration - 6;
       }
     }
-
   }
 
   Gapless.Queue = Queue;
