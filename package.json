@@ -5,11 +5,11 @@
   "main": "server.js",
   "scripts": {
     "dev": "node server.js",
-    "production": "NODE_ENV=production node server.js",
+    "production": "NODE_ENV=production node src/server.js",
     "build": "next build",
     "start": "node src/server.js",
-    "lint": "eslint pages/*.js redux/*.js lib/*.js layouts/*.js components/*.js bin/*.js",
-    "bands": "node lib/generateSlugs.js"
+    "lint": "eslint src/pages/*.js src/redux/*.js src/lib/*.js src/layouts/*.js src/components/*.js bin/*.js",
+    "bands": "node src/lib/generateSlugs.js"
   },
   "author": "Daniel Saewitz",
   "license": "MIT",
