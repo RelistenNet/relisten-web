@@ -67,6 +67,14 @@ export function receiveArtists(data) {
 
   data.map((artist) => {
     const the = bandsWithThe.indexOf(artist.slug) !== -1;
+    // these arent used, just take up a lot of space in data hydration
+    // if you need one of them, just comment it out
+    delete artist.upstream_sources;
+    delete artist.features;
+    delete artist.uuid;
+    delete artist.musicbrainz_id;
+    delete artist.created_at;
+    delete artist.updated_at;
     obj[artist.slug] = {
       ...artist,
       the,
