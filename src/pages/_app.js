@@ -1,9 +1,8 @@
 import React from 'react';
 import Head from 'next/head';
-import { Provider } from 'react-redux';
 import Raven from 'raven-js';
 
-require('@fortawesome/fontawesome-free/css/all.css');
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 // next.js polyfills for IE11
 import 'core-js/features/object/assign';
