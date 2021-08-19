@@ -5,14 +5,15 @@ export default ({ height, children }) => (
     <style jsx>{`
       .header {
         min-height: 24px;
-        background: #F0EFF4;
+        background: #f0eff4;
         display: flex;
         color: #696969;
         font-size: 0.7em;
         padding: 0 4px;
         align-items: center;
+        justify-content: space-between;
       }
     `}</style>
-    <div>{children}</div>
+    {children}
   </div>
 );
