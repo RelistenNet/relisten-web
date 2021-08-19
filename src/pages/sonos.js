@@ -22,12 +22,16 @@ const Sonos = () => (
     <div className="page-container">
       <h1>Sonos</h1>
 
-      <p>Relisten is available for use on all Sonos devices. Enjoy your concertos in the comfort of your home.</p>
+      <p>
+        Relisten is available for use on all Sonos devices. Enjoy your concertos in the comfort of
+        your home.
+      </p>
 
       <h3>Installation</h3>
 
       <p>
-        Open your Sonos application and go to <strong>Add Music Services</strong> and search for <strong>Relisten</strong>. Easy as pie.
+        Open your Sonos application and go to <strong>Add Music Services</strong> and search for{' '}
+        <strong>Relisten</strong>. Easy as pie.
       </p>
 
       <div>

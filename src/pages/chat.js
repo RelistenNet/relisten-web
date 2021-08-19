@@ -20,15 +20,15 @@ const Chat = () => (
         padding: 5px 10px;
         border-radius: 3px;
 
-        color: #FFF;
+        color: #fff;
         font-weight: 500;
-        box-shadow: inset 0 0 0 1px rgba(16,22,26,.4), inset 0 -1px 0 rgba(16,22,26,.2);
-        background-image: linear-gradient(180deg,hsla(0,0%,100%,.1),hsla(0,0%,100%,0));
+        box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.4), inset 0 -1px 0 rgba(16, 22, 26, 0.2);
+        background-image: linear-gradient(180deg, hsla(0, 0%, 100%, 0.1), hsla(0, 0%, 100%, 0));
         background-color: #0f9960;
       }
 
       a:active {
-        box-shadow: inset 0 0 0 1px rgba(16,22,26,.4), inset 0 1px 2px rgba(16,22,26,.2);
+        box-shadow: inset 0 0 0 1px rgba(16, 22, 26, 0.4), inset 0 1px 2px rgba(16, 22, 26, 0.2);
         background-color: #0a6640;
       }
     `}</style>
@@ -38,16 +38,29 @@ const Chat = () => (
     <div className="page-container">
       <h1>Chat</h1>
 
-      <p>We have a chatroom for you to provide feedback, report bugs, or recommend a jam. Fukuoka Twist anyone?</p>
+      <p>
+        We have a chatroom for you to provide feedback, report bugs, or recommend a jam. Fukuoka
+        Twist anyone?
+      </p>
 
-      <a className="button" href="https://discordapp.com/invite/73fdDSS" target="_blank">
+      <a
+        className="button"
+        href="https://discordapp.com/invite/73fdDSS"
+        target="_blank"
+        rel="noreferrer"
+      >
         Join us!
       </a>
 
       <br />
       <br />
 
-      <iframe src="https://titanembeds.com/embed/395033814008594436" height="600" width="800" frameBorder="0"></iframe>
+      <iframe
+        src="https://titanembeds.com/embed/395033814008594436"
+        height="600"
+        width="800"
+        frameBorder="0"
+      ></iframe>
     </div>
   </Layout>
 );

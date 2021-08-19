@@ -6,28 +6,24 @@ import { splitShowDate } from '../lib/utils';
 const createURL = (obj) => {
   const { year, month, day } = splitShowDate(obj.display_date);
 
-  return '/' + [
-    obj.artist.slug,
-    year,
-    month,
-    day,
-  ].join('/');
+  return '/' + [obj.artist.slug, year, month, day].join('/');
 };
 
-export default ({ day = {} }) => !day ? null : (
-  <Link href="/" as={createURL(day)}>
-    <div className="container">
-      <div className="info">
-        <div className="date">{day.display_date}</div>
-      </div>
+export default ({ day = {} }) =>
+  !day ? null : (
+    <Link href="/" as={createURL(day)}>
+      <div className="container">
+        <div className="info">
+          <div className="date">{day.display_date}</div>
+        </div>
 
-      <div>
-        <div>{day.venue ? [day.venue.name, day.venue.location].join(' ') : ''}</div>
-      </div>
+        <div>
+          <div>{day.venue ? [day.venue.name, day.venue.location].join(' ') : ''}</div>
+        </div>
 
-      <div className="listen">Listen</div>
+        <div className="listen">Listen</div>
 
-      <style jsx>{`
+        <style jsx>{`
         .container
           width 100%
           display flex
@@ -46,6 +42,6 @@ export default ({ day = {} }) => !day ? null : (
           margin-left auto
           align-self center
       `}</style>
-    </div>
-  </Link>
-);
+      </div>
+    </Link>
+  );

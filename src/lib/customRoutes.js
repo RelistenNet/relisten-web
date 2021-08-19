@@ -3,7 +3,7 @@ const customRoutes = [
   'ios',
   'today',
   'live',
-  'favicon\.ico', // eslint-disable-line no-useless-escape
+  'favicon.ico', // eslint-disable-line no-useless-escape
   '_next',
 ];
 

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default ({ height, children }) => (
+const RowHeader = ({ height, children }) => (
   <div className="header" style={{ minHeight: !children ? 16 : height }}>
     <style jsx>{`
       .header {
@@ -17,3 +17,5 @@ export default ({ height, children }) => (
     {children}
   </div>
 );
+
+export default RowHeader;

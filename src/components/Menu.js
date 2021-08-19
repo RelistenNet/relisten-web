@@ -2,7 +2,7 @@ import React from 'react';
 import Column from './Column';
 import Row from './Row';
 
-export default () => (
+const Menu = () => (
   <div className="menu">
     <style jsx>{`
       .menu {
@@ -19,3 +19,5 @@ export default () => (
     </Column>
   </div>
 );
+
+export default Menu;

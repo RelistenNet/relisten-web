@@ -15,7 +15,10 @@ class Modal extends Component {
     const { children } = this.props;
 
     return (
-      <div className={`modal-container ${isVisible ? 'is-visible' : ''}`} onClick={this.toggleModal}>
+      <div
+        className={`modal-container ${isVisible ? 'is-visible' : ''}`}
+        onClick={this.toggleModal}
+      >
         <style jsx>{`
           .modal-container {
             position: fixed;
@@ -48,7 +51,7 @@ class Modal extends Component {
   toggleModal = () => {
     // if (e && !/container/.test(e.target.className)) return;
     this.setState({ isVisible: !this.state.isVisible });
-  }
+  };
 }
 
 export default Modal;

@@ -8,18 +8,19 @@ import { splitShowDate } from '../lib/utils';
 const createURL = (track) => {
   const { year, month, day } = splitShowDate(track.source.display_date);
 
-  return '/' + [
-    track.source.artist.slug,
-    year,
-    month,
-    day,
-    track.track.slug,
-  ].join('/') + `?source=${track.source.id}`;
+  return (
+    '/' +
+    [track.source.artist.slug, year, month, day, track.track.slug].join('/') +
+    `?source=${track.source.id}`
+  );
 };
 
 const getVenueInfo = (track) => {
   if (track.source.artist && track.source.artist.features) {
-    if (track.source.artist.features.per_show_venues && track.source.artist.features.per_source_venues) {
+    if (
+      track.source.artist.features.per_show_venues &&
+      track.source.artist.features.per_source_venues
+    ) {
       return track.source.show.venue;
     }
 
@@ -33,54 +34,54 @@ const getVenueInfo = (track) => {
 
 const VenueInfo = ({ track }) => {
   const info = getVenueInfo(track);
-  return info ? <div>
-    <div>{info.name}</div>
-    <div>{info.location}</div>
-  </div> : null;
+  return info ? (
+    <div>
+      <div>{info.name}</div>
+      <div>{info.location}</div>
+    </div>
+  ) : null;
 };
 
 // shorten date
 const formatterFn = (value, unit) => value + unit.slice(0, 1);
 
-export default ({ app_type_description = '', created_at, track, isFirstRender, isLastSeen } = {}) => {
+export default ({
+  app_type_description = '',
+  created_at,
+  track,
+  isFirstRender,
+  isLastSeen,
+} = {}) => {
   const [isMounted, setMounted] = useState(false);
 
   useEffect(() => {
     setTimeout(() => setMounted(true), 50);
   }, []);
 
-  return (
-    !track || !track.track ? null : (
-      <Link href="/" as={createURL(track)}>
-        <div className="container" data-is-last-seen={isLastSeen}>
-          <div className="info">
-            <div className="date">{track.source.display_date}</div>
-            <div className="app-info">
-              {app_type_description}
-              &nbsp;
-              <span className="time-ago">
-                <TimeAgo
-                  date={created_at}
-                  formatter={formatterFn}
-                />
-              </span>
-            </div>
+  return !track || !track.track ? null : (
+    <Link href="/" as={createURL(track)}>
+      <div className="container" data-is-last-seen={isLastSeen}>
+        <div className="info">
+          <div className="date">{track.source.display_date}</div>
+          <div className="app-info">
+            {app_type_description}
+            &nbsp;
+            <span className="time-ago">
+              <TimeAgo date={created_at} formatter={formatterFn} />
+            </span>
           </div>
-          <div>
-            <div className="content">
-              {track.track.title}
-            </div>
-            <div>
-              {track.source.artist.name}
-            </div>
-            <div className="subtext">
-              <VenueInfo track={track} />
-            </div>
+        </div>
+        <div>
+          <div className="content">{track.track.title}</div>
+          <div>{track.source.artist.name}</div>
+          <div className="subtext">
+            <VenueInfo track={track} />
           </div>
+        </div>
 
-          <div className="listen">Listen</div>
+        <div className="listen">Listen</div>
 
-          <style jsx>{`
+        <style jsx>{`
             .container
               width 100%
               display flex
@@ -115,8 +116,7 @@ export default ({ app_type_description = '', created_at, track, isFirstRender, i
             .time-ago
               opacity 0.7
           `}</style>
-        </div>
-      </Link>
-    )
+      </div>
+    </Link>
   );
 };

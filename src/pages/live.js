@@ -10,7 +10,7 @@ import LiveTrack from '../components/LiveTrack';
 
 function uniqBy(a, key) {
   const seen = new Set();
-  return a.filter(item => {
+  return a.filter((item) => {
     const k = key(item);
     return seen.has(k) ? false : seen.add(k);
   });
@@ -24,7 +24,7 @@ class Live extends Component {
   state = {
     isMounted: false,
     lastSeenId: null,
-  }
+  };
 
   static async getInitialProps({ store, isServer, pathname, query }) {
     await store.dispatch(fetchLive());
@@ -61,9 +61,14 @@ class Live extends Component {
         <div className="page-container">
           <h1>Recently Played</h1>
 
-          {uniqBy(live.data, keyFn).map(data =>
-            <LiveTrack {...data} key={data.track.track.id} isFirstRender={!isMounted} isLastSeen={lastSeenId === data.id} />
-          )}
+          {uniqBy(live.data, keyFn).map((data) => (
+            <LiveTrack
+              {...data}
+              key={data.track.track.id}
+              isFirstRender={!isMounted}
+              isLastSeen={lastSeenId === data.id}
+            />
+          ))}
         </div>
         <style jsx>{`
           .page-container {
@@ -76,7 +81,6 @@ class Live extends Component {
       </Layout>
     );
   }
-
 }
 
 export default connect(({ live }) => ({ live }))(Live);

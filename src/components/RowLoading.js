@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default () => (
+const RowLoading = () => (
   <div className="loading content">
     <style jsx>{`
       .loading {
@@ -18,13 +18,12 @@ export default () => (
       .loading-bar {
         width: 100%;
         height: 1em;
-        background: #DDD;
+        background: #ddd;
       }
 
       .loading-bar-small {
         height: 0.7em;
       }
-
     `}</style>
     <div className="loading-title">
       <div className="loading-bar" />
@@ -35,3 +34,5 @@ export default () => (
     </div>
   </div>
 );
+
+export default RowLoading;

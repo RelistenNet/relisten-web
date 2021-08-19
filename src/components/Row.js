@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 import RowLoading from './RowLoading';
 
-export default ({ height, children, href, active, loading, baseHrefOverride, ...props }) => (
+const Row = ({ height, children, href, active, loading, baseHrefOverride, ...props }) => (
   <div className="relisten-row" style={{ minHeight: height }} {...props}>
     <style jsx global>{`
       .relisten-row {
@@ -11,7 +11,7 @@ export default ({ height, children, href, active, loading, baseHrefOverride, ...
         display: flex;
         flex-direction: column;
         align-items: center;
-        border-bottom: 1px solid #F1F1F1;
+        border-bottom: 1px solid #f1f1f1;
       }
 
       .relisten-row > .content {
@@ -26,7 +26,7 @@ export default ({ height, children, href, active, loading, baseHrefOverride, ...
       }
 
       .relisten-row > .content.active:after {
-        content: "";
+        content: '';
         width: 8px;
         height: 100%;
         background: #333;
@@ -43,7 +43,8 @@ export default ({ height, children, href, active, loading, baseHrefOverride, ...
         flex-direction: column;
       }
 
-      .relisten-row > .content .subtext, .relisten-row > .content > div:nth-child(2) {
+      .relisten-row > .content .subtext,
+      .relisten-row > .content > div:nth-child(2) {
         color: #979797;
         font-size: 0.7em;
       }
@@ -56,9 +57,16 @@ export default ({ height, children, href, active, loading, baseHrefOverride, ...
         text-align: right;
         min-width: 20%;
       }
-
     `}</style>
     {loading && <RowLoading />}
-    {href || baseHrefOverride ? <Link href={baseHrefOverride ? baseHrefOverride : '/'} as={href}><a className={`${active ? 'active' : ''} content`}>{children}</a></Link> : children ? <div className={`content ${active ? 'active' : ''}`}>{children}</div> : null}
+    {href || baseHrefOverride ? (
+      <Link href={baseHrefOverride ? baseHrefOverride : '/'} as={href}>
+        <a className={`${active ? 'active' : ''} content`}>{children}</a>
+      </Link>
+    ) : children ? (
+      <div className={`content ${active ? 'active' : ''}`}>{children}</div>
+    ) : null}
   </div>
 );
+
+export default Row;

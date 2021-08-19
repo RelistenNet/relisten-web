@@ -16,13 +16,13 @@ function throttle(func, wait, options) {
   let timeout = null;
   let previous = 0;
   if (!options) options = {};
-  const later = function() {
+  const later = function () {
     previous = options.leading === false ? 0 : Date.now();
     timeout = null;
     result = func.apply(context, args);
     if (!timeout) context = args = null;
   };
-  return function() {
+  return function () {
     const now = Date.now();
     if (!previous && options.leading === false) previous = now;
     const remaining = wait - (now - previous);
@@ -59,16 +59,20 @@ const player = new Gapless.Queue({
     if (player.currentTrack) {
       throttledUpdateLocalStorage(player.currentTrack);
     }
-    store.dispatch(updatePlayback({
-      activeTrack: player.currentTrack ? player.currentTrack.completeState : {},
-      gaplessTracksMetadata: player.tracks ? player.tracks.map(metadata => ({
-        idx: metadata.idx,
-        trackMetadata: metadata.metadata, // <-- lol, I suck.
-        playbackType: metadata.playbackType,
-        webAudioLoadingState: metadata.webAudioLoadingState,
-        loadedHead: metadata.loadedHead,
-      })) : [],
-    }));
+    store.dispatch(
+      updatePlayback({
+        activeTrack: player.currentTrack ? player.currentTrack.completeState : {},
+        gaplessTracksMetadata: player.tracks
+          ? player.tracks.map((metadata) => ({
+              idx: metadata.idx,
+              trackMetadata: metadata.metadata, // <-- lol, I suck.
+              playbackType: metadata.playbackType,
+              webAudioLoadingState: metadata.webAudioLoadingState,
+              loadedHead: metadata.loadedHead,
+            }))
+          : [],
+      })
+    );
   },
   onStartNewTrack: (currentTrack) => {
     if (!store) return;
@@ -87,7 +91,10 @@ const player = new Gapless.Queue({
 
         if (typeof window.Notification !== 'undefined') {
           // only show notification if permission granted
-          if (window.Notification.permission === 'granted' && (document.hasFocus ? !document.hasFocus() : true)) {
+          if (
+            window.Notification.permission === 'granted' &&
+            (document.hasFocus ? !document.hasFocus() : true)
+          ) {
             const bandName = `${artists.data[artistSlug] ? artists.data[artistSlug].name : ''}`;
             const notification = new Notification(track.title, {
               body: `${bandName} \n${showDate}`,
@@ -131,7 +138,8 @@ export function initGaplessPlayer(nextStore) {
   // gapless doesn't work on firefox & its been causing a ton of issues
 
   // disable for everyone until I can inspect the issue again...
-  if (true || !Number(localStorage.forceGaplessOn) && (isMobile || isFirefox)) player.disableWebAudio();
+  if (true || (!Number(localStorage.forceGaplessOn) && (isMobile || isFirefox)))
+    player.disableWebAudio();
 
   // just for debugging purposes
   window.player = player;

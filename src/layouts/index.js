@@ -1,7 +1,7 @@
 import React from 'react';
 import Navigation from '../components/Navigation';
 
-export default ({ children, ...props }) => (
+const Index = ({ children, ...props }) => (
   <div className="layout">
     <style jsx>{`
       .layout {
@@ -9,7 +9,7 @@ export default ({ children, ...props }) => (
         flex-direction: column;
         height: 100vh;
         max-width: 100vw;
-        background: #F5F8FA;
+        background: #f5f8fa;
       }
 
       .content {
@@ -18,15 +18,16 @@ export default ({ children, ...props }) => (
         flex: 1;
       }
 
-      @media only screen
-        and (min-width: 768px) {
-          .layout {
-            min-width: 768px;
-            max-width: initial;
-          }
+      @media only screen and (min-width: 768px) {
+        .layout {
+          min-width: 768px;
+          max-width: initial;
+        }
       }
     `}</style>
     <Navigation {...props} />
     <div className="content">{children}</div>
   </div>
 );
+
+export default Index;

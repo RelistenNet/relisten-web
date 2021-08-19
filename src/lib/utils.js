@@ -21,21 +21,19 @@ export const splitShowDate = (showDate = '') => {
   return { year, month, day };
 };
 
-export const getParams = query => {
+export const getParams = (query) => {
   if (!query) {
     return {};
   }
 
-  return (/^[?#]/.test(query) ? query.slice(1) : query)
-    .split('&')
-    .reduce((params, param) => {
-      const [ key, value ] = param.split('=');
-      params[key] = value ? decodeURIComponent(value.replace(/\+/g, ' ')) : '';
-      return params;
-    }, { });
+  return (/^[?#]/.test(query) ? query.slice(1) : query).split('&').reduce((params, param) => {
+    const [key, value] = param.split('=');
+    params[key] = value ? decodeURIComponent(value.replace(/\+/g, ' ')) : '';
+    return params;
+  }, {});
 };
 
-export const durationToHHMMSS = duration => {
+export const durationToHHMMSS = (duration) => {
   const prefix = duration < 0 ? '-' : '';
   let totalSeconds = Math.abs(duration);
   const hours = Math.floor(totalSeconds / 3600);
@@ -43,15 +41,17 @@ export const durationToHHMMSS = duration => {
   const minutes = Math.floor(totalSeconds / 60) || 0;
   const seconds = Math.floor(totalSeconds % 60) || 0;
 
-
-  return prefix + [hours, hours ? addZero(minutes) : String(minutes), addZero(seconds)].filter(x => x).join(':');
+  return (
+    prefix +
+    [hours, hours ? addZero(minutes) : String(minutes), addZero(seconds)].filter((x) => x).join(':')
+  );
 };
 
 export const simplePluralize = (str, count) => {
   return `${count} ${count === 1 ? str : str + 's'}`;
 };
 
-export const groupBy = function(xs, key) {
+export const groupBy = function (xs, key) {
   return xs.reduce((rv, x) => {
     (rv[x[key]] = rv[x[key]] || []).push(x);
     return rv;

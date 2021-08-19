@@ -1,8 +1,6 @@
-import { Record } from 'immutable'
+import { Record } from 'immutable';
 
-export default Record({
-
-})
+export default Record({});
 
 // "source_id": 1451,
 // "index": 2,

@@ -22,7 +22,7 @@ class Today extends Component {
   render() {
     const { today } = this.props;
 
-    const artists = today.data.map(day => ({ ...day, artistName: day.artist.name }));
+    const artists = today.data.map((day) => ({ ...day, artistName: day.artist.name }));
     const groupedBy = groupBy(artists, 'artistName');
 
     return (
@@ -32,14 +32,16 @@ class Today extends Component {
             <title>Today | Relisten</title>
           </Head>
           <h1>Today in History</h1>
-          {Object.entries(groupedBy).map(([artistName, days]) =>
+          {Object.entries(groupedBy).map(([artistName, days]) => (
             <div key={artistName}>
               <div className="artist-name">{artistName}</div>
               <div>
-                {days.map(day => <TodayTrack day={day} key={day.id} />)}
+                {days.map((day) => (
+                  <TodayTrack day={day} key={day.id} />
+                ))}
               </div>
             </div>
-          )}
+          ))}
         </div>
         <style jsx>{`
           .page-container {
@@ -57,7 +59,6 @@ class Today extends Component {
       </Layout>
     );
   }
-
 }
 
 export default connect(({ today }) => ({ today }))(Today);

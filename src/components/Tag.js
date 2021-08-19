@@ -1,13 +1,13 @@
 import React from 'react';
 
-export default ({ children }) => (
+const Tag = ({ children }) => (
   <span className="tag">
     <style jsx>{`
       .tag {
-        color: #FFF;
+        color: #fff;
         font-size: 0.6em;
         border-radius: 2px;
-        background: #028F2B;
+        background: #028f2b;
         padding: 2px 4px;
         display: flex;
         align-items: center;
@@ -18,3 +18,5 @@ export default ({ children }) => (
     {children}
   </span>
 );
+
+export default Tag;
