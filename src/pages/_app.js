@@ -19,7 +19,7 @@ import 'core-js/features/promise';
 import { wrapper } from '../redux';
 import { useRouter } from 'next/router';
 
-const SENTRY_PUBLIC_DSN = 'https://d8fe64a30ead43e2ac70c750bc79a806@sentry.io/1261843';
+const SENTRY_PUBLIC_DSN = 'http://9113aa54177a4e9fa09ea0aeaf0558e1@scentry.typetwo.space/5';
 
 const MyApp = ({ Component, pageProps }) => {
   const { store } = pageProps;
