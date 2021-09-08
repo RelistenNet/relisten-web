@@ -93,6 +93,7 @@ const player = new Gapless.Queue({
           // only show notification if permission granted
           if (
             window.Notification.permission === 'granted' &&
+            typeof Notification === 'function' &&
             (document.hasFocus ? !document.hasFocus() : true)
           ) {
             const bandName = `${artists.data[artistSlug] ? artists.data[artistSlug].name : ''}`;
