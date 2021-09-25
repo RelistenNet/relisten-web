@@ -19,7 +19,10 @@ app.prepare().then(() => {
     const { pathname, query } = parsedUrl;
     const [artistSlug] = pathname.replace(/^\//, '').split('/');
 
-    if (pathname === '/apple-app-site-association') {
+    if (
+      pathname === '/apple-app-site-association' ||
+      pathname === '/.well-known/apple-app-site-association'
+    ) {
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Cache-Control', 'public, max-age=86400');
 

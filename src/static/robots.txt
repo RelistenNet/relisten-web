@@ -20,3 +20,7 @@ User-agent: Yandex
 Disallow: /
 User-agent: MJ12bot
 Disallow: /
+User-agent: petalbot
+Disallow: /
+User-agent: MJ12bot
+Disallow: /
