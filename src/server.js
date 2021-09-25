@@ -21,12 +21,18 @@ app.prepare().then(() => {
 
     if (pathname === '/apple-app-site-association') {
       res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
 
       return res.end(readFileSync(__dirname + '/static/apple-app-site-association'));
     } else if (pathname == '/privacy_policy.html') {
       res.setHeader('Content-Type', 'text/html');
 
       return res.end(readFileSync(__dirname + '/static/privacy_policy.html'));
+    } else if (pathname == '/robots.txt') {
+      res.setHeader('Content-Type', 'text/plain');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+
+      return res.end(readFileSync(__dirname + '/static/robots.txt'));
     }
 
     // redirect relisten.live to relisten.net
