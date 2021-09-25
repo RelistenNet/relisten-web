@@ -10,6 +10,10 @@ User-agent: SemrushBot-CT
 Disallow: /
 User-agent: SemrushBot-BM
 Disallow: /
+User-agent: SemrushBot
+Disallow: /
+User-agent: Dotbot
+Disallow: /
 User-agent: SplitSignalBot
 Disallow: /
 User-agent: BLEXBot
@@ -20,7 +24,9 @@ User-agent: Yandex
 Disallow: /
 User-agent: MJ12bot
 Disallow: /
-User-agent: petalbot
+User-agent: Petalbot
 Disallow: /
 User-agent: MJ12bot
 Disallow: /
+User-agent: bingbot
+Crawl-delay: 10
