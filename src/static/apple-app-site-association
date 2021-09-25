@@ -5,16 +5,7 @@
       {
         "appID": "HT7ELV3Q35.com.alecgorge.ios.Listen-to-the-Dead",
         "paths": [
-          "NOT /phish",
-          "NOT /phish/*",
           "*"
-        ]
-      },
-      {
-        "appID": "HT7ELV3Q35.com.alecgorge.Phish-Tracks",
-        "paths": [
-          "/phish",
-          "/phish/*"
         ]
       }
     ]
