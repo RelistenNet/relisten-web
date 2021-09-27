@@ -1,6 +1,7 @@
 # Relisten (web)
 
-![Workflow Status](https://github.com/RelisteNet/relisten-web/actions/workflows/node.js.yml/badge.svg)
+[![Build Status](https://github.com/RelistenNet/relisten-web/actions/workflows/node.js.yml/badge.svg)](https://github.com/RelistenNet/relisten-web/actions/workflows/node.js.yml)
+
 Relisten is a simple free music streaming platform for recorded live concerts.
 
 Visit https://relisten.net to find out more.
