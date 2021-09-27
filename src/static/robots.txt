@@ -26,6 +26,8 @@ User-agent: MJ12bot
 Disallow: /
 User-agent: Petalbot
 Disallow: /
+User-agent: PetalBot
+Disallow: /
 User-agent: MJ12bot
 Disallow: /
 User-agent: bingbot
