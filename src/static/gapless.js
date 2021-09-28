@@ -267,22 +267,28 @@
       fetch(this.trackUrl)
         .then((res) => res.arrayBuffer())
         .then((res) =>
-          this.audioContext.decodeAudioData(res, (buffer) => {
-            this.debug('finished downloading track');
+          this.audioContext.decodeAudioData(
+            res,
+            (buffer) => {
+              this.debug('finished downloading track');
 
-            this.webAudioLoadingState = GaplessPlaybackLoadingState.LOADED;
+              this.webAudioLoadingState = GaplessPlaybackLoadingState.LOADED;
 
-            this.bufferSourceNode.buffer = this.audioBuffer = buffer;
-            this.bufferSourceNode.connect(this.gainNode);
+              this.bufferSourceNode.buffer = this.audioBuffer = buffer;
+              this.bufferSourceNode.connect(this.gainNode);
 
-            // try to preload next track
-            this.queue.loadTrack(this.idx + 1);
+              // try to preload next track
+              this.queue.loadTrack(this.idx + 1);
 
-            // if we loaded the active track, switch to web audio
-            if (this.isActiveTrack) this.switchToWebAudio();
+              // if we loaded the active track, switch to web audio
+              if (this.isActiveTrack) this.switchToWebAudio();
 
-            cb && cb(buffer);
-          })
+              cb && cb(buffer);
+            },
+            (err) => {
+              console.error('error decoding audio data', err);
+            }
+          )
         )
         .catch((e) => this.debug('caught fetch error', e));
     }
