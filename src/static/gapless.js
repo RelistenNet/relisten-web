@@ -282,6 +282,8 @@
 
               // if we loaded the active track, switch to web audio
               if (this.isActiveTrack) this.switchToWebAudio();
+              // if its not.. then just turn on web audio
+              else this.playbackType = GaplessPlaybackType.WEBAUDIO;
 
               cb && cb(buffer);
             },
@@ -293,9 +295,9 @@
         .catch((e) => this.debug('caught fetch error', e));
     }
 
-    switchToWebAudio() {
+    switchToWebAudio(forcePause) {
       // if we've switched tracks, don't switch to web audio
-      if (!this.isActiveTrack) return;
+      if (!this.isActiveTrack && !forcePause) return;
 
       this.debug(
         'switch to web audio',
@@ -315,7 +317,12 @@
       // if currentTime === 0, this is a new track, so play it
       // otherwise we're hitting this mid-track which may
       // happen in the middle of a paused track
-      this.bufferSourceNode.playbackRate.value = this.currentTime !== 0 && this.isPaused ? 0 : 1;
+      if (forcePause) {
+        this.bufferSourceNode.playbackRate.value = 0;
+        this.pause();
+      } else {
+        this.bufferSourceNode.playbackRate.value = this.currentTime !== 0 && this.isPaused ? 0 : 1;
+      }
 
       this.connectGainNode();
 
@@ -364,7 +371,9 @@
           // use seek to avoid bug where track wouldn't play properly
           // if paused for longer than length of track
           // TODO: fix bug -- must be related to bufferSourceNode
-          this.seek(this.currentTime);
+          if (this.currentTime !== 0) {
+            this.seek(this.currentTime);
+          }
           // was paused, now force play
           this.connectGainNode();
           this.bufferSourceNode.playbackRate.value = 1;
