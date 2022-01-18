@@ -350,7 +350,11 @@
         if (this.bufferSourceNode.playbackRate.value === 0) return;
         this.webAudioPausedAt = this.audioContext.currentTime;
         this.bufferSourceNode.playbackRate.value = 0;
-        this.gainNode.disconnect(this.audioContext.destination);
+        try {
+          this.gainNode.disconnect(this.audioContext.destination);
+        } catch (err) {
+          console.error(err);
+        }
         this.bufferSourceNode.onended = null;
       } else {
         this.audio.pause();

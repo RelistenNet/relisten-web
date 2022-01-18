@@ -8,13 +8,13 @@ RUN yarn global add node-gyp
 COPY package.json /usr/src/app
 COPY yarn.lock /usr/src/app
 
-RUN yarn install
+RUN yarn install --immutable --immutable-cache --check-cache
 
 COPY . /usr/src/app
 
 RUN npm run bands
 
-RUN npm run build
+RUN npm run build && yan cache clean
 
 EXPOSE 3000
 
