@@ -139,8 +139,9 @@ export function initGaplessPlayer(nextStore) {
   // gapless doesn't work on firefox & its been causing a ton of issues
 
   // disable for everyone until I can inspect the issue again...
-  if (true || (!Number(localStorage.forceGaplessOn) && (isMobile || isFirefox)))
+  if (isNaN(Number(localStorage.forceGaplessOn)) || !localStorage.forceGaplessOn) {
     player.disableWebAudio();
+  }
 
   // just for debugging purposes
   window.player = player;
