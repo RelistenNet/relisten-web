@@ -132,14 +132,9 @@ export function initGaplessPlayer(nextStore) {
 
   const { isMobile } = store.getState().app;
 
-  const isFirefox = navigator.userAgent.toLowerCase().indexOf('firefox') >= 0;
-
   // if we're on mobile, disable web audio
-  // if we're on firefox, disable web audio/gapless
-  // gapless doesn't work on firefox & its been causing a ton of issues
-
-  // disable for everyone until I can inspect the issue again...
-  if (isNaN(Number(localStorage.forceGaplessOn)) || !localStorage.forceGaplessOn) {
+  // TODO: triage mobile gapless
+  if (isMobile) {
     player.disableWebAudio();
   }
 
