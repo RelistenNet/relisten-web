@@ -443,10 +443,8 @@
     seekBufferSourceNode(to) {
       const wasPaused = this.isPaused;
       this.bufferSourceNode.onended = null;
-      try {
+      if (to !== 0) {
         this.bufferSourceNode.stop();
-      } catch (err) {
-        console.error(err);
       }
 
       this.bufferSourceNode = this.audioContext.createBufferSource();

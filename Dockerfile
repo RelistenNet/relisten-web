@@ -14,7 +14,7 @@ COPY . /usr/src/app
 
 RUN npm run bands
 
-RUN npm run build && yan cache clean
+RUN npm run build && yarn cache clean
 
 EXPOSE 3000
 
