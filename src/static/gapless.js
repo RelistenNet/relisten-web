@@ -439,7 +439,11 @@
     seekBufferSourceNode(to) {
       const wasPaused = this.isPaused;
       this.bufferSourceNode.onended = null;
-      this.bufferSourceNode.stop();
+      try {
+        this.bufferSourceNode.stop();
+      } catch (err) {
+        console.error(err);
+      }
 
       this.bufferSourceNode = this.audioContext.createBufferSource();
 
