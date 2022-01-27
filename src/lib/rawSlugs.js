@@ -102,6 +102,7 @@ module.exports = [
   'leftover-salmon',
   'lettuce',
   'little-feat',
+  'los-lobos',
   'lotus',
   'marco',
   'marcus-king-band',
