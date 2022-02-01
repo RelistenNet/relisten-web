@@ -144,6 +144,14 @@
       });
     }
 
+    cleanUp() {
+      Object.values(this.tracks).map((track) => {
+        if (player.bufferSourceNode && player.bufferSourceNode.buffer && player.audioBuffer) {
+          player.bufferSourceNode.buffer = player.audioBuffer = null;
+        }
+      });
+    }
+
     gotoTrack(idx, playImmediately = false) {
       this.pauseAll();
       this.state.currentTrackIdx = idx;

@@ -90,8 +90,10 @@ const Root = ({
         return;
       }
 
-      playSong(store);
+      await playSong(store);
+
       const paramsObj = getParams(window.location.search);
+      
       if (paramsObj.t) {
         const [min, sec] = paramsObj.t.split('m');
 
@@ -227,8 +229,7 @@ const handleRouteChange = (store, url, forceIsPaused) => {
       afterDispatches.push(
         () =>
           new Promise((resolve) => {
-            playSong(store, forceIsPaused);
-            resolve();
+            playSong(store, forceIsPaused).then(resolve);
           })
       );
     }
@@ -308,7 +309,7 @@ Root.getInitialProps = wrapper.getInitialPageProps((store) => async ({ req }) =>
   };
 });
 
-const playSong = (store, forceIsPaused) => {
+const playSong = async (store, forceIsPaused) => {
   const { playback, tapes } = store.getState();
   const { artistSlug, showDate, source, songSlug } = playback;
   const activePlaybackSourceId = parseInt(source, 10);
@@ -358,6 +359,7 @@ const playSong = (store, forceIsPaused) => {
       return;
     } else {
       player.pauseAll();
+      player.cleanUp();
       player.tracks = [];
     }
   }
