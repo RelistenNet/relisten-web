@@ -359,7 +359,7 @@ const playSong = async (store, forceIsPaused) => {
       return;
     } else {
       player.pauseAll();
-      player.cleanUp();
+      // player.cleanUp();
       player.tracks = [];
     }
   }
