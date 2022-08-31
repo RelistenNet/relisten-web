@@ -73,7 +73,7 @@ const About = () => {
         <h3>Thank you</h3>
 
         <p>
-          Enjoy <br />- Daniel Saewitz and Alec Gorge,{' '}
+          Enjoy <br />- <a href="https://saewitz.com" target="_blank">Daniel Saewitz</a> and <a href="https://alecgorge.com" target="_blank">Alec Gorge</a>,{' '}
           <a href="mailto:team@relisten.net">team@relisten.net</a>
         </p>
 
