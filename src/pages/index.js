@@ -40,13 +40,15 @@ const routeChangeStart = (store) => async (url) => {
 };
 
 const Root = ({
-  app = {},
-  playback,
-  url,
-  isMobile,
-  artists,
-  serverRenderedMP3,
-  serverRenderedSongTitle,
+  initialProps: {
+    app = {},
+    playback,
+    url,
+    isMobile,
+    artists,
+    serverRenderedMP3,
+    serverRenderedSongTitle,
+  },
 }) => {
   const store = useStore();
   let title = false;
@@ -57,6 +59,7 @@ const Root = ({
     Router.events.on('routeChangeStart', localRouteChange);
 
     setTimeout(async () => {
+      if (typeof window === 'undefined') return;
       const { currentTime, duration } = localStorage;
       const cachedUrl = window.location.pathname + window.location.search;
       const [artistSlug, , , , songSlug] = window.location.pathname.replace(/^\//, '').split('/');
@@ -107,7 +110,7 @@ const Root = ({
     };
   }, []);
 
-  if (!url) url = window.location.pathname;
+  if (!url && typeof window !== 'undefined') url = window.location.pathname;
 
   const [artistSlug, year, month, day, songSlug] = url.replace(/^\//, '').split('/');
   const bandTitle = artists.data[artistSlug] ? artists.data[artistSlug].name : '';

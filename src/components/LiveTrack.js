@@ -32,12 +32,19 @@ const getVenueInfo = (track) => {
   }
 };
 
-const VenueInfo = ({ track }) => {
+const VenueInfo = ({ track, app_type_description, created_at }) => {
   const info = getVenueInfo(track);
   return info ? (
     <div>
-      <div>{info.name}</div>
-      <div>{info.location}</div>
+      <div>
+        {info.name} &middot; {info.location}
+      </div>
+      <div>
+        {track.source.display_date} &middot;{' '}
+        <span className="time-ago">
+          {app_type_description} &middot; <TimeAgo date={created_at} formatter={formatterFn} />
+        </span>
+      </div>
     </div>
   ) : null;
 };
@@ -61,32 +68,29 @@ export default ({
   return !track || !track.track ? null : (
     <Link href="/" as={createURL(track)} legacyBehavior>
       <div className="container" data-is-last-seen={isLastSeen}>
-        <div className="info">
-          <div className="date">{track.source.display_date}</div>
-          <div className="app-info">
-            {app_type_description}
-            &nbsp;
-            <span className="time-ago">
-              <TimeAgo date={created_at} formatter={formatterFn} />
-            </span>
-          </div>
-        </div>
         <div>
           <div className="content">{track.track.title}</div>
           <div>{track.source.artist.name}</div>
+
           <div className="subtext">
-            <VenueInfo track={track} />
+            <VenueInfo
+              track={track}
+              app_type_description={app_type_description}
+              created_at={created_at}
+            />
           </div>
         </div>
 
-        <div className="listen">Listen</div>
+        <div className="listen">
+          <span>Relisten</span>
+        </div>
 
         <style jsx>{`
             .container
               width 100%
               display flex
               flex-direction row
-              padding 12px
+              padding 12px 0
               border-bottom 1px solid #eee
               cursor pointer
               opacity ${isMounted || isFirstRender ? 1 : 0}
@@ -108,6 +112,8 @@ export default ({
             .listen
               margin-left auto
               align-self center
+              display flex
+              flex-direction column
 
             .app-info
               display flex
@@ -115,6 +121,8 @@ export default ({
 
             .time-ago
               opacity 0.7
+              font-size 0.7em
+              text-align right
           `}</style>
       </div>
     </Link>
