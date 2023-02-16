@@ -1,4 +1,5 @@
 import { HYDRATE } from 'next-redux-wrapper';
+import { API_DOMAIN } from '../../lib/constants';
 
 const REQUEST_SHOWS = 'years/REQUEST_SHOWS';
 const RECEIVE_SHOWS = 'years/RECEIVE_SHOWS';
@@ -70,7 +71,7 @@ export function fetchShows(artistSlug, year) {
     if (state && state[year] && state[year].meta && state[year].meta.loaded) return {};
     // console.log('fetching shows', artistSlug, year)
     dispatch(requestShows(artistSlug, year));
-    return fetch(`https://api.relisten.net/api/v2/artists/${artistSlug}/years/${year}`)
+    return fetch(`${API_DOMAIN}/api/v2/artists/${artistSlug}/years/${year}`)
       .then((res) => res.json())
       .then((json) => dispatch(receiveShows(artistSlug, year, json)));
   };

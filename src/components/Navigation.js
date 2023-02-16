@@ -117,10 +117,10 @@ class Navigation extends Component {
 
         `}</style>
         <div className="left">
-          <Link href="/">
+          <Link href="/" legacyBehavior>
             <a className="relisten-title desktop">RELISTEN</a>
           </Link>
-          <Link href="/">
+          <Link href="/" legacyBehavior>
             <a className="relisten-mobile">Re</a>
           </Link>
           {this.secondaryNavTitle}
@@ -136,32 +136,32 @@ class Navigation extends Component {
         </div>
         <div className="right nav desktop">
           <div>
-            <Link href="/today">
+            <Link href="/today" legacyBehavior>
               <a>TIH</a>
             </Link>
           </div>
           <div>
-            <Link href="/live">
+            <Link href="/live" legacyBehavior>
               <a>LIVE</a>
             </Link>
           </div>
           <div>
-            <Link href="/chat">
+            <Link href="/chat" legacyBehavior>
               <a>CHAT</a>
             </Link>
           </div>
           <div>
-            <Link href="/ios">
+            <Link href="/ios" legacyBehavior>
               <a>iOS</a>
             </Link>
           </div>
           <div>
-            <Link href="/sonos">
+            <Link href="/sonos" legacyBehavior>
               <a>SONOS</a>
             </Link>
           </div>
           <div>
-            <Link href="/about">
+            <Link href="/about" legacyBehavior>
               <a>ABOUT</a>
             </Link>
           </div>
@@ -177,7 +177,7 @@ class Navigation extends Component {
       return (
         <Fragment>
           <span className="to">{navPrefix}</span>
-          <Link href="/" as={navURL}>
+          <Link href="/" as={navURL} legacyBehavior>
             <a className="artist">{navSubtitle}</a>
           </Link>
         </Fragment>
@@ -189,7 +189,7 @@ class Navigation extends Component {
         {artists.data[app.artistSlug] && <span className="to">TO</span>}
         {
           artists.data[app.artistSlug] && (
-            <Link href="/" as={`/${app.artistSlug}`}>
+            <Link href="/" as={`/${app.artistSlug}`} legacyBehavior>
               <a className="artist">
                 {artists.data[app.artistSlug].the ? 'THE ' : ''}
                 {artists.data[app.artistSlug].name}

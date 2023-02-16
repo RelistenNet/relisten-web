@@ -81,7 +81,7 @@ const About = () => {
           <div onClick={toggleGapless}>
             Force Gapless Playback On: {isGaplessEnabled ? 'yes' : 'no'} (may be buggy, please reach
             out on '
-            <Link href="/chat">
+            <Link href="/chat" legacyBehavior>
               <a>Chat</a>
             </Link>
             ' with any issues)

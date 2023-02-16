@@ -60,7 +60,7 @@ const Row = ({ height, children, href, active, loading, baseHrefOverride, ...pro
     `}</style>
     {loading && <RowLoading />}
     {href || baseHrefOverride ? (
-      <Link href={baseHrefOverride ? baseHrefOverride : '/'} as={href}>
+      <Link href={baseHrefOverride ? baseHrefOverride : '/'} as={href} legacyBehavior>
         <a className={`${active ? 'active' : ''} content`}>{children}</a>
       </Link>
     ) : children ? (

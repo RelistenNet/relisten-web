@@ -1,5 +1,5 @@
 import Router from 'next/router';
-import Gapless from '../static/gapless';
+import Gapless from '../../public/gapless';
 
 import { splitShowDate } from './utils';
 

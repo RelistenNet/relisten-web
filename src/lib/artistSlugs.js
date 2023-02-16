@@ -1,7 +1,8 @@
+const { API_DOMAIN } = require('./constants');
 const artistSlugs = require('./rawSlugs');
 
 if (typeof window === 'undefined') {
-  fetch('https://api.relisten.net/api/v2/artists')
+  fetch(`${API_DOMAIN}/api/v2/artists`)
     .then((res) => res.json())
     .then((json) =>
       json.map((artist) => {

@@ -1,6 +1,8 @@
 import { HYDRATE } from 'next-redux-wrapper';
 import { firstBy } from 'thenby';
 
+import { API_DOMAIN } from '../../lib/constants';
+
 const REQUEST_TAPES = 'years/REQUEST_TAPES';
 const RECEIVE_TAPES = 'years/RECEIVE_TAPES';
 
@@ -109,7 +111,7 @@ export function fetchTapes(artistSlug, year, showDate) {
 
     dispatch(requestTapes(artistSlug, year, showDate));
 
-    return fetch(`https://api.relisten.net/api/v2/artists/${artistSlug}/years/${year}/${showDate}`)
+    return fetch(`${API_DOMAIN}/api/v2/artists/${artistSlug}/years/${year}/${showDate}`)
       .then((res) => res.json())
       .then((json) => dispatch(receiveTapes(artistSlug, year, showDate, json)));
   };

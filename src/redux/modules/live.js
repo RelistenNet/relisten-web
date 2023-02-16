@@ -1,4 +1,5 @@
 import { HYDRATE } from 'next-redux-wrapper';
+import { API_DOMAIN } from '../../lib/constants';
 
 const REQUEST_LIVE = 'live/REQUEST_LIVE';
 const RECEIVE_LIVE = 'live/RECEIVE_LIVE';
@@ -64,9 +65,11 @@ export function fetchLive() {
       paramsStr = `?lastSeenId=${lastSeen.id}`;
     }
 
-    const json = await fetch(`https://api.relisten.net/api/v2/live/history${paramsStr}`).then(
-      (res) => res.json()
-    );
+    const json = await fetch(`${API_DOMAIN}/api/v2/live/history${paramsStr}`)
+      .then((res) => res.json())
+      .catch(() => {});
+
+    if (!json) return;
 
     return dispatch(receiveLive(json));
   };
@@ -74,10 +77,11 @@ export function fetchLive() {
 
 export function scrobblePlay({ uuid }) {
   return () => {
-    return fetch(`https://api.relisten.net/api/v2/live/play?track_uuid=${uuid}&app_type=web`, {
+    return fetch(`${API_DOMAIN}/api/v2/live/play?track_uuid=${uuid}&app_type=web`, {
       method: 'post',
     })
       .then((res) => res.json())
-      .then((json) => json);
+      .then((json) => json)
+      .catch(() => {});
   };
 }

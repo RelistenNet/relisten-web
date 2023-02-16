@@ -1,4 +1,5 @@
 import { HYDRATE } from 'next-redux-wrapper';
+import { API_DOMAIN } from '../../lib/constants';
 
 const REQUEST_TODAY = 'today/REQUEST_TODAY';
 const RECEIVE_TODAY = 'today/RECEIVE_TODAY';
@@ -54,7 +55,7 @@ export function receiveToday(data) {
 export function fetchToday() {
   return (dispatch) => {
     dispatch(requestToday());
-    return fetch('https://api.relisten.net/api/v2/shows/today')
+    return fetch(`${API_DOMAIN}/api/v2/shows/today`)
       .then((res) => res.json())
       .then((json) => dispatch(receiveToday(json)));
   };

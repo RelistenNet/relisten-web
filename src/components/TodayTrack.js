@@ -11,7 +11,7 @@ const createURL = (obj) => {
 
 export default ({ day = {} }) =>
   !day ? null : (
-    <Link href="/" as={createURL(day)}>
+    <Link href="/" as={createURL(day)} legacyBehavior>
       <div className="container">
         <div className="info">
           <div className="date">{day.display_date}</div>

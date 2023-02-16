@@ -59,7 +59,7 @@ export default ({
   }, []);
 
   return !track || !track.track ? null : (
-    <Link href="/" as={createURL(track)}>
+    <Link href="/" as={createURL(track)} legacyBehavior>
       <div className="container" data-is-last-seen={isLastSeen}>
         <div className="info">
           <div className="date">{track.source.display_date}</div>

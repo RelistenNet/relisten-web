@@ -2,6 +2,8 @@ const REQUEST_ARTISTS = 'artists/REQUEST_ARTISTS';
 const RECEIVE_ARTISTS = 'artists/RECEIVE_ARTISTS';
 import { HYDRATE } from 'next-redux-wrapper';
 
+import { API_DOMAIN } from '../../lib/constants';
+
 const defaultState = {
   data: [],
   meta: {
@@ -92,7 +94,7 @@ export function fetchArtists() {
     if (getState().artists.meta.loaded) return {};
 
     dispatch(requestArtists());
-    return fetch('https://api.relisten.net/api/v2/artists')
+    return fetch(`${API_DOMAIN}/api/v2/artists`)
       .then((res) => res.json())
       .then((json) => dispatch(receiveArtists(json)));
   };

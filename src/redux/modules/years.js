@@ -1,4 +1,5 @@
 import { HYDRATE } from 'next-redux-wrapper';
+import { API_DOMAIN } from '../../lib/constants';
 
 const REQUEST_YEARS = 'years/REQUEST_YEARS';
 const RECEIVE_YEARS = 'years/RECEIVE_YEARS';
@@ -62,7 +63,7 @@ export function fetchYears(artistSlug) {
     if (state && state.meta.loaded) return {};
     // console.log('fetching years', artistSlug)
     dispatch(requestYears(artistSlug));
-    return fetch(`https://api.relisten.net/api/v2/artists/${artistSlug}/years`)
+    return fetch(`${API_DOMAIN}/api/v2/artists/${artistSlug}/years`)
       .then((res) => res.json())
       .then((json) => dispatch(receiveYears(artistSlug, json)));
   };

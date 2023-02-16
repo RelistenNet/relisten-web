@@ -107,11 +107,33 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }) => {
                     <div className="label">Lineage:</div> <div>{source.lineage}</div>
                   </div>
                 )}
+                {exists(source.taper_notes) && (
+                  <div className="details">
+                    <div className="label">Taper Notes:</div>{' '}
+                    <TaperNotes notes={source.taper_notes} />
+                  </div>
+                )}
               </div>
             </Row>
           </div>
         ))}
     </Column>
+  );
+};
+
+const TaperNotes = ({ notes }) => {
+  if (!notes) return null;
+
+  const onClick = (e) => {
+    // e.preventDefault();
+    e.stopPropagation();
+  };
+
+  return (
+    <details onClick={onClick} style={{ whiteSpace: 'pre-wrap' }}>
+      <summary>View Notes</summary>
+      {notes}
+    </details>
   );
 };
 

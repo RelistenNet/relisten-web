@@ -26,6 +26,7 @@ import ShowsColumn from '../components/ShowsColumn';
 import TapesColumn from '../components/TapesColumn';
 import SongsColumn from '../components/SongsColumn';
 import { useStore } from 'react-redux';
+import { API_DOMAIN } from '../lib/constants';
 
 const routeChangeStart = (store) => async (url) => {
   if (typeof window !== 'undefined' && window.UPDATED_TRACK_VIA_GAPLESS) {
@@ -93,7 +94,7 @@ const Root = ({
       await playSong(store);
 
       const paramsObj = getParams(window.location.search);
-      
+
       if (paramsObj.t) {
         const [min, sec] = paramsObj.t.split('m');
 
@@ -382,7 +383,7 @@ const playSong = async (store, forceIsPaused) => {
 };
 
 const getRandomShow = (artistSlug, store) => {
-  return fetch(`https://api.relisten.net/api/v2/artists/${artistSlug}/shows/random`)
+  return fetch(`${API_DOMAIN}/api/v2/artists/${artistSlug}/shows/random`)
     .then((res) => res.json())
     .then((json) => {
       if (!json) return;

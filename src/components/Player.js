@@ -208,7 +208,10 @@ class Player extends Component {
                   )}
                 </div>
 
-                <Link href="/" as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}>
+                <Link
+                  href="/"
+                  as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
+                  legacyBehavior>
                   <a className="band-title">
                     {bandTitle} – {removeLeadingZero(month)}/{removeLeadingZero(day)}/
                     {year.slice(2)}
@@ -253,7 +256,10 @@ class Player extends Component {
           </div>
         )}
         {activeTrack && (
-          <Link href="/" as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}>
+          <Link
+            href="/"
+            as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
+            legacyBehavior>
             <div className="queue-button">
               <i className="fas fa-list-ol" />
             </div>
