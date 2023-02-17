@@ -4,8 +4,8 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "production": "NODE_ENV=production next",
-    "build": "next build",
+    "production": "NODE_ENV=production next start",
+    "build": "NODE_ENV=production next build",
     "start": "next",
     "lint": "eslint src/pages/*.js src/redux/*.js src/lib/*.js src/layouts/*.js src/components/*.js bin/*.js",
     "bands": "node src/lib/generateSlugs.js"

@@ -46,6 +46,14 @@ const About = () => {
           <a href="https://phish.in" target="_blank" rel="noreferrer">
             Phish.in
           </a>
+          ,{' '}
+          <a
+            href="https://docs.google.com/spreadsheets/d/1yAXu83gJBz08cW5OXoqNuN1IbvDXD2vCrDKj4zn1qmU/edit#gid=29"
+            target="_blank"
+            rel="noreferrer"
+          >
+            The Phish Spreadsheet
+          </a>
           , and{' '}
           <a href="https://panicstream.com" target="_blank" rel="noreferrer">
             PanicStream.com
@@ -73,8 +81,15 @@ const About = () => {
         <h3>Thank you</h3>
 
         <p>
-          Enjoy <br />- <a href="https://saewitz.com" target="_blank">Daniel Saewitz</a> and <a href="https://alecgorge.com" target="_blank">Alec Gorge</a>,{' '}
-          <a href="mailto:team@relisten.net">team@relisten.net</a>
+          Enjoy <br />-{' '}
+          <a href="https://saewitz.com" target="_blank" rel="noreferrer">
+            Daniel Saewitz
+          </a>{' '}
+          and{' '}
+          <a href="https://alecgorge.com" target="_blank" rel="noreferrer">
+            Alec Gorge
+          </a>
+          , <a href="mailto:team@relisten.net">team@relisten.net</a>
         </p>
 
         {null && (
