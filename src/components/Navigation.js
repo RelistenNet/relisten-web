@@ -13,7 +13,7 @@ class Navigation extends Component {
     return (
       <div className="navigation">
         <style jsx>{`
-          .navigation
+          .navigation {
             display: flex;
             flex-direction: row;
             height: 50px;
@@ -23,6 +23,7 @@ class Navigation extends Component {
             position: relative;
             color: #333;
             background: #FFF;
+          }
 
           .navigation .relisten-mobile {
             display: none;
