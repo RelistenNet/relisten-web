@@ -7,6 +7,7 @@ import Layout from '../layouts';
 import { fetchLive } from '../redux/modules/live';
 
 import LiveTrack from '../components/LiveTrack';
+import { wrapper } from '../redux';
 
 function uniqBy(a, key) {
   const seen = new Set();
@@ -26,21 +27,29 @@ class Live extends Component {
     lastSeenId: null,
   };
 
-  static async getInitialProps({ store, isServer, pathname, query }) {
-    await store.dispatch(fetchLive());
-    return {
-      live: store.getState().live,
-    };
-  }
+  static getInitialProps = wrapper.getInitialPageProps(
+    (store) =>
+      ({ isServer, pathname, query }) => {
+        store.dispatch(fetchLive());
+
+        return {
+          live: store.getState().live,
+          store,
+        };
+      }
+  );
 
   componentDidMount() {
-    this.intervalId = setInterval(async () => {
-      const action = await this.props.dispatch(fetchLive());
+    const get = async () => {
+      const action = await this.props.store.dispatch(fetchLive());
 
       if (action.data.length) {
         this.setState({ lastSeenId: action.data.slice(-1)[0].id });
       }
-    }, 7000);
+    };
+
+    this.intervalId = setInterval(get, 7000);
+    get();
 
     this.setState({ isMounted: true });
   }

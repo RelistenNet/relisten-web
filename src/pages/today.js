@@ -9,15 +9,16 @@ import { groupBy } from '../lib/utils';
 import { fetchToday } from '../redux/modules/today';
 
 import TodayTrack from '../components/TodayTrack';
+import { wrapper } from '../redux';
 
 class Today extends Component {
-  static async getInitialProps({ store }) {
+  static getInitialProps = wrapper.getInitialPageProps((store) => async () => {
     await store.dispatch(fetchToday());
 
     return {
       today: store.getState().today,
     };
-  }
+  });
 
   render() {
     const { today } = this.props;

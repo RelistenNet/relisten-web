@@ -51,16 +51,6 @@ const Chat = () => (
       >
         Join us!
       </a>
-
-      <br />
-      <br />
-
-      <iframe
-        src="https://titanembeds.com/embed/395033814008594436"
-        height="600"
-        width="800"
-        frameBorder="0"
-      ></iframe>
     </div>
   </Layout>
 );
