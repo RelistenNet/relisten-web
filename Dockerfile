@@ -16,6 +16,9 @@ RUN npm run bands
 
 RUN npm run build && yarn cache clean
 
+ARG NODE_ENV="development"
+ENV NODE_ENV ${NODE_ENV}
+
 EXPOSE 3000
 
 CMD ["npm", "run", "production"]
