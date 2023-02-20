@@ -1,5 +1,5 @@
-import React from 'react';
-import Document, { Html, Head, Main, NextScript } from 'next/document';
+import Document, { Head, Html, Main, NextScript } from 'next/document';
+import Script from 'next/script';
 
 export default class MyDocument extends Document {
   static async getInitialProps(ctx) {
@@ -27,17 +27,12 @@ export default class MyDocument extends Document {
         <body>
           <Main />
           <NextScript />
-          <script async src="https://www.googletagmanager.com/gtag/js?id=UA-54000407-2" />
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-
-                gtag('config', 'UA-54000407-2');
-              `,
-            }}
+          <Script
+            strategy="lazyOnload"
+            async
+            defer
+            data-domain="relisten.net"
+            src="https://plausible.typetwo.space/js/plausible.js"
           />
         </body>
       </Html>
