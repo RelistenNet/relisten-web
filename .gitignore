@@ -5,3 +5,4 @@ db/
 *.swp
 
 .DS_Store
+.vscode
