@@ -2,7 +2,7 @@ import React from 'react';
 import Column from './Column';
 import Row from './Row';
 
-const Menu = () => (
+const Menu = (): JSX.Element => (
   <div className="menu">
     <style jsx>{`
       .menu {

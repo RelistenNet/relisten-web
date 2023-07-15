@@ -12,7 +12,7 @@ type ColumnProps = {
 
 class Column extends Component<ColumnProps> {
   componentDidMount() {
-    Array.prototype.forEach.call(document.querySelectorAll('.column .active'), (activeRow) => {
+    Array.prototype.forEach.call(document.querySelectorAll('.column .active'), (activeRow: Element) => {
       activeRow.scrollIntoView({
         block: 'center',
       });
