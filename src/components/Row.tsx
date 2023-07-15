@@ -1,9 +1,17 @@
 import React from 'react';
 import Link from 'next/link';
-
 import RowLoading from './RowLoading';
 
-const Row = ({ height, children, href, active, loading, baseHrefOverride, ...props }) => (
+type RowProps = {
+    height?: number;
+    children?: React.ReactNode;
+    href?: string;
+    baseHrefOverride?: string;
+    active?: boolean;
+    loading?: boolean;
+}
+
+const Row = ({ height, children, href, active, loading, baseHrefOverride, ...props }: RowProps) => (
   <div className="relisten-row" style={{ minHeight: height }} {...props}>
     <style jsx global>{`
       .relisten-row {

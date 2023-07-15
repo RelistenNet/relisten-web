@@ -2,7 +2,15 @@ import React from 'react';
 import Row from './Row';
 import { Component } from 'react';
 
-class Column extends Component {
+type ColumnProps = {
+    loading?: boolean;
+    loadingAmount?: number;
+    heading?: string;
+    className?: string;
+    children?: React.ReactNode;
+}
+
+class Column extends Component<ColumnProps> {
   componentDidMount() {
     Array.prototype.forEach.call(document.querySelectorAll('.column .active'), (activeRow) => {
       activeRow.scrollIntoView({
@@ -11,7 +19,7 @@ class Column extends Component {
     });
   }
 
-  render() {
+  render(): JSX.Element {
     const loadingAmount = this.props.loadingAmount ? this.props.loadingAmount : 20;
 
     return (
