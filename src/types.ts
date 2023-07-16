@@ -161,7 +161,7 @@ export interface Show {
   updated_at: string;
 }
 
-export type Source = {
+export type TrackSource = {
   show_id: number;
   show_uuid: null;
   show: Show;
@@ -199,8 +199,8 @@ export type ArtistShows = {
   artist_uuid: string;
   uuid: string;
   id: number;
-  created_at: Date;
-  updated_at: Date;
+  created_at: string;
+  updated_at: string;
 }
 
 export type Tour = {
@@ -215,4 +215,77 @@ export type Tour = {
   id: number;
   created_at: string;
   updated_at: string;
+}
+
+export type Set = {
+  source_id: number;
+  source_uuid: string;
+  artist_id: number;
+  artist_uuid: string;
+  uuid: string;
+  index: number;
+  is_encore: boolean;
+  name: string;
+  tracks: Track[];
+  id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type Link = {
+  source_id: number;
+  upstream_source_id: number;
+  for_reviews: boolean;
+  for_ratings: boolean;
+  for_source: boolean;
+  url: string;
+  label: string;
+  id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type Source = {
+  review_count: number;
+  sets: Set[];
+  links: Link[];
+  show_id: number;
+  show_uuid: string;
+  show: null;
+  description: string;
+  taper_notes: string;
+  source: string;
+  taper: string;
+  transferrer: string;
+  lineage: string;
+  flac_type: string;
+  artist_id: number;
+  artist_uuid: string;
+  venue_id: number;
+  venue_uuid: string;
+  venue: null;
+  display_date: string;
+  is_soundboard: boolean;
+  is_remaster: boolean;
+  has_jamcharts: boolean;
+  avg_rating: number;
+  num_reviews: number;
+  num_ratings: null;
+  avg_rating_weighted: number;
+  duration: number;
+  upstream_identifier: string;
+  uuid: string;
+  id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type GaplessMetadata = {
+  idx: number;
+  loadedHead: undefined;
+  playbackType: string;
+  trackMetadata: {
+    trackId: number;
+  };
+  webAudioLoadingState: string;
 }

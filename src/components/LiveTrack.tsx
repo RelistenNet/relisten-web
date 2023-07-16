@@ -4,9 +4,9 @@ import Link from 'next/link';
 import TimeAgo from 'react-timeago';
 
 import { splitShowDate } from '../lib/utils';
-import { Source, Track, Venue } from '../types';
+import { TrackSource, Track, Venue } from '../types';
 
-const createURL = (track: { track: Track, source: Source}): string => {
+const createURL = (track: { track: Track, source: TrackSource}): string => {
   const { year, month, day } = splitShowDate(track.source.display_date);
 
   return (
@@ -16,7 +16,7 @@ const createURL = (track: { track: Track, source: Source}): string => {
   );
 };
 
-const getVenueInfo = (track: Source): Venue => {
+const getVenueInfo = (track: TrackSource): Venue => {
   if (track.artist && track.artist.features) {
     if (
       track.artist.features.per_show_venues &&
@@ -36,7 +36,7 @@ const getVenueInfo = (track: Source): Venue => {
 type VenueInfoProps = {
   track: {
     track: Track;
-    source: Source;
+    source: TrackSource;
   };
   app_type_description: string;
   created_at: string;
@@ -66,7 +66,7 @@ type LiveTrackProps = {
   app_type_description: string;
   created_at: string;
   track: {
-    source: Source;
+    source: TrackSource;
     track: Track;
   };
   isFirstRender: boolean;
