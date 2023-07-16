@@ -44,7 +44,7 @@ const YearsColumn = ({ artistYears, artistSlug, currentYear, artists }: YearsCol
     </Column>
 )};
 
-const mapStateToProps = ({ years, app, artists }) => ({
+const mapStateToProps = ({ years, app, artists }): YearsColumnProps => ({
   artistYears: years[app.artistSlug],
   artistSlug: app.artistSlug,
   currentYear: app.year,

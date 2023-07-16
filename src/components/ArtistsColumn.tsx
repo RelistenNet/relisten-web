@@ -50,6 +50,6 @@ const ArtistsColumn = ({ artists, artistSlug }: ArtistsColumnProps): JSX.Element
     </Column>
 )};
 
-const mapStateToProps = ({ artists, app }) => ({ artists, artistSlug: app.artistSlug });
+const mapStateToProps = ({ artists, app }): ArtistsColumnProps => ({ artists, artistSlug: app.artistSlug });
 
 export default connect(mapStateToProps)(ArtistsColumn);
