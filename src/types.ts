@@ -1,3 +1,9 @@
+export type Meta = {
+  loaded: boolean;
+  loading: boolean;
+  error: boolean;
+}
+
 export type Artist = {
   id: number;
   uuid: string;
