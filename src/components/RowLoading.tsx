@@ -1,6 +1,6 @@
 import React from 'react';
 
-const RowLoading = () => (
+const RowLoading = (): JSX.Element => (
   <div className="loading content">
     <style jsx>{`
       .loading {

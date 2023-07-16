@@ -3,13 +3,13 @@ import Link from 'next/link';
 import { splitShowDate } from '../lib/utils';
 import { Day } from '../types';
 
-const createURL = (obj: Day) => {
+const createURL = (obj: Day): string => {
   const { year, month, day } = splitShowDate(obj.display_date);
 
   return '/' + [obj.artist.slug, year, month, day].join('/');
 };
 
-export default ({ day }: { day: Day }) => {
+export default ({ day }: { day: Day }): JSX.Element => {
   return !day ? null : (
     <Link href="/" as={createURL(day)} legacyBehavior>
       <div className="container">
