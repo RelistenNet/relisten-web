@@ -13,12 +13,12 @@ type NavigationProps = {
   artists: {
     data: Artist[];
     meta: Meta;
-  }
-  app: any
+  };
+  app: any;
   navPrefix?: string;
   navSubtitle?: string;
   navURL?: string;
-}
+};
 
 class Navigation extends Component<NavigationProps> {
   modal: any;
@@ -128,7 +128,6 @@ class Navigation extends Component<NavigationProps> {
               display: none;
             }
           }
-
         `}</style>
         <div className="left">
           <Link href="/" legacyBehavior>

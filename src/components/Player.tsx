@@ -15,12 +15,12 @@ type PlayerProps = {
     data: Artist[];
     meta: Meta;
   };
-}
+};
 
 type PlayerState = {
   showRemainingDuration: boolean;
   volume: number;
-}
+};
 
 class Player extends Component<PlayerProps, PlayerState> {
   constructor(props: PlayerProps) {
@@ -40,8 +40,12 @@ class Player extends Component<PlayerProps, PlayerState> {
     const { year, month, day } = splitShowDate(playback.showDate);
     const { artistSlug, source } = playback;
     const bandTitle = artists.data[artistSlug] ? artists.data[artistSlug].name : '';
-    const activeTrack = playback.tracks.find((track, idx: number) => idx === playback.activeTrack.idx);
-    const nextTrack = playback.tracks.find((track, idx: number) => idx === playback.activeTrack.idx + 1);
+    const activeTrack = playback.tracks.find(
+      (track, idx: number) => idx === playback.activeTrack.idx
+    );
+    const nextTrack = playback.tracks.find(
+      (track, idx: number) => idx === playback.activeTrack.idx + 1
+    );
     const notchPosition =
       typeof window === 'undefined' || !this.player
         ? 0
@@ -227,7 +231,8 @@ class Player extends Component<PlayerProps, PlayerState> {
                 <Link
                   href="/"
                   as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
-                  legacyBehavior>
+                  legacyBehavior
+                >
                   <a className="band-title">
                     {bandTitle} – {removeLeadingZero(month)}/{removeLeadingZero(day)}/
                     {year.slice(2)}
@@ -275,7 +280,8 @@ class Player extends Component<PlayerProps, PlayerState> {
           <Link
             href="/"
             as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
-            legacyBehavior>
+            legacyBehavior
+          >
             <div className="queue-button">
               <i className="fas fa-list-ol" />
             </div>
@@ -311,6 +317,10 @@ class Player extends Component<PlayerProps, PlayerState> {
   };
 }
 
-const mapStateToProps = ({ playback, tapes, artists }): PlayerProps => ({ playback, tapes, artists });
+const mapStateToProps = ({ playback, tapes, artists }): PlayerProps => ({
+  playback,
+  tapes,
+  artists,
+});
 
 export default connect(mapStateToProps)(Player);

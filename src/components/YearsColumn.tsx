@@ -9,19 +9,24 @@ import Row from './Row';
 import { Artist, Meta, Year } from '../types';
 
 type YearsColumnProps = {
-    artistYears: {
-      data: Year[];  
-      meta: Meta
-    };
-    artistSlug: string;
-    currentYear: string;
-    artists: {
-      data: { [key: string]: Artist };
-      meta: Meta;
-    };
-}
+  artistYears: {
+    data: Year[];
+    meta: Meta;
+  };
+  artistSlug: string;
+  currentYear: string;
+  artists: {
+    data: { [key: string]: Artist };
+    meta: Meta;
+  };
+};
 
-const YearsColumn = ({ artistYears, artistSlug, currentYear, artists }: YearsColumnProps): JSX.Element => {
+const YearsColumn = ({
+  artistYears,
+  artistSlug,
+  currentYear,
+  artists,
+}: YearsColumnProps): JSX.Element => {
   return (
     <Column
       heading={artistYears && artists.data[artistSlug] ? artists.data[artistSlug].name : 'Years'}
@@ -31,7 +36,11 @@ const YearsColumn = ({ artistYears, artistSlug, currentYear, artists }: YearsCol
       {artistYears &&
         artistYears.data &&
         sortActiveBands(artistSlug, artistYears.data).map((year: Year) => (
-          <Row key={year.id} href={`/${artistSlug}/${year.year}`} active={year.year === currentYear}>
+          <Row
+            key={year.id}
+            href={`/${artistSlug}/${year.year}`}
+            active={year.year === currentYear}
+          >
             <div>
               <div>{year.year}</div>
             </div>
@@ -42,7 +51,8 @@ const YearsColumn = ({ artistYears, artistSlug, currentYear, artists }: YearsCol
           </Row>
         ))}
     </Column>
-)};
+  );
+};
 
 const mapStateToProps = ({ years, app, artists }): YearsColumnProps => ({
   artistYears: years[app.artistSlug],

@@ -1,8 +1,8 @@
 import React from 'react';
 
 type TagProps = {
-    children: React.ReactNode;
-}
+  children: React.ReactNode;
+};
 
 const Tag = ({ children }: TagProps): JSX.Element => (
   <span className="tag">

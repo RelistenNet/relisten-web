@@ -24,9 +24,14 @@ type ShowsColumnProps = {
   artistSlug: string;
   year: string;
   displayDate: string;
-}
+};
 
-const ShowsColumn = ({ artistShows, artistSlug, year, displayDate }: ShowsColumnProps): JSX.Element => {
+const ShowsColumn = ({
+  artistShows,
+  artistSlug,
+  year,
+  displayDate,
+}: ShowsColumnProps): JSX.Element => {
   const tours = {};
 
   return (

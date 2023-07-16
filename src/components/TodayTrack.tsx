@@ -44,4 +44,5 @@ export default ({ day }: { day: Day }): JSX.Element => {
       `}</style>
       </div>
     </Link>
-  )};
+  );
+};

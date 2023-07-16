@@ -3,20 +3,23 @@ import Row from './Row';
 import { Component } from 'react';
 
 type ColumnProps = {
-    loading?: boolean;
-    loadingAmount?: number;
-    heading?: string;
-    className?: string;
-    children?: React.ReactNode;
-}
+  loading?: boolean;
+  loadingAmount?: number;
+  heading?: string;
+  className?: string;
+  children?: React.ReactNode;
+};
 
 class Column extends Component<ColumnProps> {
   componentDidMount() {
-    Array.prototype.forEach.call(document.querySelectorAll('.column .active'), (activeRow: Element) => {
-      activeRow.scrollIntoView({
-        block: 'center',
-      });
-    });
+    Array.prototype.forEach.call(
+      document.querySelectorAll('.column .active'),
+      (activeRow: Element) => {
+        activeRow.scrollIntoView({
+          block: 'center',
+        });
+      }
+    );
   }
 
   render(): JSX.Element {

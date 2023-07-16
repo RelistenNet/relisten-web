@@ -3,11 +3,11 @@ import { Component } from 'react';
 
 type ModalProps = {
   children: React.ReactNode;
-}
+};
 
 type ModalState = {
   isVisible: boolean;
-}
+};
 
 class Modal extends Component<ModalProps, ModalState> {
   constructor(props: ModalProps) {

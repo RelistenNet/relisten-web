@@ -11,13 +11,12 @@ const byObject = {
   phish: 'Phish.in',
 };
 
-
 type ArtistsColumnProps = {
-    artists?: {
-        data: Artist;
-    };
-    artistSlug: string;
-}
+  artists?: {
+    data: Artist;
+  };
+  artistSlug: string;
+};
 
 const ArtistsColumn = ({ artists, artistSlug }: ArtistsColumnProps): JSX.Element => {
   return (
@@ -48,8 +47,12 @@ const ArtistsColumn = ({ artists, artistSlug }: ArtistsColumnProps): JSX.Element
             )),
           ])}
     </Column>
-)};
+  );
+};
 
-const mapStateToProps = ({ artists, app }): ArtistsColumnProps => ({ artists, artistSlug: app.artistSlug });
+const mapStateToProps = ({ artists, app }): ArtistsColumnProps => ({
+  artists,
+  artistSlug: app.artistSlug,
+});
 
 export default connect(mapStateToProps)(ArtistsColumn);

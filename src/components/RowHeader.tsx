@@ -1,9 +1,9 @@
 import React from 'react';
 
 type RowHeaderProps = {
-    height?: number;
-    children?: React.ReactNode;
-}
+  height?: number;
+  children?: React.ReactNode;
+};
 
 const RowHeader = ({ height, children }: RowHeaderProps) => (
   <div className="header" style={{ minHeight: !children ? 16 : height }}>

@@ -31,7 +31,7 @@ type TapesColumnProps = {
   };
   artistSlug: string;
   activeSourceId: number;
-}
+};
 
 const TapesColumn = ({ tapes, artistSlug, activeSourceId }: TapesColumnProps): JSX.Element => {
   const sources =
@@ -39,7 +39,7 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }: TapesColumnProps): J
 
   const { year, month, day } = sources
     ? splitShowDate(sources[0].display_date)
-    : { year: '', month: '', day: ''};
+    : { year: '', month: '', day: '' };
 
   return (
     <Column heading="Sources" loading={tapes.meta && tapes.meta.loading} loadingAmount={1}>

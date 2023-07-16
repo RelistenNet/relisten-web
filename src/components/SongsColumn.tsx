@@ -22,7 +22,7 @@ type SongsColumnProps = {
   songSlug: string;
   activePlaybackSourceId: number;
   gaplessTracksMetadata: GaplessMetadata[];
-}
+};
 
 const SongsColumn = ({
   source,
@@ -34,7 +34,7 @@ const SongsColumn = ({
 }: SongsColumnProps) => {
   const { year, month, day } = source
     ? splitShowDate(source.display_date)
-    : { year: '', month: '', day: ''};
+    : { year: '', month: '', day: '' };
   const isActiveSource = source ? source.id === activePlaybackSourceId : false;
 
   return (

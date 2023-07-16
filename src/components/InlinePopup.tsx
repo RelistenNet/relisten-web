@@ -3,11 +3,11 @@ import { Component } from 'react';
 
 type InlinePopupProps = {
   children: React.ReactNode;
-}
+};
 
 type InlinePopupState = {
   isVisible: boolean;
-}
+};
 
 class InlinePopup extends Component<InlinePopupProps, InlinePopupState> {
   constructor(props: InlinePopupProps) {
