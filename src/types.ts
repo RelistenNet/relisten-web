@@ -319,3 +319,26 @@ export type Tape = {
   updated_at: string;
 }
 
+export type Playback = {
+  year: string;
+  tracks: Track[];
+  source: string;
+  songSlug: string;
+  showDate: string;
+  paused: boolean;
+  month: string | undefined;
+  day: string | undefined;
+  gaplessTracksMetadata: GaplessMetadata[];
+  currentTrackId: number | undefined;
+  artistSlug: string;
+  activeTrack: ActiveTrack;
+}
+
+export type ActiveTrack = {
+  currentTime: number;
+  duration: number;
+  idx: number;
+  isPaused: boolean;
+  playbackType: string;
+  webAudioLoadingState: string;
+}

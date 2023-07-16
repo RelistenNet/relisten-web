@@ -4,18 +4,34 @@ import { connect } from 'react-redux';
 import Head from 'next/head';
 import Link from 'next/link';
 
-import { createShowDate, durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
+import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
 import player from '../lib/player';
+import { Artist, Meta, Playback } from '../types';
 
-class Player extends Component {
-  constructor(props, ctx) {
-    super(props, ctx);
+type PlayerProps = {
+  playback: Playback;
+  tapes: any; // Leaving as 'any' since this prop is not used
+  artists: {
+    data: Artist[];
+    meta: Meta;
+  };
+}
+
+type PlayerState = {
+  showRemainingDuration: boolean;
+  volume: number;
+}
+
+class Player extends Component<PlayerProps, PlayerState> {
+  constructor(props: PlayerProps) {
+    super(props);
 
     this.state = {
       showRemainingDuration: false,
       volume: (typeof localStorage !== 'undefined' && localStorage.volume) || 1,
     };
   }
+  player: any;
 
   render() {
     const { playback, tapes, artists } = this.props;
@@ -24,8 +40,8 @@ class Player extends Component {
     const { year, month, day } = splitShowDate(playback.showDate);
     const { artistSlug, source } = playback;
     const bandTitle = artists.data[artistSlug] ? artists.data[artistSlug].name : '';
-    const activeTrack = playback.tracks.find((track, idx) => idx === playback.activeTrack.idx);
-    const nextTrack = playback.tracks.find((track, idx) => idx === playback.activeTrack.idx + 1);
+    const activeTrack = playback.tracks.find((track, idx: number) => idx === playback.activeTrack.idx);
+    const nextTrack = playback.tracks.find((track, idx: number) => idx === playback.activeTrack.idx + 1);
     const notchPosition =
       typeof window === 'undefined' || !this.player
         ? 0
@@ -269,7 +285,7 @@ class Player extends Component {
     );
   }
 
-  onProgressClick = (e) => {
+  onProgressClick = (e: React.MouseEvent) => {
     const { playback } = this.props;
 
     const { left, width } = this.player.getBoundingClientRect();
@@ -279,11 +295,11 @@ class Player extends Component {
     player.currentTrack.seek(percentage * playback.activeTrack.duration);
   };
 
-  toggleRemainingDuration = () => {
+  toggleRemainingDuration = (): void => {
     this.setState({ showRemainingDuration: !this.state.showRemainingDuration });
   };
 
-  setVolume = (e) => {
+  setVolume = (e: React.MouseEvent<HTMLElement>) => {
     const height = e.currentTarget.offsetHeight;
     const nextVolume = (height - e.pageY) / height;
 
@@ -295,6 +311,6 @@ class Player extends Component {
   };
 }
 
-const mapStateToProps = ({ playback, tapes, artists }) => ({ playback, tapes, artists });
+const mapStateToProps = ({ playback, tapes, artists }): PlayerProps => ({ playback, tapes, artists });
 
 export default connect(mapStateToProps)(Player);
