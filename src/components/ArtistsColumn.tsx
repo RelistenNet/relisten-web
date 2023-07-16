@@ -25,7 +25,7 @@ const ArtistsColumn = ({ artists, artistSlug }: ArtistsColumnProps): JSX.Element
       {artists &&
         artists.data &&
         Object.entries(groupBy(Object.values(artists.data), 'featured'))
-          .sort(([a], [b]) => b.localeCompare(a)) // TODO: Verify this works as before
+          .sort(([a], [b]) => b.localeCompare(a))
           .map(([type, artists]: [string, Artist[]]) => [
             <RowHeader key={`header-${type}`}>{type === '1' ? 'Featured' : 'Bands'}</RowHeader>,
             ...artists.map((artist: Artist, idx: number) => (
