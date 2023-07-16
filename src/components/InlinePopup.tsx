@@ -1,9 +1,17 @@
 import React from 'react';
 import { Component } from 'react';
 
-class InlinePopup extends Component {
-  constructor(props, ctx) {
-    super(props, ctx);
+type InlinePopupProps = {
+  children: React.ReactNode;
+}
+
+type InlinePopupState = {
+  isVisible: boolean;
+}
+
+class InlinePopup extends Component<InlinePopupProps, InlinePopupState> {
+  constructor(props: InlinePopupProps) {
+    super(props);
 
     this.state = {
       isVisible: false,
@@ -44,7 +52,7 @@ class InlinePopup extends Component {
     );
   }
 
-  toggleModal = () => {
+  toggleModal = (): void => {
     // if (e && !/container/.test(e.target.className)) return;
     this.setState({ isVisible: !this.state.isVisible });
   };
