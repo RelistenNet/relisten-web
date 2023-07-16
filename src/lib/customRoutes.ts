@@ -7,4 +7,4 @@ const customRoutes = [
   '_next',
 ];
 
-module.exports = new RegExp(customRoutes.join('|'), 'gi');
+export default new RegExp(customRoutes.join('|'), 'gi');
