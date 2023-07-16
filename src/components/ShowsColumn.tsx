@@ -16,7 +16,7 @@ import RowHeader from './RowHeader';
 import Tag from './Tag';
 import { ArtistShows, Meta, Show } from '../types';
 
-type ShowColumnProps = {
+type ShowsColumnProps = {
   artistShows: {
     data: ArtistShows;
     meta: Meta;
@@ -26,7 +26,7 @@ type ShowColumnProps = {
   displayDate: string;
 }
 
-const ShowsColumn = ({ artistShows, artistSlug, year, displayDate }: ShowColumnProps): JSX.Element => {
+const ShowsColumn = ({ artistShows, artistSlug, year, displayDate }: ShowsColumnProps): JSX.Element => {
   const tours = {};
 
   return (
@@ -88,7 +88,7 @@ const ShowsColumn = ({ artistShows, artistSlug, year, displayDate }: ShowColumnP
   );
 };
 
-const mapStateToProps = ({ shows, app }): ShowColumnProps => {
+const mapStateToProps = ({ shows, app }): ShowsColumnProps => {
   const artistShows =
     shows[app.artistSlug] && shows[app.artistSlug][app.year] ? shows[app.artistSlug][app.year] : {};
 
