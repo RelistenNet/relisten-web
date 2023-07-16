@@ -137,12 +137,12 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }: TapesColumnProps): J
 const TaperNotes = ({ notes }: { notes: string }): JSX.Element => {
   if (!notes) return null;
 
-  const onClick = (e: Event) => {
+  const onClick = (e: React.MouseEvent<HTMLDetailsElement, MouseEvent>) => {
     e.stopPropagation();
   };
 
   return (
-    <details onClick={() => onClick} style={{ whiteSpace: 'pre-wrap' }}>
+    <details onClick={(e) => onClick(e)} style={{ whiteSpace: 'pre-wrap' }}>
       <summary>View Notes</summary>
       {notes}
     </details>
