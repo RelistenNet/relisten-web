@@ -138,10 +138,10 @@ export interface Show {
   artist_uuid: string;
   venue_id: number;
   venue: Venue;
-  venue_uuid: null;
-  tour_id: number;
-  tour_uuid: null;
-  tour: null;
+  venue_uuid: string | null;
+  tour_id: number | null;
+  tour_uuid: string | null;
+  tour: Tour | null;
   year_id: number;
   year_uuid: string;
   year: number | null;
@@ -169,7 +169,7 @@ export type Source = {
   artist_id: number;
   artist_uuid: string;
   venue_id: number;
-  venue_uuid: null;
+  venue_uuid: string | null;
   venue: Venue;
   display_date: string;
   is_soundboard: boolean;
@@ -180,6 +180,36 @@ export type Source = {
   num_ratings: null;
   avg_rating_weighted: number;
   duration: number;
+  upstream_identifier: string;
+  uuid: string;
+  id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ArtistShows = {
+  shows?: Show[];
+  show_count: number;
+  source_count: number;
+  duration: number;
+  avg_duration: number;
+  avg_rating: number;
+  year: string;
+  artist_id: number;
+  artist_uuid: string;
+  uuid: string;
+  id: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export type Tour = {
+  artist_id: number;
+  artist_uuid: string;
+  start_date: string;
+  end_date: string;
+  name: string;
+  slug: string;
   upstream_identifier: string;
   uuid: string;
   id: number;
