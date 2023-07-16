@@ -1,4 +1,4 @@
-import React, { MouseEventHandler } from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
 
 import { createShowDate, splitShowDate, durationToHHMMSS } from '../lib/utils';

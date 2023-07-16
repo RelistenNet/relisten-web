@@ -1,4 +1,3 @@
-import React from 'react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import TimeAgo from 'react-timeago';
@@ -70,6 +69,7 @@ type LiveTrackProps = {
   isLastSeen: boolean;
 };
 
+// eslint-disable-next-line react/display-name
 export default ({
   app_type_description = '',
   created_at,

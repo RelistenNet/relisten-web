@@ -10,7 +10,9 @@ import { Artist, Meta, Playback } from '../types';
 
 type PlayerProps = {
   playback: Playback;
-  tapes: any; // Leaving as 'any' since this prop is not used
+  // Leaving as 'any' since this prop is not use
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  tapes?: any;
   artists: {
     data: Artist[];
     meta: Meta;
@@ -31,10 +33,12 @@ class Player extends Component<PlayerProps, PlayerState> {
       volume: (typeof localStorage !== 'undefined' && localStorage.volume) || 1,
     };
   }
+  // TODO: Update type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   player: any;
 
   render() {
-    const { playback, tapes, artists } = this.props;
+    const { playback, artists } = this.props;
     const { showRemainingDuration } = this.state;
 
     const { year, month, day } = splitShowDate(playback.showDate);

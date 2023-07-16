@@ -1,4 +1,3 @@
-import React from 'react';
 import { connect } from 'react-redux';
 
 import { createShowDate, splitShowDate, durationToHHMMSS, removeLeadingZero } from '../lib/utils';
@@ -104,7 +103,7 @@ const SongsColumn = ({
   );
 };
 
-const mapStateToProps = ({ tapes, app, playback }): SongsColumnProps | {} => {
+const mapStateToProps = ({ tapes, app, playback }): SongsColumnProps | object => {
   const activeSourceId = parseInt(app.source, 10);
   const activePlaybackSourceId = parseInt(playback.source, 10);
   const showDate = createShowDate(app.year, app.month, app.day);

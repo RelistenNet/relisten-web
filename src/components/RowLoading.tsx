@@ -1,5 +1,3 @@
-import React from 'react';
-
 const RowLoading = (): JSX.Element => (
   <div className="loading content">
     <style jsx>{`

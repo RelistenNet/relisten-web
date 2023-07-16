@@ -1,4 +1,3 @@
-import React from 'react';
 import Link from 'next/link';
 import { splitShowDate } from '../lib/utils';
 import { Day } from '../types';
@@ -9,6 +8,7 @@ const createURL = (obj: Day): string => {
   return '/' + [obj.artist.slug, year, month, day].join('/');
 };
 
+// eslint-disable-next-line react/display-name
 export default ({ day }: { day: Day }): JSX.Element => {
   return !day ? null : (
     <Link href="/" as={createURL(day)} legacyBehavior>
