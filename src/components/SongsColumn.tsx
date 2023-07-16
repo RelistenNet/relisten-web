@@ -1,5 +1,3 @@
-import React from 'react';
-import Link from 'next/link';
 import { connect } from 'react-redux';
 
 import { createShowDate, splitShowDate, durationToHHMMSS, removeLeadingZero } from '../lib/utils';
@@ -7,13 +5,23 @@ import { createShowDate, splitShowDate, durationToHHMMSS, removeLeadingZero } fr
 import Column from './Column';
 import Row from './Row';
 import RowHeader from './RowHeader';
+import { GaplessMetadata, Set, Source } from '../types';
 
-const getSetTime = (set) =>
+const getSetTime = (set: Set): string =>
   durationToHHMMSS(
     set.tracks.reduce((memo, next) => {
       return memo + next.duration;
     }, 0)
   );
+
+type SongsColumnProps = {
+  source: Source;
+  loading: boolean;
+  artistSlug: string;
+  songSlug: string;
+  activePlaybackSourceId: number;
+  gaplessTracksMetadata: GaplessMetadata[];
+};
 
 const SongsColumn = ({
   source,
@@ -22,8 +30,10 @@ const SongsColumn = ({
   songSlug,
   activePlaybackSourceId,
   gaplessTracksMetadata,
-}) => {
-  const { year, month, day } = source ? splitShowDate(source.display_date) : {};
+}: SongsColumnProps) => {
+  const { year, month, day } = source
+    ? splitShowDate(source.display_date)
+    : { year: '', month: '', day: '' };
   const isActiveSource = source ? source.id === activePlaybackSourceId : false;
 
   return (
@@ -93,7 +103,7 @@ const SongsColumn = ({
   );
 };
 
-const mapStateToProps = ({ tapes, app, playback }) => {
+const mapStateToProps = ({ tapes, app, playback }): SongsColumnProps | object => {
   const activeSourceId = parseInt(app.source, 10);
   const activePlaybackSourceId = parseInt(playback.source, 10);
   const showDate = createShowDate(app.year, app.month, app.day);
@@ -101,14 +111,14 @@ const mapStateToProps = ({ tapes, app, playback }) => {
     tapes[app.artistSlug] && tapes[app.artistSlug][showDate]
       ? tapes[app.artistSlug][showDate]
       : null;
-  let source;
+  let source: Source;
 
   if (!showTapes) return {};
 
   if (showTapes.data && showTapes.data.sources && showTapes.data.sources.length) {
     const { sources } = showTapes.data;
 
-    source = sources.find((source) => source.id === activeSourceId) || sources[0];
+    source = sources.find((source: Source) => source.id === activeSourceId) || sources[0];
   }
 
   return {

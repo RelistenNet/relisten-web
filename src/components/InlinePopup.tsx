@@ -1,9 +1,17 @@
 import React from 'react';
 import { Component } from 'react';
 
-class Modal extends Component {
-  constructor(props, ctx) {
-    super(props, ctx);
+type InlinePopupProps = {
+  children: React.ReactNode;
+};
+
+type InlinePopupState = {
+  isVisible: boolean;
+};
+
+class InlinePopup extends Component<InlinePopupProps, InlinePopupState> {
+  constructor(props: InlinePopupProps) {
+    super(props);
 
     this.state = {
       isVisible: false,
@@ -14,6 +22,8 @@ class Modal extends Component {
     const { isVisible } = this.state;
     const { children } = this.props;
 
+    if (!isVisible) return null;
+
     return (
       <div
         className={`modal-container ${isVisible ? 'is-visible' : ''}`}
@@ -22,25 +32,19 @@ class Modal extends Component {
         <style jsx>{`
           .modal-container {
             position: fixed;
-            top: 0;
-            left: 0;
+            top: 50px;
             right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.95);
             z-index: 2;
+            box-shadow: 0 1px 5px 1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #aeaeae;
+            background: rgba(255, 255, 255, 0.95);
             transition: transform 300ms ease-in-out;
-            transform: translate(0, 100vh);
           }
 
           .modal-container.is-visible {
-            transform: translate(0, 0);
           }
 
           .modal-content {
-            transform: translate(-50%, -50%);
-            position: absolute;
-            top: 50%;
-            left: 50%;
           }
         `}</style>
         <div className="modal-content">{children}</div>
@@ -48,10 +52,10 @@ class Modal extends Component {
     );
   }
 
-  toggleModal = () => {
+  toggleModal = (): void => {
     // if (e && !/container/.test(e.target.className)) return;
     this.setState({ isVisible: !this.state.isVisible });
   };
 }
 
-export default Modal;
+export default InlinePopup;

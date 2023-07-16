@@ -1,4 +1,3 @@
-import React from 'react';
 import { connect } from 'react-redux';
 
 import {
@@ -14,8 +13,24 @@ import Column from './Column';
 import Row from './Row';
 import RowHeader from './RowHeader';
 import Tag from './Tag';
+import { ArtistShows, Meta, Show } from '../types';
 
-const ShowsColumn = ({ artistShows, artistSlug, year, displayDate }) => {
+type ShowsColumnProps = {
+  artistShows: {
+    data: ArtistShows;
+    meta: Meta;
+  };
+  artistSlug: string;
+  year: string;
+  displayDate: string;
+};
+
+const ShowsColumn = ({
+  artistShows,
+  artistSlug,
+  year,
+  displayDate,
+}: ShowsColumnProps): JSX.Element => {
   const tours = {};
 
   return (
@@ -31,10 +46,10 @@ const ShowsColumn = ({ artistShows, artistSlug, year, displayDate }) => {
       `}</style>
       {artistShows.data &&
         artistShows.data.shows &&
-        sortActiveBands(artistSlug, artistShows.data.shows).map((show) => {
+        sortActiveBands(artistSlug, artistShows.data.shows).map((show: Show) => {
           const { year, month, day } = splitShowDate(show.display_date);
           const { venue, avg_duration, tour } = show;
-          let tourName;
+          let tourName: string;
 
           // keep track of which tours we've displayed
           if (tour) {
@@ -77,7 +92,7 @@ const ShowsColumn = ({ artistShows, artistSlug, year, displayDate }) => {
   );
 };
 
-const mapStateToProps = ({ shows, app }) => {
+const mapStateToProps = ({ shows, app }): ShowsColumnProps => {
   const artistShows =
     shows[app.artistSlug] && shows[app.artistSlug][app.year] ? shows[app.artistSlug][app.year] : {};
 

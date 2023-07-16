@@ -1,14 +1,29 @@
-import React from 'react';
 import { Component, Fragment } from 'react';
 import Link from 'next/link';
 import { connect } from 'react-redux';
 
 import Player from './Player';
-import Modal from './Modal';
 import InlinePopup from './InlinePopup';
 import Menu from './Menu';
+import { Artist, Meta } from '../types';
 
-class Navigation extends Component {
+type NavigationProps = {
+  artists: {
+    data: Artist[];
+    meta: Meta;
+  };
+  // TODO: Update type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  app: any;
+  navPrefix?: string;
+  navSubtitle?: string;
+  navURL?: string;
+};
+
+class Navigation extends Component<NavigationProps> {
+  // TODO: Update type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  modal: any;
   render() {
     return (
       <div className="navigation">
@@ -19,10 +34,10 @@ class Navigation extends Component {
             height: 50px;
             min-height: 50px;
             max-height: 50px;
-            border-bottom: 1px solid #AEAEAE;
+            border-bottom: 1px solid #aeaeae;
             position: relative;
             color: #333;
-            background: #FFF;
+            background: #fff;
           }
 
           .navigation .relisten-mobile {
@@ -53,21 +68,22 @@ class Navigation extends Component {
             text-align: center;
           }
 
-          .menu-button
-            display flex
-            align-items center
+          .menu-button {
+            display: flex;
+            align-items: center;
+          }
 
           @media (max-width: 980px) {
-              .player {
-                min-width: 60%;
-              }
+            .player {
+              min-width: 60%;
             }
+          }
 
           @media (max-width: 480px) {
-              .player {
-                min-width: 80%;
-              }
+            .player {
+              min-width: 80%;
             }
+          }
 
           .right {
             height: 100%;
@@ -80,7 +96,8 @@ class Navigation extends Component {
             cursor: pointer;
           }
 
-          :global(.navigation a), .right > div {
+          :global(.navigation a),
+          .right > div {
             padding: 0 4px;
             height: 100%;
           }
@@ -90,7 +107,8 @@ class Navigation extends Component {
             text-transform: uppercase;
           }
 
-          a:active, .right > div:active {
+          a:active,
+          .right > div:active {
             color: #333;
             position: relative;
             top: 1px;
@@ -111,11 +129,11 @@ class Navigation extends Component {
               display: flex;
             }
 
-            :global(.navigation .left > span.to), :global(.navigation .artist) {
+            :global(.navigation .left > span.to),
+            :global(.navigation .artist) {
               display: none;
             }
           }
-
         `}</style>
         <div className="left">
           <Link href="/" legacyBehavior>
@@ -205,12 +223,12 @@ class Navigation extends Component {
     );
   }
 
-  toggleMenu = async () => {
+  toggleMenu = async (): Promise<void> => {
     this.modal.toggleModal();
   };
 }
 
-const mapStateToProps = ({ app, artists }) => {
+const mapStateToProps = ({ app, artists }): NavigationProps => {
   return {
     app,
     artists,

@@ -7,26 +7,39 @@ import Column from './Column';
 import Row from './Row';
 import RowHeader from './RowHeader';
 import Tag from './Tag';
+import { Meta, Source, Tape } from '../types';
 
-const exists = (str) => {
+const exists = (str: string): boolean => {
   return str && !/unknown/i.test(str);
 };
 
-const cleanFlac = (str) => {
+const cleanFlac = (str: string): string => {
   return str ? str.replace(/Flac|Bit/g, '') + '-BIT ' : '';
 };
 
 // TODO: i18n
-const pluralize = (str, count) => {
+const pluralize = (str: string, count: number): string => {
   if (count === 1) return str;
 
   return str + 's';
 };
 
-const TapesColumn = ({ tapes, artistSlug, activeSourceId }) => {
+type TapesColumnProps = {
+  tapes: {
+    data: Tape;
+    meta: Meta;
+  };
+  artistSlug: string;
+  activeSourceId: number;
+};
+
+const TapesColumn = ({ tapes, artistSlug, activeSourceId }: TapesColumnProps): JSX.Element => {
   const sources =
     tapes.data && tapes.data.sources && tapes.data.sources.length ? tapes.data.sources : null;
-  const { year, month, day } = sources ? splitShowDate(sources[0].display_date) : {};
+
+  const { year, month, day } = sources
+    ? splitShowDate(sources[0].display_date)
+    : { year: '', month: '', day: '' };
 
   return (
     <Column heading="Sources" loading={tapes.meta && tapes.meta.loading} loadingAmount={1}>
@@ -54,7 +67,7 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }) => {
         }
       `}</style>
       {sources &&
-        sources.map((source, idx) => (
+        sources.map((source: Source, idx: number) => (
           <div key={source.id}>
             <RowHeader>
               SOURCE {idx + 1} OF {sources.length}
@@ -72,7 +85,7 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }) => {
                   )}
                   {source.is_remaster && <Tag>REMASTER</Tag>}
                 </div>
-                {exists(source.avg_rating > 0) && (
+                {source.avg_rating > 0 && (
                   <div className="details">
                     <div className="label">{artistSlug === 'phish' ? 'Dot Net' : 'Rating'}:</div>{' '}
                     <div>
@@ -121,23 +134,22 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }) => {
   );
 };
 
-const TaperNotes = ({ notes }) => {
+const TaperNotes = ({ notes }: { notes: string }): JSX.Element => {
   if (!notes) return null;
 
-  const onClick = (e) => {
-    // e.preventDefault();
+  const onClick = (e: React.MouseEvent<HTMLDetailsElement, MouseEvent>) => {
     e.stopPropagation();
   };
 
   return (
-    <details onClick={onClick} style={{ whiteSpace: 'pre-wrap' }}>
+    <details onClick={(e) => onClick(e)} style={{ whiteSpace: 'pre-wrap' }}>
       <summary>View Notes</summary>
       {notes}
     </details>
   );
 };
 
-const mapStateToProps = ({ tapes, app }) => {
+const mapStateToProps = ({ tapes, app }): TapesColumnProps => {
   const showDate = createShowDate(app.year, app.month, app.day);
   const showTapes =
     tapes[app.artistSlug] && tapes[app.artistSlug][showDate] ? tapes[app.artistSlug][showDate] : {};

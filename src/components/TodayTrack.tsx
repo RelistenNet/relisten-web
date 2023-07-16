@@ -1,16 +1,16 @@
-import React from 'react';
 import Link from 'next/link';
-
 import { splitShowDate } from '../lib/utils';
+import { Day } from '../types';
 
-const createURL = (obj) => {
+const createURL = (obj: Day): string => {
   const { year, month, day } = splitShowDate(obj.display_date);
 
   return '/' + [obj.artist.slug, year, month, day].join('/');
 };
 
-export default ({ day = {} }) =>
-  !day ? null : (
+// eslint-disable-next-line react/display-name
+export default ({ day }: { day: Day }): JSX.Element => {
+  return !day ? null : (
     <Link href="/" as={createURL(day)} legacyBehavior>
       <div className="container">
         <div className="info">
@@ -45,3 +45,4 @@ export default ({ day = {} }) =>
       </div>
     </Link>
   );
+};

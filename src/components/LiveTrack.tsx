@@ -1,11 +1,11 @@
-import React from 'react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import TimeAgo from 'react-timeago';
 
 import { splitShowDate } from '../lib/utils';
+import { TrackSource, Track, Venue } from '../types';
 
-const createURL = (track) => {
+const createURL = (track: { track: Track; source: TrackSource }): string => {
   const { year, month, day } = splitShowDate(track.source.display_date);
 
   return (
@@ -15,25 +15,31 @@ const createURL = (track) => {
   );
 };
 
-const getVenueInfo = (track) => {
-  if (track.source.artist && track.source.artist.features) {
-    if (
-      track.source.artist.features.per_show_venues &&
-      track.source.artist.features.per_source_venues
-    ) {
-      return track.source.show.venue;
+const getVenueInfo = (track: TrackSource): Venue => {
+  if (track.artist && track.artist.features) {
+    if (track.artist.features.per_show_venues && track.artist.features.per_source_venues) {
+      return track.show.venue;
     }
 
-    if (track.source.artist.features.per_show_venues) {
-      return track.source.show.venue;
+    if (track.artist.features.per_show_venues) {
+      return track.show.venue;
     }
 
-    return track.source.venue;
+    return track.venue;
   }
 };
 
-const VenueInfo = ({ track, app_type_description, created_at }) => {
-  const info = getVenueInfo(track);
+type VenueInfoProps = {
+  track: {
+    track: Track;
+    source: TrackSource;
+  };
+  app_type_description: string;
+  created_at: string;
+};
+
+const VenueInfo = ({ track, app_type_description, created_at }: VenueInfoProps): JSX.Element => {
+  const info = getVenueInfo(track.source);
   return info ? (
     <div>
       <div>
@@ -50,15 +56,27 @@ const VenueInfo = ({ track, app_type_description, created_at }) => {
 };
 
 // shorten date
-const formatterFn = (value, unit) => value + unit.slice(0, 1);
+const formatterFn = (value: number, unit: string) => value + unit.slice(0, 1);
 
+type LiveTrackProps = {
+  app_type_description: string;
+  created_at: string;
+  track: {
+    source: TrackSource;
+    track: Track;
+  };
+  isFirstRender: boolean;
+  isLastSeen: boolean;
+};
+
+// eslint-disable-next-line react/display-name
 export default ({
   app_type_description = '',
   created_at,
   track,
   isFirstRender,
   isLastSeen,
-} = {}) => {
+}: LiveTrackProps): JSX.Element => {
   const [isMounted, setMounted] = useState(false);
 
   useEffect(() => {

@@ -1,6 +1,11 @@
 import React from 'react';
 
-const RowHeader = ({ height, children }) => (
+type RowHeaderProps = {
+  height?: number;
+  children?: React.ReactNode;
+};
+
+const RowHeader = ({ height, children }: RowHeaderProps) => (
   <div className="header" style={{ minHeight: !children ? 16 : height }}>
     <style jsx>{`
       .header {
