@@ -1,9 +1,17 @@
 import React from 'react';
 import { Component } from 'react';
 
-class Modal extends Component {
-  constructor(props, ctx) {
-    super(props, ctx);
+type ModalProps = {
+  children: React.ReactNode;
+}
+
+type ModalState = {
+  isVisible: boolean;
+}
+
+class Modal extends Component<ModalProps, ModalState> {
+  constructor(props: ModalProps) {
+    super(props);
 
     this.state = {
       isVisible: false,
@@ -48,7 +56,7 @@ class Modal extends Component {
     );
   }
 
-  toggleModal = () => {
+  toggleModal = (): void => {
     // if (e && !/container/.test(e.target.className)) return;
     this.setState({ isVisible: !this.state.isVisible });
   };
