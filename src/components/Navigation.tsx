@@ -7,8 +7,21 @@ import Player from './Player';
 import Modal from './Modal';
 import InlinePopup from './InlinePopup';
 import Menu from './Menu';
+import { Artist, Meta } from '../types';
 
-class Navigation extends Component {
+type NavigationProps = {
+  artists: {
+    data: Artist[];
+    meta: Meta;
+  }
+  app: any
+  navPrefix?: string;
+  navSubtitle?: string;
+  navURL?: string;
+}
+
+class Navigation extends Component<NavigationProps> {
+  modal: any;
   render() {
     return (
       <div className="navigation">
@@ -205,12 +218,12 @@ class Navigation extends Component {
     );
   }
 
-  toggleMenu = async () => {
+  toggleMenu = async (): Promise<void> => {
     this.modal.toggleModal();
   };
 }
 
-const mapStateToProps = ({ app, artists }) => {
+const mapStateToProps = ({ app, artists }): NavigationProps => {
   return {
     app,
     artists,
