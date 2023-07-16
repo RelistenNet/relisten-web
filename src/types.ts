@@ -270,7 +270,7 @@ export type Source = {
   has_jamcharts: boolean;
   avg_rating: number;
   num_reviews: number;
-  num_ratings: null;
+  num_ratings: number | null;
   avg_rating_weighted: number;
   duration: number;
   upstream_identifier: string;
@@ -289,3 +289,33 @@ export type GaplessMetadata = {
   };
   webAudioLoadingState: string;
 }
+
+export type Tape = {
+  sources: Source[];
+  artist_id: number;
+  artist_uuid: string;
+  venue_id: number;
+  venue: Venue;
+  venue_uuid: string;
+  tour_id: number;
+  tour_uuid: string;
+  tour: Tour;
+  year_id: number;
+  year_uuid: string;
+  year: Year;
+  era_id: null;
+  era: null;
+  date: string;
+  avg_rating: number;
+  avg_duration: number;
+  display_date: string;
+  most_recent_source_updated_at: string;
+  has_soundboard_source: boolean;
+  has_streamable_flac_source: boolean;
+  source_count: number;
+  uuid: string;
+  id: number;
+  created_at: string;
+  updated_at: string;
+}
+

@@ -37,8 +37,6 @@ const SongsColumn = ({
     : { year: '', month: '', day: ''};
   const isActiveSource = source ? source.id === activePlaybackSourceId : false;
 
-  console.log('Leithen', gaplessTracksMetadata)
-
   return (
     <Column
       heading={
