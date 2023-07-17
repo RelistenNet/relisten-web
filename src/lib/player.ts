@@ -5,17 +5,38 @@ import { splitShowDate } from './utils';
 
 import { scrobblePlay } from '../redux/modules/live';
 import { updatePlayback } from '../redux/modules/playback';
+import { ActiveTrack, GaplessMetadata } from '../types';
+
+declare global {
+  interface Window {
+    player: HTMLAudioElement;
+    UPDATED_TRACK_VIA_GAPLESS: boolean;
+  }
+}
 
 // Returns a function, that, when invoked, will only be triggered at most once
 // during a given window of time. Normally, the throttled function will run
 // as much as it can, without ever going more than once per `wait` duration;
 // but if you'd like to disable the execution on the leading edge, pass
 // `{leading: false}`. To disable execution on the trailing edge, ditto.
-function throttle(func, wait, options) {
-  let context, args, result;
+function throttle(
+  func: ({
+    isPaused,
+    currentTime,
+    duration,
+  }: {
+    isPaused: boolean;
+    currentTime: string;
+    duration: number;
+  }) => void,
+  wait: number,
+  options?: { leading: boolean; trailing: boolean },
+  ...args: IArguments[]
+) {
+  let context, result;
   let timeout = null;
   let previous = 0;
-  if (!options) options = {};
+  if (!options) options = { leading: true, trailing: true };
   const later = function () {
     previous = options.leading === false ? 0 : Date.now();
     timeout = null;
@@ -26,8 +47,8 @@ function throttle(func, wait, options) {
     const now = Date.now();
     if (!previous && options.leading === false) previous = now;
     const remaining = wait - (now - previous);
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     context = this;
-    args = arguments;
     if (remaining <= 0 || remaining > wait) {
       if (timeout) {
         clearTimeout(timeout);
@@ -43,27 +64,39 @@ function throttle(func, wait, options) {
   };
 }
 
-const updateLocalStorage = ({ isPaused, currentTime, duration }) => {
+const updateLocalStorage = ({
+  isPaused,
+  currentTime,
+  duration,
+}: {
+  isPaused: boolean;
+  currentTime: string;
+  duration: number;
+}) => {
   localStorage.isPaused = isPaused;
   localStorage.currentTime = currentTime;
   localStorage.duration = duration;
 };
 
-const throttledUpdateLocalStorage = throttle(updateLocalStorage, 1000);
+const throttledUpdateLocalStorage = () => {
+  throttle(updateLocalStorage, 1000);
+};
 
-let store;
-let mounted;
+// TODO: Update type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let store: any;
+let mounted: boolean;
 const player = new Gapless.Queue({
   onProgress: () => {
     if (!store) return;
     if (player.currentTrack) {
-      throttledUpdateLocalStorage(player.currentTrack);
+      throttledUpdateLocalStorage();
     }
     store.dispatch(
       updatePlayback({
         activeTrack: player.currentTrack ? player.currentTrack.completeState : {},
         gaplessTracksMetadata: player.tracks
-          ? player.tracks.map((metadata) => ({
+          ? player.tracks.map((metadata: GaplessMetadata) => ({
               idx: metadata.idx,
               trackMetadata: metadata.metadata, // <-- lol, I suck.
               playbackType: metadata.playbackType,
@@ -74,7 +107,7 @@ const player = new Gapless.Queue({
       })
     );
   },
-  onStartNewTrack: (currentTrack) => {
+  onStartNewTrack: (currentTrack: ActiveTrack) => {
     if (!store) return;
 
     const idx = currentTrack.idx;

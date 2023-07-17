@@ -133,7 +133,7 @@ export type Track = {
   updated_at?: string;
 };
 
-export interface Show {
+export type Show = {
   id: number;
   artist_id?: number;
   artist_uuid?: string;
@@ -159,7 +159,7 @@ export interface Show {
   uuid?: string;
   created_at?: string;
   updated_at?: string;
-}
+};
 
 export type TrackSource = {
   id: number;
@@ -284,6 +284,9 @@ export type GaplessMetadata = {
   idx?: number;
   loadedHead?: undefined;
   playbackType?: string;
+  //TODO: Update type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  metadata?: any;
   trackMetadata?: {
     trackId?: number;
   };

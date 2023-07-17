@@ -14,4 +14,4 @@ if (typeof window === 'undefined') {
     );
 }
 
-export { artistSlugs };
+export default artistSlugs;
