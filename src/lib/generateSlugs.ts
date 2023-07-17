@@ -1,10 +1,15 @@
 import fs from 'fs';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { Artist } from '../types';
-require('isomorphic-fetch');
+import fetch from 'isomorphic-fetch';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 fetch('https://api.relisten.net/api/v2/artists')
-  .then((res) => res.json())
-  .then((json) => {
+  .then((res: Response) => res.json())
+  .then((json: object[]) => {
     const str = json.map((artist: Artist) => `"${artist.slug}"`).join(',');
 
     fs.writeFileSync(__dirname + '/rawSlugs.ts', `module.exports = [${str}]`);
