@@ -27,8 +27,9 @@ import TapesColumn from '../components/TapesColumn';
 import SongsColumn from '../components/SongsColumn';
 import { useStore } from 'react-redux';
 import { API_DOMAIN } from '../lib/constants';
+import { Set } from '../types';
 
-const routeChangeStart = (store) => async (url) => {
+const routeChangeStart = (store: any) => async (url: string) => {
   if (typeof window !== 'undefined' && window.UPDATED_TRACK_VIA_GAPLESS) {
     window.UPDATED_TRACK_VIA_GAPLESS = false;
     return 'nonsense';
@@ -51,7 +52,7 @@ const Root = ({
   },
 }) => {
   const store = useStore();
-  let title = false;
+  let title;
   let activeColumn = 'artists';
 
   React.useEffect(() => {
@@ -94,7 +95,7 @@ const Root = ({
         return;
       }
 
-      await playSong(store);
+      await playSong(store, false);
 
       const paramsObj = getParams(window.location.search);
 
@@ -189,7 +190,7 @@ const Root = ({
   );
 };
 
-const handleRouteChange = (store, url, forceIsPaused) => {
+const handleRouteChange = (store: any, url: string, forceIsPaused = false) => {
   const dispatches = [];
   const afterDispatches = [];
   const { isMobile } = store.getState().app;
@@ -258,7 +259,7 @@ const handleRouteChange = (store, url, forceIsPaused) => {
 
   if (pathname === '/' && !isMobile) {
     dispatches.push(
-      new Promise(async (resolve) => {
+      new Promise<void>(async (resolve) => {
         await store.dispatch(fetchArtists());
 
         const { artists } = store.getState();
@@ -330,14 +331,14 @@ Root.getInitialProps = wrapper.getInitialPageProps((store) => async ({ req }) =>
   };
 });
 
-const playSong = async (store, forceIsPaused) => {
+const playSong = async (store: any, forceIsPaused: boolean) => {
   const { playback, tapes } = store.getState();
   const { artistSlug, showDate, source, songSlug } = playback;
   const activePlaybackSourceId = parseInt(source, 10);
   const showTapes =
     tapes[artistSlug] && tapes[artistSlug][showDate] ? tapes[artistSlug][showDate] : null;
   const playImmediately = forceIsPaused ? false : true;
-  let tape;
+  let tape: any;
 
   if (!showTapes) return console.log('err showTapes');
 
@@ -353,7 +354,7 @@ const playSong = async (store, forceIsPaused) => {
   let currentIdx = 0;
   const tracks = [];
 
-  tape.sets.map((set) =>
+  tape.sets.map((set: Set) =>
     set.tracks.map((track) => {
       tracks.push(track);
       if (track.slug === songSlug) {
@@ -402,17 +403,13 @@ const playSong = async (store, forceIsPaused) => {
   player.gotoTrack(currentIdx, playImmediately);
 };
 
-const getRandomShow = (artistSlug, store) => {
-  return fetch(`${API_DOMAIN}/api/v2/artists/${artistSlug}/shows/random`)
-    .then((res) => res.json())
-    .then((json) => {
-      if (!json) return;
-
-      const { year, month, day } = splitShowDate(json.display_date);
-      const [dispatches] = handleRouteChange(store, `/${artistSlug}/${year}/${month}/${day}`);
-
-      return Promise.all(dispatches);
-    });
+const getRandomShow = async (artistSlug: string, store: any) => {
+  const res = await fetch(`${API_DOMAIN}/api/v2/artists/${artistSlug}/shows/random`);
+  const json = await res.json();
+  if (!json) return;
+  const { year, month, day } = splitShowDate(json.display_date);
+  const [dispatches] = handleRouteChange(store, `/${artistSlug}/${year}/${month}/${day}`);
+  return await Promise.all(dispatches);
 };
 
 export default Root;
