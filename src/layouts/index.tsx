@@ -1,7 +1,7 @@
 import React from 'react';
 import Navigation from '../components/Navigation';
 
-const Index = ({ children, ...props }) => (
+const Index = ({ children, ...props }): JSX.Element => (
   <div className="layout">
     <style jsx>{`
       .layout {
