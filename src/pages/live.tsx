@@ -9,7 +9,7 @@ import { fetchLive } from '../redux/modules/live';
 import LiveTrack from '../components/LiveTrack';
 import { wrapper } from '../redux';
 
-function uniqBy(a, key) {
+function uniqBy(a, key: (item: any) => boolean) {
   const seen = new Set();
   return a.filter((item) => {
     const k = key(item);
@@ -17,19 +17,25 @@ function uniqBy(a, key) {
   });
 }
 
-const keyFn = (item) => {
+const keyFn = (item: any): boolean => {
   return item && item.track && item.track.track && item.track.track.id;
 };
 
-class Live extends Component {
+type LiveProps = {
+  store: any;
+  live: any;
+}
+
+class Live extends Component<LiveProps> {
   state = {
     isMounted: false,
     lastSeenId: null,
   };
+  intervalId: NodeJS.Timer
 
   static getInitialProps = wrapper.getInitialPageProps(
     (store) =>
-      ({ isServer, pathname, query }) => {
+      () => {
         store.dispatch(fetchLive());
 
         return {
@@ -92,4 +98,4 @@ class Live extends Component {
   }
 }
 
-export default connect(({ live }) => ({ live }))(Live);
+export default connect(( live ) => ({ live }))(Live);
