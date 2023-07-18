@@ -17,11 +17,12 @@ import 'core-js/features/string/starts-with';
 import { useRouter } from 'next/router';
 import { wrapper } from '../redux';
 import { Provider } from 'react-redux';
+import React from 'react';
 
 // const SENTRY_PUBLIC_DSN = 'https://9113aa54177a4e9fa09ea0aeaf0558e1@scentry.typetwo.space/5';
 
-const MyApp = ({ Component, ...rest }) => {
-  const { store, props } = wrapper.useWrappedStore(rest);
+const MyApp = ({ Component, ...rest }): JSX.Element => {
+  const { store } = wrapper.useWrappedStore(rest);
   const router = useRouter();
   const fullPath = router.asPath;
   const content = 'app-id=715886886, app-argument=https://relisten.net' + fullPath;
@@ -35,6 +36,9 @@ const MyApp = ({ Component, ...rest }) => {
       <Head>
         <title>Relisten</title>
         <meta name="apple-itunes-app" content={content} />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <meta httpEquiv="Content-Language" content="en" />
+        <meta name="google" content="notranslate" />
       </Head>
       <Provider store={store}>
         <Component {...rest.pageProps} store={store} />
