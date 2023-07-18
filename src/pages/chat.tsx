@@ -3,7 +3,7 @@ import Head from 'next/head';
 
 import Layout from '../layouts';
 
-const Chat = () => (
+const Chat = (): JSX.Element => (
   <Layout navPrefix="WITH" navSubtitle="US" navURL="/sonos">
     <style jsx>{`
       .page-container {
