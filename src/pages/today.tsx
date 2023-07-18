@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import { Component } from 'react';
 import Head from 'next/head';
 import { connect } from 'react-redux';
 
@@ -13,8 +13,10 @@ import { wrapper } from '../redux';
 import { Artist, Day } from '../types';
 
 type TodayProps = {
+  // TODO: Update type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   today: any;
-}
+};
 
 class Today extends Component<TodayProps> {
   static getInitialProps = wrapper.getInitialPageProps((store) => async () => {
@@ -28,7 +30,10 @@ class Today extends Component<TodayProps> {
   render() {
     const { today } = this.props;
 
-    const artists: Artist[] = today.data.map((day: Day) => ({ ...day, artistName: day.artist.name }));
+    const artists: Artist[] = today.data.map((day: Day) => ({
+      ...day,
+      artistName: day.artist.name,
+    }));
     const groupedBy: Day[][] = groupBy(artists, 'artistName');
 
     return (
@@ -67,4 +72,4 @@ class Today extends Component<TodayProps> {
   }
 }
 
-export default connect(( today ) => ({ today }))(Today);
+export default connect((today) => ({ today }))(Today);

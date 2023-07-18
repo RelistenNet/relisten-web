@@ -12,5 +12,5 @@ fetch('https://api.relisten.net/api/v2/artists')
   .then((json: object[]) => {
     const str = json.map((artist: Artist) => `"${artist.slug}"`).join(',');
 
-    fs.writeFileSync(__dirname + '/rawSlugs.ts', `module.exports = [${str}]`);
+    fs.writeFileSync(__dirname + '/rawSlugs.ts', `export default [${str}]`);
   });

@@ -27,7 +27,7 @@ import TapesColumn from '../components/TapesColumn';
 import SongsColumn from '../components/SongsColumn';
 import { useStore } from 'react-redux';
 import { API_DOMAIN } from '../lib/constants';
-import { Set } from '../types';
+import { Artist, Meta, Set } from '../types';
 
 const routeChangeStart = (store: any) => async (url: string) => {
   if (typeof window !== 'undefined' && window.UPDATED_TRACK_VIA_GAPLESS) {
@@ -40,6 +40,21 @@ const routeChangeStart = (store: any) => async (url: string) => {
   await Promise.all(afterDispatches.map((f) => f()));
 };
 
+type RootProps = {
+  initialProps: {
+    app: any;
+    playback: any;
+    url: string;
+    isMobile: boolean;
+    artists: {
+      data: Artist[];
+      meta: Meta;
+    };
+    serverRenderedMP3: any;
+    serverRenderedSongTitle: any;
+  };
+};
+
 const Root = ({
   initialProps: {
     app = {},
@@ -50,7 +65,7 @@ const Root = ({
     serverRenderedMP3,
     serverRenderedSongTitle,
   },
-}) => {
+}: RootProps) => {
   const store = useStore();
   let title;
   let activeColumn = 'artists';

@@ -21,7 +21,11 @@ import React from 'react';
 
 // const SENTRY_PUBLIC_DSN = 'https://9113aa54177a4e9fa09ea0aeaf0558e1@scentry.typetwo.space/5';
 
-const MyApp = ({ Component, ...rest }): JSX.Element => {
+type MyAppProps = {
+  Component: React.ElementType;
+};
+
+const MyApp = ({ Component, ...rest }: MyAppProps): JSX.Element => {
   const { store } = wrapper.useWrappedStore(rest);
   const router = useRouter();
   const fullPath = router.asPath;
@@ -41,6 +45,8 @@ const MyApp = ({ Component, ...rest }): JSX.Element => {
         <meta name="google" content="notranslate" />
       </Head>
       <Provider store={store}>
+        {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+        {/* @ts-ignore */}
         <Component {...rest.pageProps} store={store} />
       </Provider>
     </>

@@ -12,7 +12,7 @@ export default class MyDocument extends Document {
     const headStyle = `
       body { margin: 0; font-family: Roboto, Helvetica, Helvetica Neue, sans-serif; -webkit-font-smoothing: antialiased; color: #333; }
       a { text-decoration: none; color: #333; }
-    `
+    `;
     return (
       <Html>
         <Head>

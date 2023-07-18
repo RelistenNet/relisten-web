@@ -4,7 +4,7 @@ import { configureStore } from '@reduxjs/toolkit';
 
 export const initStore = () => {
   const store = configureStore({
-    reducer: reducers
+    reducer: reducers,
   });
 
   if (typeof window !== 'undefined') {

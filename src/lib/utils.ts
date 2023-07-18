@@ -21,6 +21,8 @@ export const splitShowDate = (showDate = ''): { year: string; month: string; day
   return { year, month, day };
 };
 
+// TODO: Update type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getParams = (query: string): any => {
   if (!query) {
     return {};
