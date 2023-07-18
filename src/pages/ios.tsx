@@ -3,7 +3,7 @@ import Head from 'next/head';
 
 import Layout from '../layouts';
 
-const IOS = () => (
+const IOS = (): JSX.Element => (
   <Layout navPrefix="ON" navSubtitle="iOS" navURL="/ios">
     <style jsx>{`
       .page-container {
