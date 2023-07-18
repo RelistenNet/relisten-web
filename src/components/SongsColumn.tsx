@@ -15,12 +15,12 @@ const getSetTime = (set: Set): string =>
   );
 
 type SongsColumnProps = {
-  source: Source;
-  loading: boolean;
-  artistSlug: string;
-  songSlug: string;
-  activePlaybackSourceId: number;
-  gaplessTracksMetadata: GaplessMetadata[];
+  source?: Source;
+  loading?: boolean;
+  artistSlug?: string;
+  songSlug?: string;
+  activePlaybackSourceId?: number;
+  gaplessTracksMetadata?: GaplessMetadata[];
 };
 
 const SongsColumn = ({

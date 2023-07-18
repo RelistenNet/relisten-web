@@ -1,3 +1,4 @@
+import { NextPageContext } from 'next/types';
 import React from 'react';
 import { Component } from 'react';
 

@@ -1,5 +1,5 @@
 import Router from 'next/router';
-import Gapless from '../../public/gapless';
+import Gapless from '../../public/gapless.cjs';
 
 import { splitShowDate } from './utils';
 
@@ -11,6 +11,7 @@ declare global {
   interface Window {
     player: HTMLAudioElement;
     UPDATED_TRACK_VIA_GAPLESS: boolean;
+    FLAC: string;
   }
 }
 

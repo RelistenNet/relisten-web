@@ -21,7 +21,7 @@ export const splitShowDate = (showDate = ''): { year: string; month: string; day
   return { year, month, day };
 };
 
-export const getParams = (query: string): object => {
+export const getParams = (query: string): any => {
   if (!query) {
     return {};
   }
