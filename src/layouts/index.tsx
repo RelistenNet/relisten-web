@@ -1,7 +1,14 @@
 import React from 'react';
 import Navigation from '../components/Navigation';
 
-const Index = ({ children, ...props }) => (
+type IndexProps = {
+  children: React.ReactNode;
+  navPrefix?: string;
+  navSubtitle?: string;
+  navURL?: string;
+};
+
+const Index = ({ children, ...props }: IndexProps): JSX.Element => (
   <div className="layout">
     <style jsx>{`
       .layout {

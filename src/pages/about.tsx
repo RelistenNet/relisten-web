@@ -1,10 +1,10 @@
-import React from 'react';
+/* eslint-disable react/no-unescaped-entities */
 import Head from 'next/head';
 import Link from 'next/link';
 
 import Layout from '../layouts';
 
-const About = () => {
+const About = (): JSX.Element => {
   const toggleGapless = () => {
     localStorage.forceGaplessOn = Number(localStorage.forceGaplessOn) ? 0 : 1;
 

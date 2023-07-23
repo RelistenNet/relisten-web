@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import { Component } from 'react';
 import Head from 'next/head';
 import { connect } from 'react-redux';
 
@@ -10,8 +10,15 @@ import { fetchToday } from '../redux/modules/today';
 
 import TodayTrack from '../components/TodayTrack';
 import { wrapper } from '../redux';
+import { Artist, Day } from '../types';
 
-class Today extends Component {
+type TodayProps = {
+  // TODO: Update type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  today: any;
+};
+
+class Today extends Component<TodayProps> {
   static getInitialProps = wrapper.getInitialPageProps((store) => async () => {
     await store.dispatch(fetchToday());
 
@@ -23,8 +30,11 @@ class Today extends Component {
   render() {
     const { today } = this.props;
 
-    const artists = today.data.map((day) => ({ ...day, artistName: day.artist.name }));
-    const groupedBy = groupBy(artists, 'artistName');
+    const artists: Artist[] = today.data.map((day: Day) => ({
+      ...day,
+      artistName: day.artist.name,
+    }));
+    const groupedBy: Day[][] = groupBy(artists, 'artistName');
 
     return (
       <Layout navPrefix="TO" navSubtitle="Today In History" navURL="/today">
@@ -37,7 +47,7 @@ class Today extends Component {
             <div key={artistName}>
               <div className="artist-name">{artistName}</div>
               <div>
-                {days.map((day) => (
+                {days.map((day: Day) => (
                   <TodayTrack day={day} key={day.id} />
                 ))}
               </div>
@@ -62,4 +72,4 @@ class Today extends Component {
   }
 }
 
-export default connect(({ today }) => ({ today }))(Today);
+export default connect((today) => ({ today }))(Today);

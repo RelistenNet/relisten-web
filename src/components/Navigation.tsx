@@ -8,13 +8,13 @@ import Menu from './Menu';
 import { Artist, Meta } from '../types';
 
 type NavigationProps = {
-  artists: {
+  artists?: {
     data: Artist[];
     meta: Meta;
   };
   // TODO: Update type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  app: any;
+  app?: any;
   navPrefix?: string;
   navSubtitle?: string;
   navURL?: string;
@@ -203,24 +203,28 @@ class Navigation extends Component<NavigationProps> {
       );
     }
 
-    return (
-      <Fragment>
-        {artists.data[app.artistSlug] && <span className="to">TO</span>}
-        {
-          artists.data[app.artistSlug] && (
-            <Link href="/" as={`/${app.artistSlug}`} legacyBehavior>
-              <a className="artist">
-                {artists.data[app.artistSlug].the ? 'THE ' : ''}
-                {artists.data[app.artistSlug].name}
-              </a>
-            </Link>
-          )
-          /*
-          : <span className="default">1,028,334 songs on 60,888 tapes from 102 bands</span>
-          */
-        }
-      </Fragment>
-    );
+    if (artists) {
+      return (
+        <Fragment>
+          {artists.data[app.artistSlug] && <span className="to">TO</span>}
+          {
+            artists.data[app.artistSlug] && (
+              <Link href="/" as={`/${app.artistSlug}`} legacyBehavior>
+                <a className="artist">
+                  {artists.data[app.artistSlug].the ? 'THE ' : ''}
+                  {artists.data[app.artistSlug].name}
+                </a>
+              </Link>
+            )
+            /*
+            : <span className="default">1,028,334 songs on 60,888 tapes from 102 bands</span>
+            */
+          }
+        </Fragment>
+      );
+    } else {
+      return null;
+    }
   }
 
   toggleMenu = async (): Promise<void> => {
@@ -228,7 +232,8 @@ class Navigation extends Component<NavigationProps> {
   };
 }
 
-const mapStateToProps = ({ app, artists }): NavigationProps => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mapStateToProps = (state: any, { app, artists }: NavigationProps): NavigationProps => {
   return {
     app,
     artists,

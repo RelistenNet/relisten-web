@@ -12,5 +12,6 @@ module.exports = {
   },
   globals: {
     io: 'readonly',
+    NodeJS: true,
   },
 };

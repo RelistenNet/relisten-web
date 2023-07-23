@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import { Component } from 'react';
 import Head from 'next/head';
 import { connect } from 'react-redux';
 
@@ -9,7 +9,9 @@ import { fetchLive } from '../redux/modules/live';
 import LiveTrack from '../components/LiveTrack';
 import { wrapper } from '../redux';
 
-function uniqBy(a, key) {
+// TODO: Update types
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function uniqBy(a, key: (item: any) => boolean) {
   const seen = new Set();
   return a.filter((item) => {
     const k = key(item);
@@ -17,27 +19,35 @@ function uniqBy(a, key) {
   });
 }
 
-const keyFn = (item) => {
+// TODO: Update types
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const keyFn = (item: any): boolean => {
   return item && item.track && item.track.track && item.track.track.id;
 };
 
-class Live extends Component {
+type LiveProps = {
+  // TODO: Update types
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  store: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  live: any;
+};
+
+class Live extends Component<LiveProps> {
   state = {
     isMounted: false,
     lastSeenId: null,
   };
+  intervalId: NodeJS.Timer;
 
-  static getInitialProps = wrapper.getInitialPageProps(
-    (store) =>
-      ({ isServer, pathname, query }) => {
-        store.dispatch(fetchLive());
+  static getInitialProps = wrapper.getInitialPageProps((store) => () => {
+    store.dispatch(fetchLive());
 
-        return {
-          live: store.getState().live,
-          store,
-        };
-      }
-  );
+    return {
+      live: store.getState().live,
+      store,
+    };
+  });
 
   componentDidMount() {
     const get = async () => {
@@ -92,4 +102,4 @@ class Live extends Component {
   }
 }
 
-export default connect(({ live }) => ({ live }))(Live);
+export default connect((live) => ({ live }))(Live);

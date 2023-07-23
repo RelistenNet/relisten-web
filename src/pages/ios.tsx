@@ -1,10 +1,9 @@
-import React from 'react';
 import Head from 'next/head';
 
 import Layout from '../layouts';
 
-const Chat = () => (
-  <Layout navPrefix="WITH" navSubtitle="US" navURL="/sonos">
+const IOS = (): JSX.Element => (
+  <Layout navPrefix="ON" navSubtitle="iOS" navURL="/ios">
     <style jsx>{`
       .page-container {
         flex: 1;
@@ -33,26 +32,32 @@ const Chat = () => (
       }
     `}</style>
     <Head>
-      <title>Chat | Relisten</title>
+      <title>iOS | Relisten</title>
     </Head>
     <div className="page-container">
-      <h1>Chat</h1>
+      <h1>iOS</h1>
 
-      <p>
-        We have a chatroom for you to provide feedback, report bugs, or recommend a jam. Fukuoka
-        Twist anyone?
-      </p>
+      <p>Relisten is available for download on iOS. Take all of your live recordings on the go.</p>
 
       <a
         className="button"
-        href="https://discordapp.com/invite/73fdDSS"
+        href="https://itunes.apple.com/us/app/relisten-all-live-music/id715886886?mt=8"
         target="_blank"
         rel="noreferrer"
       >
-        Join us!
+        Download it here!
+      </a>
+
+      <h3>Screenshots</h3>
+      <a
+        href="https://itunes.apple.com/us/app/relisten-all-live-music/id715886886?mt=8"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <img src="https://i.imgur.com/mevPKDB.png" alt="relisten for ios" />
       </a>
     </div>
   </Layout>
 );
 
-export default Chat;
+export default IOS;

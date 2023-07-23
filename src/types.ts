@@ -2,7 +2,7 @@ export type Meta = {
   loaded: boolean;
   loading: boolean;
   error: boolean;
-}
+};
 
 export type Artist = {
   id: number;
@@ -19,7 +19,7 @@ export type Artist = {
   the?: boolean;
   created_at?: string;
   updated_at?: string;
-}
+};
 
 export type Day = {
   id: number;
@@ -49,7 +49,7 @@ export type Day = {
   created_at?: string;
   updated_at?: string;
   artistName?: string;
-}
+};
 
 export type Venue = {
   shows_at_venue?: number;
@@ -67,7 +67,7 @@ export type Venue = {
   id: number;
   created_at?: string;
   updated_at?: string;
-}
+};
 
 export type Year = {
   id: number;
@@ -82,7 +82,7 @@ export type Year = {
   uuid?: string;
   created_at?: string;
   updated_at?: string;
-}
+};
 
 export type Features = {
   id: number;
@@ -110,30 +110,30 @@ export type Features = {
   reviews_have_ratings?: boolean;
   track_durations?: boolean;
   can_have_flac?: boolean;
-}
+};
 
 export type Track = {
-  id: number,
-  source_id?: number,
-  source_uuid?: string,
-  source_set_id?: number,
-  source_set_uuid?: string,
-  artist_id?: number,
+  id: number;
+  source_id?: number;
+  source_uuid?: string;
+  source_set_id?: number;
+  source_set_uuid?: string;
+  artist_id?: number;
   artist_uuid?: string;
   track_position?: number;
   duration?: number;
   title?: string;
   slug?: string;
   mp3_url?: string | null;
-  mp3_md5?: string | null,
-  flac_url?: string | null,
-  flac_md5?: string | null,
-  uuid?: string,
+  mp3_md5?: string | null;
+  flac_url?: string | null;
+  flac_md5?: string | null;
+  uuid?: string;
   created_at?: string;
   updated_at?: string;
-}
+};
 
-export interface Show {
+export type Show = {
   id: number;
   artist_id?: number;
   artist_uuid?: string;
@@ -159,7 +159,7 @@ export interface Show {
   uuid?: string;
   created_at?: string;
   updated_at?: string;
-}
+};
 
 export type TrackSource = {
   id: number;
@@ -185,7 +185,7 @@ export type TrackSource = {
   uuid?: string;
   created_at?: string;
   updated_at?: string;
-}
+};
 
 export type ArtistShows = {
   id: number;
@@ -201,7 +201,7 @@ export type ArtistShows = {
   uuid?: string;
   created_at?: string;
   updated_at?: string;
-}
+};
 
 export type Tour = {
   id: number;
@@ -215,7 +215,7 @@ export type Tour = {
   uuid?: string;
   created_at?: string;
   updated_at?: string;
-}
+};
 
 export type Set = {
   id: number;
@@ -230,7 +230,7 @@ export type Set = {
   tracks?: Track[];
   created_at?: string;
   updated_at?: string;
-}
+};
 
 export type Link = {
   id: number;
@@ -243,7 +243,7 @@ export type Link = {
   label?: string;
   created_at?: string;
   updated_at?: string;
-}
+};
 
 export type Source = {
   id: number;
@@ -278,17 +278,20 @@ export type Source = {
   uuid?: string;
   created_at?: string;
   updated_at?: string;
-}
+};
 
 export type GaplessMetadata = {
   idx?: number;
   loadedHead?: undefined;
   playbackType?: string;
+  //TODO: Update type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  metadata?: any;
   trackMetadata?: {
     trackId?: number;
   };
   webAudioLoadingState?: string;
-}
+};
 
 export type Tape = {
   id: number;
@@ -317,7 +320,7 @@ export type Tape = {
   uuid?: string;
   created_at?: string;
   updated_at?: string;
-}
+};
 
 export type Playback = {
   year?: string;
@@ -332,7 +335,7 @@ export type Playback = {
   currentTrackId?: number | undefined;
   artistSlug?: string;
   activeTrack?: ActiveTrack;
-}
+};
 
 export type ActiveTrack = {
   currentTime?: number;
@@ -341,4 +344,4 @@ export type ActiveTrack = {
   isPaused?: boolean;
   playbackType?: string;
   webAudioLoadingState?: string;
-}
+};

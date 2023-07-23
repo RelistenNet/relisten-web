@@ -1,27 +1,29 @@
-export const addZero = (str = '') => {
+export const addZero = (str = ''): string => {
   const int = parseInt(str, 10);
 
   if (int < 10) return '0' + String(int);
   return String(int);
 };
 
-export const removeLeadingZero = (str = '') => {
+export const removeLeadingZero = (str = ''): string => {
   const int = parseInt(str, 10);
 
   return String(int);
 };
 
-export const createShowDate = (year, month, day) => {
+export const createShowDate = (year: string, month: string, day: string): string => {
   return `${year}-${addZero(month)}-${addZero(day)}`;
 };
 
-export const splitShowDate = (showDate = '') => {
+export const splitShowDate = (showDate = ''): { year: string; month: string; day: string } => {
   const [year, month, day] = showDate.split('-');
 
   return { year, month, day };
 };
 
-export const getParams = (query) => {
+// TODO: Update type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const getParams = (query: string): any => {
   if (!query) {
     return {};
   }
@@ -33,7 +35,7 @@ export const getParams = (query) => {
   }, {});
 };
 
-export const durationToHHMMSS = (duration) => {
+export const durationToHHMMSS = (duration: number): string => {
   const prefix = duration < 0 ? '-' : '';
   let totalSeconds = Math.abs(duration);
   const hours = Math.floor(totalSeconds / 3600);
@@ -43,11 +45,13 @@ export const durationToHHMMSS = (duration) => {
 
   return (
     prefix +
-    [hours, hours ? addZero(minutes) : String(minutes), addZero(seconds)].filter((x) => x).join(':')
+    [String(hours), hours ? addZero(String(minutes)) : String(minutes), addZero(String(seconds))]
+      .filter((x) => x)
+      .join(':')
   );
 };
 
-export const simplePluralize = (str, count) => {
+export const simplePluralize = (str: string, count: number): string => {
   return `${count} ${count === 1 ? str : str + 's'}`;
 };
 

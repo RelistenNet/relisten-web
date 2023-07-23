@@ -1,17 +1,11 @@
-import { createStore, applyMiddleware, compose } from 'redux';
 import { createWrapper } from 'next-redux-wrapper';
-
-import thunk from 'redux-thunk';
-
 import reducers from './modules';
-
-const composeEnhancers =
-  typeof window !== 'undefined' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
-    ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({})
-    : compose;
+import { configureStore } from '@reduxjs/toolkit';
 
 export const initStore = () => {
-  const store = createStore(reducers, composeEnhancers(applyMiddleware(thunk)));
+  const store = configureStore({
+    reducer: reducers,
+  });
 
   if (typeof window !== 'undefined') {
     window.store = store;
