@@ -72,4 +72,4 @@ class Today extends Component<TodayProps> {
   }
 }
 
-export default connect((today) => ({ today }))(Today);
+export default connect(({ today }: any) => ({ today }))(Today);

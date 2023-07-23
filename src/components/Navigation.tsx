@@ -239,4 +239,4 @@ const mapStateToProps = ({ app, artists }: NavigationProps): NavigationProps => 
   };
 };
 
-export default connect(mapStateToProps)(Navigation);
+export default connect(mapStateToProps)(Navigation) as any;

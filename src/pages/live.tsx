@@ -9,9 +9,7 @@ import { fetchLive } from '../redux/modules/live';
 import LiveTrack from '../components/LiveTrack';
 import { wrapper } from '../redux';
 
-// TODO: Update types
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function uniqBy(a, key: (item: any) => boolean) {
+function uniqBy(a: any[], key: (item: any) => boolean) {
   const seen = new Set();
   return a.filter((item) => {
     const k = key(item);
@@ -102,4 +100,4 @@ class Live extends Component<LiveProps> {
   }
 }
 
-export default connect((live) => ({ live }))(Live);
+export default connect(({ live }: any) => ({ live }))(Live);
