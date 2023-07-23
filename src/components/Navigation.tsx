@@ -232,8 +232,7 @@ class Navigation extends Component<NavigationProps> {
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mapStateToProps = (state: any, { app, artists }: NavigationProps): NavigationProps => {
+const mapStateToProps = ({ app, artists }: NavigationProps): NavigationProps => {
   return {
     app,
     artists,
