@@ -45,7 +45,7 @@ export const durationToHHMMSS = (duration: number): string => {
 
   return (
     prefix +
-    [String(hours), hours ? addZero(String(minutes)) : String(minutes), addZero(String(seconds))]
+    [hours, hours ? addZero(String(minutes)) : String(minutes), addZero(String(seconds))]
       .filter((x) => x)
       .join(':')
   );
