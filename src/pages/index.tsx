@@ -28,6 +28,7 @@ import SongsColumn from '../components/SongsColumn';
 import { useStore } from 'react-redux';
 import { API_DOMAIN } from '../lib/constants';
 import { Artist, Meta, Set } from '../types';
+import Flex from '../components/Flex';
 
 const routeChangeStart = (store: any) => async (url: string) => {
   if (typeof window !== 'undefined' && window.UPDATED_TRACK_VIA_GAPLESS) {
@@ -154,14 +155,7 @@ const Root = ({
 
   return (
     <Layout>
-      <style jsx>{`
-        .page-container {
-          flex: 1;
-          display: flex;
-          flex-direction: row;
-        }
-      `}</style>
-      <div className="page-container">
+      <Flex className="flex-1 flex-row gap-8 px-4">
         {title && (!player || !player.tracks.length) && (
           <Head>
             <title>{title} | Relisten</title>
@@ -200,7 +194,7 @@ const Root = ({
         {(!isMobile || activeColumn === 'shows') && <ShowsColumn />}
         {(!isMobile || activeColumn === 'songs') && <SongsColumn />}
         {(!isMobile || activeColumn === 'tapes') && <TapesColumn />}
-      </div>
+      </Flex>
     </Layout>
   );
 };

@@ -15,7 +15,7 @@ const Row = ({ height, children, href, active, loading, baseHrefOverride, ...pro
   <div className="relisten-row" style={{ minHeight: height }} {...props}>
     <style jsx global>{`
       .relisten-row {
-        min-height: 34px;
+        min-height: 46px;
         display: flex;
         flex-direction: column;
         align-items: center;

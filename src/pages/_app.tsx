@@ -1,6 +1,5 @@
+import '../styles/globals.css';
 import Head from 'next/head';
-
-import '@fortawesome/fontawesome-free/css/all.css'; // import Font Awesome CSS
 
 // next.js polyfills for IE11
 import 'core-js/features/array/fill';

@@ -1,82 +1,38 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import Flex from './Flex';
 import Row from './Row';
-import { Component } from 'react';
 
 type ColumnProps = {
   loading?: boolean;
   loadingAmount?: number;
   heading?: string;
-  className?: string;
   children?: React.ReactNode;
 };
 
-class Column extends Component<ColumnProps> {
-  componentDidMount() {
-    Array.prototype.forEach.call(
-      document.querySelectorAll('.column .active'),
-      (activeRow: Element) => {
-        activeRow.scrollIntoView({
-          block: 'center',
-        });
-      }
-    );
-  }
+const Column = ({ heading, loading, loadingAmount, children }: ColumnProps) => {
+  useEffect(() => {
+    // TODO: refactor this to not use raw query calls
+    Array.prototype.forEach.call(document.querySelectorAll('.column .active'), (activeRow) => {
+      activeRow.scrollIntoView({
+        block: 'center',
+      });
+    });
+  }, []);
 
-  render(): JSX.Element {
-    const loadingAmount = this.props.loadingAmount ? this.props.loadingAmount : 20;
-
-    return (
-      <div className={`column ${this.props.className}`}>
-        <style jsx>{`
-          .column {
-            display: flex;
-            flex-direction: column;
-            flex: 1 1 0;
-            word-break: break-word;
-            padding: 0 16px;
-          }
-
-          @media only screen and (max-device-width: 736px) and (-webkit-min-device-pixel-ratio: 2) {
-            .column {
-              padding: 0;
-            }
-
-            .column-content {
-              padding-left: 8px;
-            }
-          }
-
-          .heading {
-            background: #279bbc;
-            min-height: 32px;
-            width: 100%;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-
-          .column-content {
-            flex: 1 1 0;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            overflow-x: hidden;
-          }
-
-          .column.let-flow .column-content {
-            overflow-x: initial;
-            overflow-y: initial;
-          }
-        `}</style>
-        {this.props.heading && <div className="heading">{this.props.heading}</div>}
-        <div className="column-content">
-          {this.props.loading
-            ? new Array(loadingAmount).fill(null).map((i, idx) => <Row key={idx} loading />)
-            : this.props.children}
-        </div>
-      </div>
-    );
-  }
-}
+  return (
+    <Flex className="flex-1 break-words" column>
+      {heading && (
+        <Flex center className="bg-relisten-100 min-h-[32px] w-full text-white">
+          {heading}
+        </Flex>
+      )}
+      <Flex column className="flex-1 overflow-y-auto overflow-x-hidden">
+        {loading
+          ? new Array(loadingAmount).fill(null).map((i, idx) => <Row key={idx} loading />)
+          : children}
+      </Flex>
+    </Flex>
+  );
+};
 
 export default Column;
