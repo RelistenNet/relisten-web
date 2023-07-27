@@ -1,6 +1,8 @@
 import Column from './Column';
 import Row from './Row';
 
+// TODO: replace this with shadcn/radix
+
 const Menu = (): JSX.Element => (
   <div className="menu">
     <style jsx>{`
@@ -8,7 +10,7 @@ const Menu = (): JSX.Element => (
         width: 120px;
       }
     `}</style>
-    <Column className="let-flow">
+    <Column>
       <Row baseHrefOverride="/about">About</Row>
       <Row baseHrefOverride="/today">Today</Row>
       <Row baseHrefOverride="/live">Live</Row>
