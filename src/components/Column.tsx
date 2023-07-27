@@ -22,7 +22,7 @@ const Column = ({ heading, loading, loadingAmount, children }: ColumnProps) => {
   return (
     <Flex className="flex-1 break-words" column>
       {heading && (
-        <Flex center className="bg-relisten-100 min-h-[32px] w-full text-white">
+        <Flex center className="min-h-[32px] w-full bg-relisten-100 text-white">
           {heading}
         </Flex>
       )}
