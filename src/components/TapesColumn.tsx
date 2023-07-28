@@ -8,6 +8,7 @@ import Row from './Row';
 import RowHeader from './RowHeader';
 import Tag from './Tag';
 import { Meta, Source, Tape } from '../types';
+import Flex from './Flex';
 
 const exists = (str: string): boolean => {
   return str && !/unknown/i.test(str);
@@ -54,16 +55,16 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }: TapesColumnProps): J
               active={source.id === activeSourceId || (!activeSourceId && idx === 0)}
             >
               <div>
-                <div className="mb-1 flex">
+                <Flex className="mb-1">
                   <div className="min-w-[53px]">{durationToHHMMSS(source.duration)}</div>
                   {source.is_soundboard && <Tag>SBD</Tag>}
                   {false && source.flac_type !== 'NoFlac' && (
                     <Tag>{cleanFlac(source.flac_type)}FLAC</Tag>
                   )}
                   {source.is_remaster && <Tag>REMASTER</Tag>}
-                </div>
+                </Flex>
                 {source.avg_rating > 0 && (
-                  <div className="flex py-1 text-xs">
+                  <Flex className="py-1 text-xs">
                     <div className="min-w-[48px] pr-2 text-[#696969]">
                       {artistSlug === 'phish' ? 'Dot Net' : 'Rating'}:
                     </div>{' '}
@@ -72,43 +73,43 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }: TapesColumnProps): J
                       {source.num_ratings || source.num_reviews}{' '}
                       {pluralize('rating', source.num_ratings || source.num_reviews)}
                     </div>
-                  </div>
+                  </Flex>
                 )}
                 {exists(source.taper) && (
-                  <div className="flex py-1 text-xs">
+                  <Flex className="py-1 text-xs">
                     <div className="min-w-[48px] pr-2 text-[#696969]">Taper:</div>{' '}
                     <div>{source.taper}</div>
-                  </div>
+                  </Flex>
                 )}
                 {exists(source.transferrer) && (
-                  <div className="flex py-1 text-xs">
+                  <Flex className="py-1 text-xs">
                     <div className="min-w-[48px] pr-2 text-[#696969]">Transferrer:</div>{' '}
                     <div>{source.transferrer}</div>
-                  </div>
+                  </Flex>
                 )}
                 {exists(source.upstream_identifier) && (
-                  <div className="flex py-1 text-xs">
+                  <Flex className="py-1 text-xs">
                     <div className="min-w-[48px] pr-2 text-[#696969]">SHNID:</div>{' '}
                     <div>{source.upstream_identifier}</div>
-                  </div>
+                  </Flex>
                 )}
                 {exists(source.source) && (
-                  <div className="flex py-1 text-xs">
+                  <Flex className="py-1 text-xs">
                     <div className="min-w-[48px] pr-2 text-[#696969]">Source:</div>{' '}
                     <div>{source.source}</div>
-                  </div>
+                  </Flex>
                 )}
                 {exists(source.lineage) && (
-                  <div className="flex py-1 text-xs">
+                  <Flex className="py-1 text-xs">
                     <div className="min-w-[48px] pr-2 text-[#696969]">Lineage:</div>{' '}
                     <div>{source.lineage}</div>
-                  </div>
+                  </Flex>
                 )}
                 {exists(source.taper_notes) && (
-                  <div className="flex py-1 text-xs">
+                  <Flex className="py-1 text-xs">
                     <div className="min-w-[48px] pr-2 text-[#696969]">Taper Notes:</div>{' '}
                     <TaperNotes notes={source.taper_notes} />
-                  </div>
+                  </Flex>
                 )}
               </div>
             </Row>
