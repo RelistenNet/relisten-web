@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { splitShowDate } from '../lib/utils';
 import { Day } from '../types';
+import Flex from './Flex';
 
 const createURL = (obj: Day): string => {
   const { year, month, day } = splitShowDate(obj.display_date);
@@ -12,7 +13,7 @@ const createURL = (obj: Day): string => {
 export default ({ day }: { day: Day }): JSX.Element => {
   return !day ? null : (
     <Link href="/" as={createURL(day)} legacyBehavior>
-      <div className="flex w-full cursor-pointer flex-row border-b-2 border-b-[#eee] p-3">
+      <Flex className="w-full cursor-pointer border-b-2 border-b-[#eee] p-3">
         <div className="mr-3">
           <div className="font-bold">{day.display_date}</div>
         </div>
@@ -22,7 +23,7 @@ export default ({ day }: { day: Day }): JSX.Element => {
         </div>
 
         <div className="ml-auto self-center">Listen</div>
-      </div>
+      </Flex>
     </Link>
   );
 };
