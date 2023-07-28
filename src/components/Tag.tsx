@@ -1,26 +1,14 @@
 import React from 'react';
+import Flex from './Flex';
 
 type TagProps = {
   children: React.ReactNode;
 };
 
 const Tag = ({ children }: TagProps): JSX.Element => (
-  <span className="tag">
-    <style jsx>{`
-      .tag {
-        color: #fff;
-        font-size: 0.6em;
-        border-radius: 2px;
-        background: #028f2b;
-        padding: 2px 4px;
-        display: flex;
-        align-items: center;
-        font-weight: normal;
-        margin: 0 0 0 4px;
-      }
-    `}</style>
+  <Flex className="ml-1 items-center rounded-sm bg-[#028f2b] px-1 py-[2px] text-[0.6em] font-normal text-white">
     {children}
-  </span>
+  </Flex>
 );
 
 export default Tag;
