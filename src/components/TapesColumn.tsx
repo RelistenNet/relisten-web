@@ -43,29 +43,6 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }: TapesColumnProps): J
 
   return (
     <Column heading="Sources" loading={tapes.meta && tapes.meta.loading} loadingAmount={1}>
-      <style jsx>{`
-        .details {
-          font-size: 0.7em;
-          padding: 4px 0;
-          display: flex;
-          flex-direction: row;
-        }
-
-        .details > .label {
-          color: #696969;
-          min-width: 48px;
-          padding-right: 9px;
-        }
-
-        .main {
-          display: flex;
-          margin-bottom: 4px;
-        }
-
-        .duration {
-          min-width: 53px;
-        }
-      `}</style>
       {sources &&
         sources.map((source: Source, idx: number) => (
           <div key={source.id}>
@@ -77,8 +54,8 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }: TapesColumnProps): J
               active={source.id === activeSourceId || (!activeSourceId && idx === 0)}
             >
               <div>
-                <div className="main">
-                  <div className="duration">{durationToHHMMSS(source.duration)}</div>
+                <div className="mb-1 flex">
+                  <div className="min-w-[53px]">{durationToHHMMSS(source.duration)}</div>
                   {source.is_soundboard && <Tag>SBD</Tag>}
                   {false && source.flac_type !== 'NoFlac' && (
                     <Tag>{cleanFlac(source.flac_type)}FLAC</Tag>
@@ -86,8 +63,10 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }: TapesColumnProps): J
                   {source.is_remaster && <Tag>REMASTER</Tag>}
                 </div>
                 {source.avg_rating > 0 && (
-                  <div className="details">
-                    <div className="label">{artistSlug === 'phish' ? 'Dot Net' : 'Rating'}:</div>{' '}
+                  <div className="flex py-1 text-xs">
+                    <div className="min-w-[48px] pr-2 text-[#696969]">
+                      {artistSlug === 'phish' ? 'Dot Net' : 'Rating'}:
+                    </div>{' '}
                     <div>
                       {Number(source.avg_rating).toFixed(2)} /{' '}
                       {source.num_ratings || source.num_reviews}{' '}
@@ -96,33 +75,38 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }: TapesColumnProps): J
                   </div>
                 )}
                 {exists(source.taper) && (
-                  <div className="details">
-                    <div className="label">Taper:</div> <div>{source.taper}</div>
+                  <div className="flex py-1 text-xs">
+                    <div className="min-w-[48px] pr-2 text-[#696969]">Taper:</div>{' '}
+                    <div>{source.taper}</div>
                   </div>
                 )}
                 {exists(source.transferrer) && (
-                  <div className="details">
-                    <div className="label">Transferrer:</div> <div>{source.transferrer}</div>
+                  <div className="flex py-1 text-xs">
+                    <div className="min-w-[48px] pr-2 text-[#696969]">Transferrer:</div>{' '}
+                    <div>{source.transferrer}</div>
                   </div>
                 )}
                 {exists(source.upstream_identifier) && (
-                  <div className="details">
-                    <div className="label">SHNID:</div> <div>{source.upstream_identifier}</div>
+                  <div className="flex py-1 text-xs">
+                    <div className="min-w-[48px] pr-2 text-[#696969]">SHNID:</div>{' '}
+                    <div>{source.upstream_identifier}</div>
                   </div>
                 )}
                 {exists(source.source) && (
-                  <div className="details">
-                    <div className="label">Source:</div> <div>{source.source}</div>
+                  <div className="flex py-1 text-xs">
+                    <div className="min-w-[48px] pr-2 text-[#696969]">Source:</div>{' '}
+                    <div>{source.source}</div>
                   </div>
                 )}
                 {exists(source.lineage) && (
-                  <div className="details">
-                    <div className="label">Lineage:</div> <div>{source.lineage}</div>
+                  <div className="flex py-1 text-xs">
+                    <div className="min-w-[48px] pr-2 text-[#696969]">Lineage:</div>{' '}
+                    <div>{source.lineage}</div>
                   </div>
                 )}
                 {exists(source.taper_notes) && (
-                  <div className="details">
-                    <div className="label">Taper Notes:</div>{' '}
+                  <div className="flex py-1 text-xs">
+                    <div className="min-w-[48px] pr-2 text-[#696969]">Taper Notes:</div>{' '}
                     <TaperNotes notes={source.taper_notes} />
                   </div>
                 )}
