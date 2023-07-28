@@ -12,36 +12,16 @@ const createURL = (obj: Day): string => {
 export default ({ day }: { day: Day }): JSX.Element => {
   return !day ? null : (
     <Link href="/" as={createURL(day)} legacyBehavior>
-      <div className="container">
-        <div className="info">
-          <div className="date">{day.display_date}</div>
+      <div className="flex w-full cursor-pointer flex-row border-b-2 border-b-[#eee] p-3">
+        <div className="mr-3">
+          <div className="font-bold">{day.display_date}</div>
         </div>
 
         <div>
           <div>{day.venue ? [day.venue.name, day.venue.location].join(' ') : ''}</div>
         </div>
 
-        <div className="listen">Listen</div>
-
-        <style jsx>{`
-        .container
-          width 100%
-          display flex
-          flex-direction row
-          padding 12px
-          border-bottom 1px solid #eee
-          cursor pointer
-
-        .info
-          margin-right 12px
-
-        .date
-          font-weight bold
-
-        .listen
-          margin-left auto
-          align-self center
-      `}</style>
+        <div className="ml-auto self-center">Listen</div>
       </div>
     </Link>
   );
