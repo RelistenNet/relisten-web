@@ -44,12 +44,6 @@ const SongsColumn = ({
       loading={loading}
       loadingAmount={12}
     >
-      <style jsx>{`
-        .column {
-          display: flex;
-          flex: 1;
-        }
-      `}</style>
       {source &&
         source.sets.map((set, setIdx) =>
           set.tracks.map((track, trackIdx) => {
