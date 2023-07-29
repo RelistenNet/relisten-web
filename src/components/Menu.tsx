@@ -3,14 +3,10 @@ import Row from './Row';
 
 // TODO: replace this with shadcn/radix
 
-const Menu = (): JSX.Element => (
-  <div className="menu">
-    <style jsx>{`
-      .menu {
-        width: 120px;
-      }
-    `}</style>
+const Menu = () => (
+  <div className="w-[120px]">
     <Column>
+      <Row baseHrefOverride="/">Home</Row>
       <Row baseHrefOverride="/about">About</Row>
       <Row baseHrefOverride="/today">Today</Row>
       <Row baseHrefOverride="/live">Live</Row>

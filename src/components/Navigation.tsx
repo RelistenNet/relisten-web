@@ -1,11 +1,11 @@
-import { Component, Fragment } from 'react';
 import Link from 'next/link';
+import { Component, Fragment } from 'react';
 import { connect } from 'react-redux';
 
-import Player from './Player';
-import InlinePopup from './InlinePopup';
-import Menu from './Menu';
 import { Artist, Meta } from '../types';
+import Menu from './Menu';
+import Player from './Player';
+import { SimplePopover } from './Popover';
 
 type NavigationProps = {
   artists?: {
@@ -147,12 +147,11 @@ class Navigation extends Component<NavigationProps> {
         <div className="player">
           <Player />
         </div>
-        <div className="right relisten-mobile" onClick={this.toggleMenu}>
-          <div className="menu-button">MENU</div>
-          <InlinePopup ref={(ref) => (this.modal = ref)}>
-            <Menu />
-          </InlinePopup>
-        </div>
+        <SimplePopover content={<Menu />}>
+          <div className="right relisten-mobile">
+            <div className="menu-button">MENU</div>
+          </div>
+        </SimplePopover>
         <div className="right nav desktop">
           <div>
             <Link href="/today" legacyBehavior>
@@ -226,10 +225,6 @@ class Navigation extends Component<NavigationProps> {
       return null;
     }
   }
-
-  toggleMenu = async (): Promise<void> => {
-    this.modal.toggleModal();
-  };
 }
 
 const mapStateToProps = ({ app, artists }: NavigationProps): NavigationProps => {
