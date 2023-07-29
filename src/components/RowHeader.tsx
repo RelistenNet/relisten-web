@@ -1,4 +1,5 @@
 import React from 'react';
+import Flex from './Flex';
 
 type RowHeaderProps = {
   height?: number;
@@ -6,21 +7,12 @@ type RowHeaderProps = {
 };
 
 const RowHeader = ({ height, children }: RowHeaderProps) => (
-  <div className="header" style={{ minHeight: !children ? 16 : height }}>
-    <style jsx>{`
-      .header {
-        min-height: 24px;
-        background: #f0eff4;
-        display: flex;
-        color: #696969;
-        font-size: 0.7em;
-        padding: 0 4px;
-        align-items: center;
-        justify-content: space-between;
-      }
-    `}</style>
+  <Flex
+    className="min-h-[24px] items-center justify-between bg-[#f0eff4] px-1 text-[0.7em] text-[#696969]"
+    style={{ minHeight: !children ? 16 : height }}
+  >
     {children}
-  </div>
+  </Flex>
 );
 
 export default RowHeader;
