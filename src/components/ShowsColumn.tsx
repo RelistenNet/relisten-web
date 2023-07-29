@@ -14,6 +14,7 @@ import Row from './Row';
 import RowHeader from './RowHeader';
 import Tag from './Tag';
 import { ArtistShows, Meta, Show } from '../types';
+import Flex from './Flex';
 
 type ShowsColumnProps = {
   artistShows: {
@@ -39,11 +40,6 @@ const ShowsColumn = ({
       loading={displayDate && !artistShows ? true : artistShows.meta && artistShows.meta.loading}
       loadingAmount={12}
     >
-      <style jsx>{`
-        .main {
-          display: flex;
-        }
-      `}</style>
       {artistShows.data &&
         artistShows.data.shows &&
         sortActiveBands(artistSlug, artistShows.data.shows).map((show: Show) => {
@@ -69,12 +65,12 @@ const ShowsColumn = ({
                 height={48}
               >
                 <div>
-                  <div className="main">
+                  <Flex>
                     {removeLeadingZero(month)}/{day}
                     {show.has_soundboard_source && <Tag>SBD</Tag>}
-                  </div>
+                  </Flex>
                   {venue && (
-                    <div className="subtext">
+                    <div className="text-[0.7em] text-[#979797]">
                       <div>{venue.name}</div>
                       <div>{venue.location}</div>
                     </div>
