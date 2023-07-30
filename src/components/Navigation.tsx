@@ -6,6 +6,7 @@ import { Artist, Meta } from '../types';
 import Menu from './Menu';
 import Player from './Player';
 import { SimplePopover } from './Popover';
+import Flex from './Flex';
 
 type NavigationProps = {
   artists?: {
@@ -26,165 +27,61 @@ class Navigation extends Component<NavigationProps> {
   modal: any;
   render() {
     return (
-      <div className="navigation">
-        <style jsx>{`
-          .navigation {
-            display: flex;
-            flex-direction: row;
-            height: 50px;
-            min-height: 50px;
-            max-height: 50px;
-            border-bottom: 1px solid #aeaeae;
-            position: relative;
-            color: #333;
-            background: #fff;
-          }
-
-          .navigation .relisten-mobile {
-            display: none;
-          }
-
-          :global(.navigation a, .navigation > .left > span) {
-            height: 100%;
-            text-align: center;
-
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-          }
-
-          .relisten-title {
-            margin-left: 4px;
-          }
-
-          .left {
-            display: flex;
-            flex: 2;
-            font-weight: bold;
-          }
-
-          .player {
-            min-width: 42vw;
-            text-align: center;
-          }
-
-          .menu-button {
-            display: flex;
-            align-items: center;
-          }
-
-          @media (max-width: 980px) {
-            .player {
-              min-width: 60%;
-            }
-          }
-
-          @media (max-width: 480px) {
-            .player {
-              min-width: 80%;
-            }
-          }
-
-          .right {
-            height: 100%;
-            display: flex;
-            flex: 2;
-            justify-content: flex-end;
-            text-align: center;
-            font-weight: bold;
-            align-items: center;
-            cursor: pointer;
-          }
-
-          :global(.navigation a),
-          .right > div {
-            padding: 0 4px;
-            height: 100%;
-          }
-
-          :global(.artist, .default) {
-            width: auto;
-            text-transform: uppercase;
-          }
-
-          a:active,
-          .right > div:active {
-            color: #333;
-            position: relative;
-            top: 1px;
-          }
-
-          i {
-            font-size: 0.6em;
-            margin-left: 4px;
-            opacity: 0.8;
-          }
-
-          @media only screen and (max-width: 1024px) {
-            .navigation .desktop {
-              display: none;
-            }
-
-            .navigation .relisten-mobile {
-              display: flex;
-            }
-
-            :global(.navigation .left > span.to),
-            :global(.navigation .artist) {
-              display: none;
-            }
-          }
-        `}</style>
-        <div className="left">
+      <Flex className="relative h-[50px] max-h-[50px] min-h-[50px] justify-between border-b-[1px] border-b-[#aeaeae] bg-white text-[#333333]">
+        <Flex className="left font-bold lg:flex-[2]">
           <Link href="/" legacyBehavior>
-            <a className="relisten-title desktop">RELISTEN</a>
+            <a className="ml-1 hidden h-full items-center text-center lg:flex">RELISTEN</a>
           </Link>
-          <Link href="/" legacyBehavior>
-            <a className="relisten-mobile">Re</a>
+          <Link href="/" className="hidden" legacyBehavior>
+            <Flex as={'a'} className="items-center px-2 lg:hidden">
+              Re
+            </Flex>
           </Link>
           {this.secondaryNavTitle}
-        </div>
-        <div className="player">
+        </Flex>
+        <div className="min-w-[80%] text-center md:min-w-[60%] lg:min-w-[42vw]">
           <Player />
         </div>
         <SimplePopover content={<Menu />}>
-          <div className="right relisten-mobile">
-            <div className="menu-button">MENU</div>
-          </div>
+          <Flex className="flex-2 h-full cursor-pointer content-end items-center text-center font-bold lg:hidden">
+            <div className="flex h-full items-center px-1 active:relative active:top-[1px] active:text-[#333333]">
+              MENU
+            </div>
+          </Flex>
         </SimplePopover>
-        <div className="right nav desktop">
-          <div>
+        <div className="nav hidden h-full flex-[2] cursor-pointer items-center justify-end text-center font-bold lg:flex">
+          <div className="h-full px-1">
             <Link href="/today" legacyBehavior>
-              <a>TIH</a>
+              <a className="nav-btn">TIH</a>
             </Link>
           </div>
           <div>
             <Link href="/live" legacyBehavior>
-              <a>LIVE</a>
+              <a className="nav-btn">LIVE</a>
             </Link>
           </div>
           <div>
             <Link href="/chat" legacyBehavior>
-              <a>CHAT</a>
+              <a className="nav-btn">CHAT</a>
             </Link>
           </div>
           <div>
             <Link href="/ios" legacyBehavior>
-              <a>iOS</a>
+              <a className="nav-btn">iOS</a>
             </Link>
           </div>
           <div>
             <Link href="/sonos" legacyBehavior>
-              <a>SONOS</a>
+              <a className="nav-btn">SONOS</a>
             </Link>
           </div>
           <div>
             <Link href="/about" legacyBehavior>
-              <a>ABOUT</a>
+              <a className="nav-btn">ABOUT</a>
             </Link>
           </div>
         </div>
-      </div>
+      </Flex>
     );
   }
 
@@ -194,9 +91,11 @@ class Navigation extends Component<NavigationProps> {
     if (navSubtitle) {
       return (
         <Fragment>
-          <span className="to">{navPrefix}</span>
+          <Flex as={'span'} className="h-full items-center text-center">
+            {navPrefix}
+          </Flex>
           <Link href="/" as={navURL} legacyBehavior>
-            <a className="artist">{navSubtitle}</a>
+            <a className="hidden w-auto uppercase lg:inline">{navSubtitle}</a>
           </Link>
         </Fragment>
       );
@@ -205,20 +104,17 @@ class Navigation extends Component<NavigationProps> {
     if (artists) {
       return (
         <Fragment>
-          {artists.data[app.artistSlug] && <span className="to">TO</span>}
-          {
-            artists.data[app.artistSlug] && (
-              <Link href="/" as={`/${app.artistSlug}`} legacyBehavior>
-                <a className="artist">
-                  {artists.data[app.artistSlug].the ? 'THE ' : ''}
-                  {artists.data[app.artistSlug].name}
-                </a>
-              </Link>
-            )
-            /*
-            : <span className="default">1,028,334 songs on 60,888 tapes from 102 bands</span>
-            */
-          }
+          {artists.data[app.artistSlug] && (
+            <span className="hidden h-full items-center text-center lg:flex">TO</span>
+          )}
+          {artists.data[app.artistSlug] && (
+            <Link href="/" as={`/${app.artistSlug}`} legacyBehavior>
+              <a className="hidden h-full w-auto items-center px-1 text-center uppercase active:relative active:top-[1px] lg:flex">
+                {artists.data[app.artistSlug].the ? 'THE ' : ''}
+                {artists.data[app.artistSlug].name}
+              </a>
+            </Link>
+          )}
         </Fragment>
       );
     } else {

@@ -3,3 +3,9 @@
 @tailwind utilities;
 
 @import url('@fortawesome/fontawesome-free/css/all.css');
+
+@layer components {
+  .nav-btn {
+    @apply flex h-full items-center px-2 text-center active:relative active:top-[1px] active:text-[#333333]
+  }
+}
