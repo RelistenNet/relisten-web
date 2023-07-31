@@ -25,7 +25,7 @@ const QUERY_KEY = ['recentlyPlayed'];
 
 const fetchRecentlyPlayed = async (queryClient: QueryClient) => {
   const cache = queryClient.getQueryData(QUERY_KEY) as any[];
-  const lastSeenId = cache ? cache.slice(-1)[0]?.id : '';
+  const lastSeenId = cache ? Math.max(...cache.map((t) => t.id)) : '';
   let paramsStr = '';
 
   if (lastSeenId) {
@@ -33,7 +33,11 @@ const fetchRecentlyPlayed = async (queryClient: QueryClient) => {
   }
   const parsed = await ky(`${API_DOMAIN}/api/v2/live/history${paramsStr}`).json();
 
-  return parsed;
+  if (Array.isArray(parsed)) {
+    return parsed.concat(cache ?? []).slice(0, 100);
+  }
+
+  return cache ?? [];
 };
 
 export default function RecentlyPlayed() {
