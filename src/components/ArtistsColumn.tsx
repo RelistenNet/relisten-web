@@ -1,27 +1,41 @@
-import { connect } from 'react-redux';
-import { simplePluralize, groupBy } from '../lib/utils';
+'use client';
+
+import { useQuery } from '@tanstack/react-query';
+import ky from 'ky';
+import { usePathname } from 'next/navigation';
+import { API_DOMAIN } from '../lib/constants';
+import { groupBy, simplePluralize } from '../lib/utils';
+import { Artist } from '../types';
 import Column from './Column';
 import Row from './Row';
 import RowHeader from './RowHeader';
-import { Artist } from '../types';
 
 const byObject = {
   wsp: 'PanicStream',
   phish: 'Phish.in',
 };
 
-type ArtistsColumnProps = {
-  artists?: {
-    data: Artist;
-  };
-  artistSlug: string;
+const fetchArtists = async () => {
+  const parsed = await ky(`${API_DOMAIN}/api/v2/artists`).json();
+
+  return parsed;
 };
 
-const ArtistsColumn = ({ artists, artistSlug }: ArtistsColumnProps): JSX.Element => {
+const ArtistsColumn = () => {
+  const artistSlug = usePathname()
+    ?.split('/')
+    .filter((x) => x)[0];
+
+  const artists: any = useQuery({
+    queryKey: ['artists'],
+    queryFn: () => fetchArtists(),
+    cacheTime: Infinity,
+    staleTime: Infinity,
+  });
+
   return (
     <Column heading="Bands">
-      {artists &&
-        artists.data &&
+      {artists?.data &&
         Object.entries(groupBy(Object.values(artists.data), 'featured'))
           .sort(([a], [b]) => b.localeCompare(a))
           .map(([type, artists]: [string, Artist[]]) => [
@@ -51,9 +65,4 @@ const ArtistsColumn = ({ artists, artistSlug }: ArtistsColumnProps): JSX.Element
   );
 };
 
-const mapStateToProps = ({ artists, app }): ArtistsColumnProps => ({
-  artists,
-  artistSlug: app.artistSlug,
-});
-
-export default connect(mapStateToProps)(ArtistsColumn);
+export default ArtistsColumn;

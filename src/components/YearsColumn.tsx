@@ -1,39 +1,44 @@
-import { connect } from 'react-redux';
+'use client';
 
-import { simplePluralize } from '../lib/utils';
 import sortActiveBands from '../lib/sortActiveBands';
+import { simplePluralize } from '../lib/utils';
 
+import { useQuery } from '@tanstack/react-query';
+import ky from 'ky';
+import { usePathname } from 'next/navigation';
+import { API_DOMAIN } from '../lib/constants';
+import { Year } from '../types';
 import Column from './Column';
 import Row from './Row';
-import { Artist, Meta, Year } from '../types';
 
-type YearsColumnProps = {
-  artistYears: {
-    data: Year[];
-    meta: Meta;
-  };
-  artistSlug: string;
-  currentYear: string;
-  artists: {
-    data: { [key: string]: Artist };
-    meta: Meta;
-  };
+const fetchYears = async (slug: string) => {
+  const parsed = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years`).json();
+
+  return parsed;
 };
 
-const YearsColumn = ({
-  artistYears,
-  artistSlug,
-  currentYear,
-  artists,
-}: YearsColumnProps): JSX.Element => {
+const YearsColumn = () => {
+  const pathname = usePathname();
+  const [artistSlug, currentYear] = pathname ? pathname.split('/').filter((x) => x) : [];
+
+  const artists = useQuery({
+    queryKey: ['artists'],
+  });
+  const artistYears: any = useQuery({
+    queryKey: ['artists', artistSlug],
+    queryFn: () => fetchYears(artistSlug!),
+    cacheTime: Infinity,
+    staleTime: Infinity,
+    enabled: !!artistSlug,
+  });
+
   return (
     <Column
-      heading={artistYears && artists.data[artistSlug] ? artists.data[artistSlug].name : 'Years'}
+      heading={artistYears && artists.data?.[artistSlug] ? artists.data[artistSlug].name : 'Years'}
       loading={artistYears && artistYears.meta && artistYears.meta.loading}
       loadingAmount={12}
     >
-      {artistYears &&
-        artistYears.data &&
+      {artistYears?.data &&
         sortActiveBands(artistSlug, artistYears.data).map((year: Year) => (
           <Row
             key={year.id}
@@ -53,11 +58,4 @@ const YearsColumn = ({
   );
 };
 
-const mapStateToProps = ({ years, app, artists }): YearsColumnProps => ({
-  artistYears: years[app.artistSlug],
-  artistSlug: app.artistSlug,
-  currentYear: app.year,
-  artists,
-});
-
-export default connect(mapStateToProps)(YearsColumn);
+export default YearsColumn;

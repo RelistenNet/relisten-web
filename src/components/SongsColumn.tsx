@@ -1,3 +1,5 @@
+'use client';
+
 import { connect } from 'react-redux';
 
 import { createShowDate, splitShowDate, durationToHHMMSS, removeLeadingZero } from '../lib/utils';

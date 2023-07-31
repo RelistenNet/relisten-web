@@ -43,7 +43,7 @@ const fetchRecentlyPlayed = async (queryClient: QueryClient) => {
 export default function RecentlyPlayed() {
   const queryClient = useQueryClient();
   const query = useQuery({
-    queryKey: ['recentlyPlayed'],
+    queryKey: QUERY_KEY,
     queryFn: () => fetchRecentlyPlayed(queryClient),
     refetchInterval: 7000, // refetch every 7 seconds
   });

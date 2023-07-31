@@ -1,3 +1,5 @@
+'use client';
+
 import { connect } from 'react-redux';
 
 import {
@@ -15,6 +17,10 @@ import RowHeader from './RowHeader';
 import Tag from './Tag';
 import { ArtistShows, Meta, Show } from '../types';
 import Flex from './Flex';
+import { usePathname } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+import { API_DOMAIN } from '../lib/constants';
+import ky from 'ky';
 
 type ShowsColumnProps = {
   artistShows: {
@@ -26,12 +32,24 @@ type ShowsColumnProps = {
   displayDate: string;
 };
 
-const ShowsColumn = ({
-  artistShows,
-  artistSlug,
-  year,
-  displayDate,
-}: ShowsColumnProps): JSX.Element => {
+const fetchShows = async (slug: string, year: string) => {
+  const parsed = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years/${year}`).json();
+
+  return parsed;
+};
+
+const ShowsColumn = ({ displayDate }: ShowsColumnProps): JSX.Element => {
+  const pathname = usePathname();
+  const [artistSlug, year] = pathname ? pathname.split('/').filter((x) => x) : [];
+
+  const artistShows: any = useQuery({
+    queryKey: ['artists', artistSlug, year],
+    queryFn: () => fetchShows(artistSlug!, year),
+    cacheTime: Infinity,
+    staleTime: Infinity,
+    enabled: !!artistSlug,
+  });
+
   const tours = {};
 
   return (
@@ -40,8 +58,7 @@ const ShowsColumn = ({
       loading={displayDate && !artistShows ? true : artistShows.meta && artistShows.meta.loading}
       loadingAmount={12}
     >
-      {artistShows.data &&
-        artistShows.data.shows &&
+      {artistShows?.data?.shows &&
         sortActiveBands(artistSlug, artistShows.data.shows).map((show: Show) => {
           const { year, month, day } = splitShowDate(show.display_date);
           const { venue, avg_duration, tour } = show;

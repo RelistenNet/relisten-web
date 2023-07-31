@@ -1,11 +1,12 @@
 import { PropsWithChildren } from 'react';
 import NavBar from './NavBar';
+import Flex from '../../components/Flex';
 
 export default function Layout({ children }: PropsWithChildren) {
   return (
-    <div>
+    <Flex column className="h-screen">
       <NavBar />
       {children}
-    </div>
+    </Flex>
   );
 }
