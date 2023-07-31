@@ -2,25 +2,25 @@
 
 import { connect } from 'react-redux';
 
-import {
-  splitShowDate,
-  createShowDate,
-  removeLeadingZero,
-  durationToHHMMSS,
-  simplePluralize,
-} from '../lib/utils';
 import sortActiveBands from '../lib/sortActiveBands';
+import {
+  createShowDate,
+  durationToHHMMSS,
+  removeLeadingZero,
+  simplePluralize,
+  splitShowDate,
+} from '../lib/utils';
 
+import { useSuspenseQuery } from '@tanstack/react-query';
+import ky from 'ky';
+import { usePathname } from 'next/navigation';
+import { API_DOMAIN } from '../lib/constants';
+import { ArtistShows, Meta, Show } from '../types';
 import Column from './Column';
+import Flex from './Flex';
 import Row from './Row';
 import RowHeader from './RowHeader';
 import Tag from './Tag';
-import { ArtistShows, Meta, Show } from '../types';
-import Flex from './Flex';
-import { usePathname } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
-import { API_DOMAIN } from '../lib/constants';
-import ky from 'ky';
 
 type ShowsColumnProps = {
   artistShows: {
@@ -32,7 +32,9 @@ type ShowsColumnProps = {
   displayDate: string;
 };
 
-const fetchShows = async (slug: string, year: string) => {
+const fetchShows = async (slug?: string, year?: string) => {
+  if (!slug || !year) return [];
+
   const parsed = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years/${year}`).json();
 
   return parsed;
@@ -42,12 +44,9 @@ const ShowsColumn = ({ displayDate }: ShowsColumnProps): JSX.Element => {
   const pathname = usePathname();
   const [artistSlug, year] = pathname ? pathname.split('/').filter((x) => x) : [];
 
-  const artistShows: any = useQuery({
+  const artistShows: any = useSuspenseQuery({
     queryKey: ['artists', artistSlug, year],
     queryFn: () => fetchShows(artistSlug!, year),
-    cacheTime: Infinity,
-    staleTime: Infinity,
-    enabled: !!artistSlug,
   });
 
   const tours = {};

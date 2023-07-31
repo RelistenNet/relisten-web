@@ -1,9 +1,8 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import ky from 'ky';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
-import { API_DOMAIN } from '../lib/constants';
+import { fetchArtists } from '../app/getQueryClient';
 import { groupBy, simplePluralize } from '../lib/utils';
 import { Artist } from '../types';
 import Column from './Column';
@@ -15,22 +14,14 @@ const byObject = {
   phish: 'Phish.in',
 };
 
-const fetchArtists = async () => {
-  const parsed = await ky(`${API_DOMAIN}/api/v2/artists`).json();
-
-  return parsed;
-};
-
 const ArtistsColumn = () => {
   const artistSlug = usePathname()
     ?.split('/')
     .filter((x) => x)[0];
 
-  const artists: any = useQuery({
+  const artists: any = useSuspenseQuery({
     queryKey: ['artists'],
     queryFn: () => fetchArtists(),
-    cacheTime: Infinity,
-    staleTime: Infinity,
   });
 
   return (

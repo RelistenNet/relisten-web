@@ -1,5 +1,5 @@
-import Script from 'next/script';
 import { Roboto } from 'next/font/google';
+import Script from 'next/script';
 import React from 'react';
 import Providers from './Providers';
 

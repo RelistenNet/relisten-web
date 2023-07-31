@@ -3,7 +3,7 @@
 import sortActiveBands from '../lib/sortActiveBands';
 import { simplePluralize } from '../lib/utils';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import ky from 'ky';
 import { usePathname } from 'next/navigation';
 import { API_DOMAIN } from '../lib/constants';
@@ -11,7 +11,9 @@ import { Year } from '../types';
 import Column from './Column';
 import Row from './Row';
 
-const fetchYears = async (slug: string) => {
+const fetchYears = async (slug?: string) => {
+  if (!slug) return [];
+
   const parsed = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years`).json();
 
   return parsed;
@@ -24,12 +26,10 @@ const YearsColumn = () => {
   const artists = useQuery({
     queryKey: ['artists'],
   });
-  const artistYears: any = useQuery({
+  const artistYears: any = useSuspenseQuery({
     queryKey: ['artists', artistSlug],
     queryFn: () => fetchYears(artistSlug!),
-    cacheTime: Infinity,
-    staleTime: Infinity,
-    enabled: !!artistSlug,
+    // enabled: !!artistSlug,
   });
 
   return (
