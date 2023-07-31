@@ -8,4 +8,7 @@
   .nav-btn {
     @apply flex h-full items-center px-2 text-center active:relative active:top-[1px] active:text-[#333333]
   }
+  .relisten-row > .content > div {
+    @apply flex flex-col justify-around self-stretch;
+  }
 }

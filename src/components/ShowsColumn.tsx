@@ -64,7 +64,7 @@ const ShowsColumn = ({
                 active={displayDate === show.display_date}
                 height={48}
               >
-                <div>
+                <div className={displayDate === show.display_date ? 'pl-2' : ''}>
                   <Flex>
                     {removeLeadingZero(month)}/{day}
                     {show.has_soundboard_source && <Tag>SBD</Tag>}
@@ -76,7 +76,7 @@ const ShowsColumn = ({
                     </div>
                   )}
                 </div>
-                <div>
+                <div className="min-w-[20%] text-right text-[0.7em] text-[#979797]">
                   <div>{durationToHHMMSS(avg_duration)}</div>
                   <div>{simplePluralize('tape', show.source_count)}</div>
                 </div>

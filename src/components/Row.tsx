@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import RowLoading from './RowLoading';
+import Flex from './Flex';
 
 type RowProps = {
   height?: number;
@@ -12,69 +13,38 @@ type RowProps = {
 };
 
 const Row = ({ height, children, href, active, loading, baseHrefOverride, ...props }: RowProps) => (
-  <div className="relisten-row" style={{ minHeight: height }} {...props}>
-    <style jsx global>{`
-      .relisten-row {
-        min-height: 46px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        border-bottom: 1px solid #f1f1f1;
-      }
-
-      .relisten-row > .content {
-        flex: 1;
-        width: 100%;
-        padding: 4px 0;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        position: relative;
-      }
-
-      .relisten-row > .content.active:after {
-        content: '';
-        width: 8px;
-        height: 100%;
-        background: #333;
-        position: absolute;
-        left: 0;
-        top: 0;
-      }
-
-      .relisten-row > .content > div {
-        align-self: stretch;
-        display: flex;
-        padding: 0 2px;
-        justify-content: space-around;
-        flex-direction: column;
-      }
-
-      .relisten-row > .content .subtext,
-      .relisten-row > .content > div:nth-child(2) {
-        color: #979797;
-        font-size: 0.7em;
-      }
-
-      .relisten-row > .content.active > div:nth-child(1) {
-        padding-left: 12px;
-      }
-
-      .relisten-row > .content > div:nth-child(2) {
-        text-align: right;
-        min-width: 20%;
-      }
-    `}</style>
+  <Flex
+    column
+    className="relisten-row min-h-[46px] items-center border-b-[#f1f1f1]"
+    style={{ minHeight: height }}
+    {...props}
+  >
     {loading && <RowLoading />}
     {href || baseHrefOverride ? (
       <Link href={baseHrefOverride ? baseHrefOverride : '/'} as={href} legacyBehavior>
-        <a className={`${active ? 'active' : ''} content`}>{children}</a>
+        <Flex
+          as={'a'}
+          className={`${
+            active
+              ? 'content-none after:absolute after:left-0 after:top-0 after:h-full after:w-[8px] after:bg-[#333333]'
+              : ''
+          } content relative w-full flex-1 items-center justify-between p-[4px]`}
+        >
+          {children}
+        </Flex>
       </Link>
     ) : children ? (
-      <div className={`content ${active ? 'active' : ''}`}>{children}</div>
+      <div
+        className={`content relative w-full flex-1 items-center justify-between py-1 ${
+          active
+            ? 'content-none after:absolute after:left-0 after:top-0 after:h-full after:w-[8px] after:bg-[#333333]'
+            : ''
+        }`}
+      >
+        {children}
+      </div>
     ) : null}
-  </div>
+  </Flex>
 );
 
 export default Row;

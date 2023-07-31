@@ -54,7 +54,11 @@ const TapesColumn = ({ tapes, artistSlug, activeSourceId }: TapesColumnProps): J
               href={`/${artistSlug}/${year}/${month}/${day}?source=${source.id}`}
               active={source.id === activeSourceId || (!activeSourceId && idx === 0)}
             >
-              <div>
+              <div
+                className={`${
+                  source.id === activeSourceId || (!activeSourceId && idx === 0) ? 'pl-2' : ''
+                }`}
+              >
                 <Flex className="mb-1">
                   <div className="min-w-[53px]">{durationToHHMMSS(source.duration)}</div>
                   {source.is_soundboard && <Tag>SBD</Tag>}

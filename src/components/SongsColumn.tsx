@@ -67,13 +67,15 @@ const SongsColumn = ({
                   active={trackIsActive}
                   href={`/${artistSlug}/${year}/${month}/${day}/${track.slug}?source=${source.id}`}
                 >
-                  <div>
+                  <div className={trackIsActive ? 'pl-2' : ''}>
                     <div>{track.title}</div>
                     {track.duration && (
-                      <div className="subtext">{durationToHHMMSS(track.duration)}</div>
+                      <div className="color-[#979797] text-[0.7em]">
+                        {durationToHHMMSS(track.duration)}
+                      </div>
                     )}
                   </div>
-                  <div>
+                  <div className="min-w-[20%] text-right text-[0.7em] text-[#979797]">
                     <div>
                       {trackMetadata && trackMetadata.webAudioLoadingState !== 'NONE'
                         ? trackMetadata.webAudioLoadingState
