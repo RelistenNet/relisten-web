@@ -3,14 +3,16 @@
 import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
 import LiveTrack from '../../../../components/LiveTrack';
 import { API_DOMAIN } from '../../../../lib/constants';
-import ky from 'ky-universal';
+import ky from 'ky';
 
 function uniqBy(a: any[], key: (item: any) => boolean) {
   const seen = new Set();
-  return a.filter((item) => {
-    const k = key(item);
-    return seen.has(k) ? false : seen.add(k);
-  });
+  return a
+    .filter((item) => {
+      const k = key(item);
+      return seen.has(k) ? false : seen.add(k);
+    })
+    .sort((itemA, itemB) => itemB?.id - itemA?.id);
 }
 
 // TODO: Update types

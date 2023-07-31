@@ -84,8 +84,10 @@ export default ({
     setTimeout(() => setMounted(true), 50);
   }, []);
 
-  return !track || !track.track ? null : (
-    <Link href="/" as={createURL(track)} legacyBehavior>
+  if (!track?.track) return null;
+
+  return (
+    <Link href={createURL(track)}>
       <Flex
         className={`w-full cursor-pointer border-b-[1px] border-[#eeeeee] px-3 transition-opacity duration-1000 ease-in-out ${
           isMounted || isFirstRender ? 'opacity-100' : 'opacity-0'
