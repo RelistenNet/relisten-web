@@ -2,7 +2,7 @@
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
-import { fetchArtists } from '../app/getQueryClient';
+import { fetchArtists } from '../app/queries';
 import { groupBy, simplePluralize } from '../lib/utils';
 import { Artist } from '../types';
 import Column from './Column';
@@ -14,13 +14,15 @@ const byObject = {
   phish: 'Phish.in',
 };
 
+const key = ['artists'];
+
 const ArtistsColumn = () => {
   const artistSlug = usePathname()
     ?.split('/')
     .filter((x) => x)[0];
 
   const artists: any = useSuspenseQuery({
-    queryKey: ['artists'],
+    queryKey: key,
     queryFn: () => fetchArtists(),
   });
 
