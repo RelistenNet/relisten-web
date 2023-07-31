@@ -6,13 +6,15 @@ import Flex from './Flex';
 const createURL = (obj: Day): string => {
   const { year, month, day } = splitShowDate(obj.display_date);
 
-  return '/' + [obj.artist.slug, year, month, day].join('/');
+  return '/' + [obj.artist?.slug, year, month, day].join('/');
 };
 
 // eslint-disable-next-line react/display-name
-export default ({ day }: { day: Day }): JSX.Element => {
-  return !day ? null : (
-    <Link href="/" as={createURL(day)} legacyBehavior>
+export default ({ day }: { day: Day }) => {
+  if (!day) return null;
+
+  return (
+    <Link href={createURL(day)}>
       <Flex className="w-full cursor-pointer border-b-2 border-b-[#eee] p-3">
         <div className="mr-3">
           <div className="font-bold">{day.display_date}</div>

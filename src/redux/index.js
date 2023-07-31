@@ -14,5 +14,7 @@ export const initStore = () => {
   return store;
 };
 
+export const store = initStore();
+
 // export an assembled wrapper
 export const wrapper = createWrapper(initStore, { debug: false });

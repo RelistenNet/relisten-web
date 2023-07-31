@@ -1,0 +1,36 @@
+import Script from 'next/script';
+import { Roboto } from 'next/font/google';
+import React from 'react';
+import Providers from './Providers';
+
+import '../styles/globals.css';
+
+// TODO: figure out if we don't need any weights
+const roboto = Roboto({ subsets: ['latin'], weight: ['100', '300', '400', '500', '700', '900'] });
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <head>
+        <link rel="icon" href="/favicon.ico" />
+      </head>
+      <body className={roboto.className}>
+        <Providers>{children}</Providers>
+        <Script
+          strategy="lazyOnload"
+          async
+          defer
+          data-domain="relisten.net"
+          src="https://plausible.typetwo.space/js/plausible.js"
+        />
+      </body>
+    </html>
+  );
+}
+
+export const metadata = {
+  title: {
+    template: '%s | Relisten',
+    default: 'Relisten', // a default is required when creating a template
+  },
+};
