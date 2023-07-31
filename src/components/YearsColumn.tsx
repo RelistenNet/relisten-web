@@ -40,10 +40,10 @@ const YearsColumn = ({
             href={`/${artistSlug}/${year.year}`}
             active={year.year === currentYear}
           >
-            <div>
+            <div className={year.year === currentYear ? 'pl-2' : ''}>
               <div>{year.year}</div>
             </div>
-            <div className="desc">
+            <div className="min-w-[20%] text-right text-[0.7em] text-[#979797]">
               <div>{simplePluralize('show', year.show_count)}</div>
               <div>{simplePluralize('tape', year.source_count)}</div>
             </div>

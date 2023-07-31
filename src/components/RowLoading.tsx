@@ -1,34 +1,11 @@
 const RowLoading = (): JSX.Element => (
-  <div className="loading content">
-    <style jsx>{`
-      .loading {
-        height: 100%;
-      }
-
-      .loading-title {
-        width: 40%;
-      }
-
-      .loading-desc {
-        width: 15%;
-      }
-
-      .loading-bar {
-        width: 100%;
-        height: 1em;
-        background: #ddd;
-      }
-
-      .loading-bar-small {
-        height: 0.7em;
-      }
-    `}</style>
-    <div className="loading-title">
-      <div className="loading-bar" />
+  <div className="content h-full">
+    <div className="w-1/2">
+      <div className="h-[1em] w-full bg-[#dddddd]" />
     </div>
-    <div className="loading-desc">
-      <div className="loading-bar loading-bar-small" />
-      <div className="loading-bar loading-bar-small" />
+    <div className="w-2/12">
+      <div className="h-[0.7em] w-full bg-[#dddddd]" />
+      <div className="h-[0.7em] w-full bg-[#dddddd]" />
     </div>
   </div>
 );

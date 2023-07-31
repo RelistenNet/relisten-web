@@ -32,13 +32,15 @@ const ArtistsColumn = ({ artists, artistSlug }: ArtistsColumnProps): JSX.Element
                 href={`/${artist.slug}`}
                 active={artist.slug === artistSlug}
               >
-                <div>
+                <div className={artist.slug === artistSlug ? 'pl-2' : ''}>
                   {artist.name}
                   {byObject[artist.slug] && (
-                    <span className="subtext">Powered by {byObject[artist.slug]}</span>
+                    <span className="text-[0.7em] text-[#979797]">
+                      Powered by {byObject[artist.slug]}
+                    </span>
                   )}
                 </div>
-                <div>
+                <div className="min-w-[20%] text-right text-[0.7em] text-[#979797]">
                   <div>{simplePluralize('show', artist.show_count)}</div>
                   <div>{simplePluralize('tape', artist.source_count)}</div>
                 </div>

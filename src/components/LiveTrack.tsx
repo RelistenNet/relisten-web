@@ -4,6 +4,7 @@ import TimeAgo from 'react-timeago';
 
 import { splitShowDate } from '../lib/utils';
 import { TrackSource, Track, Venue } from '../types';
+import Flex from './Flex';
 
 const createURL = (track: { track: Track; source: TrackSource }): string => {
   const { year, month, day } = splitShowDate(track.source.display_date);
@@ -47,7 +48,7 @@ const VenueInfo = ({ track, app_type_description, created_at }: VenueInfoProps):
       </div>
       <div>
         {track.source.display_date} &middot;{' '}
-        <span className="time-ago">
+        <span className="align-right text-[0.7em] opacity-70">
           {app_type_description} &middot; <TimeAgo date={created_at} formatter={formatterFn} />
         </span>
       </div>
@@ -85,12 +86,17 @@ export default ({
 
   return !track || !track.track ? null : (
     <Link href="/" as={createURL(track)} legacyBehavior>
-      <div className="container" data-is-last-seen={isLastSeen}>
+      <Flex
+        className={`w-full cursor-pointer border-b-[1px] border-[#eeeeee] px-3 transition-opacity duration-1000 ease-in-out ${
+          isMounted || isFirstRender ? 'opacity-100' : 'opacity-0'
+        } ${isLastSeen && 'border-b-green-600'}`}
+        data-is-last-seen={isLastSeen}
+      >
         <div>
           <div className="content">{track.track.title}</div>
           <div>{track.source.artist.name}</div>
 
-          <div className="subtext">
+          <div className="text-[0.7em] text-[#979797]">
             <VenueInfo
               track={track}
               app_type_description={app_type_description}
@@ -99,50 +105,10 @@ export default ({
           </div>
         </div>
 
-        <div className="listen">
+        <Flex column className="ml-auto self-center">
           <span>Relisten</span>
-        </div>
-
-        <style jsx>{`
-            .container
-              width 100%
-              display flex
-              flex-direction row
-              padding 12px 0
-              border-bottom 1px solid #eee
-              cursor pointer
-              opacity ${isMounted || isFirstRender ? 1 : 0}
-              transition opacity 1000ms ease-in-out
-
-              &[data-is-last-seen="true"]
-                border-bottom 1px solid green
-
-            .info
-              margin-right 12px
-
-            .date, .content
-              font-weight bold
-
-            .subtext
-              color: #979797;
-              font-size: 0.7em;
-
-            .listen
-              margin-left auto
-              align-self center
-              display flex
-              flex-direction column
-
-            .app-info
-              display flex
-              justify-content space-between
-
-            .time-ago
-              opacity 0.7
-              font-size 0.7em
-              text-align right
-          `}</style>
-      </div>
+        </Flex>
+      </Flex>
     </Link>
   );
 };
