@@ -24,7 +24,6 @@ type NavigationProps = {
 class Navigation extends Component<NavigationProps> {
   // TODO: Update type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  modal: any;
   render() {
     return (
       <Flex className="relative h-[50px] max-h-[50px] min-h-[50px] justify-between border-b-[1px] border-b-[#aeaeae] bg-white text-[#333333]">
@@ -90,14 +89,14 @@ class Navigation extends Component<NavigationProps> {
 
     if (navSubtitle) {
       return (
-        <Fragment>
+        <div className="flex items-center">
           <Flex as={'span'} className="h-full items-center text-center">
             {navPrefix}
           </Flex>
           <Link href="/" as={navURL} legacyBehavior>
             <a className="hidden w-auto uppercase lg:inline">{navSubtitle}</a>
           </Link>
-        </Fragment>
+        </div>
       );
     }
 

@@ -38,14 +38,14 @@ class Today extends Component<TodayProps> {
 
     return (
       <Layout navPrefix="TO" navSubtitle="Today In History" navURL="/today">
-        <div className="page-container">
+        <div className="mx-auto w-full max-w-screen-md flex-1">
           <Head>
             <title>Today | Relisten</title>
           </Head>
-          <h1>Today in History</h1>
+          <h1 className="my-4 text-4xl font-semibold">Today in History</h1>
           {Object.entries(groupedBy).map(([artistName, days]) => (
             <div key={artistName}>
-              <div className="artist-name">{artistName}</div>
+              <div className="p-4 pl-0 text-2xl font-semibold">{artistName}</div>
               <div>
                 {days.map((day: Day) => (
                   <TodayTrack day={day} key={day.id} />
@@ -54,19 +54,6 @@ class Today extends Component<TodayProps> {
             </div>
           ))}
         </div>
-        <style jsx>{`
-          .page-container {
-            flex: 1;
-            max-width: 768px;
-            width: 768px;
-            margin: 0 auto;
-          }
-
-          .artist-name
-            margin 12px 12px 0
-            font-weight bold
-            font-size 1.3em
-        `}</style>
       </Layout>
     );
   }
