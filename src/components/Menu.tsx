@@ -9,7 +9,7 @@ const Menu = () => (
       <Row baseHrefOverride="/">Home</Row>
       <Row baseHrefOverride="/about">About</Row>
       <Row baseHrefOverride="/today">Today</Row>
-      <Row baseHrefOverride="/live">Live</Row>
+      <Row baseHrefOverride="/recently-played">Live</Row>
       <Row baseHrefOverride="/sonos">Sonos</Row>
       <Row baseHrefOverride="/ios">iOS</Row>
       <Row baseHrefOverride="/chat">Chat</Row>

@@ -55,7 +55,7 @@ class Navigation extends Component<NavigationProps> {
             </Link>
           </div>
           <div>
-            <Link href="/live" legacyBehavior>
+            <Link href="/recently-played" legacyBehavior>
               <a className="nav-btn">LIVE</a>
             </Link>
           </div>

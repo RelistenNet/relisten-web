@@ -38,8 +38,8 @@ export default function NavBar() {
           </Link>
         </div>
         <div>
-          <Link href="/live" legacyBehavior>
-            <a className="nav-btn">LIVE</a>
+          <Link href="/recently-played" legacyBehavior>
+            <a className="nav-btn">RECENTLY PLAYED</a>
           </Link>
         </div>
         <div>
