@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import Flex from './Flex';
 import Row from './Row';
 
@@ -10,14 +10,14 @@ type ColumnProps = {
 };
 
 const Column = ({ heading, loading, loadingAmount, children }: ColumnProps) => {
-  useEffect(() => {
-    // TODO: refactor this to not use raw query calls
-    Array.prototype.forEach.call(document.querySelectorAll('.column .active'), (activeRow) => {
-      activeRow.scrollIntoView({
-        block: 'center',
-      });
-    });
-  }, []);
+  // useEffect(() => {
+  //   // TODO: refactor this to not use raw query calls
+  //   Array.prototype.forEach.call(document.querySelectorAll('.column .active'), (activeRow) => {
+  //     activeRow.scrollIntoView({
+  //       block: 'center',
+  //     });
+  //   });
+  // }, []);
 
   return (
     <Flex className="flex-1 break-words" column>

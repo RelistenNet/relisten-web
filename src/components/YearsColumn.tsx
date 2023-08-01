@@ -5,7 +5,7 @@ import { simplePluralize } from '../lib/utils';
 
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import ky from 'ky';
-import { usePathname } from 'next/navigation';
+import { RawParams } from '../app/(main)/[[...anything]]/page';
 import { API_DOMAIN } from '../lib/constants';
 import { Year } from '../types';
 import Column from './Column';
@@ -19,11 +19,8 @@ const fetchYears = async (slug?: string) => {
   return parsed;
 };
 
-const YearsColumn = () => {
-  const pathname = usePathname();
-  const [artistSlug, currentYear] = pathname ? pathname.split('/').filter((x) => x) : [];
-
-  const artists = useQuery({
+const YearsColumn = ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 'year'>) => {
+  const artists: any = useQuery({
     queryKey: ['artists'],
   });
   const artistYears: any = useSuspenseQuery({
@@ -32,25 +29,28 @@ const YearsColumn = () => {
     // enabled: !!artistSlug,
   });
 
+  const artist = artists?.data?.find((artist) => artist.slug === artistSlug);
+
   return (
     <Column
-      heading={artistYears && artists.data?.[artistSlug] ? artists.data[artistSlug].name : 'Years'}
+      heading={artist?.name ?? 'Years'}
       loading={artistYears && artistYears.meta && artistYears.meta.loading}
       loadingAmount={12}
     >
-      {artistYears?.data &&
-        sortActiveBands(artistSlug, artistYears.data).map((year: Year) => (
+      {artistSlug &&
+        artistYears?.data &&
+        sortActiveBands(artistSlug, artistYears.data).map((yearObj: Year) => (
           <Row
-            key={year.id}
-            href={`/${artistSlug}/${year.year}`}
-            active={year.year === currentYear}
+            key={yearObj.id}
+            href={`/${artistSlug}/${yearObj.year}`}
+            active={yearObj.year === year}
           >
-            <div className={year.year === currentYear ? 'pl-2' : ''}>
-              <div>{year.year}</div>
+            <div className={yearObj.year === year ? 'pl-2' : ''}>
+              <div>{yearObj.year}</div>
             </div>
             <div className="min-w-[20%] text-right text-[0.7em] text-[#979797]">
-              <div>{simplePluralize('show', year.show_count)}</div>
-              <div>{simplePluralize('tape', year.source_count)}</div>
+              <div>{simplePluralize('show', yearObj.show_count)}</div>
+              <div>{simplePluralize('tape', yearObj.source_count)}</div>
             </div>
           </Row>
         ))}

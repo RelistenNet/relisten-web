@@ -1,7 +1,6 @@
 'use client';
 
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { usePathname } from 'next/navigation';
 import { fetchArtists } from '../app/queries';
 import { groupBy, simplePluralize } from '../lib/utils';
 import { Artist } from '../types';
@@ -16,11 +15,7 @@ const byObject = {
 
 const key = ['artists'];
 
-const ArtistsColumn = () => {
-  const artistSlug = usePathname()
-    ?.split('/')
-    .filter((x) => x)[0];
-
+const ArtistsColumn = ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
   const artists: any = useSuspenseQuery({
     queryKey: key,
     queryFn: () => fetchArtists(),
@@ -41,9 +36,9 @@ const ArtistsColumn = () => {
               >
                 <div className={artist.slug === artistSlug ? 'pl-2' : ''}>
                   {artist.name}
-                  {byObject[artist.slug] && (
+                  {byObject[String(artist.slug)] && (
                     <span className="text-[0.7em] text-[#979797]">
-                      Powered by {byObject[artist.slug]}
+                      Powered by {byObject[String(artist.slug)]}
                     </span>
                   )}
                 </div>

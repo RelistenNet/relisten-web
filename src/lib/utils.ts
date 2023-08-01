@@ -35,7 +35,7 @@ export const getParams = (query: string): any => {
   }, {});
 };
 
-export const durationToHHMMSS = (duration: number): string => {
+export const durationToHHMMSS = (duration = 0): string => {
   const prefix = duration < 0 ? '-' : '';
   let totalSeconds = Math.abs(duration);
   const hours = Math.floor(totalSeconds / 3600);
@@ -51,7 +51,7 @@ export const durationToHHMMSS = (duration: number): string => {
   );
 };
 
-export const simplePluralize = (str: string, count: number): string => {
+export const simplePluralize = (str: string, count = 0): string => {
   return `${count} ${count === 1 ? str : str + 's'}`;
 };
 

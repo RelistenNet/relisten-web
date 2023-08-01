@@ -21,6 +21,8 @@ const Row = ({ height, children, href, active, loading, ...props }: RowProps) =>
             : ''
         }`}
       >
+        {loading && <RowLoading />}
+
         {children}
       </div>
     );

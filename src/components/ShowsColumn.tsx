@@ -40,14 +40,18 @@ const fetchShows = async (slug?: string, year?: string) => {
   return parsed;
 };
 
-const ShowsColumn = ({ displayDate }: ShowsColumnProps): JSX.Element => {
-  const pathname = usePathname();
-  const [artistSlug, year] = pathname ? pathname.split('/').filter((x) => x) : [];
-
+const ShowsColumn = ({
+  artistSlug,
+  year,
+  month,
+  day,
+}: Pick<RawParams, 'artistSlug' | 'year' | 'month' | 'day'>) => {
   const artistShows: any = useSuspenseQuery({
     queryKey: ['artists', artistSlug, year],
     queryFn: () => fetchShows(artistSlug!, year),
   });
+
+  const displayDate = [year, month, day].join('-');
 
   const tours = {};
 
@@ -61,11 +65,11 @@ const ShowsColumn = ({ displayDate }: ShowsColumnProps): JSX.Element => {
         sortActiveBands(artistSlug, artistShows.data.shows).map((show: Show) => {
           const { year, month, day } = splitShowDate(show.display_date);
           const { venue, avg_duration, tour } = show;
-          let tourName: string;
+          let tourName = '';
 
           // keep track of which tours we've displayed
           if (tour) {
-            if (!tours[tour.id]) tourName = tour.name;
+            if (!tours[tour.id]) tourName = tour.name ?? '';
 
             tours[tour.id] = true;
           }
@@ -104,16 +108,4 @@ const ShowsColumn = ({ displayDate }: ShowsColumnProps): JSX.Element => {
   );
 };
 
-const mapStateToProps = ({ shows, app }): ShowsColumnProps => {
-  const artistShows =
-    shows[app.artistSlug] && shows[app.artistSlug][app.year] ? shows[app.artistSlug][app.year] : {};
-
-  return {
-    artistShows,
-    year: app.year,
-    artistSlug: app.artistSlug,
-    displayDate: createShowDate(app.year, app.month, app.day),
-  };
-};
-
-export default connect(mapStateToProps)(ShowsColumn);
+export default ShowsColumn;

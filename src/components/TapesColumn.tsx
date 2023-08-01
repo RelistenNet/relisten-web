@@ -1,22 +1,22 @@
 'use client';
 
 import React from 'react';
-import { connect } from 'react-redux';
 
-import { createShowDate, splitShowDate, durationToHHMMSS } from '../lib/utils';
+import { durationToHHMMSS } from '../lib/utils';
 
+import { Source } from '../types';
 import Column from './Column';
+import Flex from './Flex';
 import Row from './Row';
 import RowHeader from './RowHeader';
+import { Props, useSourceData } from './SongsColumn';
 import Tag from './Tag';
-import { Meta, Source, Tape } from '../types';
-import Flex from './Flex';
 
-const exists = (str: string): boolean => {
-  return str && !/unknown/i.test(str);
+const exists = (str = ''): boolean => {
+  return !/unknown/i.test(str);
 };
 
-const cleanFlac = (str: string): string => {
+const cleanFlac = (str = ''): string => {
   return str ? str.replace(/Flac|Bit/g, '') + '-BIT ' : '';
 };
 
@@ -27,105 +27,93 @@ const pluralize = (str: string, count: number): string => {
   return str + 's';
 };
 
-type TapesColumnProps = {
-  tapes: {
-    data: Tape;
-    meta: Meta;
-  };
-  artistSlug: string;
-  activeSourceId: number;
-};
+const TapesColumn = (props: Props) => {
+  const { gaplessTracksMetadata, isActiveSource, activeSourceObj, sourcesData } =
+    useSourceData(props);
 
-const TapesColumn = ({ tapes, artistSlug, activeSourceId }: TapesColumnProps): JSX.Element => {
-  const sources =
-    tapes.data && tapes.data.sources && tapes.data.sources.length ? tapes.data.sources : null;
+  const { artistSlug, year, month, day, source } = props;
 
-  const { year, month, day } = sources
-    ? splitShowDate(sources[0].display_date)
-    : { year: '', month: '', day: '' };
+  const sourceId = Number(source);
 
   return (
-    <Column heading="Sources" loading={tapes.meta && tapes.meta.loading} loadingAmount={1}>
-      {sources &&
-        sources.map((source: Source, idx: number) => (
-          <div key={source.id}>
-            <RowHeader>
-              SOURCE {idx + 1} OF {sources.length}
-            </RowHeader>
-            <Row
-              href={`/${artistSlug}/${year}/${month}/${day}?source=${source.id}`}
-              active={source.id === activeSourceId || (!activeSourceId && idx === 0)}
+    <Column heading="Sources">
+      {sourcesData?.map((sourceObj: Source, idx: number) => (
+        <div key={sourceObj.id}>
+          <RowHeader>
+            SOURCE {idx + 1} OF {sourcesData.length}
+          </RowHeader>
+          <Row
+            href={`/${artistSlug}/${year}/${month}/${day}?source=${sourceObj.id}`}
+            active={sourceObj.id === sourceId || (!sourceId && idx === 0)}
+          >
+            <div
+              className={`${sourceObj.id === sourceId || (!sourceId && idx === 0) ? 'pl-2' : ''}`}
             >
-              <div
-                className={`${
-                  source.id === activeSourceId || (!activeSourceId && idx === 0) ? 'pl-2' : ''
-                }`}
-              >
-                <Flex className="mb-1">
-                  <div className="min-w-[53px]">{durationToHHMMSS(source.duration)}</div>
-                  {source.is_soundboard && <Tag>SBD</Tag>}
-                  {false && source.flac_type !== 'NoFlac' && (
-                    <Tag>{cleanFlac(source.flac_type)}FLAC</Tag>
-                  )}
-                  {source.is_remaster && <Tag>REMASTER</Tag>}
+              <Flex className="mb-1">
+                <div className="min-w-[53px]">{durationToHHMMSS(sourceObj.duration)}</div>
+                {sourceObj.is_soundboard && <Tag>SBD</Tag>}
+                {false && sourceObj.flac_type !== 'NoFlac' && (
+                  <Tag>{cleanFlac(sourceObj.flac_type)}FLAC</Tag>
+                )}
+                {sourceObj.is_remaster && <Tag>REMASTER</Tag>}
+              </Flex>
+              {sourceObj.avg_rating > 0 && (
+                <Flex className="py-1 text-xs">
+                  <div className="min-w-[48px] pr-2 text-[#696969]">
+                    {artistSlug === 'phish' ? 'Dot Net' : 'Rating'}:
+                  </div>{' '}
+                  <div>
+                    {Number(sourceObj.avg_rating).toFixed(2)} /{' '}
+                    {sourceObj.num_ratings || sourceObj.num_reviews}{' '}
+                    {pluralize('rating', sourceObj.num_ratings || sourceObj.num_reviews)}
+                  </div>
                 </Flex>
-                {source.avg_rating > 0 && (
-                  <Flex className="py-1 text-xs">
-                    <div className="min-w-[48px] pr-2 text-[#696969]">
-                      {artistSlug === 'phish' ? 'Dot Net' : 'Rating'}:
-                    </div>{' '}
-                    <div>
-                      {Number(source.avg_rating).toFixed(2)} /{' '}
-                      {source.num_ratings || source.num_reviews}{' '}
-                      {pluralize('rating', source.num_ratings || source.num_reviews)}
-                    </div>
-                  </Flex>
-                )}
-                {exists(source.taper) && (
-                  <Flex className="py-1 text-xs">
-                    <div className="min-w-[48px] pr-2 text-[#696969]">Taper:</div>{' '}
-                    <div>{source.taper}</div>
-                  </Flex>
-                )}
-                {exists(source.transferrer) && (
-                  <Flex className="py-1 text-xs">
-                    <div className="min-w-[48px] pr-2 text-[#696969]">Transferrer:</div>{' '}
-                    <div>{source.transferrer}</div>
-                  </Flex>
-                )}
-                {exists(source.upstream_identifier) && (
-                  <Flex className="py-1 text-xs">
-                    <div className="min-w-[48px] pr-2 text-[#696969]">SHNID:</div>{' '}
-                    <div>{source.upstream_identifier}</div>
-                  </Flex>
-                )}
-                {exists(source.source) && (
-                  <Flex className="py-1 text-xs">
-                    <div className="min-w-[48px] pr-2 text-[#696969]">Source:</div>{' '}
-                    <div>{source.source}</div>
-                  </Flex>
-                )}
-                {exists(source.lineage) && (
-                  <Flex className="py-1 text-xs">
-                    <div className="min-w-[48px] pr-2 text-[#696969]">Lineage:</div>{' '}
-                    <div>{source.lineage}</div>
-                  </Flex>
-                )}
-                {exists(source.taper_notes) && (
-                  <Flex className="py-1 text-xs">
-                    <div className="min-w-[48px] pr-2 text-[#696969]">Taper Notes:</div>{' '}
-                    <TaperNotes notes={source.taper_notes} />
-                  </Flex>
-                )}
-              </div>
-            </Row>
-          </div>
-        ))}
+              )}
+              {exists(sourceObj.taper) && (
+                <Flex className="py-1 text-xs">
+                  <div className="min-w-[48px] pr-2 text-[#696969]">Taper:</div>{' '}
+                  <div>{sourceObj.taper}</div>
+                </Flex>
+              )}
+              {exists(sourceObj.transferrer) && (
+                <Flex className="py-1 text-xs">
+                  <div className="min-w-[48px] pr-2 text-[#696969]">Transferrer:</div>{' '}
+                  <div>{sourceObj.transferrer}</div>
+                </Flex>
+              )}
+              {exists(sourceObj.upstream_identifier) && (
+                <Flex className="py-1 text-xs">
+                  <div className="min-w-[48px] pr-2 text-[#696969]">SHNID:</div>{' '}
+                  <div>{sourceObj.upstream_identifier}</div>
+                </Flex>
+              )}
+              {exists(sourceObj.source) && (
+                <Flex className="py-1 text-xs">
+                  <div className="min-w-[48px] pr-2 text-[#696969]">Source:</div>{' '}
+                  <div>{sourceObj.source}</div>
+                </Flex>
+              )}
+              {exists(sourceObj.lineage) && (
+                <Flex className="py-1 text-xs">
+                  <div className="min-w-[48px] pr-2 text-[#696969]">Lineage:</div>{' '}
+                  <div>{sourceObj.lineage}</div>
+                </Flex>
+              )}
+              {exists(sourceObj.taper_notes) && (
+                <Flex className="py-1 text-xs">
+                  <div className="min-w-[48px] pr-2 text-[#696969]">Taper Notes:</div>{' '}
+                  <TaperNotes notes={sourceObj.taper_notes} />
+                </Flex>
+              )}
+            </div>
+          </Row>
+        </div>
+      ))}
     </Column>
   );
 };
 
-const TaperNotes = ({ notes }: { notes: string }): JSX.Element => {
+const TaperNotes = ({ notes }: { notes?: string }) => {
   if (!notes) return null;
 
   const onClick = (e: React.MouseEvent<HTMLDetailsElement, MouseEvent>) => {
@@ -140,16 +128,4 @@ const TaperNotes = ({ notes }: { notes: string }): JSX.Element => {
   );
 };
 
-const mapStateToProps = ({ tapes, app }): TapesColumnProps => {
-  const showDate = createShowDate(app.year, app.month, app.day);
-  const showTapes =
-    tapes[app.artistSlug] && tapes[app.artistSlug][showDate] ? tapes[app.artistSlug][showDate] : {};
-
-  return {
-    tapes: showTapes,
-    artistSlug: app.artistSlug,
-    activeSourceId: parseInt(app.source, 10),
-  };
-};
-
-export default connect(mapStateToProps)(TapesColumn);
+export default TapesColumn;

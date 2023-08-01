@@ -1,5 +1,5 @@
 const RowLoading = (): JSX.Element => (
-  <div className="content h-full">
+  <div className="content h-full animate-pulse">
     <div className="w-1/2">
       <div className="h-[1em] w-full bg-[#dddddd]" />
     </div>

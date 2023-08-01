@@ -1,13 +1,16 @@
 'use client';
 
-import { connect } from 'react-redux';
+import { durationToHHMMSS, removeLeadingZero } from '../lib/utils';
 
-import { createShowDate, splitShowDate, durationToHHMMSS, removeLeadingZero } from '../lib/utils';
-
+import { useSuspenseQuery } from '@tanstack/react-query';
+import ky from 'ky';
+import { useSelector } from 'react-redux';
+import { RawParams } from '../app/(main)/[[...anything]]/page';
+import { API_DOMAIN } from '../lib/constants';
+import { Set } from '../types';
 import Column from './Column';
 import Row from './Row';
 import RowHeader from './RowHeader';
-import { GaplessMetadata, Set, Source } from '../types';
 
 const getSetTime = (set: Set): string =>
   durationToHHMMSS(
@@ -16,40 +19,68 @@ const getSetTime = (set: Set): string =>
     }, 0)
   );
 
-type SongsColumnProps = {
-  source?: Source;
-  loading?: boolean;
-  artistSlug?: string;
-  songSlug?: string;
-  activePlaybackSourceId?: number;
-  gaplessTracksMetadata?: GaplessMetadata[];
+const fetchSources = async (slug?: string, year?: string, displayDate?: string) => {
+  if (!slug || !year || !displayDate) return { sources: [] };
+
+  const parsed = await ky(
+    `${API_DOMAIN}/api/v2/artists/${slug}/years/${year}/${displayDate}`
+  ).json();
+
+  return parsed;
 };
 
-const SongsColumn = ({
-  source,
-  loading,
-  artistSlug,
-  songSlug,
-  activePlaybackSourceId,
-  gaplessTracksMetadata,
-}: SongsColumnProps) => {
-  const { year, month, day } = source
-    ? splitShowDate(source.display_date)
-    : { year: '', month: '', day: '' };
-  const isActiveSource = source ? source.id === activePlaybackSourceId : false;
+export type Props = Pick<
+  RawParams,
+  'artistSlug' | 'year' | 'month' | 'day' | 'source' | 'songSlug'
+>;
 
+export const useSourceData = ({ source, year, month, day, artistSlug, songSlug }: Props) => {
+  const activePlaybackSourceId = useSelector(({ playback }) =>
+    playback.source ? parseInt(playback.source, 10) : undefined
+  );
+  const gaplessTracksMetadata = useSelector(({ playback }) => playback.gaplessTracksMetadata);
+
+  const sourceObj = undefined;
+  const displayDate = year && month && day ? [year, month, day].join('-') : undefined;
+
+  const sources: any = useSuspenseQuery({
+    queryKey: ['artists', artistSlug, displayDate],
+    queryFn: () => fetchSources(artistSlug, year, displayDate),
+    // enabled: !!artistSlug,
+  });
+
+  const activeSourceId = Number(source) || sources?.data?.sources?.[0]?.id;
+
+  const activeSourceObj = sources.data?.sources?.find((source) => source.id === activeSourceId);
+  const isActiveSource = sourceObj ? activeSourceObj?.id === activePlaybackSourceId : false;
+
+  return {
+    gaplessTracksMetadata,
+    activePlaybackSourceId,
+    isActiveSource,
+    displayDate,
+    activeSourceObj,
+    sourcesData: sources?.data?.sources ?? [],
+  };
+};
+
+const SongsColumn = (props: Props) => {
+  const { gaplessTracksMetadata, isActiveSource, activeSourceObj } = useSourceData(props);
   return (
     <Column
       heading={
-        source ? `${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)}` : 'Songs'
+        activeSourceObj
+          ? `${removeLeadingZero(props.month)}/${removeLeadingZero(props.day)}/${props.year?.slice(
+              2
+            )}`
+          : 'Songs'
       }
-      loading={loading}
       loadingAmount={12}
     >
-      {source &&
-        source.sets.map((set, setIdx) =>
+      {activeSourceObj &&
+        activeSourceObj.sets.map((set, setIdx) =>
           set.tracks.map((track, trackIdx) => {
-            const trackIsActive = track.slug === songSlug && isActiveSource;
+            const trackIsActive = track.slug === props.songSlug && isActiveSource;
             const trackMetadata = isActiveSource
               ? gaplessTracksMetadata.find(
                   (gaplessTrack) =>
@@ -59,7 +90,7 @@ const SongsColumn = ({
 
             return (
               <div key={track.id}>
-                {trackIdx === 0 && source.sets.length > 1 && (
+                {trackIdx === 0 && activeSourceObj.sets.length > 1 && (
                   <RowHeader>
                     {set.name || `Set ${setIdx + 1}`} <div>{getSetTime(set)}</div>
                   </RowHeader>
@@ -67,7 +98,7 @@ const SongsColumn = ({
                 <Row
                   key={track.id}
                   active={trackIsActive}
-                  href={`/${artistSlug}/${year}/${month}/${day}/${track.slug}?source=${source.id}`}
+                  href={`/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${activeSourceObj.id}`}
                 >
                   <div className={trackIsActive ? 'pl-2' : ''}>
                     <div>{track.title}</div>
@@ -89,10 +120,10 @@ const SongsColumn = ({
             );
           })
         )}
-      {source && <RowHeader>FIN</RowHeader>}
-      {source &&
-        source.links &&
-        source.links.map((link) => (
+      {activeSourceObj && <RowHeader>FIN</RowHeader>}
+      {activeSourceObj &&
+        activeSourceObj.links &&
+        activeSourceObj.links.map((link) => (
           <a href={link.url} target="_blank" key={link.id} rel="noreferrer">
             <Row>{link.label}</Row>
           </a>
@@ -101,32 +132,4 @@ const SongsColumn = ({
   );
 };
 
-const mapStateToProps = ({ tapes, app, playback }): SongsColumnProps | object => {
-  const activeSourceId = parseInt(app.source, 10);
-  const activePlaybackSourceId = parseInt(playback.source, 10);
-  const showDate = createShowDate(app.year, app.month, app.day);
-  const showTapes =
-    tapes[app.artistSlug] && tapes[app.artistSlug][showDate]
-      ? tapes[app.artistSlug][showDate]
-      : null;
-  let source: Source;
-
-  if (!showTapes) return {};
-
-  if (showTapes.data && showTapes.data.sources && showTapes.data.sources.length) {
-    const { sources } = showTapes.data;
-
-    source = sources.find((source: Source) => source.id === activeSourceId) || sources[0];
-  }
-
-  return {
-    source,
-    loading: showTapes.meta.loading,
-    artistSlug: app.artistSlug,
-    songSlug: playback.songSlug,
-    gaplessTracksMetadata: playback.gaplessTracksMetadata,
-    activePlaybackSourceId,
-  };
-};
-
-export default connect(mapStateToProps)(SongsColumn);
+export default SongsColumn;
