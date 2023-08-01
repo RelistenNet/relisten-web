@@ -5,6 +5,7 @@ import Flex from '../../components/Flex';
 import { SimplePopover } from '../../components/Popover';
 import Menu from '../../components/Menu';
 import Player from '../../components/Player';
+import { Suspense } from 'react';
 
 export default function NavBar() {
   // TODO: secondary nav
@@ -22,7 +23,9 @@ export default function NavBar() {
         {/* {this.secondaryNavTitle} */}
       </Flex>
       <div className="min-w-[80%] text-center md:min-w-[60%] lg:min-w-[42vw]">
-        <Player />
+        <Suspense fallback={null}>
+          <Player />
+        </Suspense>
       </div>
       <SimplePopover content={<Menu />}>
         <Flex className="flex-2 h-full cursor-pointer content-end items-center text-center font-bold lg:hidden">

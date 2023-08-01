@@ -142,7 +142,9 @@ const player = new Gapless.Queue({
 
         const nextUrl = `/${artistSlug}/${year}/${month}/${day}/${songSlug}?source=${source}`;
 
-        if (playback !== songSlug) store.dispatch(updatePlayback({ songSlug }));
+        if (playback !== songSlug) {
+          store.dispatch(updatePlayback({ songSlug, artistSlug, year, month, day, source }));
+        }
 
         if (songSlug) {
           window.localStorage.lastPlayedUrl = nextUrl;

@@ -17,13 +17,17 @@ const byObject = {
 
 const key = ['artists'];
 
-const ArtistsColumn = () => {
-  const artistSlug = useSelectedLayoutSegment();
-
-  const artists: any = useSuspenseQuery({
+export const useArtists = () => {
+  return useSuspenseQuery<Artist[]>({
     queryKey: key,
     queryFn: () => fetchArtists(),
   });
+};
+
+const ArtistsColumn = () => {
+  const artistSlug = useSelectedLayoutSegment();
+
+  const artists: any = useArtists();
 
   return (
     <Column heading="Bands">

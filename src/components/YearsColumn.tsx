@@ -8,9 +8,9 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import ky from 'ky';
 import { useSelectedLayoutSegment } from 'next/navigation';
 import React from 'react';
-import { fetchArtists } from '../app/queries';
 import { API_DOMAIN } from '../lib/constants';
 import { Year } from '../types';
+import { useArtists } from './ArtistsColumn';
 import Column from './Column';
 import Row from './Row';
 
@@ -24,10 +24,7 @@ const fetchYears = async (slug?: string) => {
 
 const YearsColumn = ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
   const year = useSelectedLayoutSegment();
-  const artists: any = useSuspenseQuery({
-    queryKey: ['artists'],
-    queryFn: () => fetchArtists(),
-  });
+  const artists: any = useArtists();
   const artistYears: any = useSuspenseQuery({
     queryKey: ['artists', artistSlug],
     queryFn: () => fetchYears(artistSlug!),
