@@ -10,7 +10,7 @@ import { Set, Source } from '../types';
 import Column from './Column';
 import Row from './Row';
 import RowHeader from './RowHeader';
-import { useSelectedLayoutSegment } from 'next/navigation';
+import { useSearchParams, useSelectedLayoutSegment } from 'next/navigation';
 import { RawParams } from '@/app/(main)/(home)/layout';
 
 const getSetTime = (set: Set): string =>
@@ -30,7 +30,7 @@ const fetchSources = async (slug?: string, year?: string, displayDate?: string) 
   return parsed;
 };
 
-export type Props = Pick<RawParams, 'artistSlug' | 'year' | 'month' | 'day' | 'source'>;
+export type Props = Pick<RawParams, 'artistSlug' | 'year' | 'month' | 'day'>;
 
 interface SourceData {
   gaplessTracksMetadata: any;
@@ -41,13 +41,18 @@ interface SourceData {
   sourcesData: any;
 }
 
-export const useSourceData = ({ source, year, month, day, artistSlug }: Props): SourceData => {
+export const useSourceData = ({
+  year,
+  month,
+  day,
+  artistSlug,
+  source,
+}: Props & { source: string }): SourceData => {
   const activePlaybackSourceId = useSelector(({ playback }) =>
     playback.source ? parseInt(playback.source, 10) : undefined
   );
   const gaplessTracksMetadata = useSelector(({ playback }) => playback.gaplessTracksMetadata);
 
-  const sourceObj = undefined;
   const displayDate = year && month && day ? [year, month, day].join('-') : undefined;
 
   const sources: any = useSuspenseQuery({
@@ -59,7 +64,7 @@ export const useSourceData = ({ source, year, month, day, artistSlug }: Props): 
   const activeSourceId = Number(source) || sources?.data?.sources?.[0]?.id;
 
   const activeSourceObj = sources.data?.sources?.find((source) => source.id === activeSourceId);
-  const isActiveSource = sourceObj ? activeSourceObj?.id === activePlaybackSourceId : false;
+  const isActiveSource = activeSourceObj ? activeSourceObj?.id === activePlaybackSourceId : false;
 
   return {
     gaplessTracksMetadata,
@@ -73,8 +78,13 @@ export const useSourceData = ({ source, year, month, day, artistSlug }: Props): 
 
 const SongsColumn = (props: Props) => {
   const songSlug = useSelectedLayoutSegment();
+  const sourceId = Number(useSearchParams()?.get('source'));
 
-  const { gaplessTracksMetadata, isActiveSource, activeSourceObj } = useSourceData(props);
+  const { gaplessTracksMetadata, isActiveSource, activeSourceObj } = useSourceData({
+    ...props,
+    source: String(sourceId),
+  });
+
   return (
     <Column
       heading={
@@ -90,6 +100,7 @@ const SongsColumn = (props: Props) => {
         activeSourceObj.sets?.map((set, setIdx) =>
           set.tracks?.map((track, trackIdx) => {
             const trackIsActive = track.slug === songSlug && isActiveSource;
+
             const trackMetadata = isActiveSource
               ? gaplessTracksMetadata.find(
                   (gaplessTrack) =>

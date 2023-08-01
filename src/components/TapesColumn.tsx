@@ -11,6 +11,7 @@ import Row from './Row';
 import RowHeader from './RowHeader';
 import { Props, useSourceData } from './SongsColumn';
 import Tag from './Tag';
+import { useSearchParams } from 'next/navigation';
 
 const exists = (str = ''): boolean => {
   return !/unknown/i.test(str);
@@ -28,11 +29,9 @@ const pluralize = (str: string, count: number): string => {
 };
 
 const TapesColumn = (props: Props) => {
-  const { sourcesData } = useSourceData(props);
-
-  const { artistSlug, year, month, day, source } = props;
-
-  const sourceId = Number(source);
+  const sourceId = Number(useSearchParams()?.get('source'));
+  const { artistSlug, year, month, day } = props;
+  const { sourcesData } = useSourceData({ ...props, source: String(sourceId) });
 
   return (
     <Column heading="Sources">

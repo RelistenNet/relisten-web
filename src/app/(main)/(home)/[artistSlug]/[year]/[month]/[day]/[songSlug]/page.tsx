@@ -42,7 +42,11 @@ export default function Page() {
       }
 
       if (!isPlayerMounted()) {
-        initGaplessPlayer(store, (url: string) => router.replace(url));
+        initGaplessPlayer(store, (url: string) => {
+          if (window.location.pathname !== url) {
+            router.replace(url);
+          }
+        });
       } else {
         // check if track is already in queue, and re-use
         console.log(player.currentTrack, activeTrack);
