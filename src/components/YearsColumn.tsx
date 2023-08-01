@@ -3,15 +3,16 @@
 import sortActiveBands from '../lib/sortActiveBands';
 import { simplePluralize } from '../lib/utils';
 
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import { RawParams } from '@/app/(main)/(home)/layout';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import ky from 'ky';
-import { RawParams } from '../app/(main)/[[...anything]]/page';
+import { useSelectedLayoutSegment } from 'next/navigation';
+import React from 'react';
+import { fetchArtists } from '../app/queries';
 import { API_DOMAIN } from '../lib/constants';
 import { Year } from '../types';
 import Column from './Column';
 import Row from './Row';
-import { fetchArtists } from '../app/queries';
-import React from 'react';
 
 const fetchYears = async (slug?: string) => {
   if (!slug) return [];
@@ -21,7 +22,8 @@ const fetchYears = async (slug?: string) => {
   return parsed;
 };
 
-const YearsColumn = ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 'year'>) => {
+const YearsColumn = ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
+  const year = useSelectedLayoutSegment();
   const artists: any = useSuspenseQuery({
     queryKey: ['artists'],
     queryFn: () => fetchArtists(),

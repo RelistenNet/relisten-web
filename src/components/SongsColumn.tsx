@@ -5,12 +5,13 @@ import { durationToHHMMSS, removeLeadingZero } from '../lib/utils';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import ky from 'ky';
 import { useSelector } from 'react-redux';
-import { RawParams } from '../app/(main)/[[...anything]]/page';
+import { RawParams } from '../app/(main)/(home)/[artistSlug]/[[...anything]]/page';
 import { API_DOMAIN } from '../lib/constants';
 import { Set } from '../types';
 import Column from './Column';
 import Row from './Row';
 import RowHeader from './RowHeader';
+import { useSelectedLayoutSegment } from 'next/navigation';
 
 const getSetTime = (set: Set): string =>
   durationToHHMMSS(
@@ -29,12 +30,9 @@ const fetchSources = async (slug?: string, year?: string, displayDate?: string) 
   return parsed;
 };
 
-export type Props = Pick<
-  RawParams,
-  'artistSlug' | 'year' | 'month' | 'day' | 'source' | 'songSlug'
->;
+export type Props = Pick<RawParams, 'artistSlug' | 'year' | 'month' | 'day' | 'source'>;
 
-export const useSourceData = ({ source, year, month, day, artistSlug, songSlug }: Props) => {
+export const useSourceData = ({ source, year, month, day, artistSlug }: Props) => {
   const activePlaybackSourceId = useSelector(({ playback }) =>
     playback.source ? parseInt(playback.source, 10) : undefined
   );
@@ -65,6 +63,8 @@ export const useSourceData = ({ source, year, month, day, artistSlug, songSlug }
 };
 
 const SongsColumn = (props: Props) => {
+  const songSlug = useSelectedLayoutSegment();
+
   const { gaplessTracksMetadata, isActiveSource, activeSourceObj } = useSourceData(props);
   return (
     <Column
@@ -80,7 +80,7 @@ const SongsColumn = (props: Props) => {
       {activeSourceObj &&
         activeSourceObj.sets.map((set, setIdx) =>
           set.tracks.map((track, trackIdx) => {
-            const trackIsActive = track.slug === props.songSlug && isActiveSource;
+            const trackIsActive = track.slug === songSlug && isActiveSource;
             const trackMetadata = isActiveSource
               ? gaplessTracksMetadata.find(
                   (gaplessTrack) =>

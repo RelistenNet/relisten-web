@@ -28,8 +28,7 @@ const pluralize = (str: string, count: number): string => {
 };
 
 const TapesColumn = (props: Props) => {
-  const { gaplessTracksMetadata, isActiveSource, activeSourceObj, sourcesData } =
-    useSourceData(props);
+  const { sourcesData } = useSourceData(props);
 
   const { artistSlug, year, month, day, source } = props;
 

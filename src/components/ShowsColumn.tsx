@@ -13,6 +13,8 @@ import Flex from './Flex';
 import Row from './Row';
 import RowHeader from './RowHeader';
 import Tag from './Tag';
+import { RawParams } from '@/app/(main)/(home)/layout';
+import { useSelectedLayoutSegments } from 'next/navigation';
 
 const fetchShows = async (slug?: string, year?: string) => {
   if (!slug || !year) return [];
@@ -22,12 +24,8 @@ const fetchShows = async (slug?: string, year?: string) => {
   return parsed;
 };
 
-const ShowsColumn = ({
-  artistSlug,
-  year,
-  month,
-  day,
-}: Pick<RawParams, 'artistSlug' | 'year' | 'month' | 'day'>) => {
+const ShowsColumn = ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 'year'>) => {
+  const [month, day] = useSelectedLayoutSegments();
   const artistShows: any = useSuspenseQuery({
     queryKey: ['artists', artistSlug, year],
     queryFn: () => fetchShows(artistSlug!, year),

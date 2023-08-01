@@ -8,6 +8,7 @@ import Column from './Column';
 import Row from './Row';
 import RowHeader from './RowHeader';
 import React from 'react';
+import { useSelectedLayoutSegment } from 'next/navigation';
 
 const byObject = {
   wsp: 'PanicStream',
@@ -16,7 +17,9 @@ const byObject = {
 
 const key = ['artists'];
 
-const ArtistsColumn = ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
+const ArtistsColumn = () => {
+  const artistSlug = useSelectedLayoutSegment();
+
   const artists: any = useSuspenseQuery({
     queryKey: key,
     queryFn: () => fetchArtists(),
