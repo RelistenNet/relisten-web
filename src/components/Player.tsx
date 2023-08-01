@@ -10,7 +10,7 @@ import Flex from './Flex';
 
 const Player = () => {
   const playerRef = useRef<HTMLDivElement>(null);
-  const playback = useSelector((state) => state.playback);
+  const playback = useSelector((state: any) => state.playback);
   const [showRemainingDuration, setShowRemainingDuration] = useState(false);
   const [volume, setVolume] = useState(
     (typeof localStorage !== 'undefined' && localStorage.volume) || 1
