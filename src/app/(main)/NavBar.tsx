@@ -22,7 +22,7 @@ export default function NavBar() {
         {/* {this.secondaryNavTitle} */}
       </Flex>
       <div className="min-w-[80%] text-center md:min-w-[60%] lg:min-w-[42vw]">
-        <Player />
+        {/* <Player /> */}
       </div>
       <SimplePopover content={<Menu />}>
         <Flex className="flex-2 h-full cursor-pointer content-end items-center text-center font-bold lg:hidden">

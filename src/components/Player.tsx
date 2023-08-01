@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import React from 'react';
 import { Component } from 'react';
 import { connect } from 'react-redux';
@@ -177,7 +179,7 @@ class Player extends Component<PlayerProps, PlayerState> {
 
     const percentage = (e.pageX - left) / width;
 
-    player.currentTrack.seek(percentage * playback.activeTrack.duration);
+    player.currentTrack.seek(percentage * (playback?.activeTrack?.duration ?? 0));
   };
 
   toggleRemainingDuration = (): void => {

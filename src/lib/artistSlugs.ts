@@ -7,8 +7,8 @@ if (typeof window === 'undefined') {
     .then((res) => res.json())
     .then((json) =>
       json.map((artist: Artist) => {
-        if (artistSlugs.indexOf(artist.slug) === -1) {
-          artistSlugs.push(artist.slug);
+        if (artistSlugs.indexOf(String(artist?.slug)) === -1) {
+          artistSlugs.push(String(artist?.slug));
         }
       })
     );

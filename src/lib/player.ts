@@ -31,18 +31,17 @@ function throttle(
     duration: number;
   }) => void,
   wait: number,
-  options?: { leading: boolean; trailing: boolean },
+  options = { leading: true, trailing: true },
   ...args: IArguments[]
 ) {
   let context, result;
-  let timeout = null;
+  let timeout: any = null;
   let previous = 0;
-  if (!options) options = { leading: true, trailing: true };
   const later = function () {
     previous = options.leading === false ? 0 : Date.now();
     timeout = null;
     result = func.apply(context, args);
-    if (!timeout) context = args = null;
+    if (!timeout) context = (args as any) = null;
   };
   return function () {
     const now = Date.now();
@@ -57,7 +56,7 @@ function throttle(
       }
       previous = now;
       result = func.apply(context, args);
-      if (!timeout) context = args = null;
+      if (!timeout) context = (args as any) = null;
     } else if (!timeout && options.trailing !== false) {
       timeout = setTimeout(later, remaining);
     }
@@ -116,7 +115,7 @@ const player = new Gapless.Queue({
     const { playback, artists } = store.getState();
 
     if (playback.tracks && playback.tracks.length) {
-      const track = playback.tracks[idx];
+      const track = playback.tracks[String(idx)];
 
       if (track) {
         const songSlug = track.slug;

@@ -5,18 +5,18 @@ import { durationToHHMMSS, removeLeadingZero } from '../lib/utils';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import ky from 'ky';
 import { useSelector } from 'react-redux';
-import { RawParams } from '../app/(main)/(home)/[artistSlug]/[[...anything]]/page';
 import { API_DOMAIN } from '../lib/constants';
 import { Set } from '../types';
 import Column from './Column';
 import Row from './Row';
 import RowHeader from './RowHeader';
 import { useSelectedLayoutSegment } from 'next/navigation';
+import { RawParams } from '@/app/(main)/(home)/layout';
 
 const getSetTime = (set: Set): string =>
   durationToHHMMSS(
-    set.tracks.reduce((memo, next) => {
-      return memo + next.duration;
+    set.tracks?.reduce((memo, next) => {
+      return memo + (next?.duration ?? 0);
     }, 0)
   );
 

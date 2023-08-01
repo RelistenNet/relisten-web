@@ -56,7 +56,7 @@ const TapesColumn = (props: Props) => {
                 )}
                 {sourceObj.is_remaster && <Tag>REMASTER</Tag>}
               </Flex>
-              {sourceObj.avg_rating > 0 && (
+              {Number(sourceObj?.avg_rating) > 0 && (
                 <Flex className="py-1 text-xs">
                   <div className="min-w-[48px] pr-2 text-[#696969]">
                     {artistSlug === 'phish' ? 'Dot Net' : 'Rating'}:
@@ -64,7 +64,7 @@ const TapesColumn = (props: Props) => {
                   <div>
                     {Number(sourceObj.avg_rating).toFixed(2)} /{' '}
                     {sourceObj.num_ratings || sourceObj.num_reviews}{' '}
-                    {pluralize('rating', sourceObj.num_ratings || sourceObj.num_reviews)}
+                    {pluralize('rating', sourceObj?.num_ratings || sourceObj?.num_reviews || 0)}
                   </div>
                 </Flex>
               )}

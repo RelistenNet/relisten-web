@@ -6,3 +6,5 @@ db/
 
 .DS_Store
 .vscode
+
+*.tsbuildinfo

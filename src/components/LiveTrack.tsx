@@ -11,19 +11,19 @@ const createURL = (track: { track: Track; source: TrackSource }): string => {
 
   return (
     '/' +
-    [track.source.artist.slug, year, month, day, track.track.slug].join('/') +
+    [track.source.artist?.slug, year, month, day, track.track.slug].join('/') +
     `?source=${track.source.id}`
   );
 };
 
-const getVenueInfo = (track: TrackSource): Venue => {
+const getVenueInfo = (track: TrackSource): Venue | undefined => {
   if (track.artist && track.artist.features) {
     if (track.artist.features.per_show_venues && track.artist.features.per_source_venues) {
-      return track.show.venue;
+      return track.show?.venue;
     }
 
     if (track.artist.features.per_show_venues) {
-      return track.show.venue;
+      return track.show?.venue;
     }
 
     return track.venue;
@@ -39,7 +39,7 @@ type VenueInfoProps = {
   created_at: string;
 };
 
-const VenueInfo = ({ track, app_type_description, created_at }: VenueInfoProps): JSX.Element => {
+const VenueInfo = ({ track, app_type_description, created_at }: VenueInfoProps) => {
   const info = getVenueInfo(track.source);
   return info ? (
     <div>
@@ -77,7 +77,7 @@ export default ({
   track,
   isFirstRender,
   isLastSeen,
-}: LiveTrackProps): JSX.Element => {
+}: LiveTrackProps) => {
   const [isMounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -96,7 +96,7 @@ export default ({
       >
         <div>
           <div className="content">{track.track.title}</div>
-          <div>{track.source.artist.name}</div>
+          <div>{track.source.artist?.name}</div>
 
           <div className="text-[0.7em] text-[#979797]">
             <VenueInfo
