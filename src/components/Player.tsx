@@ -76,7 +76,7 @@ const Player = () => {
       )}
       {activeTrack && (
         <Flex
-          className="w-[50px] cursor-pointer items-center justify-center text-[#7a7a7a] active:text-[#4a4a4a]"
+          className="w-[50px] cursor-pointer items-center justify-center text-gray-600 active:text-gray-800"
           onClick={() => player.togglePlayPause()}
         >
           <i
@@ -87,7 +87,7 @@ const Player = () => {
       {typeof window === 'undefined' || !activeTrack ? null : (
         <div className="relative h-full flex-1" ref={playerRef}>
           <Flex className="h-full justify-center transition-all duration-[1s] ease-in-out">
-            <div className="absolute left-[8px] top-1/2 translate-x-0 translate-y-[-50%] text-left text-[0.8em] text-[#7a7a7a]">
+            <div className="absolute left-[8px] top-1/2 translate-x-0 translate-y-[-50%] text-left text-[0.8em] text-gray-600">
               <div>
                 <i
                   className="fa fa-backward cursor-pointer"
@@ -97,10 +97,10 @@ const Player = () => {
               <div>{durationToHHMMSS(playback.activeTrack.currentTime)}</div>
             </div>
             <Flex column className="justify-around py-2">
-              <div className="relative text-[1em] text-[#3c3c3c]">
+              <div className="relative text-[1em] text-gray-900">
                 {activeTrack.title}
                 {false && (
-                  <Flex className="absolute left-full top-[2px] ml-2 w-full items-center text-[0.8em] text-[#7a7a7a]">
+                  <Flex className="absolute left-full top-[2px] ml-2 w-full items-center text-[0.8em] text-gray-600">
                     <div>Next: {nextTrack && nextTrack.title}&nbsp;</div>
                     <i className="fa fa-angle-down cursor-pointer" />
                   </Flex>
@@ -112,12 +112,12 @@ const Player = () => {
                 as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
                 legacyBehavior
               >
-                <a className="justify-center text-[0.8em] text-[#7a7a7a]">
+                <a className="justify-center text-[0.8em] text-gray-600">
                   {artistName} – {removeLeadingZero(month)}/{removeLeadingZero(day)}/{year.slice(2)}
                 </a>
               </Link>
             </Flex>
-            <div className="absolute right-[8px] top-1/2 translate-x-0 translate-y-[-50%] text-right text-[0.8em] text-[#7a7a7a]">
+            <div className="absolute right-[8px] top-1/2 translate-x-0 translate-y-[-50%] text-right text-[0.8em] text-gray-600">
               <div>
                 <i className="fa fa-forward cursor-pointer" onClick={() => player.playNext()} />
               </div>
@@ -163,7 +163,7 @@ const Player = () => {
           as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
           legacyBehavior
         >
-          <div className="w-[50px] cursor-pointer items-center justify-center self-center text-[#7a7a7a] active:text-[#4a4a4a]">
+          <div className="w-[50px] cursor-pointer items-center justify-center self-center text-gray-600 active:text-gray-800">
             <i className="fa fa fa-list-ol cursor-pointer" />
           </div>
         </Link>
