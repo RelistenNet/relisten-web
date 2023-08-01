@@ -87,7 +87,7 @@ export default ({
   if (!track?.track) return null;
 
   return (
-    <Link href={createURL(track)}>
+    <Link href={createURL(track)} prefetch={false}>
       <Flex
         className={`w-full cursor-pointer border-b-[1px] border-[#eeeeee] px-3 transition-opacity duration-1000 ease-in-out ${
           isMounted || isFirstRender ? 'opacity-100' : 'opacity-0'

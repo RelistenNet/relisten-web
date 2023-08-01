@@ -29,7 +29,7 @@ const Row = ({ height, children, href, active, loading, ...props }: RowProps) =>
   }
 
   return (
-    <Link href={href ?? '/'}>
+    <Link href={href ?? '/'} prefetch={false}>
       <Flex
         column
         className="relisten-row min-h-[46px] items-center border-b-[#f1f1f1]"
