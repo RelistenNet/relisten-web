@@ -128,4 +128,4 @@ const TaperNotes = ({ notes }: { notes?: string }) => {
   );
 };
 
-export default TapesColumn;
+export default React.memo(TapesColumn);

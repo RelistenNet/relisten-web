@@ -10,6 +10,8 @@ import { API_DOMAIN } from '../lib/constants';
 import { Year } from '../types';
 import Column from './Column';
 import Row from './Row';
+import { fetchArtists } from '../app/queries';
+import React from 'react';
 
 const fetchYears = async (slug?: string) => {
   if (!slug) return [];
@@ -20,8 +22,9 @@ const fetchYears = async (slug?: string) => {
 };
 
 const YearsColumn = ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 'year'>) => {
-  const artists: any = useQuery({
+  const artists: any = useSuspenseQuery({
     queryKey: ['artists'],
+    queryFn: () => fetchArtists(),
   });
   const artistYears: any = useSuspenseQuery({
     queryKey: ['artists', artistSlug],
@@ -58,4 +61,4 @@ const YearsColumn = ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 'year'
   );
 };
 
-export default YearsColumn;
+export default React.memo(YearsColumn);

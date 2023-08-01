@@ -1,36 +1,18 @@
 'use client';
 
-import { connect } from 'react-redux';
-
 import sortActiveBands from '../lib/sortActiveBands';
-import {
-  createShowDate,
-  durationToHHMMSS,
-  removeLeadingZero,
-  simplePluralize,
-  splitShowDate,
-} from '../lib/utils';
+import { durationToHHMMSS, removeLeadingZero, simplePluralize, splitShowDate } from '../lib/utils';
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 import ky from 'ky';
-import { usePathname } from 'next/navigation';
+import React from 'react';
 import { API_DOMAIN } from '../lib/constants';
-import { ArtistShows, Meta, Show } from '../types';
+import { Show } from '../types';
 import Column from './Column';
 import Flex from './Flex';
 import Row from './Row';
 import RowHeader from './RowHeader';
 import Tag from './Tag';
-
-type ShowsColumnProps = {
-  artistShows: {
-    data: ArtistShows;
-    meta: Meta;
-  };
-  artistSlug: string;
-  year: string;
-  displayDate: string;
-};
 
 const fetchShows = async (slug?: string, year?: string) => {
   if (!slug || !year) return [];
@@ -108,4 +90,4 @@ const ShowsColumn = ({
   );
 };
 
-export default ShowsColumn;
+export default React.memo(ShowsColumn);

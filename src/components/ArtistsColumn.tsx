@@ -7,6 +7,7 @@ import { Artist } from '../types';
 import Column from './Column';
 import Row from './Row';
 import RowHeader from './RowHeader';
+import React from 'react';
 
 const byObject = {
   wsp: 'PanicStream',
@@ -53,4 +54,4 @@ const ArtistsColumn = ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
   );
 };
 
-export default ArtistsColumn;
+export default React.memo(ArtistsColumn);
