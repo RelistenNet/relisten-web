@@ -6,7 +6,7 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import ky from 'ky';
 import { useSelector } from 'react-redux';
 import { API_DOMAIN } from '../lib/constants';
-import { Set } from '../types';
+import { Set, Source } from '../types';
 import Column from './Column';
 import Row from './Row';
 import RowHeader from './RowHeader';
@@ -32,7 +32,16 @@ const fetchSources = async (slug?: string, year?: string, displayDate?: string) 
 
 export type Props = Pick<RawParams, 'artistSlug' | 'year' | 'month' | 'day' | 'source'>;
 
-export const useSourceData = ({ source, year, month, day, artistSlug }: Props) => {
+interface SourceData {
+  gaplessTracksMetadata: any;
+  activePlaybackSourceId: any;
+  isActiveSource: any;
+  displayDate: any;
+  activeSourceObj: Source | undefined;
+  sourcesData: any;
+}
+
+export const useSourceData = ({ source, year, month, day, artistSlug }: Props): SourceData => {
   const activePlaybackSourceId = useSelector(({ playback }) =>
     playback.source ? parseInt(playback.source, 10) : undefined
   );
@@ -78,8 +87,8 @@ const SongsColumn = (props: Props) => {
       loadingAmount={12}
     >
       {activeSourceObj &&
-        activeSourceObj.sets.map((set, setIdx) =>
-          set.tracks.map((track, trackIdx) => {
+        activeSourceObj.sets?.map((set, setIdx) =>
+          set.tracks?.map((track, trackIdx) => {
             const trackIsActive = track.slug === songSlug && isActiveSource;
             const trackMetadata = isActiveSource
               ? gaplessTracksMetadata.find(
@@ -90,7 +99,7 @@ const SongsColumn = (props: Props) => {
 
             return (
               <div key={track.id}>
-                {trackIdx === 0 && activeSourceObj.sets.length > 1 && (
+                {trackIdx === 0 && Number(activeSourceObj.sets?.length) > 1 && (
                   <RowHeader>
                     {set.name || `Set ${setIdx + 1}`} <div>{getSetTime(set)}</div>
                   </RowHeader>

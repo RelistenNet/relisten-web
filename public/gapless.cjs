@@ -106,6 +106,11 @@
     }
 
     playPrevious() {
+      if (this.currentTrack?.currentTime > 8) {
+        this.currentTrack.seek(0);
+        return;
+      }
+
       this.resetCurrentTrack();
 
       if (--this.state.currentTrackIdx < 0) this.state.currentTrackIdx = 0;
@@ -478,9 +483,9 @@
     }
 
     // basic event handlers
-    audioOnError(e) {
+    audioOnError = (e) => {
       this.debug('audioOnError', e);
-    }
+    };
 
     onEnded(from) {
       this.debug('onEnded', from, this.isActiveTrack, this);
@@ -583,7 +588,7 @@
 
     // debug helper
     debug(first, ...args) {
-      console.log(new Date(), `${this.idx}:${first}`, ...args, this.state, this);
+      console.debug(new Date(), `${this.idx}:${first}`, ...args, this.state, this);
     }
 
     // just a helper to quick jump to the end of a track for testing

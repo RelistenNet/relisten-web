@@ -4,7 +4,7 @@ import TapesColumn from '@/components/TapesColumn';
 import Column from '@/components/Column';
 import { MainLayoutProps } from '@/app/(main)/(home)/layout';
 
-export default function Page({ params }: MainLayoutProps) {
+export default function Page({ params, children }: MainLayoutProps) {
   const { artistSlug, year, month, day, source } = params;
 
   return (
@@ -15,6 +15,7 @@ export default function Page({ params }: MainLayoutProps) {
       <Suspense fallback={<Column heading="Sources" loading loadingAmount={20} />}>
         <TapesColumn artistSlug={artistSlug} year={year} month={month} day={day} source={source} />
       </Suspense>
+      {children}
     </>
   );
 }

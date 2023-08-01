@@ -1,4 +1,3 @@
-import Router from 'next/router';
 import Gapless from '../../public/gapless.cjs';
 
 import { splitShowDate } from './utils';
@@ -107,8 +106,8 @@ const player = new Gapless.Queue({
       })
     );
   },
-  onStartNewTrack: (currentTrack: ActiveTrack) => {
-    if (!store) return;
+  onStartNewTrack: (currentTrack?: ActiveTrack) => {
+    if (!store || !currentTrack) return;
 
     const idx = currentTrack.idx;
 
@@ -151,15 +150,14 @@ const player = new Gapless.Queue({
 
         // shitty hack to prevent view updating content because of URL
         if (window.location.pathname.indexOf(`/${artistSlug}/${year}/${month}/${day}`) !== -1) {
-          window.UPDATED_TRACK_VIA_GAPLESS = true;
-          Router.replace('/', nextUrl);
+          player.changeURL(nextUrl);
         }
       }
     }
   },
 });
 
-export function initGaplessPlayer(nextStore) {
+export function initGaplessPlayer(nextStore, changeURL) {
   if (typeof window === 'undefined') return;
   store = nextStore;
 
@@ -177,6 +175,8 @@ export function initGaplessPlayer(nextStore) {
   if (localStorage.volume) {
     player.setVolume(localStorage.volume);
   }
+
+  player.changeURL = changeURL;
 
   mounted = true;
 }

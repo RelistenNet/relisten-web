@@ -117,7 +117,7 @@ class Player extends Component<PlayerProps, PlayerState> {
                   </a>
                 </Link>
               </Flex>
-              <div className="absolute left-[8px] right-[8px] top-1/2 translate-x-0 translate-y-[-50%] text-right text-[0.8em] text-[#7a7a7a]">
+              <div className="absolute right-[8px] top-1/2 translate-x-0 translate-y-[-50%] text-right text-[0.8em] text-[#7a7a7a]">
                 <div>
                   <i className="fa fa-forward cursor-pointer" onClick={() => player.playNext()} />
                 </div>
