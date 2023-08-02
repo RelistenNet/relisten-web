@@ -1,14 +1,13 @@
 'use client';
 
 import { useSuspenseQuery } from '@tanstack/react-query';
+import { useSelectedLayoutSegment } from 'next/navigation';
 import { fetchArtists } from '../app/queries';
 import { groupBy, simplePluralize } from '../lib/utils';
 import { Artist } from '../types';
 import Column from './Column';
 import Row from './Row';
 import RowHeader from './RowHeader';
-import React from 'react';
-import { useSelectedLayoutSegment } from 'next/navigation';
 
 const byObject = {
   wsp: 'PanicStream',
@@ -61,4 +60,4 @@ const ArtistsColumn = () => {
   );
 };
 
-export default React.memo(ArtistsColumn);
+export default ArtistsColumn;
