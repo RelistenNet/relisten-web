@@ -20,9 +20,14 @@ export default function NavBar() {
             Re
           </Flex>
         </Link>
+        <Link href="/" legacyBehavior prefetch={false}>
+          <Flex as={'a'} className="items-center px-2 lg:hidden">
+            (go back)
+          </Flex>
+        </Link>
         {/* {this.secondaryNavTitle} */}
       </Flex>
-      <div className="min-w-[80%] text-center md:min-w-[60%] lg:min-w-[42vw]">
+      <div className="min-w-[60%] text-center md:min-w-[60%] lg:min-w-[42vw]">
         <Suspense fallback={null}>
           <Player />
         </Suspense>

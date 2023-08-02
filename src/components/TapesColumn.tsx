@@ -34,7 +34,7 @@ const TapesColumn = (props: Props) => {
   const { sourcesData } = useSourceData({ ...props, source: String(sourceId) });
 
   return (
-    <Column heading="Sources">
+    <Column heading="Sources" className="tapes-column">
       {sourcesData?.map((sourceObj: Source, idx: number) => (
         <div key={sourceObj.id}>
           <RowHeader>

@@ -16,7 +16,7 @@ export type MainLayoutProps = PropsWithChildren & { params: RawParams };
 
 export default function Layout({ children }: MainLayoutProps) {
   return (
-    <Flex className="grid grid-flow-col grid-cols-5 grid-rows-1 gap-8 overflow-y-auto px-4">
+    <Flex className="overflow-y-auto px-4 lg:grid lg:grid-flow-col lg:grid-cols-5 lg:grid-rows-1 lg:gap-8">
       <Suspense fallback={<Column heading="Artists" loading loadingAmount={20} />}>
         <ArtistsColumn />
       </Suspense>
