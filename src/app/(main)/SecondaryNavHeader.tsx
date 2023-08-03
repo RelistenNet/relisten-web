@@ -62,7 +62,6 @@ export default function SecondaryNavBar({ artistSlugsToName }: Props) {
     );
   }
 
-  console.log(group, artistSlug);
   if (group === '(home)' && artistSlug) {
     const artistName = artistSlugsToName[artistSlug];
     return (

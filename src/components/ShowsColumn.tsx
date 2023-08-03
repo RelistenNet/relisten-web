@@ -5,30 +5,31 @@ import { RawParams } from '@/app/(main)/(home)/layout';
 import ky from 'ky';
 import React from 'react';
 import { API_DOMAIN } from '../lib/constants';
-import { Show } from '../types';
+import { ArtistShows } from '../types';
 import Column from './Column';
 import Flex from './Flex';
 import Row from './Row';
 import RowHeader from './RowHeader';
 import Tag from './Tag';
 
-const fetchShows = async (slug?: string, year?: string) => {
+const fetchShows = async (slug?: string, year?: string): Promise<ArtistShows> => {
   if (!slug || !year) return [];
 
-  const parsed = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years/${year}`).json();
+  const parsed: ArtistShows = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years/${year}`).json();
 
   return parsed;
 };
 
 const ShowsColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 'year'>) => {
-  const artistShows: any = await fetchShows(artistSlug, year);
+  const artistShows = await fetchShows(artistSlug, year);
 
   const tours = {};
 
   return (
     <Column heading={year ? year : 'Shows'} loadingAmount={12}>
       {artistShows?.shows &&
-        sortActiveBands(artistSlug, artistShows.shows).map((show: Show) => {
+        artistSlug &&
+        sortActiveBands(artistSlug, artistShows.shows).map((show) => {
           const { year, month, day } = splitShowDate(show.display_date);
           const { venue, avg_duration, tour } = show;
           let tourName = '';

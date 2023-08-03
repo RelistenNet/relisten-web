@@ -9,28 +9,24 @@ import { Year } from '../types';
 import Column from './Column';
 import Row from './Row';
 
-const fetchYears = async (slug?: string) => {
+const fetchYears = async (slug?: string): Promise<Year[]> => {
   if (!slug) return [];
 
-  const parsed = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years`).json();
+  const parsed: Year[] = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years`).json();
 
   return parsed;
 };
 
 const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
-  const [artists, artistYears]: any = await Promise.all([fetchArtists(), fetchYears(artistSlug)]);
+  const [artists, artistYears] = await Promise.all([fetchArtists(), fetchYears(artistSlug)]);
 
-  const artist = artists?.data?.find((artist) => artist.slug === artistSlug);
+  const artist = artists?.find((artist) => artist.slug === artistSlug);
 
   return (
-    <Column
-      heading={artist?.name ?? 'Years'}
-      loading={artistYears && artistYears.meta && artistYears.meta.loading}
-      loadingAmount={12}
-    >
+    <Column heading={artist?.name ?? 'Years'} loadingAmount={12}>
       {artistSlug &&
-        artistYears &&
-        sortActiveBands(artistSlug, artistYears).map((yearObj: Year) => (
+        artistYears.length &&
+        sortActiveBands(artistSlug, artistYears).map((yearObj) => (
           <Row
             key={yearObj.id}
             href={`/${artistSlug}/${yearObj.year}`}

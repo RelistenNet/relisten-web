@@ -1,6 +1,5 @@
 import { combineReducers } from 'redux';
 
-import artists from './artists';
 import years from './years';
 import shows from './shows';
 import tapes from './tapes';
@@ -10,7 +9,6 @@ import playback from './playback';
 import live from './live';
 
 export default combineReducers({
-  artists,
   years,
   shows,
   tapes,

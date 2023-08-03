@@ -2,8 +2,10 @@ import { MainLayoutProps } from '@/app/(main)/(home)/layout';
 import SongsColumn from '@/components/SongsColumn';
 import TapesColumn from '@/components/TapesColumn';
 import { API_DOMAIN } from '@/lib/constants';
+import { createShowDate } from '@/lib/utils';
 import { Tape } from '@/types';
 import ky from 'ky';
+import { notFound } from 'next/navigation';
 
 export const fetchShow = async (
   slug?: string,
@@ -22,7 +24,9 @@ export const fetchShow = async (
 export default async function Page({ params, children }: MainLayoutProps) {
   const { artistSlug, year, month, day } = params;
 
-  const show = await fetchShow(artistSlug, year, [year, month, day].join('-'));
+  if (!year || !month || !day) return notFound();
+
+  const show = await fetchShow(artistSlug, year, createShowDate(year, month, day));
 
   return (
     <>

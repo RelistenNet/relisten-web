@@ -111,7 +111,7 @@ const player = new Gapless.Queue({
 
     const idx = currentTrack.idx;
 
-    const { playback, artists } = store.getState();
+    const { playback } = store.getState();
 
     if (playback.tracks && playback.tracks.length) {
       const track = playback.tracks[String(idx)];
@@ -128,13 +128,12 @@ const player = new Gapless.Queue({
             typeof Notification === 'function' &&
             (document.hasFocus ? !document.hasFocus() : true)
           ) {
-            const bandName = `${artists.data[artistSlug] ? artists.data[artistSlug].name : ''}`;
-            const notification = new Notification(track.title, {
-              body: `${bandName} \n${showDate}`,
-              silent: true, // only for Firefox
-            });
-
-            setTimeout(() => notification.close(), 3000);
+            // const bandName = `${artists.data[artistSlug] ? artists.data[artistSlug].name : ''}`;
+            // const notification = new Notification(track.title, {
+            //   body: `${bandName} \n${showDate}`,
+            //   silent: true, // only for Firefox
+            // });
+            // setTimeout(() => notification.close(), 3000);
           }
         }
 
