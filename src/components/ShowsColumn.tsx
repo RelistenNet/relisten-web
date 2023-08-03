@@ -12,8 +12,8 @@ import Row from './Row';
 import RowHeader from './RowHeader';
 import Tag from './Tag';
 
-const fetchShows = async (slug?: string, year?: string): Promise<ArtistShows> => {
-  if (!slug || !year) return [];
+const fetchShows = async (slug?: string, year?: string): Promise<ArtistShows | undefined> => {
+  if (!slug || !year) return undefined;
 
   const parsed: ArtistShows = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years/${year}`).json();
 
@@ -26,7 +26,7 @@ const ShowsColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 
   const tours = {};
 
   return (
-    <Column heading={year ? year : 'Shows'} loadingAmount={12}>
+    <Column heading={year ? year : 'Shows'}>
       {artistShows?.shows &&
         artistSlug &&
         sortActiveBands(artistSlug, artistShows.shows).map((show) => {
