@@ -1,3 +1,5 @@
+'use client';
+
 import Head from 'next/head';
 import Link from 'next/link';
 import React, { useRef, useState } from 'react';
@@ -5,10 +7,13 @@ import React, { useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import player from '../lib/player';
 import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
-import { useArtists } from './ArtistsColumn';
 import Flex from './Flex';
 
-const Player = () => {
+interface Props {
+  artistSlugsToName: Record<string, string | undefined>;
+}
+
+const Player = ({ artistSlugsToName }: Props) => {
   const playerRef = useRef<HTMLDivElement>(null);
   const playback = useSelector((state: any) => state.playback);
   const [showRemainingDuration, setShowRemainingDuration] = useState(false);
@@ -16,13 +21,9 @@ const Player = () => {
     (typeof localStorage !== 'undefined' && localStorage.volume) || 1
   );
 
-  const artists = useArtists();
-
   const { year, month, day } = splitShowDate(playback.showDate);
   const { artistSlug, source } = playback;
-  const artistName = artists?.data
-    ? artists.data?.find((artist) => artist.slug === artistSlug)?.name
-    : '';
+  const artistName = artistSlugsToName[artistSlug];
   const activeTrack = playback.tracks.find(
     (track, idx: number) => idx === playback.activeTrack.idx
   );

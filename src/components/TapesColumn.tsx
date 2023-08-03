@@ -31,7 +31,7 @@ const pluralize = (str: string, count: number): string => {
 const TapesColumn = (props: Props) => {
   const sourceId = Number(useSearchParams()?.get('source'));
   const { artistSlug, year, month, day } = props;
-  const { sourcesData } = useSourceData({ ...props, source: String(sourceId) });
+  const { sourcesData, activeSourceId } = useSourceData({ ...props, source: String(sourceId) });
 
   return (
     <Column heading="Sources" className="tapes-column">
@@ -42,11 +42,9 @@ const TapesColumn = (props: Props) => {
           </RowHeader>
           <Row
             href={`/${artistSlug}/${year}/${month}/${day}?source=${sourceObj.id}`}
-            active={sourceObj.id === sourceId || (!sourceId && idx === 0)}
+            isActiveOverride={activeSourceId === sourceObj?.id}
           >
-            <div
-              className={`${sourceObj.id === sourceId || (!sourceId && idx === 0) ? 'pl-2' : ''}`}
-            >
+            <div>
               <Flex className="mb-1">
                 <div className="min-w-[53px]">{durationToHHMMSS(sourceObj.duration)}</div>
                 {sourceObj.is_soundboard && <Tag>SBD</Tag>}

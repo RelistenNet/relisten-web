@@ -2,16 +2,13 @@
 
 import { durationToHHMMSS, removeLeadingZero } from '../lib/utils';
 
-import { useSuspenseQuery } from '@tanstack/react-query';
-import ky from 'ky';
+import { RawParams } from '@/app/(main)/(home)/layout';
 import { useSelector } from 'react-redux';
-import { API_DOMAIN } from '../lib/constants';
-import { Set, Source } from '../types';
+import { Set, Source, Tape } from '../types';
 import Column from './Column';
 import Row from './Row';
 import RowHeader from './RowHeader';
 import { useSearchParams, useSelectedLayoutSegment } from 'next/navigation';
-import { RawParams } from '@/app/(main)/(home)/layout';
 
 const getSetTime = (set: Set): string =>
   durationToHHMMSS(
@@ -20,22 +17,13 @@ const getSetTime = (set: Set): string =>
     }, 0)
   );
 
-const fetchSources = async (slug?: string, year?: string, displayDate?: string) => {
-  if (!slug || !year || !displayDate) return { sources: [] };
-
-  const parsed = await ky(
-    `${API_DOMAIN}/api/v2/artists/${slug}/years/${year}/${displayDate}`
-  ).json();
-
-  return parsed;
-};
-
-export type Props = Pick<RawParams, 'artistSlug' | 'year' | 'month' | 'day'>;
+export type Props = Pick<RawParams, 'artistSlug' | 'year' | 'month' | 'day'> & { show: Tape };
 
 interface SourceData {
   gaplessTracksMetadata: any;
   activePlaybackSourceId: any;
-  isActiveSource: any;
+  activeSourceId: number | undefined;
+  isActiveSourcePlaying: boolean;
   displayDate: any;
   activeSourceObj: Source | undefined;
   sourcesData: any;
@@ -45,7 +33,7 @@ export const useSourceData = ({
   year,
   month,
   day,
-  artistSlug,
+  show,
   source,
 }: Props & { source: string }): SourceData => {
   const activePlaybackSourceId = useSelector(({ playback }) =>
@@ -55,34 +43,27 @@ export const useSourceData = ({
 
   const displayDate = year && month && day ? [year, month, day].join('-') : undefined;
 
-  const sources: any = useSuspenseQuery({
-    queryKey: ['artists', artistSlug, displayDate],
-    queryFn: () => fetchSources(artistSlug, year, displayDate),
-    // enabled: !!artistSlug,
-  });
+  const activeSourceId = Number(source) || show?.sources?.[0]?.id;
 
-  const activeSourceId = Number(source) || sources?.data?.sources?.[0]?.id;
-
-  const activeSourceObj = sources.data?.sources?.find((source) => source.id === activeSourceId);
-  const isActiveSource = activeSourceObj ? activeSourceObj?.id === activePlaybackSourceId : false;
+  const activeSourceObj = show?.sources?.find((source) => source.id === activeSourceId);
 
   return {
     gaplessTracksMetadata,
     activePlaybackSourceId,
-    isActiveSource,
+    activeSourceId: activeSourceObj?.id,
+    isActiveSourcePlaying: activeSourceObj?.id === activePlaybackSourceId,
     displayDate,
     activeSourceObj,
-    sourcesData: sources?.data?.sources ?? [],
+    sourcesData: show?.sources ?? [],
   };
 };
 
 const SongsColumn = (props: Props) => {
   const songSlug = useSelectedLayoutSegment();
-  const sourceId = Number(useSearchParams()?.get('source'));
-
-  const { gaplessTracksMetadata, isActiveSource, activeSourceObj } = useSourceData({
+  const sourceId = String(useSearchParams().get('source'));
+  const { gaplessTracksMetadata, isActiveSourcePlaying, activeSourceObj } = useSourceData({
     ...props,
-    source: String(sourceId),
+    source: sourceId,
   });
 
   return (
@@ -99,9 +80,9 @@ const SongsColumn = (props: Props) => {
       {activeSourceObj &&
         activeSourceObj.sets?.map((set, setIdx) =>
           set.tracks?.map((track, trackIdx) => {
-            const trackIsActive = track.slug === songSlug && isActiveSource;
+            const trackIsActive = track.slug === songSlug && isActiveSourcePlaying;
 
-            const trackMetadata = isActiveSource
+            const trackMetadata = isActiveSourcePlaying
               ? gaplessTracksMetadata.find(
                   (gaplessTrack) =>
                     gaplessTrack.trackMetadata && gaplessTrack.trackMetadata.trackId === track.id
@@ -117,10 +98,10 @@ const SongsColumn = (props: Props) => {
                 )}
                 <Row
                   key={track.id}
-                  active={trackIsActive}
                   href={`/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${activeSourceObj.id}`}
+                  isActiveOverride={trackIsActive}
                 >
-                  <div className={trackIsActive ? 'pl-2' : ''}>
+                  <div>
                     <div>{track.title}</div>
                     {track.duration && (
                       <div className="text-[0.7em] text-gray-400">

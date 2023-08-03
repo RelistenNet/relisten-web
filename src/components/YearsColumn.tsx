@@ -1,16 +1,11 @@
-'use client';
-
 import sortActiveBands from '../lib/sortActiveBands';
 import { simplePluralize } from '../lib/utils';
 
 import { RawParams } from '@/app/(main)/(home)/layout';
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { fetchArtists } from '@/app/queries';
 import ky from 'ky';
-import { useSelectedLayoutSegment } from 'next/navigation';
-import React from 'react';
 import { API_DOMAIN } from '../lib/constants';
 import { Year } from '../types';
-import { useArtists } from './ArtistsColumn';
 import Column from './Column';
 import Row from './Row';
 
@@ -22,14 +17,9 @@ const fetchYears = async (slug?: string) => {
   return parsed;
 };
 
-const YearsColumn = ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
-  const year = useSelectedLayoutSegment();
-  const artists: any = useArtists();
-  const artistYears: any = useSuspenseQuery({
-    queryKey: ['artists', artistSlug],
-    queryFn: () => fetchYears(artistSlug!),
-    // enabled: !!artistSlug,
-  });
+const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
+  const year = '';
+  const [artists, artistYears]: any = await Promise.all([fetchArtists(), fetchYears(artistSlug)]);
 
   const artist = artists?.data?.find((artist) => artist.slug === artistSlug);
 
@@ -40,14 +30,14 @@ const YearsColumn = ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
       loadingAmount={12}
     >
       {artistSlug &&
-        artistYears?.data &&
-        sortActiveBands(artistSlug, artistYears.data).map((yearObj: Year) => (
+        artistYears &&
+        sortActiveBands(artistSlug, artistYears).map((yearObj: Year) => (
           <Row
             key={yearObj.id}
             href={`/${artistSlug}/${yearObj.year}`}
-            active={yearObj.year === year}
+            activeSegments={{ 0: yearObj.year }}
           >
-            <div className={yearObj.year === year ? 'pl-2' : ''}>
+            <div>
               <div>{yearObj.year}</div>
             </div>
             <div className="min-w-[20%] text-right text-[0.7em] text-[#979797]">
@@ -60,4 +50,4 @@ const YearsColumn = ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
   );
 };
 
-export default React.memo(YearsColumn);
+export default YearsColumn;

@@ -1,13 +1,19 @@
-'use client';
-
 import Link from 'next/link';
 import Flex from '../../components/Flex';
-import { SimplePopover } from '../../components/Popover';
 import Menu from '../../components/Menu';
 import Player from '../../components/Player';
-import { Suspense } from 'react';
+import { SimplePopover } from '../../components/Popover';
+import { fetchArtists } from '../queries';
 
-export default function NavBar() {
+export default async function NavBar() {
+  const artists = await fetchArtists();
+
+  const artistSlugsToName = artists.reduce((memo, next) => {
+    memo[String(next.slug)] = next.name;
+
+    return memo;
+  }, {} as Record<string, string | undefined>);
+
   // TODO: secondary nav
   return (
     <Flex className="relative h-[50px] max-h-[50px] min-h-[50px] justify-between border-b-[1px] border-b-[#aeaeae] bg-white text-[#333333]">
@@ -28,9 +34,7 @@ export default function NavBar() {
         {/* {this.secondaryNavTitle} */}
       </Flex>
       <div className="min-w-[60%] text-center md:min-w-[60%] lg:min-w-[42vw]">
-        <Suspense fallback={null}>
-          <Player />
-        </Suspense>
+        <Player artistSlugsToName={artistSlugsToName} />
       </div>
       <SimplePopover content={<Menu />}>
         <Flex className="flex-2 h-full cursor-pointer content-end items-center text-center font-bold lg:hidden">

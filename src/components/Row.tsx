@@ -1,7 +1,10 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import RowLoading from './RowLoading';
 import Flex from './Flex';
+import { useSelectedLayoutSegments } from 'next/navigation';
 
 type RowProps = {
   height?: number;
@@ -9,19 +12,33 @@ type RowProps = {
   href?: string;
   active?: boolean;
   loading?: boolean;
+  activeSegments?: Record<string, string | undefined>;
+  isActiveOverride?: boolean;
 };
 
-const Row = ({ height, children, href, active, loading, ...props }: RowProps) => {
+const Row = ({
+  height,
+  children,
+  href,
+  activeSegments,
+  isActiveOverride,
+  loading,
+  ...props
+}: RowProps) => {
+  const segments = useSelectedLayoutSegments();
+
+  let isActive = isActiveOverride ?? false;
+
+  // if every segment is true, then we're active
+  if (isActiveOverride === undefined && activeSegments) {
+    isActive = Object.entries(activeSegments).every(([key, value]) => segments[key] === value);
+  }
+
   if (!href) {
     return (
-      <div
-        className={`content relative w-full flex-1 items-center justify-between py-1 ${
-          active
-            ? 'content-none after:absolute after:left-0 after:top-0 after:h-full after:w-[8px] after:bg-[#333333]'
-            : ''
-        }`}
-      >
+      <div className="content relative w-full flex-1 items-center justify-between py-1">
         {loading && <RowLoading />}
+        {isActive && <div className="h-full w-2 bg-[#333333]" />}
 
         {children}
       </div>
@@ -31,21 +48,13 @@ const Row = ({ height, children, href, active, loading, ...props }: RowProps) =>
   return (
     <Link href={href ?? '/'} prefetch={false}>
       <Flex
-        column
-        className="relisten-row min-h-[46px] items-center border-b-[#f1f1f1]"
-        style={{ minHeight: height }}
+        className="relisten-row min-h-[46px] items-stretch border-b-[#f1f1f1]"
+        // style={{ minHeight: height }}
         {...props}
       >
         {loading && <RowLoading />}
-        <Flex
-          className={`${
-            active
-              ? 'content-none after:absolute after:left-0 after:top-0 after:h-full after:w-[8px] after:bg-[#333333]'
-              : ''
-          } content relative w-full flex-1 items-center justify-between p-[4px]`}
-        >
-          {children}
-        </Flex>
+        {isActive && <div className="w-2 bg-[#333333]" />}
+        <Flex className={'w-full flex-1 items-center justify-between p-1'}>{children}</Flex>
       </Flex>
     </Link>
   );
