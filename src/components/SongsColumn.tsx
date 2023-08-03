@@ -24,6 +24,7 @@ interface SourceData {
   activePlaybackSourceId: any;
   activeSourceId: number | undefined;
   isActiveSourcePlaying: boolean;
+  activePlaybackTrackId?: number;
   displayDate: any;
   activeSourceObj: Source | undefined;
   sourcesData: any;
@@ -39,6 +40,7 @@ export const useSourceData = ({
   const activePlaybackSourceId = useSelector(({ playback }) =>
     playback.source ? parseInt(playback.source, 10) : undefined
   );
+  const activePlaybackTrackId = useSelector(({ playback }) => playback.activeTrack?.id);
   const gaplessTracksMetadata = useSelector(({ playback }) => playback.gaplessTracksMetadata);
 
   const displayDate = year && month && day ? [year, month, day].join('-') : undefined;
@@ -51,6 +53,7 @@ export const useSourceData = ({
     gaplessTracksMetadata,
     activePlaybackSourceId,
     activeSourceId: activeSourceObj?.id,
+    activePlaybackTrackId,
     isActiveSourcePlaying: activeSourceObj?.id === activePlaybackSourceId,
     displayDate,
     activeSourceObj,
@@ -59,12 +62,12 @@ export const useSourceData = ({
 };
 
 const SongsColumn = (props: Props) => {
-  const songSlug = useSelectedLayoutSegment();
   const sourceId = String(useSearchParams().get('source'));
-  const { gaplessTracksMetadata, isActiveSourcePlaying, activeSourceObj } = useSourceData({
-    ...props,
-    source: sourceId,
-  });
+  const { gaplessTracksMetadata, isActiveSourcePlaying, activeSourceObj, activePlaybackTrackId } =
+    useSourceData({
+      ...props,
+      source: sourceId,
+    });
 
   return (
     <Column
@@ -80,7 +83,7 @@ const SongsColumn = (props: Props) => {
       {activeSourceObj &&
         activeSourceObj.sets?.map((set, setIdx) =>
           set.tracks?.map((track, trackIdx) => {
-            const trackIsActive = track.slug === songSlug && isActiveSourcePlaying;
+            const trackIsActive = track.id === activePlaybackTrackId && isActiveSourcePlaying;
 
             const trackMetadata = isActiveSourcePlaying
               ? gaplessTracksMetadata.find(

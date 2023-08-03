@@ -49,7 +49,6 @@ export default function PlayerManager(props) {
         });
       } else {
         // check if track is already in queue, and re-use
-        console.log(player.currentTrack, activeTrack);
         if (player.currentTrack?.metadata?.trackId === activeTrack?.id) {
           console.log('track is already playing');
           return;

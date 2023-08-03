@@ -583,6 +583,7 @@
         currentTime: this.currentTime,
         duration: this.duration,
         idx: this.idx,
+        id: this.metadata.trackId,
       };
     }
 
