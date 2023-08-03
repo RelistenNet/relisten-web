@@ -1,6 +1,6 @@
 'use client';
 
-import { useSourceData } from '@/components/SongsColumn';
+import { Props, useSourceData } from '@/components/SongsColumn';
 import player, { initGaplessPlayer, isPlayerMounted } from '@/lib/player';
 import { createShowDate } from '@/lib/utils';
 import { store } from '@/redux';
@@ -8,14 +8,14 @@ import { updatePlayback } from '@/redux/modules/playback';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 
-export default function PlayerManager(props) {
+export default function PlayerManager(props: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [artistSlug, year, month, day, songSlug] = String(pathname).replace(/^\//, '').split('/');
   const source = searchParams?.get('source') as string;
 
-  const { activeSourceObj } = useSourceData(props);
+  const { activeSourceObj } = useSourceData({ ...props, source });
 
   useEffect(() => {
     if (activeSourceObj) {

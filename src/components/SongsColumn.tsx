@@ -3,12 +3,12 @@
 import { durationToHHMMSS, removeLeadingZero } from '../lib/utils';
 
 import { RawParams } from '@/app/(main)/(home)/layout';
+import { useSearchParams } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { Set, Source, Tape } from '../types';
 import Column from './Column';
 import Row from './Row';
 import RowHeader from './RowHeader';
-import { useSearchParams, useSelectedLayoutSegment } from 'next/navigation';
 
 const getSetTime = (set: Set): string =>
   durationToHHMMSS(
@@ -17,7 +17,9 @@ const getSetTime = (set: Set): string =>
     }, 0)
   );
 
-export type Props = Pick<RawParams, 'artistSlug' | 'year' | 'month' | 'day'> & { show: Tape };
+export type Props = Pick<RawParams, 'artistSlug' | 'year' | 'month' | 'day'> & {
+  show?: Partial<Tape>;
+};
 
 interface SourceData {
   gaplessTracksMetadata: any;

@@ -8,7 +8,7 @@
     "production": "NODE_ENV=production next start",
     "build": "NODE_ENV=production next build",
     "start": "next dev",
-    "lint": "eslint src/pages/*.tsx src/redux/*.js src/lib/*.ts src/layouts/*.tsx src/components/*.tsx bin/*.js",
+    "lint": "eslint src/**/*.ts src/**/*.tsx bin/*.js",
     "bands": "node src/lib/generateSlugs.js"
   },
   "author": "Daniel Saewitz",
