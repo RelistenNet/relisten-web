@@ -1,6 +1,6 @@
 const Sonos = () => (
   <div>
-    <h1 className="mb-8 text-4xl font-semibold">Sonos</h1>
+    <h1>Sonos</h1>
 
     <p>
       Relisten is available for use on all Sonos devices. Enjoy your concertos in the comfort of

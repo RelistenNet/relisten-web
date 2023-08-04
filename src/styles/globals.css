@@ -4,12 +4,22 @@
 
 @import url('@fortawesome/fontawesome-free/css/all.css');
 
+@layer base {
+  h1 {
+    @apply text-3xl font-semibold mb-8;
+  }
+}
+
 @layer components {
   .nav-btn {
     @apply flex h-full items-center px-2 text-center active:relative active:top-[1px] active:text-[#333333]
   }
   .relisten-row > .content > div {
     @apply flex flex-col justify-around self-stretch;
+  }
+
+  .button {
+    @apply rounded bg-green-400 p-4 py-2 border border-green-100 my-4 inline-block font-medium text-black/70 tracking-wide;
   }
 }
 

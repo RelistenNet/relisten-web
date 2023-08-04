@@ -1,6 +1,6 @@
 const About = () => (
   <div>
-    <h3>Welcome to Relisten</h3>
+    <h1>Welcome to Relisten</h1>
 
     <p>Peruse the various bands and enjoy their extensive live catalogues for free.</p>
 

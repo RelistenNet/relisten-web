@@ -24,6 +24,10 @@ const pages = {
     prefix: 'WITH',
     title: 'US',
   },
+  'about': {
+    prefix: 'TO',
+    title: 'OUR LIFE STORY',
+  },
 };
 
 interface Props {

@@ -63,7 +63,7 @@ const Player = ({ artistSlugsToName }: Props) => {
 
   return (
     <Flex className="relative h-[50px]">
-      {activeTrack && (
+      {false && activeTrack && (
         <Head>
           <title>
             {`${playback.activeTrack.isPaused ? '❚❚' : '▶'} ${
