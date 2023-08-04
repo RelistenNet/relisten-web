@@ -9,8 +9,10 @@ export default async function Page() {
 
   const randomShow = await fetchRandomShow(artistSlug);
 
-  const { display_date } = randomShow;
+  const { display_date } = randomShow ?? {};
   const [year, month, day] = display_date?.split('-') ?? [];
+
+  if (!year || !month || !day) return null;
 
   return (
     <>
