@@ -5,6 +5,7 @@ import Player from '../../components/Player';
 import { SimplePopover } from '../../components/Popover';
 import { fetchArtists } from '../queries';
 import SecondaryNavBar from './SecondaryNavHeader';
+import MainNavHeader from './MainNavHeader';
 
 export default async function NavBar() {
   const artists = await fetchArtists();
@@ -15,25 +16,9 @@ export default async function NavBar() {
     return memo;
   }, {} as Record<string, string | undefined>);
 
-  // TODO: secondary nav
   return (
     <div className="relative grid h-[50px] max-h-[50px] min-h-[50px] grid-cols-3 justify-between border-b-[1px] border-b-[#aeaeae] bg-white text-[#333333]">
-      <Flex className="left h-full flex-1 items-center font-medium lg:gap-1">
-        <Link href="/" legacyBehavior prefetch={false}>
-          <a className="ml-1 hidden  text-center lg:flex">RELISTEN</a>
-        </Link>
-        <SecondaryNavBar artistSlugsToName={artistSlugsToName} />
-        <Link href="/" className="hidden" legacyBehavior prefetch={false}>
-          <Flex as={'a'} className="items-center px-2 lg:hidden">
-            Re
-          </Flex>
-        </Link>
-        <Link href="/" legacyBehavior prefetch={false}>
-          <Flex as={'a'} className="items-center px-2 lg:hidden">
-            (go back)
-          </Flex>
-        </Link>
-      </Flex>
+      <MainNavHeader artistSlugsToName={artistSlugsToName} />
       <div className="min-w-[60%] text-center md:min-w-[60%] lg:min-w-[42vw]">
         <Player artistSlugsToName={artistSlugsToName} />
       </div>

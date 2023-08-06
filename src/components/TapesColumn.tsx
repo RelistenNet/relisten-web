@@ -14,7 +14,7 @@ import Tag from './Tag';
 import { useSearchParams } from 'next/navigation';
 
 const exists = (str = ''): boolean => {
-  return !/unknown/i.test(str);
+  return !!str && !/unknown/i.test(str);
 };
 
 const cleanFlac = (str = ''): string => {

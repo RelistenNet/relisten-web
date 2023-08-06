@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import RowLoading from './RowLoading';
 import Flex from './Flex';
-import { useSelectedLayoutSegments } from 'next/navigation';
+import { usePathname, useRouter, useSelectedLayoutSegments } from 'next/navigation';
 
 type RowProps = {
   height?: number;
@@ -26,6 +26,8 @@ const Row = ({
   ...props
 }: RowProps) => {
   const segments = useSelectedLayoutSegments();
+  const pathname = usePathname();
+  const router = useRouter();
 
   let isActive = isActiveOverride ?? false;
 
@@ -45,8 +47,15 @@ const Row = ({
     );
   }
 
+  const onLinkClick = () => {
+    if (pathname === href) {
+      router.refresh();
+      console.log('refreshing from row', pathname, href);
+    }
+  };
+
   return (
-    <Link href={href ?? '/'} prefetch={false}>
+    <Link href={href ?? '/'} prefetch={false} onClick={onLinkClick}>
       <Flex
         className="relisten-row min-h-[46px] items-stretch border-b-[#f1f1f1]"
         // style={{ minHeight: height }}
