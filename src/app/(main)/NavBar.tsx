@@ -4,7 +4,6 @@ import Menu from '../../components/Menu';
 import Player from '../../components/Player';
 import { SimplePopover } from '../../components/Popover';
 import { fetchArtists } from '../queries';
-import SecondaryNavBar from './SecondaryNavHeader';
 import MainNavHeader from './MainNavHeader';
 
 export default async function NavBar() {
