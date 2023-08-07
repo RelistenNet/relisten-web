@@ -2,7 +2,7 @@ import sortActiveBands from '../lib/sortActiveBands';
 import { durationToHHMMSS, removeLeadingZero, simplePluralize, splitShowDate } from '../lib/utils';
 
 import { RawParams } from '@/app/(main)/(home)/layout';
-import ky from 'ky';
+import ky from 'ky-universal';
 import React from 'react';
 import { API_DOMAIN } from '../lib/constants';
 import { ArtistShows } from '../types';

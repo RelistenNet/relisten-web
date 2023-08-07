@@ -8,7 +8,7 @@ export const generateMetadata = async ({ params }) => {
   const { artistSlug, year, month, day } = params;
 
   const artists = await fetchArtists();
-  const name = artists.find((a) => a.slug === artistSlug)?.name;
+  const name = artists?.find((a) => a.slug === artistSlug)?.name;
 
   if (!name) return notFound();
 

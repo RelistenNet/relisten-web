@@ -3,7 +3,7 @@ import { simplePluralize } from '../lib/utils';
 
 import { RawParams } from '@/app/(main)/(home)/layout';
 import { fetchArtists } from '@/app/queries';
-import ky from 'ky';
+import ky from 'ky-universal';
 import { API_DOMAIN } from '../lib/constants';
 import { Year } from '../types';
 import Column from './Column';

@@ -4,7 +4,7 @@ import TapesColumn from '@/components/TapesColumn';
 import { API_DOMAIN } from '@/lib/constants';
 import { createShowDate } from '@/lib/utils';
 import { Tape } from '@/types';
-import ky from 'ky';
+import ky from 'ky-universal';
 import { notFound } from 'next/navigation';
 
 export const fetchShow = async (

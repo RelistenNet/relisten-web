@@ -3,7 +3,7 @@
 import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
 import LiveTrack from '../../../../components/LiveTrack';
 import { API_DOMAIN } from '../../../../lib/constants';
-import ky from 'ky';
+import ky from 'ky-universal';
 
 function uniqBy(a: any[], key: (item: any) => boolean) {
   const seen = new Set();
