@@ -71,13 +71,13 @@ type LiveTrackProps = {
 };
 
 // eslint-disable-next-line react/display-name
-export default ({
+export default function LiveTrack({
   app_type_description = '',
   created_at,
   track,
   isFirstRender,
   isLastSeen,
-}: LiveTrackProps) => {
+}: LiveTrackProps) {
   const [isMounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -113,4 +113,4 @@ export default ({
       </Flex>
     </Link>
   );
-};
+}
