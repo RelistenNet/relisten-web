@@ -16,15 +16,15 @@ export default async function NavBar() {
   }, {} as Record<string, string | undefined>);
 
   return (
-    <div className="relative grid h-[50px] max-h-[50px] min-h-[50px] grid-cols-3 justify-between border-b-[1px] border-b-[#aeaeae] bg-white text-[#333333]">
+    <div className="relative grid h-[50px] max-h-[50px] min-h-[50px] grid-cols-3 justify-between border-b-[1px] border-b-[#aeaeae] bg-white text-[#333333] max-lg:flex">
       <MainNavHeader artistSlugsToName={artistSlugsToName} />
-      <div className="min-w-[60%] text-center md:min-w-[60%] lg:min-w-[42vw]">
+      <div className="min-w-[60%] flex-1 text-center md:min-w-[60%] lg:min-w-[42vw]">
         <Player artistSlugsToName={artistSlugsToName} />
       </div>
       <SimplePopover content={<Menu />}>
         <Flex className="flex-2 h-full cursor-pointer content-end items-center text-center font-medium lg:hidden">
           <div className="flex h-full items-center px-1 active:relative active:top-[1px] active:text-[#333333]">
-            MENU
+            <i className="fa fa-bars text-inherit" />
           </div>
         </Flex>
       </SimplePopover>

@@ -62,7 +62,7 @@ const Player = ({ artistSlugsToName }: Props) => {
   };
 
   return (
-    <Flex className="relative h-[50px]">
+    <Flex className="relative h-[50px] flex-1">
       {false && activeTrack && (
         <Head>
           <title>
@@ -77,7 +77,7 @@ const Player = ({ artistSlugsToName }: Props) => {
       )}
       {activeTrack && (
         <Flex
-          className="w-[50px] cursor-pointer items-center justify-center text-gray-600 active:text-gray-800"
+          className="cursor-pointer items-center justify-center text-gray-600 active:text-gray-800 lg:w-[50px]"
           onClick={() => player.togglePlayPause()}
         >
           <i
@@ -164,7 +164,7 @@ const Player = ({ artistSlugsToName }: Props) => {
           as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
           legacyBehavior
         >
-          <div className="w-[50px] cursor-pointer items-center justify-center self-center text-gray-600 active:text-gray-800">
+          <div className="w-[50px] cursor-pointer items-center justify-center self-center text-gray-600 active:text-gray-800 max-lg:hidden">
             <i className="fa fa fa-list-ol cursor-pointer" />
           </div>
         </Link>

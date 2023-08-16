@@ -1,4 +1,5 @@
 import { MainLayoutProps } from '@/app/(main)/(home)/layout';
+import { useIsMobile } from '@/app/(main)/(home)/page';
 import SongsColumn from '@/components/SongsColumn';
 import TapesColumn from '@/components/TapesColumn';
 import { API_DOMAIN } from '@/lib/constants';
@@ -22,6 +23,7 @@ export const fetchShow = async (
 };
 
 export default async function Page({ params, children }: MainLayoutProps) {
+  const isMobile = useIsMobile();
   const { artistSlug, year, month, day } = params;
 
   if (!year || !month || !day) return notFound();
@@ -31,7 +33,9 @@ export default async function Page({ params, children }: MainLayoutProps) {
   return (
     <>
       <SongsColumn artistSlug={artistSlug} year={year} month={month} day={day} show={show} />
-      <TapesColumn artistSlug={artistSlug} year={year} month={month} day={day} show={show} />
+      {!isMobile && (
+        <TapesColumn artistSlug={artistSlug} year={year} month={month} day={day} show={show} />
+      )}
       {children}
     </>
   );

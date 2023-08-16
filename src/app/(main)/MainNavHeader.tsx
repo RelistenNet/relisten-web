@@ -21,26 +21,18 @@ export default function MainNavHeader({
   };
 
   return (
-    <Flex className="left h-full flex-1 items-center font-medium lg:gap-1">
-      <Link
-        href="/"
-        className="ml-1 hidden text-center lg:flex"
-        prefetch={false}
-        onClick={onClickNav}
-      >
-        RELISTEN
-      </Link>
-      <SecondaryNavBar artistSlugsToName={artistSlugsToName} />
-      <Link href="/" className="hidden" legacyBehavior prefetch={false}>
-        <Flex as={'a'} className="items-center px-2 lg:hidden">
+    <>
+      <Flex className="left h-full flex-1 items-center font-medium max-lg:hidden lg:gap-1">
+        <Link href="/" className="ml-1 text-center " prefetch={false} onClick={onClickNav}>
+          RELISTEN
+        </Link>
+        <SecondaryNavBar artistSlugsToName={artistSlugsToName} />
+      </Flex>
+      <Flex className="h-full px-2 lg:hidden" center>
+        <Link href="/" legacyBehavior prefetch={false}>
           Re
-        </Flex>
-      </Link>
-      <Link href="/" legacyBehavior prefetch={false}>
-        <Flex as={'a'} className="items-center px-2 lg:hidden">
-          (go back)
-        </Flex>
-      </Link>
-    </Flex>
+        </Link>
+      </Flex>
+    </>
   );
 }
