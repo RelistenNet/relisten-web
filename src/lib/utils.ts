@@ -52,7 +52,7 @@ export const durationToHHMMSS = (duration = 0): string => {
 };
 
 export const simplePluralize = (str: string, count = 0): string => {
-  return `${count} ${count === 1 ? str : str + 's'}`;
+  return `${count?.toLocaleString()} ${count === 1 ? str : str + 's'}`;
 };
 
 export const groupBy = function (xs, key) {
