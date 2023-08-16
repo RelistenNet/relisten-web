@@ -35,7 +35,7 @@ const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
             <div>
               <div>{yearObj.year}</div>
             </div>
-            <div className="min-w-[20%] text-right text-[0.7em] text-[#979797]">
+            <div className="min-w-[20%] text-right text-xxs text-[#979797]">
               <div>{simplePluralize('show', yearObj.show_count)}</div>
               <div>{simplePluralize('tape', yearObj.source_count)}</div>
             </div>

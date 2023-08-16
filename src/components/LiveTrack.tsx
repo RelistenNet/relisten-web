@@ -48,7 +48,7 @@ const VenueInfo = ({ track, app_type_description, created_at }: VenueInfoProps) 
       </div>
       <div>
         {track.source.display_date} &middot;{' '}
-        <span className="align-right text-[0.7em] opacity-70">
+        <span className="align-right text-xxs opacity-70">
           {app_type_description} &middot; <TimeAgo date={created_at} formatter={formatterFn} />
         </span>
       </div>
@@ -98,7 +98,7 @@ export default function LiveTrack({
           <div className="content">{track.track.title}</div>
           <div>{track.source.artist?.name}</div>
 
-          <div className="text-[0.7em] text-[#979797]">
+          <div className="text-xxs text-[#979797]">
             <VenueInfo
               track={track}
               app_type_description={app_type_description}

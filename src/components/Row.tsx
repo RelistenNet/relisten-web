@@ -57,13 +57,15 @@ const Row = ({
   return (
     <Link href={href ?? '/'} prefetch={false} onClick={onLinkClick}>
       <Flex
-        className="relisten-row min-h-[46px] items-stretch border-b-[#f1f1f1]"
+        className="relisten-row min-h-[46px] items-stretch border-b border-gray-100"
         // style={{ minHeight: height }}
         {...props}
       >
         {loading && <RowLoading />}
-        {isActive && <div className="w-2 bg-[#333333]" />}
-        <Flex className={'w-full flex-1 items-center justify-between p-1'}>{children}</Flex>
+        {isActive && <div className="w-2 bg-black/75" />}
+        <Flex className="w-full flex-1 items-center justify-between p-1 leading-tight">
+          {children}
+        </Flex>
       </Flex>
     </Link>
   );
