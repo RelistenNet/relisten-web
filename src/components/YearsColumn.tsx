@@ -12,7 +12,9 @@ import Row from './Row';
 const fetchYears = async (slug?: string): Promise<Year[]> => {
   if (!slug) return [];
 
-  const parsed: Year[] = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years`).json();
+  const parsed: Year[] = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years`, {
+    next: { revalidate: 60 * 5 },
+  }).json();
 
   return parsed;
 };

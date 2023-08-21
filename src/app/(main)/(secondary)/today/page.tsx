@@ -4,7 +4,9 @@ import { groupBy } from '../../../../lib/utils';
 import { Artist, Day } from '../../../../types';
 
 export default async function Page() {
-  const data: Day[] = await fetch(`${API_DOMAIN}/api/v2/shows/today`).then((res) => res.json());
+  const data: Day[] = await fetch(`${API_DOMAIN}/api/v2/shows/today`, {
+    next: { revalidate: 60 * 5 }, // seconds
+  }).then((res) => res.json());
 
   const artists: Artist[] = data.map((day: Day) => ({
     ...day,

@@ -15,7 +15,9 @@ import Tag from './Tag';
 const fetchShows = async (slug?: string, year?: string): Promise<ArtistShows | undefined> => {
   if (!slug || !year) return undefined;
 
-  const parsed: ArtistShows = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years/${year}`).json();
+  const parsed: ArtistShows = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years/${year}`, {
+    next: { revalidate: 60 * 5 },
+  }).json();
 
   return parsed;
 };

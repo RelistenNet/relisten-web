@@ -15,9 +15,9 @@ export const fetchShow = async (
 ): Promise<Partial<Tape>> => {
   if (!slug || !year || !displayDate) return { sources: [] };
 
-  const parsed = (await ky(
-    `${API_DOMAIN}/api/v2/artists/${slug}/years/${year}/${displayDate}`
-  ).json()) as Tape;
+  const parsed = (await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years/${year}/${displayDate}`, {
+    next: { revalidate: 60 * 5 },
+  }).json()) as Tape;
 
   return parsed;
 };
