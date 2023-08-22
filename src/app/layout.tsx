@@ -1,7 +1,11 @@
+import dns from 'node:dns';
 import { Roboto } from 'next/font/google';
 import Script from 'next/script';
 import React from 'react';
 import Providers from './Providers';
+
+// https://github.com/node-fetch/node-fetch/issues/1624#issuecomment-1407717012
+dns.setDefaultResultOrder('ipv4first');
 
 import '../styles/globals.css';
 
