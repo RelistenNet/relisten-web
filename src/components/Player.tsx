@@ -62,7 +62,7 @@ const Player = ({ artistSlugsToName }: Props) => {
   };
 
   return (
-    <Flex className="relative h-[50px] flex-1">
+    <Flex className="content relative h-[50px] flex-1">
       {false && activeTrack && (
         <Head>
           <title>
@@ -77,18 +77,18 @@ const Player = ({ artistSlugsToName }: Props) => {
       )}
       {activeTrack && (
         <Flex
-          className="cursor-pointer items-center justify-center text-gray-600 active:text-gray-800 lg:w-[50px]"
+          className="playpause cursor-pointer items-center justify-center text-gray-600 active:text-gray-800 lg:w-[50px]"
           onClick={() => player.togglePlayPause()}
         >
           <i
-            className={`fa cursor-pointer fa-${playback.activeTrack.isPaused ? 'play' : 'pause'}`}
+            className={`fas fa cursor-pointer fa-${playback.activeTrack.isPaused ? 'play' : 'pause'}`}
           />
         </Flex>
       )}
       {typeof window === 'undefined' || !activeTrack ? null : (
         <div className="relative h-full flex-1" ref={playerRef}>
-          <Flex className="h-full justify-center transition-all duration-[1s] ease-in-out">
-            <div className="absolute left-[8px] top-1/2 translate-x-0 translate-y-[-50%] text-left text-[0.8em] text-gray-600">
+          <Flex className="info h-full justify-center transition-all duration-[1s] ease-in-out">
+            <div className="timing absolute left-[8px] top-1/2 translate-x-0 translate-y-[-50%] text-left text-[0.8em] text-gray-600">
               <div>
                 <i
                   className="fa fa-backward cursor-pointer"
@@ -98,7 +98,7 @@ const Player = ({ artistSlugsToName }: Props) => {
               <div>{durationToHHMMSS(playback.activeTrack.currentTime)}</div>
             </div>
             <Flex column className="justify-around py-2">
-              <div className="relative text-[1em] text-gray-900">
+              <div className="song-title relative text-[1em] text-gray-900">
                 {activeTrack.title}
                 {false && (
                   <Flex className="absolute left-full top-[2px] ml-2 w-full items-center text-[0.8em] text-gray-600">
@@ -113,12 +113,12 @@ const Player = ({ artistSlugsToName }: Props) => {
                 as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
                 legacyBehavior
               >
-                <a className="justify-center text-[0.8em] text-gray-600">
+                <a className="band-title justify-center text-[0.8em] text-gray-600">
                   {artistName} – {removeLeadingZero(month)}/{removeLeadingZero(day)}/{year.slice(2)}
                 </a>
               </Link>
             </Flex>
-            <div className="absolute right-[8px] top-1/2 translate-x-0 translate-y-[-50%] text-right text-[0.8em] text-gray-600">
+            <div className="timing duration absolute right-[8px] top-1/2 translate-x-0 translate-y-[-50%] text-right text-[0.8em] text-gray-600">
               <div>
                 <i className="fa fa-forward cursor-pointer" onClick={() => player.playNext()} />
               </div>
