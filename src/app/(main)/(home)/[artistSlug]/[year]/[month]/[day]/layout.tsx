@@ -7,6 +7,7 @@ import { createShowDate } from '@/lib/utils';
 import { Tape } from '@/types';
 import ky from 'ky-universal';
 import { notFound } from 'next/navigation';
+import React from 'react';
 
 export const fetchShow = async (
   slug?: string,
@@ -31,12 +32,12 @@ export default async function Page({ params, children }: MainLayoutProps) {
   const show = await fetchShow(artistSlug, year, createShowDate(year, month, day));
 
   return (
-    <>
+    <React.Fragment key={[artistSlug, year, month, day].join('::')}>
       <SongsColumn artistSlug={artistSlug} year={year} month={month} day={day} show={show} />
       {!isMobile && (
         <TapesColumn artistSlug={artistSlug} year={year} month={month} day={day} show={show} />
       )}
       {children}
-    </>
+    </React.Fragment>
   );
 }

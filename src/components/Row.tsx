@@ -1,10 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { MouseEvent, MouseEventHandler, useTransition } from 'react';
 import Link from 'next/link';
 import RowLoading from './RowLoading';
 import Flex from './Flex';
 import { usePathname, useRouter, useSelectedLayoutSegments } from 'next/navigation';
+import cn from '@/lib/cn';
+import Spinner from './Spinner';
 
 type RowProps = {
   height?: number;
@@ -25,6 +27,7 @@ const Row = ({
   loading,
   ...props
 }: RowProps) => {
+  const [isPending, startTransition] = useTransition();
   const segments = useSelectedLayoutSegments();
   const pathname = usePathname();
   const router = useRouter();
@@ -47,21 +50,31 @@ const Row = ({
     );
   }
 
-  const onLinkClick = () => {
+  const onLinkClick = (e: MouseEvent<HTMLAnchorElement>) => {
     if (pathname === href) {
       router.refresh();
       console.log('refreshing from row', pathname, href);
+    } else {
+      e.preventDefault();
+      startTransition(() => router.push(href));
     }
   };
 
   return (
     <Link href={href ?? '/'} prefetch={false} onClick={onLinkClick}>
       <Flex
-        className="relisten-row min-h-[46px] items-stretch border-b border-gray-100"
+        className={cn('relisten-row relative min-h-[46px] items-stretch border-b border-gray-100', {
+          'opacity-70': isPending,
+        })}
         // style={{ minHeight: height }}
         {...props}
       >
         {loading && <RowLoading />}
+        {isPending && (
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-70">
+            <Spinner />
+          </div>
+        )}
         {isActive && <div className="w-2 bg-black/75" />}
         <Flex className="w-full flex-1 items-center justify-between p-1 leading-tight">
           {children}

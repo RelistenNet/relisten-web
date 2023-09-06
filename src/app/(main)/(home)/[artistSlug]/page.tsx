@@ -7,6 +7,7 @@ import { Tape } from '@/types';
 import ky from 'ky-universal';
 import { notFound } from 'next/navigation';
 import { useIsMobile } from '../page';
+import React from 'react';
 
 export const fetchRandomShow = async (slug?: string): Promise<Tape | undefined> => {
   if (!slug) return undefined;
@@ -33,11 +34,11 @@ export default async function Page({ params }) {
   if (!year || !month || !day) return null;
 
   return (
-    <>
+    <React.Fragment key={artistSlug}>
       <ShowsColumn artistSlug={artistSlug} year={year} />
       <SongsColumn artistSlug={artistSlug} year={year} month={month} day={day} show={randomShow} />
       <TapesColumn artistSlug={artistSlug} year={year} month={month} day={day} show={randomShow} />
-    </>
+    </React.Fragment>
   );
 }
 
