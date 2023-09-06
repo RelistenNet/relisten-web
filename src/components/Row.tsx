@@ -51,11 +51,11 @@ const Row = ({
   }
 
   const onLinkClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
     if (pathname === href) {
-      router.refresh();
+      startTransition(() => router.refresh());
       console.log('refreshing from row', pathname, href);
     } else {
-      e.preventDefault();
       startTransition(() => router.push(href));
     }
   };
