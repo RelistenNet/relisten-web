@@ -1,5 +1,6 @@
 'use client';
 
-export default function Error() {
+export default function Error(err) {
+  console.log(err);
   return 'error...';
 }

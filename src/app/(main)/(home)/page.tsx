@@ -6,6 +6,7 @@ import SongsColumn from '@/components/SongsColumn';
 import TapesColumn from '@/components/TapesColumn';
 import YearsColumn from '@/components/YearsColumn';
 import { fetchRandomShow } from './[artistSlug]/page';
+import React from 'react';
 
 export const useIsMobile = () => {
   const headersList = headers();
@@ -31,11 +32,11 @@ export default async function Page() {
   if (!year || !month || !day) return null;
 
   return (
-    <>
+    <React.Fragment key={artistSlug}>
       <YearsColumn artistSlug={artistSlug} />
       <ShowsColumn artistSlug={artistSlug} year={year} />
       <SongsColumn artistSlug={artistSlug} year={year} month={month} day={day} show={randomShow} />
       <TapesColumn artistSlug={artistSlug} year={year} month={month} day={day} show={randomShow} />
-    </>
+    </React.Fragment>
   );
 }

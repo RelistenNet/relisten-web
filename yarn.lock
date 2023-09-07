@@ -123,10 +123,10 @@
   dependencies:
     "@floating-ui/dom" "^1.5.1"
 
-"@floating-ui/react@^0.25.3":
-  version "0.25.3"
-  resolved "https://registry.yarnpkg.com/@floating-ui/react/-/react-0.25.3.tgz#241b3a18d0e99e8fc25d581002646a6fd75d4c40"
-  integrity sha512-Ti3ClVZIUqZq1OCkfbhsBA8u3m8jJ0h9gAInFwdrLaa+yTAZx3bFH8YR+/wQwPmRrpgJJ3cRhCfx4puz0PqVIA==
+"@floating-ui/react@^0.25.4":
+  version "0.25.4"
+  resolved "https://registry.yarnpkg.com/@floating-ui/react/-/react-0.25.4.tgz#82507e14460aee70f435ad2fd717ea182b6d5c61"
+  integrity sha512-lWRQ/UiTvSIBxohn0/2HFHEmnmOVRjl7j6XcRJuLH0ls6f/9AyHMWVzkAJFuwx0n9gaEeCmg9VccCSCJzbEJig==
   dependencies:
     "@floating-ui/react-dom" "^2.0.2"
     "@floating-ui/utils" "^0.1.1"
@@ -1050,10 +1050,10 @@ concat-stream@^2.0.0:
     readable-stream "^3.0.2"
     typedarray "^0.0.6"
 
-core-js@^3.32.1:
-  version "3.32.1"
-  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.32.1.tgz#a7d8736a3ed9dd05940c3c4ff32c591bb735be77"
-  integrity sha512-lqufgNn9NLnESg5mQeYsxQP5w7wrViSj0jr/kv6ECQiByzQkrn1MKvV0L3acttpDqfQrHLwr2KCMgX5b8X+lyQ==
+core-js@^3.32.2:
+  version "3.32.2"
+  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.32.2.tgz#172fb5949ef468f93b4be7841af6ab1f21992db7"
+  integrity sha512-pxXSw1mYZPDGvTQqEc5vgIb83jGQKFGYWY76z4a7weZXUolw3G+OvpZqSRcfYOoOVUQJYEPsWeQK8pKEnUtWxQ==
 
 core_d@^5.0.1:
   version "5.0.1"
@@ -3604,10 +3604,10 @@ react-redux@^8.1.2:
     react-is "^18.0.0"
     use-sync-external-store "^1.0.0"
 
-react-timeago@^7.1.0:
-  version "7.1.0"
-  resolved "https://registry.yarnpkg.com/react-timeago/-/react-timeago-7.1.0.tgz#248bc6aa40a561249e756b2df402c94f1a296a85"
-  integrity sha512-rouF7MiEm55fH791Y8cg+VobIJgx8gtNJ+gjr86R4ZqO1WKPkXiXjdT/lRzrvEkUzsxT1exHqV2V+Zdi114H3A==
+react-timeago@^7.2.0:
+  version "7.2.0"
+  resolved "https://registry.yarnpkg.com/react-timeago/-/react-timeago-7.2.0.tgz#ae929d7423a63cbc3dc228e49d22fbf586d459ca"
+  integrity sha512-2KsBEEs+qRhKx/kekUVNSTIpop3Jwd7SRBm0R4Eiq3mPeswRGSsftY9FpKsE/lXLdURyQFiHeHFrIUxLYskG5g==
 
 react-transition-group@4.4.5:
   version "4.4.5"
