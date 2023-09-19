@@ -4,7 +4,7 @@ import { Artist } from '@/types';
 
 export const fetchArtists = async (): Promise<Artist[]> => {
   const parsed = await ky(`${API_DOMAIN}/api/v2/artists`, {
-    next: { revalidate: 60 * 5 },
+    next: { revalidate: 60 * 5 }, // leaving for now, should revisit cache (I dont think this works)
   })
     .json()
     .catch((err) => {

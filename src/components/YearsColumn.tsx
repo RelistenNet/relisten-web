@@ -14,7 +14,7 @@ const fetchYears = async (slug?: string): Promise<Year[]> => {
   if (!slug) return [];
 
   const parsed = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years`, {
-    next: { revalidate: 60 * 5 },
+    cache: 'no-cache',
   })
     .json<Year[]>()
     .catch(() => {

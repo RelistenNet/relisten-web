@@ -17,7 +17,7 @@ export const fetchShow = async (
   if (!slug || !year || !displayDate) return { sources: [] };
 
   const parsed = (await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years/${year}/${displayDate}`, {
-    next: { revalidate: 60 * 5 },
+    cache: 'no-cache',
   }).json()) as Tape;
 
   return parsed;
