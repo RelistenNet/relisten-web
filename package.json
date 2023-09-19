@@ -28,7 +28,7 @@
     "ky": "^1.0.1",
     "ky-universal": "^0.12.0",
     "mousetrap": "1.6.5",
-    "next": "^13.4.20-canary.18",
+    "next": "^13.5.1-canary.1",
     "next-redux-wrapper": "8.1.0",
     "node-device-detector": "^2.0.16",
     "react": "^18.2.0",
