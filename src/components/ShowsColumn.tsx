@@ -2,7 +2,6 @@ import sortActiveBands from '../lib/sortActiveBands';
 import { durationToHHMMSS, removeLeadingZero, simplePluralize, splitShowDate } from '../lib/utils';
 
 import { RawParams } from '@/app/(main)/(home)/layout';
-import ky from 'ky-universal';
 import React from 'react';
 import { API_DOMAIN } from '../lib/constants';
 import { ArtistShows } from '../types';
@@ -15,9 +14,8 @@ import Tag from './Tag';
 const fetchShows = async (slug?: string, year?: string): Promise<ArtistShows | undefined> => {
   if (!slug || !year) return undefined;
 
-  const parsed: ArtistShows = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years/${year}`, {
-    cache: 'no-cache',
-  }).json();
+  const res = await fetch(`${API_DOMAIN}/api/v2/artists/${slug}/years/${year}`);
+  const parsed: ArtistShows = await res.json();
 
   return parsed;
 };

@@ -3,7 +3,6 @@
 import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
 import LiveTrack from '../../../../components/LiveTrack';
 import { API_DOMAIN } from '../../../../lib/constants';
-import ky from 'ky';
 
 function uniqBy(a: any[], key: (item: any) => boolean) {
   const seen = new Set();
@@ -31,7 +30,8 @@ const fetchRecentlyPlayed = async (queryClient: QueryClient) => {
   if (lastSeenId) {
     paramsStr = `?lastSeenId=${lastSeenId}`;
   }
-  const parsed = await ky(`${API_DOMAIN}/api/v2/live/history${paramsStr}`).json();
+  const res = await fetch(`${API_DOMAIN}/api/v2/live/history${paramsStr}`)
+  const parsed = await res.json();
 
   if (Array.isArray(parsed)) {
     return parsed.concat(cache ?? []).slice(0, 100);

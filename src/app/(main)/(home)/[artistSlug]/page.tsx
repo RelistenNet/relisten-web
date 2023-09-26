@@ -4,7 +4,6 @@ import SongsColumn from '@/components/SongsColumn';
 import TapesColumn from '@/components/TapesColumn';
 import { API_DOMAIN } from '@/lib/constants';
 import { Tape } from '@/types';
-import ky from 'ky-universal';
 import { notFound } from 'next/navigation';
 import { useIsMobile } from '../page';
 import React from 'react';
@@ -12,11 +11,13 @@ import React from 'react';
 export const fetchRandomShow = async (slug?: string): Promise<Tape | undefined> => {
   if (!slug) return undefined;
 
-  const parsed: Tape = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/shows/random`, {
-    cache: 'no-cache',
-  }).json();
-
-  return parsed;
+  try {
+    const res = await fetch(`${API_DOMAIN}/api/v2/artists/${slug}/shows/random`);
+    const parsed = await res.json();
+    return parsed;
+  } catch (err) {
+    console.error('fetch random show error', err);
+  }
 };
 
 export default async function Page({ params }) {

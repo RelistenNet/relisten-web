@@ -83,48 +83,49 @@ const SongsColumn = (props: Props) => {
       loadingAmount={12}
     >
       {activeSourceObj &&
-        activeSourceObj.sets?.map((set, setIdx) =>
-          set.tracks?.map((track, trackIdx) => {
-            const trackIsActive = track.id === activePlaybackTrackId && isActiveSourcePlaying;
+        activeSourceObj.sets?.map(
+          (set, setIdx) =>
+            set.tracks?.map((track, trackIdx) => {
+              const trackIsActive = track.id === activePlaybackTrackId && isActiveSourcePlaying;
 
-            const trackMetadata = isActiveSourcePlaying
-              ? gaplessTracksMetadata.find(
-                  (gaplessTrack) =>
-                    gaplessTrack.trackMetadata && gaplessTrack.trackMetadata.trackId === track.id
-                )
-              : null;
+              const trackMetadata = isActiveSourcePlaying
+                ? gaplessTracksMetadata.find(
+                    (gaplessTrack) =>
+                      gaplessTrack.trackMetadata && gaplessTrack.trackMetadata.trackId === track.id
+                  )
+                : null;
 
-            return (
-              <div key={track.id}>
-                {trackIdx === 0 && Number(activeSourceObj.sets?.length) > 1 && (
-                  <RowHeader>
-                    {set.name || `Set ${setIdx + 1}`} <div>{getSetTime(set)}</div>
-                  </RowHeader>
-                )}
-                <Row
-                  key={track.id}
-                  href={`/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${activeSourceObj.id}`}
-                  isActiveOverride={trackIsActive}
-                >
-                  <div>
-                    <div>{track.title}</div>
-                    {track.duration && (
-                      <div className="text-xxs text-gray-400">
-                        {durationToHHMMSS(track.duration)}
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-xxs min-w-[20%] text-right text-gray-400">
+              return (
+                <div key={track.id}>
+                  {trackIdx === 0 && Number(activeSourceObj.sets?.length) > 1 && (
+                    <RowHeader>
+                      {set.name || `Set ${setIdx + 1}`} <div>{getSetTime(set)}</div>
+                    </RowHeader>
+                  )}
+                  <Row
+                    key={track.id}
+                    href={`/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${activeSourceObj.id}`}
+                    isActiveOverride={trackIsActive}
+                  >
                     <div>
-                      {trackMetadata && trackMetadata.webAudioLoadingState !== 'NONE'
-                        ? trackMetadata.webAudioLoadingState
-                        : ''}
+                      <div>{track.title}</div>
+                      {track.duration && (
+                        <div className="text-xxs text-gray-400">
+                          {durationToHHMMSS(track.duration)}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                </Row>
-              </div>
-            );
-          })
+                    <div className="min-w-[20%] text-right text-xxs text-gray-400">
+                      <div>
+                        {trackMetadata && trackMetadata.webAudioLoadingState !== 'NONE'
+                          ? trackMetadata.webAudioLoadingState
+                          : ''}
+                      </div>
+                    </div>
+                  </Row>
+                </div>
+              );
+            })
         )}
       {activeSourceObj && <RowHeader>FIN</RowHeader>}
       {activeSourceObj &&
