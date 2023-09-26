@@ -26,7 +26,7 @@ export const generateMetadata = async ({ params }) => {
 
   const show = await fetchShow(artistSlug, year, createShowDate(year, month, day));
 
-  const songs = show.sources
+  const songs = show?.sources
     ?.map((source) => source?.sets?.map((set) => set?.tracks).flat())
     .flat();
 
