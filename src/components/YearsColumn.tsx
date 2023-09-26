@@ -3,7 +3,6 @@ import { simplePluralize } from '../lib/utils';
 
 import { RawParams } from '@/app/(main)/(home)/layout';
 import { fetchArtists } from '@/app/queries';
-import ky from 'ky-universal';
 import { API_DOMAIN } from '../lib/constants';
 import { Year } from '../types';
 import Column from './Column';
@@ -13,17 +12,14 @@ import { notFound } from 'next/navigation';
 const fetchYears = async (slug?: string): Promise<Year[]> => {
   if (!slug) return [];
 
-  const parsed = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years`, {
-    cache: 'no-cache',
-  })
-    .json<Year[]>()
-    .catch(() => {
-      notFound();
-
-      return [] as Year[];
-    });
-
-  return parsed ?? [];
+  try {
+    const res = await fetch(`${API_DOMAIN}/api/v2/artists/${slug}/years`);
+    const parsed = await res.json();
+    return parsed;
+  } catch (err) {
+    console.error('fetch years error', err);
+    notFound();
+  }
 };
 
 const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {

@@ -5,7 +5,6 @@ import TapesColumn from '@/components/TapesColumn';
 import { API_DOMAIN } from '@/lib/constants';
 import { createShowDate } from '@/lib/utils';
 import { Tape } from '@/types';
-import ky from 'ky-universal';
 import { notFound } from 'next/navigation';
 import React from 'react';
 
@@ -13,14 +12,16 @@ export const fetchShow = async (
   slug?: string,
   year?: string,
   displayDate?: string
-): Promise<Partial<Tape>> => {
+): Promise<Partial<Tape> | undefined> => {
   if (!slug || !year || !displayDate) return { sources: [] };
 
-  const parsed = (await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years/${year}/${displayDate}`, {
-    cache: 'no-cache',
-  }).json()) as Tape;
-
-  return parsed;
+  try {
+    const res = await fetch(`${API_DOMAIN}/api/v2/artists/${slug}/years/${year}/${displayDate}`);
+    const parsed = await res.json() as Tape;
+    return parsed;
+  } catch (err) {
+    console.error('fetch show error', err);
+  }
 };
 
 export default async function Page({ params, children }: MainLayoutProps) {
