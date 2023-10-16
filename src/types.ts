@@ -337,6 +337,21 @@ export type Playback = {
   activeTrack?: ActiveTrack;
 };
 
+export type Song = {
+  artist_id?: number;
+  artist_uuid?: string;
+  created_at?: string;
+  id: number;
+  name?: string;
+  shows_played_at?: number;
+  slim_artist?: Artist;
+  slug?: string;
+  sortName?: string;
+  updated_at?: string;
+  upstream_identifier?: string;
+  uuid?: string;
+};
+
 export type ActiveTrack = {
   currentTime?: number;
   duration?: number;
@@ -344,4 +359,13 @@ export type ActiveTrack = {
   isPaused?: boolean;
   playbackType?: string;
   webAudioLoadingState?: string;
+};
+
+export type SearchResuts = {
+  Artists: Artist[];
+  Shows: Show[];
+  Songs: Song[];
+  Sources: Source[];
+  Tours: Tour[];
+  Venues: Venue[];
 };

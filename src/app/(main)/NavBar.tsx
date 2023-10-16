@@ -9,11 +9,14 @@ import MainNavHeader from './MainNavHeader';
 export default async function NavBar() {
   const artists = await fetchArtists();
 
-  const artistSlugsToName = artists.reduce((memo, next) => {
-    memo[String(next.slug)] = next.name;
+  const artistSlugsToName = artists.reduce(
+    (memo, next) => {
+      memo[String(next.slug)] = next.name;
 
-    return memo;
-  }, {} as Record<string, string | undefined>);
+      return memo;
+    },
+    {} as Record<string, string | undefined>
+  );
 
   return (
     <div className="relative grid h-[50px] max-h-[50px] min-h-[50px] grid-cols-3 justify-between border-b-[1px] border-b-[#aeaeae] bg-white text-[#333333] max-lg:flex">
@@ -29,6 +32,11 @@ export default async function NavBar() {
         </Flex>
       </SimplePopover>
       <div className="nav hidden h-full flex-[2] cursor-pointer items-center justify-end text-center font-medium lg:flex">
+        <div className="h-full px-1">
+          <Link href="/search" legacyBehavior prefetch={false}>
+            <a className="nav-btn">SEARCH</a>
+          </Link>
+        </div>
         <div className="h-full px-1">
           <Link href="/today" legacyBehavior prefetch={false}>
             <a className="nav-btn">TIH</a>

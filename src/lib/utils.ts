@@ -55,6 +55,19 @@ export const simplePluralize = (str: string, count = 0): string => {
   return `${count?.toLocaleString()} ${count === 1 ? str : str + 's'}`;
 };
 
+/** example input and output:
+ *
+ * [ { id: 1, category: 'A' }, { id: 2, category: 'B' }, { id: 3, category: 'A' } ]
+ *
+ * {
+ *   A: [
+ *     { id: 1, category: 'A' },
+ *     { id: 3, category: 'A' }
+ *   ],
+ *   B: [ { id: 2, category: 'B' } ]
+ * }
+ *
+ */
 export const groupBy = function (xs, key) {
   return xs.reduce((rv, x) => {
     (rv[x[key]] = rv[x[key]] || []).push(x);
