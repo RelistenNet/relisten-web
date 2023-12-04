@@ -22,7 +22,7 @@ export default function MainNavHeader({
 
   return (
     <>
-      <Flex className="left h-full flex-1 items-center font-medium max-lg:hidden lg:gap-1">
+      <Flex className="left h-full flex-1 items-center whitespace-nowrap font-medium max-lg:hidden lg:gap-1">
         <Link href="/" className="ml-1 text-center " prefetch={false} onClick={onClickNav}>
           RELISTEN
         </Link>
