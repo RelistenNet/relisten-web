@@ -39,7 +39,7 @@ export default async function NavBar() {
         </div>
         <div>
           <Link href="/recently-played" legacyBehavior prefetch={false}>
-            <a className="nav-btn whitespace-nowrap">HISTORY</a>
+            <a className="nav-btn whitespace-nowrap">LIVE</a>
           </Link>
         </div>
         <div>
