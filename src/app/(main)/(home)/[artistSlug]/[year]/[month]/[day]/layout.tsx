@@ -1,27 +1,11 @@
 import { MainLayoutProps } from '@/app/(main)/(home)/layout';
 import { useIsMobile } from '@/app/(main)/(home)/page';
+import { fetchShow } from '@/app/queries';
 import SongsColumn from '@/components/SongsColumn';
 import TapesColumn from '@/components/TapesColumn';
-import { API_DOMAIN } from '@/lib/constants';
 import { createShowDate } from '@/lib/utils';
-import { Tape } from '@/types';
-import ky from 'ky-universal';
 import { notFound } from 'next/navigation';
 import React from 'react';
-
-export const fetchShow = async (
-  slug?: string,
-  year?: string,
-  displayDate?: string
-): Promise<Partial<Tape>> => {
-  if (!slug || !year || !displayDate) return { sources: [] };
-
-  const parsed = (await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years/${year}/${displayDate}`, {
-    cache: 'no-cache',
-  }).json()) as Tape;
-
-  return parsed;
-};
 
 export default async function Page({ params, children }: MainLayoutProps) {
   const isMobile = useIsMobile();

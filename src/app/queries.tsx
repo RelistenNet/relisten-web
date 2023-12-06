@@ -1,6 +1,6 @@
 import ky from 'ky-universal';
 import { API_DOMAIN } from '../lib/constants';
-import { Artist } from '@/types';
+import { Artist, Tape } from '@/types';
 
 export const fetchArtists = async (): Promise<Artist[]> => {
   const parsed = await ky(`${API_DOMAIN}/api/v2/artists`, {
@@ -12,4 +12,18 @@ export const fetchArtists = async (): Promise<Artist[]> => {
     });
 
   return (parsed as Artist[]) ?? [];
+};
+
+export const fetchShow = async (
+  slug?: string,
+  year?: string,
+  displayDate?: string
+): Promise<Partial<Tape>> => {
+  if (!slug || !year || !displayDate) return { sources: [] };
+
+  const parsed = (await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years/${year}/${displayDate}`, {
+    cache: 'no-cache',
+  }).json()) as Tape;
+
+  return parsed;
 };
