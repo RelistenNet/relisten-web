@@ -5,7 +5,7 @@ import { Artist, Day } from '../../../../types';
 
 export default async function Page() {
   const data: Day[] = await fetch(`${API_DOMAIN}/api/v2/shows/today`, {
-    next: { revalidate: 60 * 5 }, // seconds
+    cache: 'no-cache', // seconds
   }).then((res) => res.json());
 
   const artists: Artist[] = data.map((day: Day) => ({

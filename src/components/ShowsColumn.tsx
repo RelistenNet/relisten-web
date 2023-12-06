@@ -16,7 +16,7 @@ const fetchShows = async (slug?: string, year?: string): Promise<ArtistShows | u
   if (!slug || !year) return undefined;
 
   const parsed: ArtistShows = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years/${year}`, {
-    next: { revalidate: 60 * 5 },
+    cache: 'no-cache',
   }).json();
 
   return parsed;

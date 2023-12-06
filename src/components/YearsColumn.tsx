@@ -8,15 +8,22 @@ import { API_DOMAIN } from '../lib/constants';
 import { Year } from '../types';
 import Column from './Column';
 import Row from './Row';
+import { notFound } from 'next/navigation';
 
 const fetchYears = async (slug?: string): Promise<Year[]> => {
   if (!slug) return [];
 
-  const parsed: Year[] = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years`, {
-    next: { revalidate: 60 * 5 },
-  }).json();
+  const parsed = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years`, {
+    cache: 'no-cache',
+  })
+    .json<Year[]>()
+    .catch(() => {
+      notFound();
 
-  return parsed;
+      return [] as Year[];
+    });
+
+  return parsed ?? [];
 };
 
 const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
