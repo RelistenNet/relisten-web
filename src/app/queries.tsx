@@ -1,6 +1,7 @@
+import { sortSources } from '@/redux/modules/tapes';
+import { Artist, Tape } from '@/types';
 import ky from 'ky-universal';
 import { API_DOMAIN } from '../lib/constants';
-import { Artist, Tape } from '@/types';
 
 export const fetchArtists = async (): Promise<Artist[]> => {
   const parsed = await ky(`${API_DOMAIN}/api/v2/artists`, {
@@ -24,6 +25,8 @@ export const fetchShow = async (
   const parsed = (await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years/${year}/${displayDate}`, {
     cache: 'no-cache',
   }).json()) as Tape;
+
+  parsed.sources = sortSources(parsed.sources);
 
   return parsed;
 };
