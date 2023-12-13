@@ -64,15 +64,19 @@ const sortTapes = (data = {}) => {
   const sortedTapes =
     data && data.sources
       ? [...data.sources].sort(
-          firstBy((t) => t.is_soundboard)
+          firstBy((t) => t.is_soundboard, 'desc')
             // Charlie for GD, Pete for JRAD
             .thenBy((t) =>
-              /(charlie miller)|(peter costello)/i.test([t.taper, t.transferrer, t.source].join(''))
+              /(charlie miller)|(peter costello)/i.test(
+                [t.taper, t.transferrer, t.source].join(''),
+                'desc'
+              )
             )
             .thenBy(
-              (t1, t2) => getEtreeId(t1.upstream_identifier) - getEtreeId(t2.upstream_identifier)
+              (t1, t2) => getEtreeId(t1.upstream_identifier) - getEtreeId(t2.upstream_identifier),
+              'desc'
             )
-            .thenBy((t) => t.avg_rating_weighted)
+            .thenBy((t) => t.avg_rating_weighted, 'desc')
         )
       : [];
 

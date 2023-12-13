@@ -22,7 +22,6 @@ export default async function NavBar() {
     <div className="navigation relative flex h-[50px] max-h-[50px] min-h-[50px] grid-cols-3 justify-between border-b-[1px] border-b-[#aeaeae] bg-white text-[#333333] lg:grid">
       <MainNavHeader artistSlugsToName={artistSlugsToName} />
       <div className="player min-w-[60%] flex-1 text-center lg:min-w-[44vw] xl:min-w-[38vw]">
-
         <Player artistSlugsToName={artistSlugsToName} />
       </div>
       <SimplePopover content={<Menu />}>

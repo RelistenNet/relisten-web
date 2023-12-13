@@ -81,7 +81,9 @@ const Player = ({ artistSlugsToName }: Props) => {
           onClick={() => player.togglePlayPause()}
         >
           <i
-            className={`fas fa cursor-pointer fa-${playback.activeTrack.isPaused ? 'play' : 'pause'}`}
+            className={`fas fa cursor-pointer fa-${
+              playback.activeTrack.isPaused ? 'play' : 'pause'
+            }`}
           />
         </Flex>
       )}
