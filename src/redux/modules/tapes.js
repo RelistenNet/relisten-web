@@ -60,26 +60,27 @@ const getEtreeId = (s = '') =>
 
 // tapes: TODO: GD sort (charlie miller, sbd + etree id, weighted average), sbd + etree id, weighted avg, asc, desc
 // for now, hardcode sort: sbd, charlie miller, etree id, weighted average
-const sortTapes = (data = {}) => {
-  const sortedTapes =
-    data && data.sources
-      ? [...data.sources].sort(
-          firstBy((t) => t.is_soundboard)
-            // Charlie for GD, Pete for JRAD
-            .thenBy((t) =>
-              /(charlie miller)|(peter costello)/i.test([t.taper, t.transferrer, t.source].join(''))
-            )
-            .thenBy(
-              (t1, t2) => getEtreeId(t1.upstream_identifier) - getEtreeId(t2.upstream_identifier)
-            )
-            .thenBy((t) => t.avg_rating_weighted)
-        )
-      : [];
+export const sortSources = (sources) => {
+  const sortedSources = sources
+    ? [...sources].sort(
+        firstBy((t) => t.is_soundboard, 'desc')
+          // Charlie for GD, Pete for JRAD
+          .thenBy(
+            (t) =>
+              /(charlie miller)|(peter costello)/i.test(
+                [t.taper, t.transferrer, t.source].join('')
+              ),
+            'desc'
+          )
+          .thenBy(
+            (t1, t2) => getEtreeId(t1.upstream_identifier) - getEtreeId(t2.upstream_identifier),
+            'desc'
+          )
+          .thenBy((t) => t.avg_rating_weighted, 'desc')
+      )
+    : [];
 
-  return {
-    ...(data || {}),
-    sources: sortedTapes.reverse(),
-  };
+  return sortedSources;
 };
 
 export function requestTapes(artistSlug, year, showDate) {
@@ -97,7 +98,10 @@ export function receiveTapes(artistSlug, year, showDate, data) {
     artistSlug,
     year,
     showDate,
-    data: sortTapes(data),
+    data: {
+      ...data,
+      sources: sortSources(data.sources),
+    },
   };
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { MouseEvent, MouseEventHandler, useTransition } from 'react';
+import React, { MouseEvent, useTransition } from 'react';
 import Link from 'next/link';
 import RowLoading from './RowLoading';
 import Flex from './Flex';
@@ -51,6 +51,10 @@ const Row = ({
   }
 
   const onLinkClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    // dont block new tab
+    if (e.metaKey) {
+      return;
+    }
     e.preventDefault();
     if (pathname === href) {
       startTransition(() => router.refresh());
@@ -70,12 +74,14 @@ const Row = ({
         {...props}
       >
         {loading && <RowLoading />}
-        {isPending && (
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-70">
+        {/* {isPending && (
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-40">
             <Spinner />
           </div>
-        )}
-        {isActive && <div className="w-2 bg-black/75" />}
+        )} */}
+        {isPending && <div className="w-2 animate-pulse bg-black/30" />}
+
+        {!isPending && isActive && <div className="w-2 bg-black/75" />}
         <Flex className="w-full flex-1 items-center justify-between p-1 leading-tight">
           {children}
         </Flex>

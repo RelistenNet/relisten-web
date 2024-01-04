@@ -1,7 +1,6 @@
 import { RawParams } from '@/app/(main)/(home)/layout';
-import { fetchShow } from '../layout';
 import PlayerManager from './PlayerManager';
-import { fetchArtists } from '@/app/queries';
+import { fetchArtists, fetchShow } from '@/app/queries';
 import { notFound } from 'next/navigation';
 import { createShowDate } from '@/lib/utils';
 
