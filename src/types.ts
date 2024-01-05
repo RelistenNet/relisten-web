@@ -274,6 +274,7 @@ export type Source = {
   num_ratings?: number | null;
   avg_rating_weighted?: number;
   duration?: number;
+  slim_artist?: Artist;
   upstream_identifier?: string;
   uuid?: string;
   created_at?: string;
@@ -368,4 +369,15 @@ export type SearchResuts = {
   Sources: Source[];
   Tours: Tour[];
   Venues: Venue[];
+};
+
+// Which type of search results are being shown on the search page
+export type SearchResultsType = 'all' | 'songs' | 'artists' | 'versions';
+
+export type SongVersions = {
+  name: string;
+  shows: Show[];
+  slug: string;
+  artistName: string;
+  artistSlug: string;
 };

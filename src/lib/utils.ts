@@ -74,3 +74,22 @@ export const groupBy = function (xs, key) {
     return rv;
   }, {});
 };
+
+// Sort data[] by data.key
+export function sortByKey(key: string, data: object[]) {
+  return [...data].sort((a, b) => {
+    if (typeof a[key] === 'string' && typeof b[key] === 'string') {
+      return b[key].localeCompare(a[key]);
+    }
+
+    if (a[key] < b[key]) {
+      return 1;
+    }
+
+    if (a[key] > b[key]) {
+      return -1;
+    }
+
+    return 0;
+  });
+}
