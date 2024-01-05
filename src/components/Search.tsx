@@ -105,12 +105,6 @@ const Search = () => {
     []
   );
 
-  useEffect(() => {
-    console.log('data: ', data);
-    console.log('sortBy: ', sortBy);
-    console.log('versionsData: ', versionsData);
-  }, [sortBy, data, versionsData]);
-
   return (
     <div className="w-screen max-w-screen-md">
       {resultsType === 'versions' ? (
