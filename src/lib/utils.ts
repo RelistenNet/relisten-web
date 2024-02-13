@@ -55,9 +55,41 @@ export const simplePluralize = (str: string, count = 0): string => {
   return `${count?.toLocaleString()} ${count === 1 ? str : str + 's'}`;
 };
 
+/** example input and output:
+ *
+ * [ { id: 1, category: 'A' }, { id: 2, category: 'B' }, { id: 3, category: 'A' } ]
+ *
+ * {
+ *   A: [
+ *     { id: 1, category: 'A' },
+ *     { id: 3, category: 'A' }
+ *   ],
+ *   B: [ { id: 2, category: 'B' } ]
+ * }
+ *
+ */
 export const groupBy = function (xs, key) {
   return xs.reduce((rv, x) => {
     (rv[x[key]] = rv[x[key]] || []).push(x);
     return rv;
   }, {});
 };
+
+// Sort data[] by data.key
+export function sortByKey(key: string, data: object[]) {
+  return [...data].sort((a, b) => {
+    if (typeof a[key] === 'string' && typeof b[key] === 'string') {
+      return b[key].localeCompare(a[key]);
+    }
+
+    if (a[key] < b[key]) {
+      return 1;
+    }
+
+    if (a[key] > b[key]) {
+      return -1;
+    }
+
+    return 0;
+  });
+}
