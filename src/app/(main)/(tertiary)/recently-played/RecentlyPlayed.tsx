@@ -1,9 +1,10 @@
 'use client';
 
 import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
+import { AnimatePresence } from 'framer-motion';
+import ky from 'ky';
 import LiveTrack from '../../../../components/LiveTrack';
 import { API_DOMAIN } from '../../../../lib/constants';
-import ky from 'ky';
 
 function uniqBy(a: any[], key: (item: any) => boolean) {
   const seen = new Set();
@@ -52,11 +53,15 @@ export default function RecentlyPlayed() {
     <div>
       <h1>Recently Played</h1>
 
-      {!query.data
-        ? null
-        : uniqBy(query.data as any[], keyFn).map((data) => (
-            <LiveTrack {...data} key={data.track.track.id} />
-          ))}
+      <div className="grid grid-flow-row-dense grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+        <AnimatePresence initial={false}>
+          {!query.data
+            ? null
+            : uniqBy(query.data as any[], keyFn)
+                .slice(0, 40)
+                .map((data) => <LiveTrack {...data} key={data.track.track.id} />)}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

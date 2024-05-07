@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import TimeAgo from 'react-timeago';
+import { motion } from 'framer-motion';
 
 import { splitShowDate } from '../lib/utils';
 import { TrackSource, Track, Venue } from '../types';
@@ -46,12 +47,7 @@ const VenueInfo = ({ track, app_type_description, created_at }: VenueInfoProps) 
       <div>
         {info.name} &middot; {info.location}
       </div>
-      <div>
-        {track.source.display_date} &middot;{' '}
-        <span className="align-right text-xxs opacity-70">
-          {app_type_description} &middot; <TimeAgo date={created_at} formatter={formatterFn} />
-        </span>
-      </div>
+      <div>{track.source.display_date}</div>
     </div>
   ) : null;
 };
@@ -78,25 +74,34 @@ export default function LiveTrack({
   isFirstRender,
   isLastSeen,
 }: LiveTrackProps) {
-  const [isMounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setTimeout(() => setMounted(true), 50);
-  }, []);
-
   if (!track?.track) return null;
 
   return (
     <Link href={createURL(track)} prefetch={false}>
-      <Flex
-        className={`w-full cursor-pointer border-b-[1px] border-[#eeeeee] px-3 transition-opacity duration-1000 ease-in-out ${
-          isMounted || isFirstRender ? 'opacity-100' : 'opacity-0'
-        } ${isLastSeen && 'border-b-green-600'}`}
+      <motion.div
+        transition={{
+          duration: 0.6,
+          type: 'spring',
+          borderColor: { duration: 2, type: 'ease-out' },
+          layout: {
+            duration: 1.2,
+            type: 'ease-in-out',
+          },
+        }}
+        initial={{ opacity: 1, height: 0, borderColor: 'rgba(0,255,50,0.1)' }}
+        animate={{ opacity: 1, height: '100%', borderColor: 'rgba(0,0,0, 0.3)' }}
+        className={`relative flex flex-1 cursor-pointer overflow-hidden rounded border-[1px] px-4 py-2 transition-opacity duration-1000 ease-in-out hover:bg-slate-200/20 ${isLastSeen && 'border-b-green-600'}`}
         data-is-last-seen={isLastSeen}
+        layout
       >
-        <div>
-          <div className="content">{track.track.title}</div>
-          <div>{track.source.artist?.name}</div>
+        <Flex className="flex-1" column>
+          <Flex gap={1} className="items-center justify-between">
+            <div className="content font-semibold">{track.track.title}</div>
+            <span className="align-right text-nowrap text-xxs opacity-70">
+              {app_type_description} &middot; <TimeAgo date={created_at} formatter={formatterFn} />
+            </span>
+          </Flex>
+          <div className="text-sm">{track.source.artist?.name}</div>
 
           <div className="text-xxs text-[#979797]">
             <VenueInfo
@@ -105,12 +110,9 @@ export default function LiveTrack({
               created_at={created_at}
             />
           </div>
-        </div>
-
-        <Flex column className="ml-auto self-center">
-          <span>Relisten</span>
+          <i className="fa fa-arrow-right absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-sm text-gray-500 hover:text-gray-900" />
         </Flex>
-      </Flex>
+      </motion.div>
     </Link>
   );
 }
