@@ -1,6 +1,5 @@
-import dns from 'node:dns';
 import { Roboto } from 'next/font/google';
-import Script from 'next/script';
+import dns from 'node:dns';
 import React from 'react';
 import Providers from './Providers';
 
@@ -20,13 +19,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={roboto.className}>
         <Providers>{children}</Providers>
-        <Script
-          strategy="lazyOnload"
-          async
-          defer
-          data-domain="relisten.net"
-          src="https://plausible.typetwo.space/js/plausible.js"
-        />
       </body>
     </html>
   );
