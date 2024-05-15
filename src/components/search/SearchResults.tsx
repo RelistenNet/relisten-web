@@ -1,16 +1,18 @@
-import { useMemo } from 'react';
-import { Artist, SearchResuts, SearchResultsType, SongVersions, Song } from '../types';
-import { sortByKey } from '@/lib/utils';
-import Column from './Column';
-import Row from './Row';
+'use client';
 
-type SearchResutsProps = {
-  data: SearchResuts | null;
-  getSources: (slim_artist: Artist | undefined, songUuid: string | undefined) => void;
-  sortBy: string;
-  resultsType: SearchResultsType;
-  versionsData: SongVersions | null;
-};
+import { useMemo } from 'react';
+import {
+  Artist,
+  SearchParams,
+  SearchResults as TSearchResults,
+  SearchResultsType,
+  SongVersions,
+  Song,
+} from '../../types';
+import { usePathname, useRouter } from 'next/navigation';
+import { sortByKey } from '@/lib/utils';
+import Column from '../Column';
+import Row from '../Row';
 
 // "1984-12-01T00:00:00Z" -> "1984/12/01"
 function dateStringToPathSegment(inputDateStr) {
@@ -24,23 +26,28 @@ function dateStringToPathSegment(inputDateStr) {
 
 export default function SearchResults({
   data,
-  getSources,
-  sortBy,
   resultsType,
+  searchParams,
   versionsData,
-}: SearchResutsProps) {
+}: {
+  data: TSearchResults | null;
+  resultsType: SearchResultsType;
+  searchParams: SearchParams;
+  versionsData: SongVersions | null;
+}) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const writableParams = new URLSearchParams(searchParams);
+
   const sortedData = useMemo(() => {
     if (!data) {
       return null;
     }
 
-    const sortedSongs = sortByKey('shows_played_at', data.Songs);
-    // sortedSongs = sortByKey('sortName', data.Songs);
-
     return {
       ...data,
       Artists: sortByKey('sort_name', data.Artists) as Artist[],
-      Songs: sortedSongs as Song[],
+      Songs: sortByKey('shows_played_at', data.Songs) as Song[], // sortByKey('sortName', data.Songs)
     };
   }, [data]);
 
@@ -53,21 +60,34 @@ export default function SearchResults({
       ...versionsData,
       shows: [...versionsData.shows].sort((a, b) => {
         if (a.date === undefined || b.date === undefined) {
-          return 0; // TODO: Handle the case where either value is undefined
+          return 0;
         }
 
         if (new Date(a.date).getTime() > new Date(b.date).getTime()) {
-          return sortBy === 'DATE_ASC' ? 1 : -1;
+          return searchParams.sortBy === 'DATE_ASC' ? 1 : -1;
         }
 
         if (new Date(a.date).getTime() < new Date(b.date).getTime()) {
-          return sortBy === 'DATE_ASC' ? -1 : 1;
+          return searchParams.sortBy === 'DATE_ASC' ? -1 : 1;
         }
 
         return 0;
       }),
     };
-  }, [sortBy, versionsData]);
+  }, [searchParams.sortBy, versionsData]);
+
+  function setSources(slim_artist: Artist | undefined, songUuid: string | undefined) {
+    if (!slim_artist || !slim_artist.name || !slim_artist.slug || !slim_artist.uuid || !songUuid) {
+      // TODO: handle error
+      return;
+    }
+
+    writableParams.set('artistName', slim_artist.name);
+    writableParams.set('artistSlug', slim_artist.slug);
+    writableParams.set('artistUuid', slim_artist.uuid);
+    writableParams.set('songUuid', songUuid);
+    router.replace(`${pathname}?${writableParams.toString()}`);
+  }
 
   if (sortedData === null) {
     return (
@@ -98,7 +118,7 @@ export default function SearchResults({
       <Column>
         {sortByKey('shows_played_at', sortedData?.Songs).map(
           ({ name, uuid, slim_artist }: Song) => (
-            <button key={uuid} className="d-flex" onClick={() => getSources(slim_artist, uuid)}>
+            <button key={uuid} className="d-flex" onClick={() => setSources(slim_artist, uuid)}>
               <Row>
                 <div className="text-left">
                   <div>{name}</div>
@@ -128,7 +148,7 @@ export default function SearchResults({
         ))}
         {sortByKey('shows_played_at', sortedData?.Songs).map(
           ({ name, uuid, slim_artist }: Song) => (
-            <button key={uuid} className="d-flex" onClick={() => getSources(slim_artist, uuid)}>
+            <button key={uuid} className="d-flex" onClick={() => setSources(slim_artist, uuid)}>
               <Row>
                 <div className="text-left">
                   <div>{name}</div>

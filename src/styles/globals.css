@@ -34,6 +34,10 @@
     outline: none;
   }
 
+  .search-bar > .fa-spinner {
+    animation: spin .7s linear infinite;
+  }
+
   .search-filters > li {
     @apply inline-block;
   }
@@ -44,6 +48,17 @@
 
   .search-filters > li > button.search-filters-button--active {
     @apply bg-relisten-100 text-white;
+  }
+}
+
+@layer utilities {
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 }
 

@@ -362,7 +362,18 @@ export type ActiveTrack = {
   webAudioLoadingState?: string;
 };
 
-export type SearchResuts = {
+// query-string parameters for search page
+export type SearchParams = {
+  artistName: string;
+  artistSlug: string;
+  artistUuid: string;
+  q: string;
+  resultsType: SearchResultsType;
+  songUuid: string;
+  sortBy?: 'DATE_ASC' | 'DATE_DESC';
+};
+
+export type SearchResults = {
   Artists: Artist[];
   Shows: Show[];
   Songs: Song[];
