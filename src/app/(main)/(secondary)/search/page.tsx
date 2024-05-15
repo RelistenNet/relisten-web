@@ -53,17 +53,29 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
         {data !== null && resultsType !== 'versions' && (
           <ul className="search-filters">
             <li>
-              <SearchFilterPill buttonType="all" resultsType={resultsType}>
+              <SearchFilterPill
+                buttonType="all"
+                resultsType={resultsType}
+                searchParams={searchParams}
+              >
                 All {data && `(${data?.Artists?.length + data?.Songs?.length})`}
               </SearchFilterPill>
             </li>
             <li>
-              <SearchFilterPill buttonType="artists" resultsType={resultsType}>
+              <SearchFilterPill
+                buttonType="artists"
+                resultsType={resultsType}
+                searchParams={searchParams}
+              >
                 Artists {data && `(${data?.Artists?.length})`}
               </SearchFilterPill>
             </li>
             <li>
-              <SearchFilterPill buttonType="songs" resultsType={resultsType}>
+              <SearchFilterPill
+                buttonType="songs"
+                resultsType={resultsType}
+                searchParams={searchParams}
+              >
                 Songs {data && `(${data?.Songs?.length})`}
               </SearchFilterPill>
             </li>
@@ -71,7 +83,7 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
         )}
         {resultsType === 'versions' && (
           <SimplePopover
-            content={<SearchSortByMenu resultsType={resultsType} />}
+            content={<SearchSortByMenu resultsType={resultsType} searchParams={searchParams} />}
             position="bottom-end"
           >
             <button>Sort by ⏷</button>

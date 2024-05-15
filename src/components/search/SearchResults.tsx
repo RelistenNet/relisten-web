@@ -1,6 +1,3 @@
-'use client';
-
-import { useMemo } from 'react';
 import {
   Artist,
   SearchParams,
@@ -9,7 +6,7 @@ import {
   SongVersions,
   Song,
 } from '../../types';
-import { usePathname, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { sortByKey } from '@/lib/utils';
 import Column from '../Column';
 import Row from '../Row';
@@ -35,28 +32,20 @@ export default function SearchResults({
   searchParams: SearchParams;
   versionsData: SongVersions | null;
 }) {
-  const pathname = usePathname();
-  const router = useRouter();
   const writableParams = new URLSearchParams(searchParams);
+  let sortedData: TSearchResults | null = null;
+  let sortedVersions: SongVersions | null = null;
 
-  const sortedData = useMemo(() => {
-    if (!data) {
-      return null;
-    }
-
-    return {
+  if (data) {
+    sortedData = {
       ...data,
       Artists: sortByKey('sort_name', data.Artists) as Artist[],
       Songs: sortByKey('shows_played_at', data.Songs) as Song[], // sortByKey('sortName', data.Songs)
     };
-  }, [data]);
+  }
 
-  const sortedVersions = useMemo(() => {
-    if (!versionsData) {
-      return null;
-    }
-
-    return {
+  if (versionsData) {
+    sortedVersions = {
       ...versionsData,
       shows: [...versionsData.shows].sort((a, b) => {
         if (a.date === undefined || b.date === undefined) {
@@ -74,19 +63,20 @@ export default function SearchResults({
         return 0;
       }),
     };
-  }, [searchParams.sortBy, versionsData]);
+  }
 
-  function setSources(slim_artist: Artist | undefined, songUuid: string | undefined) {
+  function getHref(slim_artist: Artist | undefined, songUuid: string | undefined) {
     if (!slim_artist || !slim_artist.name || !slim_artist.slug || !slim_artist.uuid || !songUuid) {
       // TODO: handle error
-      return;
+      return 'search';
     }
 
     writableParams.set('artistName', slim_artist.name);
     writableParams.set('artistSlug', slim_artist.slug);
     writableParams.set('artistUuid', slim_artist.uuid);
     writableParams.set('songUuid', songUuid);
-    router.replace(`${pathname}?${writableParams.toString()}`);
+
+    return `search?${writableParams.toString()}`;
   }
 
   if (sortedData === null) {
@@ -118,7 +108,7 @@ export default function SearchResults({
       <Column>
         {sortByKey('shows_played_at', sortedData?.Songs).map(
           ({ name, uuid, slim_artist }: Song) => (
-            <button key={uuid} className="d-flex" onClick={() => setSources(slim_artist, uuid)}>
+            <Link key={uuid} className="d-flex" href={getHref(slim_artist, uuid)} replace={true}>
               <Row>
                 <div className="text-left">
                   <div>{name}</div>
@@ -126,7 +116,7 @@ export default function SearchResults({
                 </div>
                 <div className="min-w-[20%] text-right text-xxs text-gray-400">SONG</div>
               </Row>
-            </button>
+            </Link>
           )
         )}
       </Column>
@@ -148,7 +138,7 @@ export default function SearchResults({
         ))}
         {sortByKey('shows_played_at', sortedData?.Songs).map(
           ({ name, uuid, slim_artist }: Song) => (
-            <button key={uuid} className="d-flex" onClick={() => setSources(slim_artist, uuid)}>
+            <Link key={uuid} className="d-flex" href={getHref(slim_artist, uuid)} replace={true}>
               <Row>
                 <div className="text-left">
                   <div>{name}</div>
@@ -156,7 +146,7 @@ export default function SearchResults({
                 </div>
                 <div className="min-w-[20%] text-right text-xxs text-gray-400">SONG</div>
               </Row>
-            </button>
+            </Link>
           )
         )}
       </Column>

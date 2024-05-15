@@ -1,19 +1,20 @@
-'use client';
-
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { SearchResultsType } from '@/types';
+import { SearchParams, SearchResultsType } from '@/types';
+import Link from 'next/link';
 import Column from '../Column';
 import Row from '../Row';
 
-export default function SortByMenu({ resultsType }: { resultsType: SearchResultsType }) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
+export default function SortByMenu({
+  resultsType,
+  searchParams,
+}: {
+  resultsType: SearchResultsType;
+  searchParams: SearchParams;
+}) {
   const writableParams = new URLSearchParams(searchParams);
 
-  function handleClick(value) {
-    writableParams.set('sortBy', value);
-    router.replace(`${pathname}?${writableParams.toString()}`);
+  function getHref(sortBy) {
+    writableParams.set('sortBy', sortBy);
+    return `search?${writableParams.toString()}`;
   }
 
   if (resultsType !== 'versions') {
@@ -22,12 +23,12 @@ export default function SortByMenu({ resultsType }: { resultsType: SearchResults
 
   return (
     <Column>
-      <button className="px-2" onClick={() => handleClick('DATE_ASC')}>
+      <Link replace={true} className="px-2" href={getHref('DATE_ASC')}>
         <Row>Date (Ascending)</Row>
-      </button>
-      <button className="px-2" onClick={() => handleClick('DATE_DESC')}>
+      </Link>
+      <Link replace={true} className="px-2" href={getHref('DATE_DESC')}>
         <Row>Date (Descending)</Row>
-      </button>
+      </Link>
     </Column>
   );
 }

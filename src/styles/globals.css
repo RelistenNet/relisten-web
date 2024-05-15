@@ -46,7 +46,7 @@
     @apply rounded-full px-2 py-1;
   }
 
-  .search-filters > li > button.search-filters-button--active {
+  .search-filters > li > .search-filters-item--active {
     @apply bg-relisten-100 text-white;
   }
 }
