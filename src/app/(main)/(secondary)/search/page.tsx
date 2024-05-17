@@ -20,24 +20,26 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
     data = { ...response, Songs: !response.Songs ? [] : response.Songs };
   }
 
-  if (
-    searchParams.artistUuid &&
-    searchParams.songUuid &&
-    searchParams.artistName &&
-    searchParams.artistSlug
-  ) {
-    const response = await fetch(
-      `${API_DOMAIN}/api/v3/artists/${searchParams.artistUuid}/songs/${searchParams.songUuid}`,
-      {
-        cache: 'no-cache', // seconds
-      }
-    ).then((res) => res.json());
+  if (searchParams.artistUuid && searchParams.songUuid) {
+    const [artistResponse, versionsRespose] = await Promise.all([
+      fetch(`${API_DOMAIN}/api/v3/artists/${searchParams.artistUuid}`, { cache: 'no-cache' }),
+      fetch(
+        `${API_DOMAIN}/api/v3/artists/${searchParams.artistUuid}/songs/${searchParams.songUuid}`,
+        { cache: 'no-cache' }
+      ),
+    ]);
+
+    const [artistJson, versionsJson] = await Promise.all([
+      artistResponse.json(),
+      versionsRespose.json(),
+    ]);
 
     resultsType = 'versions';
+
     versionsData = {
-      ...response,
-      artistName: searchParams.artistName,
-      artistSlug: searchParams.artistSlug,
+      ...versionsJson,
+      artistName: artistJson.name,
+      artistSlug: artistJson.slug,
     };
   }
 

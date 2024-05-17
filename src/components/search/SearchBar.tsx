@@ -27,8 +27,6 @@ export default function SearchBar({ resultsType }: { resultsType: SearchResultsT
   }
 
   function clearSearch() {
-    writableParams.delete('artistName');
-    writableParams.delete('artistSlug');
     writableParams.delete('artistUuid');
     writableParams.delete('q');
     writableParams.delete('resultsType');

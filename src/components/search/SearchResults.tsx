@@ -66,13 +66,11 @@ export default function SearchResults({
   }
 
   function getHref(slim_artist: Artist | undefined, songUuid: string | undefined) {
-    if (!slim_artist || !slim_artist.name || !slim_artist.slug || !slim_artist.uuid || !songUuid) {
+    if (!slim_artist || !slim_artist.uuid || !songUuid) {
       // TODO: handle error
       return 'search';
     }
 
-    writableParams.set('artistName', slim_artist.name);
-    writableParams.set('artistSlug', slim_artist.slug);
     writableParams.set('artistUuid', slim_artist.uuid);
     writableParams.set('songUuid', songUuid);
 
