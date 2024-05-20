@@ -12,9 +12,9 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
   let versionsData: SongVersions | null = null;
 
   if (searchParams.q) {
-    const response = await fetch(`${API_DOMAIN}/api/v2/search?q=${searchParams.q}`, {
-      cache: 'no-cache', // seconds
-    }).then((res) => res.json());
+    const response = await fetch(`${API_DOMAIN}/api/v2/search?q=${searchParams.q}`).then((res) =>
+      res.json()
+    );
 
     // API sometimes returns null instead of []
     data = { ...response, Songs: !response.Songs ? [] : response.Songs };
@@ -23,12 +23,9 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
   if (data?.Songs.length && searchParams.songUuid) {
     const song = data.Songs.find(({ uuid }) => uuid === searchParams.songUuid);
 
-    let versions = await fetch(
-      `${API_DOMAIN}/api/v3/artists/${song?.slim_artist?.uuid}/songs/${searchParams.songUuid}`,
-      { cache: 'no-cache' }
-    );
-
-    versions = await versions.json();
+    const versions = await fetch(
+      `${API_DOMAIN}/api/v3/artists/${song?.slim_artist?.uuid}/songs/${searchParams.songUuid}`
+    ).then((res) => res.json());
 
     resultsType = 'versions';
 
