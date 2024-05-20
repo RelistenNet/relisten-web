@@ -20,26 +20,22 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
     data = { ...response, Songs: !response.Songs ? [] : response.Songs };
   }
 
-  if (searchParams.artistUuid && searchParams.songUuid) {
-    const [artistResponse, versionsRespose] = await Promise.all([
-      fetch(`${API_DOMAIN}/api/v3/artists/${searchParams.artistUuid}`, { cache: 'no-cache' }),
-      fetch(
-        `${API_DOMAIN}/api/v3/artists/${searchParams.artistUuid}/songs/${searchParams.songUuid}`,
-        { cache: 'no-cache' }
-      ),
-    ]);
+  if (data?.Songs.length && searchParams.songUuid) {
+    const song = data.Songs.find(({ uuid }) => uuid === searchParams.songUuid);
 
-    const [artistJson, versionsJson] = await Promise.all([
-      artistResponse.json(),
-      versionsRespose.json(),
-    ]);
+    let versions = await fetch(
+      `${API_DOMAIN}/api/v3/artists/${song?.slim_artist?.uuid}/songs/${searchParams.songUuid}`,
+      { cache: 'no-cache' }
+    );
+
+    versions = await versions.json();
 
     resultsType = 'versions';
 
     versionsData = {
-      ...versionsJson,
-      artistName: artistJson.name,
-      artistSlug: artistJson.slug,
+      ...versions,
+      artistName: song?.slim_artist?.name || '',
+      artistSlug: song?.slim_artist?.slug || '',
     };
   }
 

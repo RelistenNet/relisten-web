@@ -10,16 +10,7 @@ import Link from 'next/link';
 import { sortByKey } from '@/lib/utils';
 import Column from '../Column';
 import Row from '../Row';
-
-// "1984-12-01T00:00:00Z" -> "1984/12/01"
-function dateStringToPathSegment(inputDateStr) {
-  const originalDate = new Date(inputDateStr);
-  const yyyy = originalDate.getUTCFullYear();
-  const mm = String(originalDate.getUTCMonth() + 1).padStart(2, '0');
-  const dd = String(originalDate.getUTCDate()).padStart(2, '0');
-
-  return `${yyyy}/${mm}/${dd}`;
-}
+import { formatInTimeZone } from 'date-fns-tz';
 
 export default function SearchResults({
   data,
@@ -71,7 +62,6 @@ export default function SearchResults({
       return 'search';
     }
 
-    writableParams.set('artistUuid', slim_artist.uuid);
     writableParams.set('songUuid', songUuid);
 
     return `search?${writableParams.toString()}`;
@@ -157,9 +147,7 @@ export default function SearchResults({
       return (
         <Row
           key={uuid}
-          href={`/${sortedVersions?.artistSlug}/${dateStringToPathSegment(
-            date
-          )}/${sortedVersions?.slug}`}
+          href={`/${sortedVersions?.artistSlug}/${formatInTimeZone(date as string, 'UTC', 'yyyy/MM/dd')}/${sortedVersions?.slug}`}
         >
           <div>
             <div>{sortedVersions?.name}</div>
