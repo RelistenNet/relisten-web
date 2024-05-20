@@ -17,13 +17,24 @@ export default function SearchBar({ resultsType }: { resultsType: SearchResultsT
       e.preventDefault();
     }
 
+    /** If there are query params, back button should go to /search, otherwise leave the search page */
+    const shouldPush = writableParams.toString() === '';
+
     if (value) {
       writableParams.set('q', value);
     } else {
       writableParams.delete('q');
     }
 
-    startTransition(() => router.replace(`${pathname}?${writableParams.toString()}`));
+    const path = `${pathname}?${writableParams.toString()}`;
+
+    startTransition(() => {
+      if (shouldPush) {
+        router.push(path);
+      } else {
+        router.replace(path);
+      }
+    });
   }
 
   function clearSearch() {
