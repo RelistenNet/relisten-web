@@ -21,6 +21,45 @@
   .button {
     @apply rounded bg-green-400 p-4 py-2 border border-green-100 my-4 inline-block font-medium text-black/70 tracking-wide;
   }
+
+  .search-bar {
+    @apply rounded-full border border-gray-400;
+  }
+
+  .search-bar:focus-within {
+    @apply border-gray-600;
+  }
+
+  .search-bar > input:focus {
+    outline: none;
+  }
+
+  .search-bar > .fa-spinner {
+    animation: spin .7s linear infinite;
+  }
+
+  .search-filters > li {
+    @apply inline-block;
+  }
+
+  .search-filters > li > button {
+    @apply rounded-full px-2 py-1;
+  }
+
+  .search-filters > li > .search-filters-item--active {
+    @apply bg-relisten-100 text-white;
+  }
+}
+
+@layer utilities {
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
 }
 
 body { margin: 0; font-family: Roboto, Helvetica, Helvetica Neue, sans-serif; -webkit-font-smoothing: antialiased; color: #333; }

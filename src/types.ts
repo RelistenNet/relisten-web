@@ -274,6 +274,7 @@ export type Source = {
   num_ratings?: number | null;
   avg_rating_weighted?: number;
   duration?: number;
+  slim_artist?: Artist;
   upstream_identifier?: string;
   uuid?: string;
   created_at?: string;
@@ -337,6 +338,21 @@ export type Playback = {
   activeTrack?: ActiveTrack;
 };
 
+export type Song = {
+  artist_id?: number;
+  artist_uuid?: string;
+  created_at?: string;
+  id: number;
+  name?: string;
+  shows_played_at?: number;
+  slim_artist?: Artist;
+  slug?: string;
+  sortName?: string;
+  updated_at?: string;
+  upstream_identifier?: string;
+  uuid?: string;
+};
+
 export type ActiveTrack = {
   currentTime?: number;
   duration?: number;
@@ -344,4 +360,35 @@ export type ActiveTrack = {
   isPaused?: boolean;
   playbackType?: string;
   webAudioLoadingState?: string;
+};
+
+// query-string parameters for search page
+export type SearchParams = {
+  artistName: string;
+  artistSlug: string;
+  artistUuid: string;
+  q: string;
+  resultsType: SearchResultsType;
+  songUuid: string;
+  sortBy?: 'DATE_ASC' | 'DATE_DESC';
+};
+
+export type SearchResults = {
+  Artists: Artist[];
+  Shows: Show[];
+  Songs: Song[];
+  Sources: Source[];
+  Tours: Tour[];
+  Venues: Venue[];
+};
+
+// Which type of search results are being shown on the search page
+export type SearchResultsType = 'all' | 'songs' | 'artists' | 'versions';
+
+export type SongVersions = {
+  name: string;
+  shows: Show[];
+  slug: string;
+  artistName: string;
+  artistSlug: string;
 };
