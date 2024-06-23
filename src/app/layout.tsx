@@ -7,7 +7,6 @@ import Providers from './Providers';
 dns.setDefaultResultOrder('ipv4first');
 
 import '../styles/globals.css';
-import Link from 'next/link';
 
 // TODO: figure out if we don't need any weights
 const roboto = Roboto({ subsets: ['latin'], weight: ['100', '300', '400', '500', '700', '900'] });
@@ -19,9 +18,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className={roboto.className}>
-        <Link href="https://en.wikipedia.org/wiki/Bill_Walton" target="_blank">
+        {/* <Link href="https://en.wikipedia.org/wiki/Bill_Walton" target="_blank">
           <div className="fixed top-0 z-10 h-2 w-full bg-black" />
-        </Link>
+        </Link> */}
         <Providers>{children}</Providers>
       </body>
     </html>
