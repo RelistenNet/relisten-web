@@ -33,6 +33,11 @@ export default async function NavBar() {
       </SimplePopover>
       <div className="nav hidden h-full flex-[2] cursor-pointer items-center justify-end text-center font-medium 2xl:flex">
         <div className="h-full px-1">
+          <Link href="/search" legacyBehavior prefetch={false}>
+            <a className="nav-btn">SEARCH</a>
+          </Link>
+        </div>
+        <div className="h-full px-1">
           <Link href="/today" legacyBehavior prefetch={false}>
             <a className="nav-btn">TIH</a>
           </Link>
