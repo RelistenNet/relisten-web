@@ -7,6 +7,7 @@ import Providers from './Providers';
 dns.setDefaultResultOrder('ipv4first');
 
 import '../styles/globals.css';
+import Link from 'next/link';
 
 // TODO: figure out if we don't need any weights
 const roboto = Roboto({ subsets: ['latin'], weight: ['100', '300', '400', '500', '700', '900'] });
