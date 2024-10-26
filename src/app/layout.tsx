@@ -18,9 +18,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className={roboto.className}>
-        {/* <Link href="https://en.wikipedia.org/wiki/Bill_Walton" target="_blank">
+        <Link href="https://en.wikipedia.org/wiki/Phil_Lesh" target="_blank">
           <div className="fixed top-0 z-10 h-2 w-full bg-black" />
-        </Link> */}
+        </Link>
         <Providers>{children}</Providers>
       </body>
     </html>
