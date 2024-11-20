@@ -5,10 +5,8 @@ RUN npm install -g pnpm@8.15.7
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
-RUN yarn global add node-gyp
-
 COPY package.json /usr/src/app
-COPY yarn.lock /usr/src/app
+COPY pnpm-lock.yaml /usr/src/app
 
 RUN pnpm i --frozen-lockfile
 
