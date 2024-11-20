@@ -1,3 +1,5 @@
+import { notFound } from 'next/navigation';
+
 import { sortSources } from '@/redux/modules/tapes';
 import { Artist, Tape } from '@/types';
 import ky from 'ky-universal';
@@ -10,6 +12,8 @@ export const fetchArtists = async (): Promise<Artist[]> => {
     .json()
     .catch((err) => {
       console.error('artists fetch error', err);
+
+      notFound();
     });
 
   return (parsed as Artist[]) ?? [];
@@ -19,14 +23,20 @@ export const fetchShow = async (
   slug?: string,
   year?: string,
   displayDate?: string
-): Promise<Partial<Tape>> => {
+): Promise<Partial<Tape> | undefined> => {
   if (!slug || !year || !displayDate) return { sources: [] };
 
-  const parsed = (await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years/${year}/${displayDate}`, {
-    cache: 'no-cache',
-  }).json()) as Tape;
+  try {
+    const parsed = (await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years/${year}/${displayDate}`, {
+      cache: 'no-cache',
+    }).json()) as Tape;
 
-  parsed.sources = sortSources(parsed.sources);
+    if (parsed) {
+      parsed.sources = sortSources(parsed.sources);
 
-  return parsed;
+      return parsed;
+    }
+  } catch (err) {
+    notFound();
+  }
 };
