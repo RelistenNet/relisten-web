@@ -11,7 +11,7 @@ export interface RawParams {
   source?: string;
 }
 
-export type MainLayoutProps = PropsWithChildren & { params: RawParams };
+export type MainLayoutProps = PropsWithChildren & { params: Promise<RawParams> };
 
 export default function Layout({ children }: MainLayoutProps) {
   return (

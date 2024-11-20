@@ -4,7 +4,8 @@ import { fetchArtists, fetchShow } from '@/app/queries';
 import { notFound } from 'next/navigation';
 import { createShowDate } from '@/lib/utils';
 
-export default async function Page({ params }: { params: RawParams }) {
+export default async function Page(props: { params: Promise<RawParams> }) {
+  const params = await props.params;
   const { artistSlug, year, month, day } = params;
 
   if (!year || !month || !day) return notFound();
@@ -14,7 +15,8 @@ export default async function Page({ params }: { params: RawParams }) {
   return <PlayerManager {...params} show={show} />;
 }
 
-export const generateMetadata = async ({ params }) => {
+export const generateMetadata = async props => {
+  const params = await props.params;
   const { artistSlug, year, month, day, songSlug } = params;
 
   const artists = await fetchArtists();

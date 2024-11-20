@@ -4,7 +4,8 @@ import { notFound } from 'next/navigation';
 
 export default () => null;
 
-export const generateMetadata = async ({ params }) => {
+export const generateMetadata = async props => {
+  const params = await props.params;
   const { artistSlug, year, month, day } = params;
 
   const artists = await fetchArtists();

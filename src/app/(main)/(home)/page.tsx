@@ -1,5 +1,5 @@
 import parser from 'ua-parser-js';
-import { headers } from 'next/headers';
+import { headers, type UnsafeUnwrappedHeaders } from 'next/headers';
 
 import ShowsColumn from '@/components/ShowsColumn';
 import SongsColumn from '@/components/SongsColumn';
@@ -9,7 +9,7 @@ import { fetchRandomShow } from './[artistSlug]/page';
 import React from 'react';
 
 export const useIsMobile = () => {
-  const headersList = headers();
+  const headersList = (headers() as unknown as UnsafeUnwrappedHeaders);
   const userAgent = headersList.get('user-agent');
 
   if (!userAgent) return false;

@@ -19,7 +19,8 @@ export const fetchRandomShow = async (slug?: string): Promise<Tape | undefined> 
   return parsed;
 };
 
-export default async function Page({ params }) {
+export default async function Page(props) {
+  const params = await props.params;
   const { artistSlug } = params;
 
   if (useIsMobile()) return null;
@@ -48,7 +49,8 @@ export default async function Page({ params }) {
   );
 }
 
-export const generateMetadata = async ({ params }) => {
+export const generateMetadata = async props => {
+  const params = await props.params;
   const { artistSlug } = params;
 
   const artists = await fetchArtists();

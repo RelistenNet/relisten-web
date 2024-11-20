@@ -5,7 +5,8 @@ export default function Page() {
   return null;
 }
 
-export const generateMetadata = async ({ params }) => {
+export const generateMetadata = async props => {
+  const params = await props.params;
   const { artistSlug, year } = params;
 
   const artists = await fetchArtists();

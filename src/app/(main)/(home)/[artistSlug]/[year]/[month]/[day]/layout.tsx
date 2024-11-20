@@ -7,7 +7,11 @@ import { createShowDate } from '@/lib/utils';
 import { notFound } from 'next/navigation';
 import React from 'react';
 
-export default async function Page({ params, children }: MainLayoutProps) {
+export default async function Page(props: MainLayoutProps) {
+  const params = await props.params;
+
+  const { children } = props;
+
   const isMobile = useIsMobile();
   const { artistSlug, year, month, day } = params;
 
