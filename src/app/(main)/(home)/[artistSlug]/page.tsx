@@ -30,6 +30,8 @@ export default async function Page(props) {
 
     console.log('failed random show', artistSlug, statusCode);
 
+    notFound();
+
     return null;
   });
 
@@ -49,7 +51,7 @@ export default async function Page(props) {
   );
 }
 
-export const generateMetadata = async props => {
+export const generateMetadata = async (props) => {
   const params = await props.params;
   const { artistSlug } = params;
 

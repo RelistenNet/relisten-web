@@ -27,7 +27,11 @@ const fetchYears = async (slug?: string): Promise<Year[]> => {
 };
 
 const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
-  const [artists, artistYears] = await Promise.all([fetchArtists(), fetchYears(artistSlug)]);
+  const [artists, artistYears] = await Promise.all([fetchArtists(), fetchYears(artistSlug)]).catch(
+    () => {
+      notFound();
+    }
+  );
 
   const artist = artists?.find((artist) => artist.slug === artistSlug);
 

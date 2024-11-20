@@ -11,6 +11,7 @@ import Flex from './Flex';
 import Row from './Row';
 import RowHeader from './RowHeader';
 import Tag from './Tag';
+import { notFound } from 'next/navigation';
 
 const fetchShows = async (slug?: string, year?: string): Promise<ArtistShows | undefined> => {
   if (!slug || !year) return undefined;
@@ -23,7 +24,9 @@ const fetchShows = async (slug?: string, year?: string): Promise<ArtistShows | u
 };
 
 const ShowsColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 'year'>) => {
-  const artistShows = await fetchShows(artistSlug, year);
+  const artistShows = await fetchShows(artistSlug, year).catch(() => {
+    notFound();
+  });
 
   const tours = {};
 
