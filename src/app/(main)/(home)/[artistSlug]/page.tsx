@@ -28,7 +28,9 @@ export default async function Page(props) {
   const randomShow = await fetchRandomShow(artistSlug).catch((err) => {
     const statusCode = err?.response?.status;
 
-    console.log('failed random show', artistSlug, statusCode);
+    if (statusCode !== 404) {
+      console.log('failed random show', artistSlug, statusCode);
+    }
 
     notFound();
 

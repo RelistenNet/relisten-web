@@ -16,6 +16,8 @@ RUN npm run bands
 
 RUN npm run build
 
+ENV NODE_OPTIONS=--max-old-space-size=2048
+
 ARG NODE_ENV="development"
 ENV NODE_ENV ${NODE_ENV}
 
