@@ -1,5 +1,5 @@
 import { MainLayoutProps } from '@/app/(main)/(home)/layout';
-import { useIsMobile } from '@/app/(main)/(home)/page';
+import { isMobile } from '@/app/(main)/(home)/page';
 import { fetchShow } from '@/app/queries';
 import SongsColumn from '@/components/SongsColumn';
 import TapesColumn from '@/components/TapesColumn';
@@ -12,7 +12,7 @@ export default async function Page(props: MainLayoutProps) {
 
   const { children } = props;
 
-  const isMobile = useIsMobile();
+  const isMobileClient = await isMobile();
   const { artistSlug, year, month, day } = params;
 
   if (!year || !month || !day) return notFound();
@@ -22,7 +22,7 @@ export default async function Page(props: MainLayoutProps) {
   return (
     <React.Fragment key={[artistSlug, year, month, day].join('::')}>
       <SongsColumn artistSlug={artistSlug} year={year} month={month} day={day} show={show} />
-      {!isMobile && (
+      {!isMobileClient && (
         <TapesColumn artistSlug={artistSlug} year={year} month={month} day={day} show={show} />
       )}
       {children}

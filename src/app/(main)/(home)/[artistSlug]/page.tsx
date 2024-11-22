@@ -6,7 +6,7 @@ import { API_DOMAIN } from '@/lib/constants';
 import { Tape } from '@/types';
 import ky from 'ky-universal';
 import { notFound } from 'next/navigation';
-import { useIsMobile } from '../page';
+import { isMobile } from '../page';
 import React from 'react';
 
 export const fetchRandomShow = async (slug?: string): Promise<Tape | undefined> => {
@@ -23,7 +23,7 @@ export default async function Page(props) {
   const params = await props.params;
   const { artistSlug } = params;
 
-  if (useIsMobile()) return null;
+  if (await isMobile()) return null;
 
   const randomShow = await fetchRandomShow(artistSlug).catch((err) => {
     const statusCode = err?.response?.status;

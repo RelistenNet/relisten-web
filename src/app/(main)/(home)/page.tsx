@@ -1,15 +1,15 @@
+import { headers } from 'next/headers';
 import parser from 'ua-parser-js';
-import { headers, type UnsafeUnwrappedHeaders } from 'next/headers';
 
 import ShowsColumn from '@/components/ShowsColumn';
 import SongsColumn from '@/components/SongsColumn';
 import TapesColumn from '@/components/TapesColumn';
 import YearsColumn from '@/components/YearsColumn';
-import { fetchRandomShow } from './[artistSlug]/page';
 import React from 'react';
+import { fetchRandomShow } from './[artistSlug]/page';
 
-export const useIsMobile = () => {
-  const headersList = (headers() as unknown as UnsafeUnwrappedHeaders);
+export const isMobile = async () => {
+  const headersList = await headers();
   const userAgent = headersList.get('user-agent');
 
   if (!userAgent) return false;
@@ -20,7 +20,7 @@ export const useIsMobile = () => {
 };
 
 export default async function Page() {
-  if (useIsMobile()) return null;
+  if (await isMobile()) return null;
 
   const artistSlug = 'grateful-dead';
 

@@ -2,6 +2,7 @@ import { Roboto } from 'next/font/google';
 import dns from 'node:dns';
 import React from 'react';
 import Providers from './Providers';
+import NextTopLoader from 'nextjs-toploader';
 
 // https://github.com/node-fetch/node-fetch/issues/1624#issuecomment-1407717012
 dns.setDefaultResultOrder('ipv4first');
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className={roboto.className}>
+        <NextTopLoader />
         <Link href="https://en.wikipedia.org/wiki/Phil_Lesh" target="_blank">
           <div className="fixed top-0 z-10 h-2 w-full bg-black" />
         </Link>

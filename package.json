@@ -29,6 +29,7 @@
     "mousetrap": "1.6.5",
     "next": "15.0.3",
     "next-redux-wrapper": "8.1.0",
+    "nextjs-toploader": "^3.7.15",
     "node-device-detector": "^2.1.0",
     "react": "19.0.0-rc-66855b96-20241106",
     "react-dom": "19.0.0-rc-66855b96-20241106",

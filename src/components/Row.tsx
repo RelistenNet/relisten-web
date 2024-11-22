@@ -74,11 +74,11 @@ const Row = ({
         {...props}
       >
         {loading && <RowLoading />}
-        {/* {isPending && (
+        {isPending && (
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-40">
             <Spinner />
           </div>
-        )} */}
+        )}
         {isPending && <div className="w-2 animate-pulse bg-black/30" />}
 
         {!isPending && isActive && <div className="w-2 bg-black/75" />}
