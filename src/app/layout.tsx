@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className={roboto.className}>
-        <NextTopLoader />
+        <NextTopLoader showSpinner={false} />
         <Link href="https://en.wikipedia.org/wiki/Phil_Lesh" target="_blank">
           <div className="fixed top-0 z-10 h-2 w-full bg-black" />
         </Link>
