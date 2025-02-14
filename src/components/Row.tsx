@@ -1,22 +1,26 @@
-'use client';
+"use client"
 
-import React, { MouseEvent, useTransition } from 'react';
-import Link from 'next/link';
-import RowLoading from './RowLoading';
-import Flex from './Flex';
-import { usePathname, useRouter, useSelectedLayoutSegments } from 'next/navigation';
-import cn from '@/lib/cn';
-import Spinner from './Spinner';
+import React, { MouseEvent, useTransition } from "react"
+import Link from "next/link"
+import RowLoading from "./RowLoading"
+import Flex from "./Flex"
+import {
+  usePathname,
+  useRouter,
+  useSelectedLayoutSegments
+} from "next/navigation"
+import Spinner from "./Spinner"
+import cn from "@/lib/utils"
 
 type RowProps = {
-  height?: number;
-  children?: React.ReactNode;
-  href?: string;
-  active?: boolean;
-  loading?: boolean;
-  activeSegments?: Record<string, string | undefined>;
-  isActiveOverride?: boolean;
-};
+  height?: number
+  children?: React.ReactNode
+  href?: string
+  active?: boolean
+  loading?: boolean
+  activeSegments?: Record<string, string | undefined>
+  isActiveOverride?: boolean
+}
 
 const Row = ({
   height,
@@ -27,16 +31,18 @@ const Row = ({
   loading,
   ...props
 }: RowProps) => {
-  const [isPending, startTransition] = useTransition();
-  const segments = useSelectedLayoutSegments();
-  const pathname = usePathname();
-  const router = useRouter();
+  const [isPending, startTransition] = useTransition()
+  const segments = useSelectedLayoutSegments()
+  const pathname = usePathname()
+  const router = useRouter()
 
-  let isActive = isActiveOverride ?? false;
+  let isActive = isActiveOverride ?? false
 
   // if every segment is true, then we're active
   if (isActiveOverride === undefined && activeSegments) {
-    isActive = Object.entries(activeSegments).every(([key, value]) => segments[key] === value);
+    isActive = Object.entries(activeSegments).every(
+      ([key, value]) => segments[key] === value
+    )
   }
 
   if (!href) {
@@ -47,29 +53,32 @@ const Row = ({
 
         {children}
       </div>
-    );
+    )
   }
 
   const onLinkClick = (e: MouseEvent<HTMLAnchorElement>) => {
     // dont block new tab
     if (e.metaKey) {
-      return;
+      return
     }
-    e.preventDefault();
+    e.preventDefault()
     if (pathname === href) {
-      startTransition(() => router.refresh());
-      console.log('refreshing from row', pathname, href);
+      startTransition(() => router.refresh())
+      console.log("refreshing from row", pathname, href)
     } else {
-      startTransition(() => router.push(href));
+      startTransition(() => router.push(href))
     }
-  };
+  }
 
   return (
-    <Link href={href ?? '/'} prefetch={false} onClick={onLinkClick}>
+    <Link href={href ?? "/"} prefetch={false} onClick={onLinkClick}>
       <Flex
-        className={cn('relisten-row relative min-h-[46px] items-stretch border-b border-gray-100', {
-          'opacity-70': isPending,
-        })}
+        className={cn(
+          "relisten-row relative min-h-[46px] items-stretch border-b border-gray-100",
+          {
+            "opacity-70": isPending
+          }
+        )}
         // style={{ minHeight: height }}
         {...props}
       >
@@ -87,7 +96,7 @@ const Row = ({
         </Flex>
       </Flex>
     </Link>
-  );
-};
+  )
+}
 
-export default Row;
+export default Row

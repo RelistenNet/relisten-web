@@ -1,20 +1,51 @@
-import Column from './Column';
-import Row from './Row';
-
-// TODO: replace this with shadcn/radix
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList
+} from "@/components/ui/navigation-menu"
+import Link from "next/link"
 
 const Menu = () => (
-  <div className="w-[120px]">
-    <Column>
-      <Row href="/">Home</Row>
-      <Row href="/about">About</Row>
-      <Row href="/today">Today</Row>
-      <Row href="/recently-played">Live</Row>
-      <Row href="/sonos">Sonos</Row>
-      <Row href="/ios">iOS</Row>
-      <Row href="/chat">Chat</Row>
-    </Column>
-  </div>
-);
+  <NavigationMenu>
+    <NavigationMenuList className="flex flex-col w-full [&>*]:px-8 [&>*]:py-1 [&>*]:w-full [&>*:not(:last-of-type)]:border-b">
+      <NavigationMenuItem>
+        <Link href="/" legacyBehavior passHref>
+          <NavigationMenuLink>Home</NavigationMenuLink>
+        </Link>
+      </NavigationMenuItem>
+      <NavigationMenuItem>
+        <Link href="/about" legacyBehavior passHref>
+          <NavigationMenuLink>About</NavigationMenuLink>
+        </Link>
+      </NavigationMenuItem>
+      <NavigationMenuItem>
+        <Link href="/today" legacyBehavior passHref>
+          <NavigationMenuLink>Today</NavigationMenuLink>
+        </Link>
+      </NavigationMenuItem>
+      <NavigationMenuItem>
+        <Link href="/live" legacyBehavior passHref>
+          <NavigationMenuLink>Live</NavigationMenuLink>
+        </Link>
+      </NavigationMenuItem>
+      <NavigationMenuItem>
+        <Link href="/sonos" legacyBehavior passHref>
+          <NavigationMenuLink>Sonos</NavigationMenuLink>
+        </Link>
+      </NavigationMenuItem>
+      <NavigationMenuItem>
+        <Link href="/ios" legacyBehavior passHref>
+          <NavigationMenuLink>iOS</NavigationMenuLink>
+        </Link>
+      </NavigationMenuItem>
+      <NavigationMenuItem>
+        <Link href="/chat" legacyBehavior passHref>
+          <NavigationMenuLink>Chat</NavigationMenuLink>
+        </Link>
+      </NavigationMenuItem>
+    </NavigationMenuList>
+  </NavigationMenu>
+)
 
-export default Menu;
+export default Menu
