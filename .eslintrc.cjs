@@ -1,5 +1,8 @@
 module.exports = {
-  extends: ['@switz/eslint-config/react.cjs', '@switz/eslint-config/typescript.cjs'],
+  extends: [
+    '@switz/eslint-config/react.cjs',
+    '@switz/eslint-config/typescript.cjs',
+  ],
   root: true,
   rules: {
     'react/display-name': 1,

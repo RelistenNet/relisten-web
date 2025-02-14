@@ -15,7 +15,7 @@ const Column = ({
   heading,
   loading,
   loadingAmount,
-  children
+  children,
 }: ColumnProps) => {
   // useEffect(() => {
   //   // TODO: refactor this to not use raw query calls
@@ -32,11 +32,11 @@ const Column = ({
       column
     >
       {heading && (
-        <Flex center className='min-h-[32px] w-full bg-relisten-100 text-white'>
+        <Flex center className="min-h-[32px] w-full bg-relisten-100 text-white">
           {heading}
         </Flex>
       )}
-      <Flex column className='flex-1 overflow-y-auto overflow-x-hidden'>
+      <Flex column className="flex-1 overflow-y-auto overflow-x-hidden">
         {loading
           ? new Array(loadingAmount)
               .fill(null)

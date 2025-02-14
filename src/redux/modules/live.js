@@ -77,9 +77,12 @@ export function fetchLive() {
 
 export function scrobblePlay({ uuid }) {
   return () => {
-    return fetch(`${API_DOMAIN}/api/v2/live/play?track_uuid=${uuid}&app_type=web`, {
-      method: 'post',
-    })
+    return fetch(
+      `${API_DOMAIN}/api/v2/live/play?track_uuid=${uuid}&app_type=web`,
+      {
+        method: 'post',
+      }
+    )
       .then((res) => res.json())
       .then((json) => json)
       .catch(() => {});

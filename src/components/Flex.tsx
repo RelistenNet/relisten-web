@@ -33,7 +33,7 @@ const Flex = React.forwardRef(
             'flex-col': column,
             'justify-center': center,
             'items-center': center,
-            [`gap-${gap}`]: gap
+            [`gap-${gap}`]: gap,
           },
           className
         )}

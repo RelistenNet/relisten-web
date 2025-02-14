@@ -7,7 +7,7 @@ import Flex from './Flex';
 import {
   usePathname,
   useRouter,
-  useSelectedLayoutSegments
+  useSelectedLayoutSegments,
 } from 'next/navigation';
 import Spinner from './Spinner';
 import cn from '@/lib/utils';
@@ -47,9 +47,9 @@ const Row = ({
 
   if (!href) {
     return (
-      <div className='content relative w-full flex-1 items-center justify-between py-1'>
+      <div className="content relative w-full flex-1 items-center justify-between py-1">
         {loading && <RowLoading />}
-        {isActive && <div className='h-full w-2 bg-[#333333]' />}
+        {isActive && <div className="h-full w-2 bg-[#333333]" />}
 
         {children}
       </div>
@@ -76,7 +76,7 @@ const Row = ({
         className={cn(
           'relisten-row relative min-h-[46px] items-stretch border-b border-gray-100',
           {
-            'opacity-70': isPending
+            'opacity-70': isPending,
           }
         )}
         // style={{ minHeight: height }}
@@ -84,14 +84,14 @@ const Row = ({
       >
         {loading && <RowLoading />}
         {isPending && (
-          <div className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-40'>
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-40">
             <Spinner />
           </div>
         )}
-        {isPending && <div className='w-2 animate-pulse bg-black/30' />}
+        {isPending && <div className="w-2 animate-pulse bg-black/30" />}
 
-        {!isPending && isActive && <div className='w-2 bg-black/75' />}
-        <Flex className='w-full flex-1 items-center justify-between p-1 leading-tight'>
+        {!isPending && isActive && <div className="w-2 bg-black/75" />}
+        <Flex className="w-full flex-1 items-center justify-between p-1 leading-tight">
           {children}
         </Flex>
       </Flex>

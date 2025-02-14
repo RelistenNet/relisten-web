@@ -17,7 +17,7 @@ import {
   FloatingFocusManager,
   useId,
   arrow,
-  FloatingArrow
+  FloatingArrow,
 } from '@floating-ui/react';
 
 interface PopoverOptions {
@@ -33,7 +33,7 @@ export function usePopover({
   placement = 'bottom',
   modal,
   open: controlledOpen,
-  onOpenChange: setControlledOpen
+  onOpenChange: setControlledOpen,
 }: PopoverOptions = {}) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(initialOpen);
   const [labelId, setLabelId] = React.useState<string | undefined>();
@@ -53,24 +53,24 @@ export function usePopover({
     middleware: [
       offset({
         mainAxis: 24,
-        crossAxis: -8
+        crossAxis: -8,
       }),
       arrow({
-        element: arrowRef
+        element: arrowRef,
       }),
       flip({
         crossAxis: placement.includes('-'),
         fallbackAxisSideDirection: 'end',
-        padding: 5
+        padding: 5,
       }),
-      shift({ padding: 16 })
-    ]
+      shift({ padding: 16 }),
+    ],
   });
 
   const context = data.context;
 
   const click = useClick(context, {
-    enabled: controlledOpen == null
+    enabled: controlledOpen == null,
   });
   const dismiss = useDismiss(context);
   const role = useRole(context);
@@ -88,7 +88,7 @@ export function usePopover({
       descriptionId,
       arrowRef,
       setLabelId,
-      setDescriptionId
+      setDescriptionId,
     }),
     [open, setOpen, interactions, data, modal, labelId, descriptionId]
   );
@@ -162,7 +162,7 @@ export const PopoverTrigger = React.forwardRef<
         ref,
         ...props,
         ...(children.props ?? {}),
-        'data-state': context.open ? 'open' : 'closed'
+        'data-state': context.open ? 'open' : 'closed',
       } as any)
     );
   }
@@ -196,7 +196,7 @@ export const PopoverContent = React.forwardRef<
           style={{ ...context.floatingStyles, ...style }}
           aria-labelledby={context.labelId}
           aria-describedby={context.descriptionId}
-          className='z-10 rounded border border-black/10 bg-white text-center font-medium shadow-lg'
+          className="z-10 rounded border border-black/10 bg-white text-center font-medium shadow-lg"
           {...context.getFloatingProps(props)}
         >
           {props.children}
@@ -272,7 +272,7 @@ export const SimplePopover = ({
   content,
   children,
   position,
-  disabled
+  disabled,
 }: SimplePopoverProps) => {
   return (
     <Popover placement={position}>

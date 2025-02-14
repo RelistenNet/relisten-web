@@ -6,7 +6,7 @@ import SecondaryNavBar from './SecondaryNavHeader';
 import { usePathname, useRouter } from 'next/navigation';
 
 export default function MainNavHeader({
-  artistSlugsToName
+  artistSlugsToName,
 }: {
   artistSlugsToName: Record<string, string | undefined>;
 }) {
@@ -22,10 +22,10 @@ export default function MainNavHeader({
 
   return (
     <>
-      <Flex className='left h-full flex-1 items-center whitespace-nowrap font-medium max-lg:hidden lg:gap-1'>
+      <Flex className="left h-full flex-1 items-center whitespace-nowrap font-medium max-lg:hidden lg:gap-1">
         <Link
-          href='/'
-          className='ml-4 text-center '
+          href="/"
+          className="ml-4 text-center "
           prefetch={false}
           onClick={onClickNav}
         >
@@ -33,8 +33,8 @@ export default function MainNavHeader({
         </Link>
         <SecondaryNavBar artistSlugsToName={artistSlugsToName} />
       </Flex>
-      <Flex className='h-full px-2 lg:hidden' center>
-        <Link href='/' legacyBehavior prefetch={false}>
+      <Flex className="h-full px-2 lg:hidden" center>
+        <Link href="/" legacyBehavior prefetch={false}>
           Re
         </Link>
       </Flex>
