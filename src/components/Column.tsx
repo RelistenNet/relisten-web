@@ -1,14 +1,14 @@
-import React from "react"
-import Flex from "./Flex"
-import Row from "./Row"
-import cn from "@/lib/utils"
+import React from 'react';
+import Flex from './Flex';
+import Row from './Row';
+import cn from '@/lib/utils';
 type ColumnProps = {
-  loading?: boolean
-  loadingAmount?: number
-  heading?: string
-  children?: React.ReactNode
-  className?: string
-}
+  loading?: boolean;
+  loadingAmount?: number;
+  heading?: string;
+  children?: React.ReactNode;
+  className?: string;
+};
 
 const Column = ({
   className,
@@ -28,15 +28,15 @@ const Column = ({
 
   return (
     <Flex
-      className={cn("relisten-column flex-1 break-words", className)}
+      className={cn('relisten-column flex-1 break-words', className)}
       column
     >
       {heading && (
-        <Flex center className="min-h-[32px] w-full bg-relisten-100 text-white">
+        <Flex center className='min-h-[32px] w-full bg-relisten-100 text-white'>
           {heading}
         </Flex>
       )}
-      <Flex column className="flex-1 overflow-y-auto overflow-x-hidden">
+      <Flex column className='flex-1 overflow-y-auto overflow-x-hidden'>
         {loading
           ? new Array(loadingAmount)
               .fill(null)
@@ -44,7 +44,7 @@ const Column = ({
           : children}
       </Flex>
     </Flex>
-  )
-}
+  );
+};
 
-export default Column
+export default Column;

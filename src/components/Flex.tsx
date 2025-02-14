@@ -1,12 +1,12 @@
-import React from "react"
-import cn from "@/lib/utils"
+import React from 'react';
+import cn from '@/lib/utils';
 interface Props {
-  as?: React.ElementType
-  className?: string
-  center?: boolean
-  column?: boolean
-  children?: React.ReactNode
-  gap?: number
+  as?: React.ElementType;
+  className?: string;
+  center?: boolean;
+  column?: boolean;
+  children?: React.ReactNode;
+  gap?: number;
 }
 
 const Flex = React.forwardRef(
@@ -16,32 +16,32 @@ const Flex = React.forwardRef(
       center,
       column,
       gap,
-      as = "div",
+      as = 'div',
       ...props
     }: React.HTMLAttributes<HTMLDivElement> & Props,
     ref
   ) => {
-    const Comp = as
+    const Comp = as;
 
     return (
       <Comp
         {...props}
         ref={ref}
         className={cn(
-          "flex",
+          'flex',
           {
-            "flex-col": column,
-            "justify-center": center,
-            "items-center": center,
+            'flex-col': column,
+            'justify-center': center,
+            'items-center': center,
             [`gap-${gap}`]: gap
           },
           className
         )}
       />
-    )
+    );
   }
-)
+);
 
-Flex.displayName = "Flex"
+Flex.displayName = 'Flex';
 
-export default Flex
+export default Flex;
