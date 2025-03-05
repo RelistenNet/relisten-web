@@ -1,13 +1,27 @@
 {
   "applinks": {
-    "apps": [ ],
     "details": [
       {
-        "appID": "HT7ELV3Q35.com.alecgorge.ios.Listen-to-the-Dead",
-        "paths": [
-          "*"
+        "appIDs": [
+          "HT7ELV3Q35.com.alecgorge.ios.Listen-to-the-Dead"
+        ],
+        "components": [
+          {
+            "/": "*",
+            "comment": "Matches all routes"
+          }
         ]
       }
+    ]
+  },
+  "activitycontinuation": {
+    "apps": [
+      "HT7ELV3Q35.com.alecgorge.ios.Listen-to-the-Dead"
+    ]
+  },
+  "webcredentials": {
+    "apps": [
+      "HT7ELV3Q35.com.alecgorge.ios.Listen-to-the-Dead"
     ]
   }
 }

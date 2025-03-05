@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "net.relisten.android",
+      "sha256_cert_fingerprints": [
+        "EB:1D:40:C2:31:D3:91:14:D1:C7:71:23:E6:69:DC:45:A9:59:4D:F2:B0:BE:22:C8:3C:E3:24:B2:9E:6E:56:12"
+      ]
+    }
+  }
+]

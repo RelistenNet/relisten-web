@@ -18,6 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         <link rel="icon" href="/favicon.ico" />
+        <meta name="apple-itunes-app" content="app-id=715886886" />
       </head>
       <body className={roboto.className}>
         <NextTopLoader showSpinner={false} />
