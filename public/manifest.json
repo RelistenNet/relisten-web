@@ -37,5 +37,12 @@
       "type": "image/png",
       "density": "4.0"
     }
+  ],
+  "prefer_related_applications": true,
+  "related_applications": [
+    {
+      "platform": "play",
+      "id": "net.relisten.android"
+    }
   ]
 }
