@@ -11,7 +11,9 @@ import AndroidUpgradeNotification from './AndroidUpgradeNotification';
 export default async function NavBar() {
   const artists = await fetchArtists();
   const userAgent = await getUserAgent();
-  const isAndroid = /android/i.test(userAgent?.ua || '');
+
+  // const isAndroid = /android/i.test(userAgent?.ua || '');
+  const isAndroid = true;
 
   const artistSlugsToName = artists.reduce(
     (memo, next) => {
