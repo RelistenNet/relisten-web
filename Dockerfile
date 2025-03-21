@@ -1,6 +1,6 @@
 FROM node:22-alpine
 
-RUN npm install -g pnpm@8.15.7
+RUN npm install -g pnpm@10
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
