@@ -11,7 +11,7 @@ const Menu = () => (
       <Row href="/today">Today</Row>
       <Row href="/recently-played">Live</Row>
       <Row href="/sonos">Sonos</Row>
-      <Row href="/ios">iOS</Row>
+      <Row href="/app">App</Row>
       <Row href="/chat">Chat</Row>
     </Column>
   </div>

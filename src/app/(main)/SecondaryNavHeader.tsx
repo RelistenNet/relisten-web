@@ -8,9 +8,9 @@ const pages = {
     prefix: 'ON',
     title: 'SONOS',
   },
-  'ios': {
-    prefix: 'ON',
-    title: 'iOS',
+  'app': {
+    prefix: 'ON THE',
+    title: 'go',
   },
   'today': {
     prefix: 'TO',

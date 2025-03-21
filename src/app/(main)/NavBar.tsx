@@ -53,8 +53,8 @@ export default async function NavBar() {
             </Link>
           </div>
           <div>
-            <Link href="/ios" legacyBehavior prefetch={false}>
-              <a className="nav-btn">iOS</a>
+            <Link href="/app" legacyBehavior prefetch={false}>
+              <a className="nav-btn">APP</a>
             </Link>
           </div>
           <div>

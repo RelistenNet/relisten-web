@@ -1,6 +1,6 @@
 const customRoutes = [
   'about',
-  'ios',
+  'app',
   'today',
   'live',
   'favicon.ico', // eslint-disable-line no-useless-escape
