@@ -10,7 +10,7 @@ const pages = {
   },
   'app': {
     prefix: 'ON THE',
-    title: 'go',
+    title: 'GO',
   },
   'today': {
     prefix: 'TO',
@@ -57,7 +57,7 @@ export default function SecondaryNavBar({ artistSlugsToName }: Props) {
 
   const pageMetadata = pages[key];
 
-  if (group === '(secondary)' && pageMetadata) {
+  if ((group === '(secondary)' || group === '(tertiary)') && pageMetadata) {
     return (
       <>
         <span className="to">{pageMetadata.prefix}</span>
