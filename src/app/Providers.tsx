@@ -22,7 +22,6 @@ export default function Providers({ children }: PropsWithChildren) {
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      console.log(e.code);
       if (e.code === 'Space') {
         player.togglePlayPause();
       }
