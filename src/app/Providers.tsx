@@ -21,14 +21,21 @@ export default function Providers({ children }: PropsWithChildren) {
   );
 
   useEffect(() => {
-    const playpause = (e: KeyboardEvent) => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      console.log(e.code);
       if (e.code === 'Space') {
         player.togglePlayPause();
       }
+      if (e.code === 'ArrowRight') {
+        player.playNext();
+      }
+      if (e.code === 'ArrowLeft') {
+        player.playPrevious();
+      }
     };
-    document.addEventListener('keydown', playpause);
+    document.addEventListener('keydown', onKeyDown);
 
-    return () => document.removeEventListener('keydown', playpause);
+    return () => document.removeEventListener('keydown', onKeyDown);
   }, []);
 
   return (

@@ -27,7 +27,6 @@
     "isomorphic-fetch": "3.0.0",
     "ky": "^1.2.4",
     "ky-universal": "^0.12.0",
-    "mousetrap": "1.6.5",
     "next": "15.2.4",
     "next-redux-wrapper": "8.1.0",
     "nextjs-toploader": "^3.7.15",
