@@ -1,18 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Flex from '../../components/Flex';
 
 export default function AndroidUpgradeNotification() {
-  const androidUpgradeNotificationDismissed = localStorage.getItem(
-    'relistenAndroidNotificationDismissed'
-  );
-  const [alertVisible, setAlertVisible] = useState(!androidUpgradeNotificationDismissed);
+  const [alertVisible, setAlertVisible] = useState(false);
 
   const dismissAlert = () => {
     localStorage.setItem('relistenAndroidNotificationDismissed', 'true');
     setAlertVisible(false);
   };
+
+  useEffect(() => {
+    const androidUpgradeNotificationDismissed = localStorage.getItem(
+      'relistenAndroidNotificationDismissed'
+    );
+
+    setAlertVisible(!androidUpgradeNotificationDismissed);
+  }, []);
 
   return alertVisible ? (
     <Flex column className="border-b-[1px] border-b-[#aeaeae]">
