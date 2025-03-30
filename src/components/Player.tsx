@@ -8,6 +8,14 @@ import { useSelector } from 'react-redux';
 import player from '../lib/player';
 import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
 import Flex from './Flex';
+import {
+  ChevronDown,
+  FastForwardIcon,
+  ListMusicIcon,
+  PauseIcon,
+  PlayIcon,
+  RewindIcon,
+} from 'lucide-react';
 
 interface Props {
   artistSlugsToName: Record<string, string | undefined>;
@@ -77,14 +85,14 @@ const Player = ({ artistSlugsToName }: Props) => {
       )}
       {activeTrack && (
         <Flex
-          className="playpause cursor-pointer items-center justify-center text-gray-600 active:text-gray-800 lg:w-[50px]"
+          className="playpause cursor-pointer items-center justify-center text-gray-600 active:text-gray-800 lg:w-[40px]"
           onClick={() => player.togglePlayPause()}
         >
-          <i
-            className={`fas fa cursor-pointer fa-${
-              playback.activeTrack.isPaused ? 'play' : 'pause'
-            }`}
-          />
+          {playback.activeTrack.isPaused ? (
+            <PlayIcon size={20} className="fill-gray-600 active:fill-gray-800" />
+          ) : (
+            <PauseIcon size={20} className="fill-gray-600 active:fill-gray-800" />
+          )}
         </Flex>
       )}
       {typeof window === 'undefined' || !activeTrack ? null : (
@@ -92,9 +100,10 @@ const Player = ({ artistSlugsToName }: Props) => {
           <Flex className="info h-full justify-center transition-all duration-[1s] ease-in-out">
             <div className="timing absolute left-[8px] top-1/2 translate-x-0 translate-y-[-50%] text-left text-[0.8em] text-gray-600">
               <div>
-                <i
-                  className="fa fa-backward cursor-pointer"
+                <RewindIcon
+                  className="cursor-pointer fill-gray-600"
                   onClick={() => player.playPrevious()}
+                  size={16}
                 />
               </div>
               <div>{durationToHHMMSS(playback.activeTrack.currentTime)}</div>
@@ -105,7 +114,7 @@ const Player = ({ artistSlugsToName }: Props) => {
                 {false && (
                   <Flex className="absolute left-full top-[2px] ml-2 w-full items-center text-[0.8em] text-gray-600">
                     <div>Next: {nextTrack && nextTrack.title}&nbsp;</div>
-                    <i className="fa fa-angle-down cursor-pointer" />
+                    <ChevronDown size={12} className="cursor-pointer" />
                   </Flex>
                 )}
               </div>
@@ -122,7 +131,11 @@ const Player = ({ artistSlugsToName }: Props) => {
             </Flex>
             <div className="timing duration absolute right-[8px] top-1/2 translate-x-0 translate-y-[-50%] text-right text-[0.8em] text-gray-600">
               <div>
-                <i className="fa fa-forward cursor-pointer" onClick={() => player.playNext()} />
+                <FastForwardIcon
+                  className="ml-auto cursor-pointer fill-gray-600"
+                  onClick={() => player.playNext()}
+                  size={16}
+                />
               </div>
               <div onClick={toggleRemainingDuration} className="cursor-pointer">
                 {durationToHHMMSS(
@@ -134,7 +147,7 @@ const Player = ({ artistSlugsToName }: Props) => {
             </div>
           </Flex>
           <div
-            className="absolute bottom-0 left-0 z-[1] h-1 w-full cursor-pointer bg-[#bcbcbc]"
+            className="z-1 absolute bottom-0 left-0 h-1 w-full cursor-pointer bg-[#bcbcbc]"
             onClick={onProgressClick}
             style={{ opacity: playback.activeTrack.currentTime < 0.1 ? 0.8 : 1 }}
           >
@@ -143,12 +156,12 @@ const Player = ({ artistSlugsToName }: Props) => {
               style={{ width: notchPosition ? notchPosition + 2 : 'auto' }}
             />
             <div
-              className="absolute bottom-0 left-0 z-[1] h-2 w-[3px] bg-black"
+              className="z-1 absolute bottom-0 left-0 h-2 w-[3px] bg-black"
               style={{ transform: `translate(${notchPosition}px, 0)` }}
             />
           </div>
           <div
-            className="absolute right-[-6px] top-0 h-full w-[6px] bg-[#0000001a]"
+            className="absolute right-[-6px] top-0 h-full w-[6px] cursor-pointer bg-[#0000001a]"
             onClick={updateVolume}
           >
             <div
@@ -166,8 +179,8 @@ const Player = ({ artistSlugsToName }: Props) => {
           as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
           legacyBehavior
         >
-          <div className="w-[50px] cursor-pointer items-center justify-center self-center text-gray-600 active:text-gray-800 max-lg:hidden">
-            <i className="fa fa fa-list-ol cursor-pointer" />
+          <div className="flex w-[40px] cursor-pointer items-center justify-center self-center text-gray-600 active:text-gray-800 max-lg:hidden">
+            <ListMusicIcon size={22} />
           </div>
         </Link>
       )}

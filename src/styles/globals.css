@@ -1,25 +1,53 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
-@import url('@fortawesome/fontawesome-free/css/all.css');
+@theme {
+  --text-xxs: 0.7rem;
+  --text-xxs--line-height: 1rem;
+
+  --color-relisten-100: #279bbc;
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
+
+@utility nav-btn {
+  @apply flex h-full items-center px-2 text-center active:relative active:top-[1px] active:text-[#333333];
+}
+
+@utility relisten-row {
+  & > .content > div {
+    @apply flex flex-col justify-around self-stretch;
+  }
+}
+
+@utility content {
+  .relisten-row > & > div {
+    @apply flex flex-col justify-around self-stretch;
+  }
+}
+
+@utility button {
+  @apply rounded-sm bg-green-400 p-4 py-2 border border-green-100 my-4 inline-block font-medium text-black/70 tracking-wide;
+}
 
 @layer base {
   h1 {
     @apply text-3xl font-semibold mb-8;
-  }
-}
-
-@layer components {
-  .nav-btn {
-    @apply flex h-full items-center px-2 text-center active:relative active:top-[1px] active:text-[#333333]
-  }
-  .relisten-row > .content > div {
-    @apply flex flex-col justify-around self-stretch;
-  }
-
-  .button {
-    @apply rounded bg-green-400 p-4 py-2 border border-green-100 my-4 inline-block font-medium text-black/70 tracking-wide;
   }
 }
 

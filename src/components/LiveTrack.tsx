@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { splitShowDate } from '../lib/utils';
 import { TrackSource, Track, Venue } from '../types';
 import Flex from './Flex';
+import { ArrowRight } from 'lucide-react';
 
 const createURL = (track: { track: Track; source: TrackSource }): string => {
   const { year, month, day } = splitShowDate(track.source.display_date);
@@ -90,7 +91,7 @@ export default function LiveTrack({
         }}
         initial={{ opacity: 1, height: 0, borderColor: 'rgba(0,255,50,0.1)' }}
         animate={{ opacity: 1, height: '100%', borderColor: 'rgba(0,0,0, 0.3)' }}
-        className={`relative flex flex-1 cursor-pointer overflow-hidden rounded border-[1px] px-4 py-2 transition-opacity duration-1000 ease-in-out hover:bg-slate-200/20 ${isLastSeen && 'border-b-green-600'}`}
+        className={`relative flex flex-1 cursor-pointer overflow-hidden rounded-sm border-[1px] px-4 py-2 transition-opacity duration-1000 ease-in-out hover:bg-slate-200/20 ${isLastSeen && 'border-b-green-600'}`}
         data-is-last-seen={isLastSeen}
         layout
       >
@@ -110,7 +111,10 @@ export default function LiveTrack({
               created_at={created_at}
             />
           </div>
-          <i className="fa fa-arrow-right absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-sm text-gray-500 hover:text-gray-900" />
+          <ArrowRight
+            className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-gray-900"
+            size={16}
+          />
         </Flex>
       </motion.div>
     </Link>

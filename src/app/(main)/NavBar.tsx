@@ -7,6 +7,7 @@ import { fetchArtists } from '../queries';
 import MainNavHeader from './MainNavHeader';
 import { getUserAgent } from './layout';
 import AndroidUpgradeNotification from './AndroidUpgradeNotification';
+import { MenuIcon } from 'lucide-react';
 
 export default async function NavBar() {
   const artists = await fetchArtists();
@@ -32,11 +33,11 @@ export default async function NavBar() {
         <SimplePopover content={<Menu />}>
           <Flex className="flex-2 h-full cursor-pointer content-end items-center text-center font-medium 2xl:hidden">
             <div className="ml-auto flex h-full items-center px-1 active:relative active:top-[1px] active:text-[#333333]">
-              <i className="fa fa-bars text-inherit" />
+              <MenuIcon />
             </div>
           </Flex>
         </SimplePopover>
-        <div className="nav hidden h-full flex-[2] cursor-pointer items-center justify-end text-center font-medium 2xl:flex">
+        <div className="nav flex-2 hidden h-full cursor-pointer items-center justify-end text-center font-medium 2xl:flex">
           <div className="h-full px-1">
             <Link href="/today" legacyBehavior prefetch={false}>
               <a className="nav-btn">TIH</a>

@@ -15,7 +15,7 @@ export default async function Page() {
   const groupedBy: Day[][] = groupBy(artists, 'artistName');
 
   return (
-    <div className="mx-auto w-full max-w-screen-md flex-1">
+    <div className="mx-auto w-full max-w-(--breakpoint-md) flex-1">
       <h1 className="my-4 text-4xl font-semibold">Today in History</h1>
       {Object.entries(groupedBy).map(([artistName, days]) => (
         <div key={artistName}>

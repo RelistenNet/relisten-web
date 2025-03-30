@@ -183,7 +183,7 @@ export const PopoverContent = React.forwardRef<HTMLDivElement, React.HTMLProps<H
             style={{ ...context.floatingStyles, ...style }}
             aria-labelledby={context.labelId}
             aria-describedby={context.descriptionId}
-            className="z-10 rounded border border-black/10 bg-white text-center font-medium shadow-lg"
+            className="z-10 rounded-sm border border-black/10 bg-white text-center font-medium shadow-lg"
             {...context.getFloatingProps(props)}
           >
             {props.children}
