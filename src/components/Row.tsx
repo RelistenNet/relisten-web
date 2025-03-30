@@ -79,9 +79,9 @@ const Row = ({
             <Spinner />
           </div>
         )}
-        {isPending && <div className="w-2 animate-pulse bg-black/30" />}
+        {isPending && <div className="bg-relisten-600/30 w-2 animate-pulse" />}
 
-        {!isPending && isActive && <div className="w-2 bg-black/75" />}
+        {!isPending && isActive && <div className="bg-relisten-600 w-2" />}
         <Flex className="w-full flex-1 items-center justify-between p-1 leading-tight">
           {children}
         </Flex>

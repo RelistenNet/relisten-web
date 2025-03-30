@@ -4,7 +4,20 @@
   --text-xxs: 0.7rem;
   --text-xxs--line-height: 1rem;
 
-  --color-relisten-100: #279bbc;
+  /* --color-relisten-100: #279bbc; */
+
+  --color-relisten-DEFAULT: #009DC1;
+  --color-relisten-50: #A2EEFF;
+  --color-relisten-100: #8EEAFF;
+  --color-relisten-200: #65E2FF;
+  --color-relisten-300: #3CDBFF;
+  --color-relisten-400: #14D3FF;
+  --color-relisten-500: #00BEEA;
+  --color-relisten-600: #009DC1;
+  --color-relisten-700: #006F89;
+  --color-relisten-800: #004251;
+  --color-relisten-900: #001D24;
+  --color-relisten-950: #001114;
 }
 
 /*
