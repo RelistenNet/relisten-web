@@ -85,23 +85,26 @@ const Player = ({ artistSlugsToName }: Props) => {
       )}
       {activeTrack && (
         <Flex
-          className="playpause cursor-pointer items-center justify-center text-gray-600 active:text-gray-800 lg:w-[40px]"
+          className="playpause cursor-pointer items-center justify-center text-gray-600 active:text-gray-800 lg:w-[40px] dark:text-gray-400"
           onClick={() => player.togglePlayPause()}
         >
           {playback.activeTrack.isPaused ? (
-            <PlayIcon size={20} className="fill-gray-600 active:fill-gray-800" />
+            <PlayIcon size={20} className="fill-gray-600 active:fill-gray-800 dark:fill-gray-400" />
           ) : (
-            <PauseIcon size={20} className="fill-gray-600 active:fill-gray-800" />
+            <PauseIcon
+              size={20}
+              className="fill-gray-600 active:fill-gray-800 dark:fill-gray-400"
+            />
           )}
         </Flex>
       )}
       {typeof window === 'undefined' || !activeTrack ? null : (
         <div className="relative h-full flex-1" ref={playerRef}>
           <Flex className="info h-full justify-center transition-all duration-[1s] ease-in-out">
-            <div className="timing absolute left-[8px] top-1/2 translate-x-0 translate-y-[-50%] text-left text-[0.8em] text-gray-600">
+            <div className="timing absolute left-[8px] top-1/2 translate-x-0 translate-y-[-50%] text-left text-[0.8em] text-gray-600 dark:text-gray-400">
               <div>
                 <RewindIcon
-                  className="cursor-pointer fill-gray-600"
+                  className="cursor-pointer fill-gray-600 dark:fill-gray-400"
                   onClick={() => player.playPrevious()}
                   size={16}
                 />
@@ -109,10 +112,10 @@ const Player = ({ artistSlugsToName }: Props) => {
               <div>{durationToHHMMSS(playback.activeTrack.currentTime)}</div>
             </div>
             <Flex column className="justify-center pb-1">
-              <div className="song-title relative top-1 text-[1em] text-gray-900">
+              <div className="song-title relative top-1 text-[1em] text-gray-900 dark:text-gray-100">
                 {activeTrack.title}
                 {false && (
-                  <Flex className="absolute left-full top-[2px] ml-2 w-full items-center text-[0.8em] text-gray-600">
+                  <Flex className="absolute left-full top-[2px] ml-2 w-full items-center text-[0.8em] text-gray-600 dark:text-gray-100">
                     <div>Next: {nextTrack && nextTrack.title}&nbsp;</div>
                     <ChevronDown size={12} className="cursor-pointer" />
                   </Flex>
@@ -124,15 +127,15 @@ const Player = ({ artistSlugsToName }: Props) => {
                 as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
                 legacyBehavior
               >
-                <a className="band-title justify-center text-[0.8em] text-gray-600">
+                <a className="band-title justify-center text-[0.8em] text-gray-600 dark:text-gray-400">
                   {artistName} – {removeLeadingZero(month)}/{removeLeadingZero(day)}/{year.slice(2)}
                 </a>
               </Link>
             </Flex>
-            <div className="timing duration absolute right-[8px] top-1/2 translate-x-0 translate-y-[-50%] text-right text-[0.8em] text-gray-600">
+            <div className="timing duration absolute right-[8px] top-1/2 translate-x-0 translate-y-[-50%] text-right text-[0.8em] text-gray-600 dark:text-gray-400">
               <div>
                 <FastForwardIcon
-                  className="ml-auto cursor-pointer fill-gray-600"
+                  className="ml-auto cursor-pointer fill-gray-600 dark:fill-gray-100"
                   onClick={() => player.playNext()}
                   size={16}
                 />
@@ -179,7 +182,7 @@ const Player = ({ artistSlugsToName }: Props) => {
           as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
           legacyBehavior
         >
-          <div className="flex w-[40px] cursor-pointer items-center justify-center self-center text-gray-600 active:text-gray-800 max-lg:hidden">
+          <div className="flex w-[40px] cursor-pointer items-center justify-center self-center text-gray-600 active:text-gray-800 max-lg:hidden dark:text-gray-400">
             <ListMusicIcon size={22} />
           </div>
         </Link>
