@@ -1,9 +1,9 @@
 import { notFound } from 'next/navigation';
 
-import { sortSources } from '@/redux/modules/tapes';
-import { Artist, Tape } from '@/types';
 import ky from 'ky-universal';
+import { Artist, Tape } from '@/types';
 import { API_DOMAIN } from '../lib/constants';
+import { sortSources } from '@/lib/sortSources';
 
 export const fetchArtists = async (): Promise<Artist[]> => {
   const parsed = await ky(`${API_DOMAIN}/api/v2/artists`, {
@@ -28,6 +28,24 @@ export const fetchShow = async (
 
   try {
     const parsed = (await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years/${year}/${displayDate}`, {
+      cache: 'no-cache',
+    }).json()) as Tape;
+
+    if (parsed) {
+      parsed.sources = sortSources(parsed.sources);
+
+      return parsed;
+    }
+  } catch (err) {
+    notFound();
+  }
+};
+
+export const fetchShowByUUID = async (showUuid: string): Promise<Partial<Tape> | undefined> => {
+  if (!showUuid) return { sources: [] };
+
+  try {
+    const parsed = (await ky(`${API_DOMAIN}/api/v3/shows/${showUuid}`, {
       cache: 'no-cache',
     }).json()) as Tape;
 
