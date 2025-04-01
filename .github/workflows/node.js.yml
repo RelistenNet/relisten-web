@@ -40,8 +40,26 @@ jobs:
 
     - name: Push to registry over Tailscale network
       run: |
-        docker push relisten2.tail09dbf.ts.net:32000/relistennet/relisten-web:latest
+        # Try pushing with --insecure flag if registry requires it
+        echo "Pushing to registry with insecure flag..."
+        DOCKER_CLI_EXPERIMENTAL=enabled docker push --insecure relisten2.tail09dbf.ts.net:32000/relistennet/relisten-web:latest
 
+        # If the above fails, try with IP address
+        if [ $? -ne 0 ]; then
+          echo "First attempt failed, trying with IP address..."
+          REGISTRY_IP=$(tailscale status | grep relisten2 | awk '{print $1}')
+
+          if [ -n "$REGISTRY_IP" ]; then
+            echo "Using Tailscale IP address: $REGISTRY_IP"
+            # Tag with IP address
+            docker tag relisten2.tail09dbf.ts.net:32000/relistennet/relisten-web:latest $REGISTRY_IP:32000/relistennet/relisten-web:latest
+            # Push using IP with insecure flag
+            DOCKER_CLI_EXPERIMENTAL=enabled docker push --insecure $REGISTRY_IP:32000/relistennet/relisten-web:latest
+          else
+            echo "Failed to get IP address and hostname push failed."
+            exit 1
+          fi
+        fi
     - name: Install kubectl
       uses: azure/setup-kubectl@v3
 
