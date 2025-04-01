@@ -31,7 +31,7 @@ export const fetchShow = async (
       cache: 'no-cache',
     }).json()) as Tape;
 
-    if (parsed) {
+    if (parsed?.sources?.length) {
       parsed.sources = sortSources(parsed.sources);
 
       return parsed;
@@ -49,7 +49,7 @@ export const fetchShowByUUID = async (showUuid: string): Promise<Partial<Tape> |
       cache: 'no-cache',
     }).json()) as Tape;
 
-    if (parsed) {
+    if (parsed?.sources?.length) {
       parsed.sources = sortSources(parsed.sources);
 
       return parsed;

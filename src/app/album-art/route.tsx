@@ -107,19 +107,20 @@ export async function GET(request: NextRequest) {
         />
       );
     }
-
-    // Fetch Roboto font
-    const fontReg = await fetch(
-      new URL('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-400-normal.ttf')
-    ).then((res) => res.arrayBuffer());
-
-    const fontBold = await fetch(
-      new URL('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-700-normal.ttf')
-    ).then((res) => res.arrayBuffer());
-
-    const fontMegaBold = await fetch(
-      new URL('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-900-normal.ttf')
-    ).then((res) => res.arrayBuffer());
+    const [fontReg, fontBold, fontMegaBold] = await Promise.all([
+      fetch(
+        new URL('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-400-normal.ttf'),
+        { next: { revalidate: 60 * 60 * 24 * 30 } } // Cache for 30 days
+      ).then((res) => res.arrayBuffer()),
+      fetch(
+        new URL('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-700-normal.ttf'),
+        { next: { revalidate: 60 * 60 * 24 * 30 } } // Cache for 30 days
+      ).then((res) => res.arrayBuffer()),
+      fetch(
+        new URL('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-900-normal.ttf'),
+        { next: { revalidate: 60 * 60 * 24 * 30 } } // Cache for 30 days
+      ).then((res) => res.arrayBuffer()),
+    ]);
 
     return new ImageResponse(
       (
@@ -127,18 +128,19 @@ export async function GET(request: NextRequest) {
           tw="flex h-full w-full flex-col items-center justify-center p-10 text-white relative overflow-hidden"
           style={{ background: bgGradient }}
         >
-          <div tw="flex w-full max-w-[800px] flex-col items-center justify-center rounded-xl bg-black/10 p-10">
-            <div tw="mb-2 text-center text-7xl font-extrabold">{artistName}</div>
-            <div tw="mb-2 text-center text-6xl font-bold">{show.display_date}</div>
-            <div tw="flex items-center justify-center" style={{ gap: 4 }}>
+          <div tw="flex w-full max-w-[800px] flex-col items-center justify-center rounded-2xl bg-black/20 p-12 backdrop-blur-sm shadow-2xl">
+            <div tw="mb-4 text-center text-7xl font-extrabold tracking-tight">{artistName}</div>
+            <div tw="mb-6 text-center text-6xl font-bold">{show.display_date}</div>
+            <div tw="flex items-center justify-center" style={{ gap: 8 }}>
               {show.venue?.name && (
-                <div tw="rounded-lg bg-white/20 px-4 py-2 text-4xl flex">
-                  {show.venue?.name} {show.venue?.location ?? ''}
+                <div tw="rounded-xl bg-white/25 px-6 py-3 text-4xl flex text-center backdrop-blur-sm">
+                  {show.venue?.name} {show.venue?.location ? `• ${show.venue.location}` : ''}
                 </div>
               )}
             </div>
           </div>
-          <div tw="absolute bottom-5 right-5 text-4xl opacity-80 font-bold">Relisten.net</div>
+
+          <div tw="absolute bottom-6 right-6 text-4xl font-bold">Relisten.net</div>
           {patternElements}
         </div>
       ),
