@@ -29,6 +29,36 @@ jobs:
         oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
         tags: tag:ci
 
+    - name: Configure Tailscale DNS and test connection
+      run: |
+        # Wait for Tailscale to fully initialize
+        sleep 5
+
+        # Display Tailscale status for debugging
+        echo "Tailscale status:"
+        tailscale status
+
+        # Use nslookup to debug DNS issues
+        echo "Checking DNS resolution through Tailscale..."
+        # Get Tailscale DNS server if available
+        TAILSCALE_DNS=$(tailscale status --json | jq -r '.Self.DNSServers[]' 2>/dev/null | head -1)
+
+        if [ -n "$TAILSCALE_DNS" ]; then
+          echo "Using Tailscale DNS server: $TAILSCALE_DNS"
+          nslookup relisten2.tail09dbf.ts.net $TAILSCALE_DNS || echo "DNS lookup failed but continuing"
+        else
+          echo "No Tailscale DNS server found"
+        fi
+
+        # Get direct IP address from tailscale
+        echo "Looking up host in Tailscale network..."
+        tailscale ip -4 relisten2 || echo "Tailscale ip lookup failed"
+
+        # Manual IP address as fallback
+        echo "Setting registry address as environment variable"
+        # Set a manual IP address if you know it (replace with your actual IP)
+        echo "REGISTRY_ADDRESS=100.x.y.z" >> $GITHUB_ENV
+
     - name: Build Docker image
       uses: docker/build-push-action@v4
       with:
@@ -37,9 +67,25 @@ jobs:
         load: true
         tags: relisten2.tail09dbf.ts.net:32000/relistennet/relisten-web:latest
 
-    - name: Push to registry over Tailscale network
+    - name: Push to registry using IP address
       run: |
-        docker push relisten2.tail09dbf.ts.net:32000/relistennet/relisten-web:latest
+        # Use the environment variable set earlier (replace with actual IP if you know it)
+        # If you don't know the IP yet, set it to a placeholder and update after testing
+        REGISTRY_IP="${{ env.REGISTRY_ADDRESS }}"
+        echo "Using registry IP: $REGISTRY_IP"
+
+        # Tag image with the IP address
+        docker tag relistennet/relisten-web:latest $REGISTRY_IP:32000/relistennet/relisten-web:latest
+
+        # Configure Docker to use this insecure registry
+        echo '{
+          "insecure-registries": ["'$REGISTRY_IP:32000'"]
+        }' | sudo tee /etc/docker/daemon.json
+        sudo systemctl restart docker
+        sleep 5
+
+        # Push with IP address
+        docker push $REGISTRY_IP:32000/relistennet/relisten-web:latest
 
     - name: Install kubectl
       uses: azure/setup-kubectl@v3
