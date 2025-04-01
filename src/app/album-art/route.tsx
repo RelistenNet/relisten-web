@@ -4,62 +4,108 @@ import 'server-only';
 import { fetchArtists, fetchShowByUUID } from '@/app/queries';
 import { ImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
-import React from 'react';
+import { notFound } from 'next/navigation';
 
 export const runtime = 'edge';
 
-const notFound = () =>
-  new Response('Not Found', {
-    status: 404,
-  });
-
 // Function to generate a color based on artist UUID
 const getArtistColor = (uuid: string) => {
-  // Generate a consistent color based on the UUID
+  // Generate a consistent hash from the UUID
   const hash = Array.from(uuid).reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
 
-  // Map to a curated set of Tailwind colors
-  const tailwindColors = [
-    '#3b82f6', // blue-500
-    '#10b981', // emerald-500
-    '#8b5cf6', // violet-500
-    '#ef4444', // red-500
-    '#f59e0b', // amber-500
-    '#06b6d4', // cyan-500
-    '#f97316', // orange-500
-    '#8b5cf6', // violet-500
-    '#0ea5e9', // sky-500
-    '#22c55e', // green-500
-    '#dc2626', // red-600
-    '#0d9488', // teal-600
-  ];
+  // Use HSL color model for more systematic and beautiful variations
+  // Hue: 0-360 (full color spectrum)
+  // Saturation: 60-80% (more vibrant than before)
+  // Lightness: 55-75% (slightly darker for more vibrant appearance)
+  const hue = Math.abs(hash) % 360;
+  const saturation = 60 + (Math.abs(hash >> 8) % 20); // Increased from 40-60% to 60-80%
+  const lightness = 55 + (Math.abs(hash >> 16) % 20); // Adjusted from 65-85% to 55-75%
 
-  return tailwindColors[Math.abs(hash) % tailwindColors.length];
+  // Return the color in HSL format
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 };
 
 // Function to generate a gradient based on artist UUID
 const getArtistGradient = (uuid: string) => {
+  // Generate a base color using HSL for better control
   const baseColor = getArtistColor(uuid);
 
-  // Create complementary color pairs for beautiful gradients using Tailwind colors
-  const gradientPairs = {
-    '#3b82f6': '#8b5cf6', // blue-500 to violet-500
-    '#10b981': '#06b6d4', // emerald-500 to cyan-500
-    '#8b5cf6': '#3b82f6', // violet-500 to blue-500
-    '#ef4444': '#f97316', // red-500 to orange-500
-    '#f59e0b': '#ef4444', // amber-500 to red-500
-    '#06b6d4': '#10b981', // cyan-500 to emerald-500
-    '#f97316': '#f59e0b', // orange-500 to amber-500
-    // '#8b5cf6': '#a855f7', // violet-500 to purple-500
-    '#0ea5e9': '#3b82f6', // sky-500 to blue-500
-    '#22c55e': '#10b981', // green-500 to emerald-500
-    '#dc2626': '#ef4444', // red-600 to red-500
-    '#0d9488': '#06b6d4', // teal-600 to cyan-500
-  };
+  // Create a second hash for the complementary color
+  const secondHash = Array.from(uuid).reduce(
+    (acc, char, i) => char.charCodeAt(0) + ((acc << ((i % 5) + 3)) - acc),
+    0
+  );
 
-  const secondColor = gradientPairs[baseColor] || '#8b5cf6'; // Default to violet-500
+  // Generate complementary colors using color theory
+  // Options: analogous (±30°), complementary (180°), triadic (120°), split-complementary (±150°)
+  const colorSchemes = [
+    30, // analogous 1
+    -30, // analogous 2
+    60, // harmonious 1
+    -60, // harmonious 2
+    120, // triadic 1
+    -120, // triadic 2
+    // 150, // split-complementary 1
+    // -150, // split-complementary 2
+    180, // complementary (used less frequently for pastels)
+  ];
 
-  return `linear-gradient(135deg, ${baseColor}, ${secondColor})`;
+  // Extract HSL values from the base color
+  const baseHSLMatch = baseColor.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
+  const baseHue = baseHSLMatch ? parseInt(baseHSLMatch[1]) : 0;
+  const baseSaturation = baseHSLMatch ? parseInt(baseHSLMatch[2]) : 60;
+  const baseLightness = baseHSLMatch ? parseInt(baseHSLMatch[3]) : 55;
+
+  // Select a color scheme based on the hash
+  const schemeOffset = colorSchemes[Math.abs(secondHash) % colorSchemes.length];
+
+  // Create a complementary hue and adjust saturation/lightness for vibrant effect
+  const secondHue = (baseHue + schemeOffset + 360) % 360;
+  // Higher saturation but still balanced
+  const secondSaturation = Math.min(Math.max(baseSaturation - (secondHash % 10), 75), 75); // Increased from 35-55% to 55-75%
+  const secondLightness = Math.min(Math.max(baseLightness + (secondHash % 10), 60), 75); // Adjusted from 70-85% to 60-75%
+
+  // Create second color in HSL format
+  const secondColor = `hsl(${secondHue}, ${secondSaturation}%, ${secondLightness}%)`;
+
+  // Determine if we should use a third color (about 1/3 of the time)
+
+  const gradientString = `linear-gradient(135deg, ${baseColor}, ${secondColor})`;
+
+  return gradientString;
+};
+
+const generatePixelatedSVG = (opacity = 0.4) => {
+  // Create a pixelated pattern with large squares
+  const squareSize = 45; // Size of each pixel square
+  const gridSize = 10; // Number of squares in each row/column
+  const borderWidth = 1; // Reduced width of the border between pixels
+  const borderColor = 'rgba(0, 0, 0, 0.1)'; // More transparent black for subtler borders
+
+  let squares = '';
+  for (let y = 0; y < gridSize; y++) {
+    for (let x = 0; x < gridSize; x++) {
+      // TODO: get rid of the randomness here.
+      const squareOpacity = (Math.random() * 0.3 + 0.1) * opacity;
+
+      squares += `<rect
+        x="${x * squareSize}"
+        y="${y * squareSize}"
+        width="${squareSize}"
+        height="${squareSize}"
+        fill="white"
+        fill-opacity="${squareOpacity}"
+        stroke="${borderColor}"
+        stroke-width="${borderWidth}"
+      />`;
+    }
+  }
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${squareSize * gridSize}" height="${squareSize * gridSize}" viewBox="0 0 ${squareSize * gridSize} ${squareSize * gridSize}">
+    ${squares}
+  </svg>`;
+
+  return `url("data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}")`;
 };
 
 export async function GET(request: NextRequest) {
@@ -69,45 +115,9 @@ export async function GET(request: NextRequest) {
     const showUuid = searchParams.get('showUuid');
     if (!showUuid) return notFound();
 
-    const artists = await fetchArtists();
-    const show = await fetchShowByUUID(showUuid);
-
-    if (!show || !show.sources?.length) return notFound();
-
-    // Get params
-    const artist = artists.find((artist) => artist.uuid === show.artist_uuid);
-    const artistName = artist?.name ?? 'Unknown Artist';
-
-    // Generate dynamic background color and pattern based on artist UUID
-    const bgGradient = getArtistGradient(show.artist_uuid || '');
-
-    // Generate a pattern of circles for the background based on artist UUID
-    const patternSeed = parseInt(show.artist_uuid?.replace(/\D/g, '').slice(0, 8) || '0', 10);
-    const patternElements: React.ReactNode[] = [];
-
-    for (let i = 0; i < 5; i++) {
-      const size = 100 + (patternSeed % 200);
-      const x = (patternSeed * (i + 1)) % 900;
-      const y = (patternSeed * (i + 2)) % 900;
-      const opacity = 0.1 + i * 0.05;
-
-      patternElements.push(
-        <div
-          key={i}
-          tw="absolute rounded-full"
-          style={{
-            width: size,
-            height: size,
-            left: x,
-            top: y,
-            background: 'white',
-            opacity: opacity,
-            filter: 'blur(40px)',
-          }}
-        />
-      );
-    }
-    const [fontReg, fontBold, fontMegaBold] = await Promise.all([
+    const [artists, show, fontReg, fontBold, fontMegaBold] = await Promise.all([
+      fetchArtists(),
+      fetchShowByUUID(showUuid),
       fetch(
         new URL('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-400-normal.ttf'),
         { next: { revalidate: 60 * 60 * 24 * 30 } } // Cache for 30 days
@@ -122,18 +132,32 @@ export async function GET(request: NextRequest) {
       ).then((res) => res.arrayBuffer()),
     ]);
 
+    if (!show || !show.sources?.length) return notFound();
+
+    // Get params
+    const artist = artists.find((artist) => artist.uuid === show.artist_uuid);
+    const artistName = artist?.name ?? 'Unknown Artist';
+
+    // Generate dynamic background color and pattern based on artist UUID
+    const bgGradient = getArtistGradient(show.artist_uuid || '');
+    // Generate pixelated background pattern
+    const pixelatedSVG = generatePixelatedSVG(0.8);
+
     return new ImageResponse(
       (
         <div
           tw="flex h-full w-full flex-col items-center justify-center p-10 text-white relative overflow-hidden"
-          style={{ background: bgGradient }}
+          style={{
+            backgroundImage: `${pixelatedSVG}, ${bgGradient}`,
+            backgroundBlendMode: 'overlay',
+          }}
         >
-          <div tw="flex w-full max-w-[800px] flex-col items-center justify-center rounded-2xl bg-black/20 p-12 backdrop-blur-sm shadow-2xl">
-            <div tw="mb-4 text-center text-7xl font-extrabold tracking-tight">{artistName}</div>
-            <div tw="mb-6 text-center text-6xl font-bold">{show.display_date}</div>
+          <div tw="flex w-full max-w-[800px] flex-col items-center justify-center rounded-2xl bg-black/25 p-12 relative">
+            <div tw="mb-2 text-center text-7xl font-extrabold tracking-tight">{artistName}</div>
+            <div tw="mb-2 text-center text-6xl font-bold">{show.display_date}</div>
             <div tw="flex items-center justify-center" style={{ gap: 8 }}>
               {show.venue?.name && (
-                <div tw="rounded-xl bg-white/25 px-6 py-3 text-4xl flex text-center backdrop-blur-sm">
+                <div tw="rounded-xl bg-white/20 px-6 py-3 text-4xl flex text-center">
                   {show.venue?.name} {show.venue?.location ? `• ${show.venue.location}` : ''}
                 </div>
               )}
@@ -141,7 +165,6 @@ export async function GET(request: NextRequest) {
           </div>
 
           <div tw="absolute bottom-6 right-6 text-4xl font-bold">Relisten.net</div>
-          {patternElements}
         </div>
       ),
       {
