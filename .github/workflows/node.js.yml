@@ -6,8 +6,6 @@ name: Build Status
 on:
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
 
 jobs:
   build:
@@ -23,12 +21,35 @@ jobs:
     - uses: actions/checkout@v2
     - uses: pnpm/action-setup@v2
       with:
-        version: 9
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
+        version: 10
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Setup Tailscale
+      uses: tailscale/github-action@v3
       with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'pnpm'
-    - run: pnpm install --frozen-lockfile
-    - run: npm run bands
-    - run: npm run build
+        oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+        oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
+        tags: tag:ci
+
+    - name: Build Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: false
+        load: true
+        tags: relisten2.tail09dbf.ts.net:32000/relistennet/relisten-web:latest
+
+    - name: Push to registry over Tailscale network
+      run: |
+        docker push relisten2.tail09dbf.ts.net:32000/relistennet/relisten-web:latest
+
+    - name: Install kubectl
+      uses: azure/setup-kubectl@v3
+
+    - name: Restart Kubernetes deployment
+      run: |
+        kubectl --server=https://relisten2.tail09dbf.ts.net:6443 \
+          --insecure-skip-tls-verify=true \
+          --token=${{ secrets.KUBE_API_TOKEN }} \
+          rollout restart deployment relisten-web
