@@ -29,6 +29,7 @@
     "lucide-react": "^0.485.0",
     "next": "15.2.4",
     "next-redux-wrapper": "8.1.0",
+    "next-zod-route": "^0.2.5",
     "nextjs-toploader": "^3.7.15",
     "node-device-detector": "^2.1.0",
     "react": "19.0.0",
@@ -38,7 +39,8 @@
     "redux": "^4.2.1",
     "tailwind-merge": "^2.3.0",
     "thenby": "^1.3.4",
-    "ua-parser-js": "^1.0.37"
+    "ua-parser-js": "^1.0.37",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@switz/eslint-config": "^11.0.0",
