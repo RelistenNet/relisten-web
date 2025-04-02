@@ -29,6 +29,13 @@ jobs:
         oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
         tags: tag:ci
 
+    - name: Verify Tailscale connection
+      run: |
+        # Check if tailscale is running and connected
+        tailscale status
+        # Ping the registry to verify connectivity
+        ping -c 3 100.97.22.118
+
     - name: Build Docker image
       uses: docker/build-push-action@v4
       with:
