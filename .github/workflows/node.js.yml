@@ -19,7 +19,7 @@ jobs:
       uses: docker/setup-buildx-action@v3
       with:
         buildkitd-config-inline: |
-          [registry."relisten2.tail09dbf.ts.net:32000"]
+          [registry."100.97.22.118:32000"]
             http = true
 
     - name: Setup Tailscale
@@ -35,12 +35,14 @@ jobs:
         context: .
         push: false
         load: true
-        tags: relisten2.tail09dbf.ts.net:32000/relistennet/relisten-web:latest
+        tags: |
+          relisten2.tail09dbf.ts.net:32000/relistennet/relisten-web:latest
+          100.97.22.118:32000/relistennet/relisten-web:latest
 
     - name: Push to registry using IP address
       run: |
         # Use the tailscale DNS name directly
-        REGISTRY_ADDRESS="relisten2.tail09dbf.ts.net"
+        REGISTRY_ADDRESS="100.97.22.118"
         echo "Using registry: $REGISTRY_ADDRESS:32000"
 
         # Configure Docker to use this insecure registry
@@ -58,7 +60,7 @@ jobs:
 
     - name: Restart Kubernetes deployment
       run: |
-        kubectl --server=https://relisten2.tail09dbf.ts.net:6443 \
+        kubectl --server=https://100.97.22.118:6443 \
           --insecure-skip-tls-verify=true \
           --token=${{ secrets.KUBE_API_TOKEN }} \
           rollout restart deployment relisten-web
