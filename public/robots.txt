@@ -30,5 +30,7 @@ User-agent: PetalBot
 Disallow: /
 User-agent: MJ12bot
 Disallow: /
+User-agent: DataForSeoBot
+Disallow: /
 User-agent: bingbot
 Crawl-delay: 10
