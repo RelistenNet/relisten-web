@@ -1,12 +1,11 @@
-import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
 import TimeAgo from 'react-timeago';
-import { motion } from 'framer-motion';
 
-import { splitShowDate } from '../lib/utils';
-import { TrackSource, Track, Venue } from '../types';
-import Flex from './Flex';
 import { ArrowRight } from 'lucide-react';
+import { splitShowDate } from '../lib/utils';
+import { Track, TrackSource, Venue } from '../types';
+import Flex from './Flex';
 
 const createURL = (track: { track: Track; source: TrackSource }): string => {
   const { year, month, day } = splitShowDate(track.source.display_date);
@@ -67,7 +66,6 @@ type LiveTrackProps = {
   isLastSeen: boolean;
 };
 
-// eslint-disable-next-line react/display-name
 export default function LiveTrack({
   app_type_description = '',
   created_at,
