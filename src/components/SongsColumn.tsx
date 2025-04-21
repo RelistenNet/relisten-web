@@ -80,7 +80,6 @@ const SongsColumn = (props: Props) => {
             )}`
           : 'Songs'
       }
-      loadingAmount={12}
     >
       {activeSourceObj &&
         activeSourceObj.sets?.map((set, setIdx) =>

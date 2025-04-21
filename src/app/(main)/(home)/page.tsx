@@ -6,7 +6,7 @@ import SongsColumn from '@/components/SongsColumn';
 import TapesColumn from '@/components/TapesColumn';
 import YearsColumn from '@/components/YearsColumn';
 import React from 'react';
-import { fetchRandomShow } from './[artistSlug]/page';
+import { fetchRandomShow } from './[artistSlug]/fetchRandomShow';
 
 export const isMobile = async () => {
   const headersList = await headers();

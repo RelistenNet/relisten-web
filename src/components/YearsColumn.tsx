@@ -36,7 +36,7 @@ const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
   const artist = artists?.find((artist) => artist.slug === artistSlug);
 
   return (
-    <Column heading={artist?.name ?? 'Years'} loadingAmount={12}>
+    <Column heading={artist?.name ?? 'Years'}>
       <Row href={`/${artistSlug}/today-in-history`} activeSegments={{ 0: 'today-in-history' }}>
         <div>
           <div>Today In History</div>

@@ -2,22 +2,11 @@ import { fetchArtists } from '@/app/queries';
 import ShowsColumn from '@/components/ShowsColumn';
 import SongsColumn from '@/components/SongsColumn';
 import TapesColumn from '@/components/TapesColumn';
-import { API_DOMAIN } from '@/lib/constants';
-import { Tape } from '@/types';
-import ky from 'ky-universal';
 import { notFound } from 'next/navigation';
-import { isMobile } from '../page';
 import React from 'react';
+import { isMobile } from '../page';
+import { fetchRandomShow } from './fetchRandomShow';
 
-export const fetchRandomShow = async (slug?: string): Promise<Tape | undefined> => {
-  if (!slug) return undefined;
-
-  const parsed: Tape = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/shows/random`, {
-    cache: 'no-cache',
-  }).json();
-
-  return parsed;
-};
 type PageProps = {
   params: Promise<{
     artistSlug: string;
