@@ -32,7 +32,7 @@ const TodayInHistoryColumn = async ({
   const tours = {};
 
   return (
-    <Column heading={year ? year : 'Shows'}>
+    <Column heading={year ? year : 'Shows'} key={year}>
       {artistShows &&
         artistSlug &&
         sortActiveBands(artistSlug, artistShows).map((show) => {

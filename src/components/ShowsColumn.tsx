@@ -33,7 +33,7 @@ const ShowsColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 
   const tours = {};
 
   return (
-    <Column heading={year ? year : 'Shows'}>
+    <Column heading={year ? year : 'Shows'} key={year}>
       {artistShows?.shows &&
         artistSlug &&
         sortActiveBands(artistSlug, artistShows.shows).map((show) => {

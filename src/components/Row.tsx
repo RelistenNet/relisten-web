@@ -65,7 +65,7 @@ const Row = ({
   };
 
   return (
-    <Link href={href ?? '/'} prefetch={false} onClick={onLinkClick}>
+    <Link href={href ?? '/'} prefetch={false} onClick={onLinkClick} data-is-active={isActive}>
       <Flex
         className={cn('relisten-row relative min-h-[46px] items-stretch border-b border-gray-100', {
           'opacity-70': isPending,

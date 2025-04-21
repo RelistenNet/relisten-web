@@ -1,7 +1,10 @@
-import React from 'react';
+'use client';
+
+import cn from '@/lib/cn';
+import React, { useRef } from 'react';
 import Flex from './Flex';
 import Row from './Row';
-import cn from '@/lib/cn';
+import Scroller from './Scroller';
 
 type ColumnProps = {
   loading?: boolean;
@@ -12,6 +15,8 @@ type ColumnProps = {
 };
 
 const Column = ({ className, heading, loading, loadingAmount, children }: ColumnProps) => {
+  const ref = useRef<HTMLDivElement>(null);
+
   // useEffect(() => {
   //   // TODO: refactor this to not use raw query calls
   //   Array.prototype.forEach.call(document.querySelectorAll('.column .active'), (activeRow) => {
@@ -22,7 +27,8 @@ const Column = ({ className, heading, loading, loadingAmount, children }: Column
   // }, []);
 
   return (
-    <Flex className={cn('relisten-column flex-1 break-words', className)} column>
+    <Flex ref={ref} className={cn('relisten-column flex-1 break-words', className)} column>
+      <Scroller containerRef={ref} key={heading} />
       {heading && (
         <Flex center className="bg-relisten-600 min-h-[32px] w-full text-white capitalize">
           {heading?.replaceAll('-', ' ')}
