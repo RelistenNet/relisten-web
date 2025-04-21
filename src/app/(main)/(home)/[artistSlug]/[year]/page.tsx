@@ -5,7 +5,15 @@ export default function Page() {
   return null;
 }
 
-export const generateMetadata = async props => {
+function capitalizeFirstLetterOfEachWord(val: string): string {
+  if (!val) return '';
+  return String(val)
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+export const generateMetadata = async (props) => {
   const params = await props.params;
   const { artistSlug, year } = params;
 
@@ -15,6 +23,6 @@ export const generateMetadata = async props => {
   if (!name) return notFound();
 
   return {
-    title: [year, name].join(' | '),
+    title: [capitalizeFirstLetterOfEachWord(year?.replaceAll('-', ' ')), name].join(' | '),
   };
 };
