@@ -37,6 +37,15 @@ const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
 
   return (
     <Column heading={artist?.name ?? 'Years'} loadingAmount={12}>
+      <Row href={`/${artistSlug}/today-in-history`} activeSegments={{ 0: 'today-in-history' }}>
+        <div>
+          <div>Today In History</div>
+        </div>
+        <div className="min-w-[20%] text-right text-xxs text-[#979797]">
+          {/* <div>{simplePluralize('show', yearObj.show_count)}</div>
+          <div>{simplePluralize('tape', yearObj.source_count)}</div> */}
+        </div>
+      </Row>
       {artistSlug &&
         artistYears.length &&
         sortActiveBands(artistSlug, artistYears).map((yearObj) => (

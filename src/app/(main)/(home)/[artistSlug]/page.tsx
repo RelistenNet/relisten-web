@@ -18,10 +18,14 @@ export const fetchRandomShow = async (slug?: string): Promise<Tape | undefined> 
 
   return parsed;
 };
+type PageProps = {
+  params: Promise<{
+    artistSlug: string;
+  }>;
+};
 
-export default async function Page(props) {
-  const params = await props.params;
-  const { artistSlug } = params;
+export default async function Page({ params }: PageProps) {
+  const { artistSlug } = await params;
 
   if (await isMobile()) return null;
 

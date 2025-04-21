@@ -23,7 +23,6 @@ export default async function Page() {
   if (await isMobile()) return null;
 
   const artistSlug = 'grateful-dead';
-
   const randomShow = await fetchRandomShow(artistSlug);
 
   const { display_date } = randomShow ?? {};

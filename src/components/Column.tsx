@@ -24,8 +24,8 @@ const Column = ({ className, heading, loading, loadingAmount, children }: Column
   return (
     <Flex className={cn('relisten-column flex-1 break-words', className)} column>
       {heading && (
-        <Flex center className="bg-relisten-600 min-h-[32px] w-full text-white">
-          {heading}
+        <Flex center className="bg-relisten-600 min-h-[32px] w-full text-white capitalize">
+          {heading?.replaceAll('-', ' ')}
         </Flex>
       )}
       <Flex column className="flex-1 overflow-y-auto overflow-x-hidden">

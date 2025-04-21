@@ -39,33 +39,33 @@ export default async function NavBar() {
         </SimplePopover>
         <div className="nav flex-2 hidden h-full cursor-pointer items-center justify-end text-center font-medium 2xl:flex">
           <div className="h-full px-1">
-            <Link href="/today" legacyBehavior prefetch={false}>
-              <a className="nav-btn">TIH</a>
+            <Link className="nav-btn" href="/today" prefetch={false}>
+              TIH
             </Link>
           </div>
           <div>
-            <Link href="/recently-played" legacyBehavior prefetch={false}>
-              <a className="nav-btn whitespace-nowrap">LIVE</a>
+            <Link className="nav-btn whitespace-nowrap" href="/recently-played" prefetch={false}>
+              LIVE
             </Link>
           </div>
           <div>
-            <Link href="/chat" legacyBehavior prefetch={false}>
-              <a className="nav-btn">CHAT</a>
+            <Link className="nav-btn" href="/chat" prefetch={false}>
+              CHAT
             </Link>
           </div>
           <div>
-            <Link href="/app" legacyBehavior prefetch={false}>
-              <a className="nav-btn">APP</a>
+            <Link className="nav-btn" href="/app" prefetch={false}>
+              APP
             </Link>
           </div>
           <div>
-            <Link href="/sonos" legacyBehavior prefetch={false}>
-              <a className="nav-btn">SONOS</a>
+            <Link className="nav-btn" href="/sonos" prefetch={false}>
+              SONOS
             </Link>
           </div>
           <div>
-            <Link href="/about" legacyBehavior prefetch={false}>
-              <a className="nav-btn">ABOUT</a>
+            <Link className="nav-btn" href="/about" prefetch={false}>
+              ABOUT
             </Link>
           </div>
         </div>

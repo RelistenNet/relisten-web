@@ -122,11 +122,9 @@ const Player = ({ artistSlugsToName }: Props) => {
               <Link
                 href="/"
                 as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
-                legacyBehavior
+                className="band-title justify-center text-[0.8em] text-gray-600"
               >
-                <a className="band-title justify-center text-[0.8em] text-gray-600">
-                  {artistName} – {removeLeadingZero(month)}/{removeLeadingZero(day)}/{year.slice(2)}
-                </a>
+                {artistName} – {removeLeadingZero(month)}/{removeLeadingZero(day)}/{year.slice(2)}
               </Link>
             </Flex>
             <div className="timing duration absolute right-[8px] top-1/2 translate-x-0 translate-y-[-50%] text-right text-[0.8em] text-gray-600">
@@ -177,9 +175,9 @@ const Player = ({ artistSlugsToName }: Props) => {
         <Link
           href="/"
           as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
-          legacyBehavior
+          className="flex w-[40px] cursor-pointer items-center justify-center self-center text-gray-600 active:text-gray-800 max-lg:hidden"
         >
-          <div className="flex w-[40px] cursor-pointer items-center justify-center self-center text-gray-600 active:text-gray-800 max-lg:hidden">
+          <div>
             <ListMusicIcon size={22} />
           </div>
         </Link>

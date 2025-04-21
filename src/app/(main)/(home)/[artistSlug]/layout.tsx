@@ -4,9 +4,7 @@ import { MainLayoutProps } from '../layout';
 export default async function Page(props: MainLayoutProps) {
   const params = await props.params;
 
-  const {
-    children
-  } = props;
+  const { children } = props;
 
   const { artistSlug } = params;
 

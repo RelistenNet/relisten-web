@@ -3,40 +3,39 @@ import { durationToHHMMSS, removeLeadingZero, simplePluralize, splitShowDate } f
 
 import { RawParams } from '@/app/(main)/(home)/layout';
 import ky from 'ky-universal';
+import { notFound } from 'next/navigation';
 import React from 'react';
 import { API_DOMAIN } from '../lib/constants';
-import { ArtistShows } from '../types';
+import { Show } from '../types';
 import Column from './Column';
 import Flex from './Flex';
 import Row from './Row';
 import RowHeader from './RowHeader';
 import Tag from './Tag';
-import { notFound } from 'next/navigation';
-import TodayInHistoryColumn from './TodayInHistoryColumn';
 
-const fetchShows = async (slug?: string, year?: string): Promise<ArtistShows | undefined> => {
-  if (!slug || !year) return undefined;
-
-  const parsed: ArtistShows = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years/${year}`, {
+const fetchToday = async (slug?: string): Promise<Show[] | undefined> => {
+  // TODO: pull time zone from cloudflare header and render "on date" for the users client
+  const parsed: Show[] = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/shows/today`, {
     cache: 'no-cache',
   }).json();
 
   return parsed;
 };
 
-const ShowsColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 'year'>) => {
-  if (year === 'today-in-history') return <TodayInHistoryColumn artistSlug={artistSlug} />;
-
-  const artistShows = await fetchShows(artistSlug, year).catch(() => {
+const TodayInHistoryColumn = async ({
+  artistSlug,
+  year,
+}: Pick<RawParams, 'artistSlug' | 'year'>) => {
+  const artistShows = await fetchToday(artistSlug).catch(() => {
     notFound();
   });
   const tours = {};
 
   return (
     <Column heading={year ? year : 'Shows'}>
-      {artistShows?.shows &&
+      {artistShows &&
         artistSlug &&
-        sortActiveBands(artistSlug, artistShows.shows).map((show) => {
+        sortActiveBands(artistSlug, artistShows).map((show) => {
           const { year, month, day } = splitShowDate(show.display_date);
           const { venue, avg_duration, tour } = show;
           let tourName = '';
@@ -63,7 +62,7 @@ const ShowsColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 
               >
                 <div>
                   <Flex>
-                    {removeLeadingZero(month)}/{day}
+                    {removeLeadingZero(month)}/{day}/{year}
                     {show.has_soundboard_source && <Tag>SBD</Tag>}
                   </Flex>
                   {venue && (
@@ -85,4 +84,4 @@ const ShowsColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 
   );
 };
 
-export default React.memo(ShowsColumn);
+export default React.memo(TodayInHistoryColumn);
