@@ -9,6 +9,7 @@ import { Year } from '../types';
 import Column from './Column';
 import Row from './Row';
 import { notFound } from 'next/navigation';
+import TodayInHistoryRow from './TodayInHistoryRow';
 
 const fetchYears = async (slug?: string): Promise<Year[]> => {
   if (!slug) return [];
@@ -37,15 +38,7 @@ const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
 
   return (
     <Column heading={artist?.name ?? 'Years'}>
-      <Row href={`/${artistSlug}/today-in-history`} activeSegments={{ 0: 'today-in-history' }}>
-        <div>
-          <div>Today In History</div>
-        </div>
-        <div className="min-w-[20%] text-right text-xxs text-[#979797]">
-          {/* <div>{simplePluralize('show', yearObj.show_count)}</div>
-          <div>{simplePluralize('tape', yearObj.source_count)}</div> */}
-        </div>
-      </Row>
+      <TodayInHistoryRow artistSlug={artistSlug} />
       {artistSlug &&
         artistYears.length &&
         sortActiveBands(artistSlug, artistYears).map((yearObj) => (

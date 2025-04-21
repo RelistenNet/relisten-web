@@ -13,7 +13,7 @@ import Row from './Row';
 import RowHeader from './RowHeader';
 import Tag from './Tag';
 
-const fetchToday = async (slug?: string): Promise<Show[] | undefined> => {
+export const fetchToday = async (slug?: string): Promise<Show[] | undefined> => {
   // TODO: pull time zone from cloudflare header and render "on date" for the users client
   const parsed: Show[] = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/shows/today`, {
     cache: 'no-cache',
