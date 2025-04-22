@@ -12,12 +12,17 @@ import Flex from './Flex';
 import Row from './Row';
 import RowHeader from './RowHeader';
 import Tag from './Tag';
+import { getCurrentMonthDay } from '@/lib/timezone';
 
 export const fetchToday = async (slug?: string): Promise<Show[] | undefined> => {
+  const currentMonthDay = await getCurrentMonthDay();
   // TODO: pull time zone from cloudflare header and render "on date" for the users client
-  const parsed: Show[] = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/shows/today`, {
-    cache: 'no-cache',
-  }).json();
+  const parsed: Show[] = await ky(
+    `${API_DOMAIN}/api/v2/artists/${slug}/shows/today?month=${currentMonthDay.month}&day=${currentMonthDay.day}`,
+    {
+      cache: 'no-cache',
+    }
+  ).json();
 
   return parsed;
 };

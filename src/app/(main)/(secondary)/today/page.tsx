@@ -1,12 +1,18 @@
+import { getCurrentMonthDay } from '@/lib/timezone';
 import TodayTrack from '../../../../components/TodayTrack';
 import { API_DOMAIN } from '../../../../lib/constants';
 import { groupBy } from '../../../../lib/utils';
 import { Artist, Day } from '../../../../types';
 
 export default async function Page() {
-  const data: Day[] = await fetch(`${API_DOMAIN}/api/v2/shows/today`, {
-    cache: 'no-cache', // seconds
-  }).then((res) => res.json());
+  const currentMonthDay = await getCurrentMonthDay();
+
+  const data: Day[] = await fetch(
+    `${API_DOMAIN}/api/v2/shows/today?month=${currentMonthDay.month}&day=${currentMonthDay.day}`,
+    {
+      cache: 'no-cache', // seconds
+    }
+  ).then((res) => res.json());
 
   const artists: Artist[] = data.map((day: Day) => ({
     ...day,
