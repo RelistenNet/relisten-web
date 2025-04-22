@@ -7,7 +7,7 @@ Relisten is a simple free music streaming platform for recorded live concerts.
 Visit https://relisten.net to find out more.
 
 ## iOS
-Our iOS app is on the App Store and also open source @ https://github.com/RelistenNet/relisten-ios
+Our mobile app is on the App Store/Play STore and also open source @ https://github.com/RelistenNet/relisten-mobile
 
 ## Sonos
 Our Sonos app is on the Sonos store and also open source @ https://github.com/RelistenNet/relisten-sonos
@@ -17,13 +17,10 @@ Our Sonos app is on the Sonos store and also open source @ https://github.com/Re
 ### To run
 ```
   #### install node
-  #### install yarn (https://yarnpkg.com/en/docs/install)
-  $ yarn
+  #### install pnpm (npm i -g pnpm)
+  $ pnpm i
   $ npm start
 ```
 
 ## License
 MIT
-
-.
-
