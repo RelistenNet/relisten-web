@@ -4,7 +4,7 @@ import SongsColumn from '@/components/SongsColumn';
 import TapesColumn from '@/components/TapesColumn';
 import { notFound } from 'next/navigation';
 import React from 'react';
-import { isMobile } from '../page';
+import { isMobile } from '@/lib/isMobile';
 import { fetchRandomShow } from './fetchRandomShow';
 
 type PageProps = {

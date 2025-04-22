@@ -11,9 +11,7 @@ export const getCurrentMonthDay = async () => {
 
   const date = new TZDate(new Date(), timezone);
 
-  console.log(date, timezone);
-
   const [month, day] = format(date, 'MM-dd').split('-');
 
-  return { month, day };
+  return { month, day, date };
 };

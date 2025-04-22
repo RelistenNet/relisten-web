@@ -31,16 +31,20 @@ const TodayInHistoryColumn = async ({
   artistSlug,
   year,
 }: Pick<RawParams, 'artistSlug' | 'year'>) => {
-  const artistShows = await fetchToday(artistSlug).catch(() => {
+  const shows = await fetchToday(artistSlug).catch(() => {
     notFound();
   });
   const tours = {};
-
   return (
-    <Column heading={year ? year : 'Shows'} key={year}>
-      {artistShows &&
+    <Column heading={year ? year : 'Today In History'} key={year}>
+      {(!shows || shows.length === 0) && (
+        <div className="text-center text-gray-700 text-sm py-2">
+          No shows today, check back tomorrow!
+        </div>
+      )}
+      {shows &&
         artistSlug &&
-        sortActiveBands(artistSlug, artistShows).map((show) => {
+        sortActiveBands(artistSlug, shows).map((show) => {
           const { year, month, day } = splitShowDate(show.display_date);
           const { venue, avg_duration, tour } = show;
           let tourName = '';

@@ -1,23 +1,10 @@
-import { headers } from 'next/headers';
-import parser from 'ua-parser-js';
-
 import ShowsColumn from '@/components/ShowsColumn';
 import SongsColumn from '@/components/SongsColumn';
 import TapesColumn from '@/components/TapesColumn';
 import YearsColumn from '@/components/YearsColumn';
 import React from 'react';
 import { fetchRandomShow } from './[artistSlug]/fetchRandomShow';
-
-export const isMobile = async () => {
-  const headersList = await headers();
-  const userAgent = headersList.get('user-agent');
-
-  if (!userAgent) return false;
-
-  const result = parser(userAgent);
-
-  return result.device.type === 'mobile' || result.device.type === 'tablet';
-};
+import { isMobile } from '@/lib/isMobile';
 
 export default async function Page() {
   if (await isMobile()) return null;

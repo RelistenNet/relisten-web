@@ -1,5 +1,5 @@
 import { MainLayoutProps } from '@/app/(main)/(home)/layout';
-import { isMobile } from '@/app/(main)/(home)/page';
+import { isMobile } from '@/lib/isMobile';
 import { fetchShow } from '@/app/queries';
 import SongsColumn from '@/components/SongsColumn';
 import TapesColumn from '@/components/TapesColumn';
