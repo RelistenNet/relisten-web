@@ -31,10 +31,17 @@ export const generateMetadata = async (props) => {
     ?.map((source) => source?.sets?.map((set) => set?.tracks).flat())
     .flat();
 
-  const songTitle = songs?.find((song) => song?.slug === songSlug)?.title;
+  const song = songs?.find((song) => song?.slug === songSlug);
 
   return {
-    title: [songTitle, createShowDate(year, month, day), name].join(' | '),
+    title: [song?.title, createShowDate(year, month, day), name].filter((x) => x).join(' | '),
     description: [show?.venue?.name, show?.venue?.location].filter((x) => x).join(' '),
+    openGraph: {
+      audio: [
+        {
+          url: song?.mp3_url, // Must be an absolute URL
+        },
+      ],
+    },
   };
 };
