@@ -15,7 +15,7 @@ export default async function Page(props: { params: Promise<RawParams> }) {
   return <PlayerManager {...params} show={show} />;
 }
 
-export const generateMetadata = async props => {
+export const generateMetadata = async (props) => {
   const params = await props.params;
   const { artistSlug, year, month, day, songSlug } = params;
 
@@ -35,5 +35,6 @@ export const generateMetadata = async props => {
 
   return {
     title: [songTitle, createShowDate(year, month, day), name].join(' | '),
+    description: [show?.venue?.name, show?.venue?.location].filter((x) => x).join(' '),
   };
 };
