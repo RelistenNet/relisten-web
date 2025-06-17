@@ -13,17 +13,13 @@ const About = () => (
       <a href="https://phish.in" target="_blank" rel="noreferrer">
         Phish.in
       </a>
-      ,{' '}
+      , and
       <a
         href="https://docs.google.com/spreadsheets/d/1yAXu83gJBz08cW5OXoqNuN1IbvDXD2vCrDKj4zn1qmU/edit#gid=29"
         target="_blank"
         rel="noreferrer"
       >
         The Phish Spreadsheet
-      </a>
-      , and{' '}
-      <a href="https://panicstream.com" target="_blank" rel="noreferrer">
-        PanicStream.com
       </a>
       .
     </p>

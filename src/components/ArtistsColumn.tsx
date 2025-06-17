@@ -6,7 +6,6 @@ import Row from './Row';
 import RowHeader from './RowHeader';
 
 const byObject = {
-  wsp: 'PanicStream',
   phish: 'Phish.in',
 };
 
