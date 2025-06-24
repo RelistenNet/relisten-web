@@ -15,7 +15,7 @@ const ArtistsColumn = async () => {
   return (
     <Column heading="Bands">
       {artists &&
-        Object.entries(groupBy(Object.values(artists), 'featured'))
+        Object.entries(groupBy(Object.values(artists).slice(0,1), 'featured'))
           .sort(([a], [b]) => b.localeCompare(a))
           .map(([type, artists]: [string, Artist[]]) => [
             <RowHeader key={`header-${type}`}>{type === '1' ? 'Featured' : 'Bands'}</RowHeader>,
