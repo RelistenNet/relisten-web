@@ -1,5 +1,5 @@
 {
-  "name": "Relisten",
+  "name": "HOME TEAM fm",
   "icons": [
     {
       "src": "/android-icon-36x36.png",
@@ -42,7 +42,7 @@
   "related_applications": [
     {
       "platform": "play",
-      "id": "net.relisten.android"
+      "id": "net.htfm.android"
     }
   ]
 }

@@ -26,7 +26,7 @@ export default function AndroidUpgradeNotification() {
         <div className="text-center">
           Check it out{' '}
           <a
-            href="https://play.google.com/store/apps/details?id=net.relisten.android&hl=en_US"
+            href="https://play.google.com/store/apps/details?id=net.htfm.android&hl=en_US"
             className="text-blue-500"
           >
             here

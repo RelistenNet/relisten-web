@@ -31,29 +31,7 @@ const About = () => (
       in the rain.
     </p>
 
-    <h3>Open Source</h3>
-
-    <p>
-      This entire platform is open source at{' '}
-      <a href="https://github.com/relistennet" target="_blank" rel="noreferrer">
-        https://github.com/relistennet
-      </a>
-      .
-    </p>
-
     <h3>Thank you</h3>
-
-    <p>
-      Enjoy <br />-{' '}
-      <a href="https://saewitz.com" target="_blank" rel="noreferrer">
-        Daniel Saewitz
-      </a>{' '}
-      and{' '}
-      <a href="https://alecgorge.com" target="_blank" rel="noreferrer">
-        Alec Gorge
-      </a>
-      , <a href="mailto:team@relisten.net">team@relisten.net</a>
-    </p>
 
     <br />
     <br />

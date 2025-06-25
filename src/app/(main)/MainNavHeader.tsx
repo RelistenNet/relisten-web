@@ -24,13 +24,13 @@ export default function MainNavHeader({
     <>
       <Flex className="left h-full flex-1 items-center whitespace-nowrap font-medium max-lg:hidden lg:gap-1">
         <Link href="/" className="ml-1 text-center " prefetch={false} onClick={onClickNav}>
-          HOME TEAM fm
+          <img src="/logo.webp" className='max-h-[50px] py-1'/>
         </Link>
         <SecondaryNavBar artistSlugsToName={artistSlugsToName} />
       </Flex>
       <Flex className="h-full px-2 lg:hidden" center>
         <Link href="/" prefetch={false}>
-          Re
+          <img src="/logo.webp" className='max-h-[50px] py-1'/>
         </Link>
       </Flex>
     </>
