@@ -9,7 +9,7 @@ import { isMobile } from '@/lib/isMobile';
 export default async function Page() {
   if (await isMobile()) return null;
 
-  const artistSlug = 'grateful-dead';
+  const artistSlug = 'wsp';
   const randomShow = await fetchRandomShow(artistSlug);
 
   const { display_date } = randomShow ?? {};

@@ -16,7 +16,9 @@ export const fetchArtists = async (): Promise<Artist[]> => {
       notFound();
     });
 
-  return (parsed as Artist[]) ?? [];
+  const filteredData = (parsed as Artist[]).filter((artist) => artist.slug === 'wsp');
+
+  return (filteredData as Artist[]) ?? [];
 };
 
 export const fetchShow = async (

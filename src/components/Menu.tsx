@@ -7,12 +7,12 @@ const Menu = () => (
   <div className="w-[120px]">
     <Column>
       <Row href="/">Home</Row>
-      <Row href="/about">About</Row>
+      {/* <Row href="/about">About</Row> */}
       <Row href="/today">Today</Row>
-      <Row href="/recently-played">Live</Row>
+      {/* <Row href="/recently-played">Live</Row>
       <Row href="/sonos">Sonos</Row>
       <Row href="/app">App</Row>
-      <Row href="/chat">Chat</Row>
+      <Row href="/chat">Chat</Row> */}
     </Column>
   </div>
 );
