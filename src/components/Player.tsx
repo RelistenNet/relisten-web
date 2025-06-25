@@ -79,7 +79,7 @@ const Player = ({ artistSlugsToName }: Props) => {
             } ${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(
               2
             )} ${artistName}`}{' '}
-            | Relisten
+            | HOME TEAM fm
           </title>
         </Head>
       )}

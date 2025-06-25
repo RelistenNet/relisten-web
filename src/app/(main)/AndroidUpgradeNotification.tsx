@@ -22,7 +22,7 @@ export default function AndroidUpgradeNotification() {
   return alertVisible ? (
     <Flex column className="border-b-[1px] border-b-[#aeaeae]">
       <section className="relative my-2 flex flex-col justify-center">
-        <div className="text-center">RELISTEN is now available on the Play Store!</div>
+        <div className="text-center">HOME TEAM fm is now available on the Play Store!</div>
         <div className="text-center">
           Check it out{' '}
           <a

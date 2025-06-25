@@ -195,7 +195,7 @@ export const GET = createZodRoute()
               fontSize: (size / 1024) * 36,
             }}
           >
-            Relisten.net
+            HOME TEAM fm
           </div>
         </div>
       ),

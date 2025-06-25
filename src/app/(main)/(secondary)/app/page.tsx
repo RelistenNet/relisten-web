@@ -3,7 +3,7 @@ const MOBILE = () => (
     <h1>Mobile App</h1>
 
     <p>
-      Relisten is now available for download on both iOS and Android. Take all of your live
+      HOME TEAM fm is now available for download on both iOS and Android. Take all of your live
       recordings on the go.
     </p>
 

@@ -33,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 export const metadata = {
   title: {
-    template: '%s | Relisten',
-    default: 'Relisten', // a default is required when creating a template
+    template: '%s | HOME TEAM fm',
+    default: 'HOME TEAM fm', // a default is required when creating a template
   },
 };

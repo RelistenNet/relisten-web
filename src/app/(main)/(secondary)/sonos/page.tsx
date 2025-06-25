@@ -3,7 +3,7 @@ const Sonos = () => (
     <h1>Sonos</h1>
 
     <p>
-      Relisten is available for use on all Sonos devices. Enjoy your concertos in the comfort of
+      HOME TEAM fm is available for use on all Sonos devices. Enjoy your concertos in the comfort of
       your home.
     </p>
 
@@ -11,7 +11,7 @@ const Sonos = () => (
 
     <p>
       Open your Sonos application and go to <strong>Add Music Services</strong> and search for{' '}
-      <strong>Relisten</strong>. Easy as pie.
+      <strong>HOME TEAM fm</strong>. Easy as pie.
     </p>
 
     <div className="my-8">
