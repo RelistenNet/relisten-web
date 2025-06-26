@@ -128,11 +128,16 @@ const SongsColumn = (props: Props) => {
       {activeSourceObj && <RowHeader>FIN</RowHeader>}
       {activeSourceObj &&
         activeSourceObj.links &&
-        activeSourceObj.links.map((link) => (
-          <a href={link.url} target="_blank" key={link.id} rel="noreferrer">
-            <Row>{link.label}</Row>
+        activeSourceObj.links.map((link) => {
+          let { url, label } = link;
+          label = 'everydaycompanion.com'
+          url = 'http://everydaycompanion.com'
+          return (
+          <a href={url} target="_blank" key={link.id} rel="noreferrer">
+            <Row>{label}</Row>
           </a>
-        ))}
+        )
+        })}
     </Column>
   );
 };
