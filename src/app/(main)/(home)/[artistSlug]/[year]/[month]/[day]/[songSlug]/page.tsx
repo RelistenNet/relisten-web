@@ -16,10 +16,9 @@ export default async function Page(props: { params: Promise<RawParams> }) {
 }
 
 export const generateMetadata = async (props) => {
-  const params = await props.params;
+  const [params, artists] = await Promise.all([props.params, fetchArtists()]);
   const { artistSlug, year, month, day, songSlug } = params;
 
-  const artists = await fetchArtists();
   const name = artists.find((a) => a.slug === artistSlug)?.name;
 
   if (!name) return notFound();

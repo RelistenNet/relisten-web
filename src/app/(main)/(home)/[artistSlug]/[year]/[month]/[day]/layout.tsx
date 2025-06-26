@@ -8,11 +8,9 @@ import { notFound } from 'next/navigation';
 import React from 'react';
 
 export default async function Page(props: MainLayoutProps) {
-  const params = await props.params;
-
   const { children } = props;
 
-  const isMobileClient = await isMobile();
+  const [params, isMobileClient] = await Promise.all([props.params, isMobile()]);
   const { artistSlug, year, month, day } = params;
 
   if (!year || !month || !day) return notFound();
