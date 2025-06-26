@@ -70,7 +70,7 @@ export default async function NavBar() {
           </div>
         </div>
       </div>
-      {isAndroid && <AndroidUpgradeNotification />}
+      {/* {isAndroid && <AndroidUpgradeNotification />} */}
     </>
   );
 }
