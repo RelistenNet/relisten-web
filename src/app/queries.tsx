@@ -6,7 +6,7 @@ import { API_DOMAIN } from '../lib/constants';
 import { sortSources } from '@/lib/sortSources';
 
 export const fetchArtists = async (): Promise<Artist[]> => {
-  const parsed = await ky(`${API_DOMAIN}/api/v2/artists`, {
+  const parsed = await ky(`${API_DOMAIN}/api/v3/artists`, {
     next: { revalidate: 60 * 5 }, // leaving for now, should revisit cache (I dont think this works)
   })
     .json()
