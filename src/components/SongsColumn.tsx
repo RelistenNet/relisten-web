@@ -3,7 +3,7 @@
 import { durationToHHMMSS, removeLeadingZero } from '../lib/utils';
 
 import { RawParams } from '@/app/(main)/(home)/layout';
-import { useSearchParams } from 'next/navigation';
+import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { useSelector } from 'react-redux';
 import { Set, Source, Tape } from '../types';
 import Column from './Column';
@@ -64,7 +64,7 @@ export const useSourceData = ({
 };
 
 const SongsColumn = (props: Props) => {
-  const sourceId = String(useSearchParams().get('source'));
+  const [{ source: sourceId }] = sourceSearchParamsLoader.useQueryStates();
   const { gaplessTracksMetadata, isActiveSourcePlaying, activeSourceObj, activePlaybackTrackId } =
     useSourceData({
       ...props,
