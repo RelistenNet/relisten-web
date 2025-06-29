@@ -85,23 +85,23 @@ const Player = ({ artistSlugsToName }: Props) => {
       )}
       {activeTrack && (
         <Flex
-          className="playpause cursor-pointer items-center justify-center text-gray-600 active:text-gray-800 lg:w-[40px]"
+          className="playpause cursor-pointer items-center justify-center text-foreground-muted active:text-gray-800 lg:w-[40px]"
           onClick={() => player.togglePlayPause()}
         >
           {playback.activeTrack.isPaused ? (
-            <PlayIcon size={20} className="fill-gray-600 active:fill-gray-800" />
+            <PlayIcon size={20} className="fill-foreground-muted active:fill-gray-800" />
           ) : (
-            <PauseIcon size={20} className="fill-gray-600 active:fill-gray-800" />
+            <PauseIcon size={20} className="fill-foreground-muted active:fill-gray-800" />
           )}
         </Flex>
       )}
       {typeof window === 'undefined' || !activeTrack ? null : (
         <div className="relative h-full flex-1" ref={playerRef}>
           <Flex className="info h-full justify-center transition-all duration-[1s] ease-in-out">
-            <div className="timing absolute left-[8px] top-1/2 translate-x-0 translate-y-[-50%] text-left text-[0.8em] text-gray-600">
+            <div className="timing absolute left-[8px] top-1/2 translate-x-0 translate-y-[-50%] text-left text-[0.8em] text-foreground-muted">
               <div>
                 <RewindIcon
-                  className="cursor-pointer fill-gray-600"
+                  className="cursor-pointer fill-foreground-muted"
                   onClick={() => player.playPrevious()}
                   size={16}
                 />
@@ -112,7 +112,7 @@ const Player = ({ artistSlugsToName }: Props) => {
               <div className="song-title relative top-1 text-[1em] text-gray-900">
                 {activeTrack.title}
                 {false && (
-                  <Flex className="absolute left-full top-[2px] ml-2 w-full items-center text-[0.8em] text-gray-600">
+                  <Flex className="absolute left-full top-[2px] ml-2 w-full items-center text-[0.8em] text-foreground-muted">
                     <div>Next: {nextTrack && nextTrack.title}&nbsp;</div>
                     <ChevronDown size={12} className="cursor-pointer" />
                   </Flex>
@@ -122,15 +122,15 @@ const Player = ({ artistSlugsToName }: Props) => {
               <Link
                 href="/"
                 as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
-                className="band-title justify-center text-[0.8em] text-gray-600"
+                className="band-title justify-center text-[0.8em] text-foreground-muted"
               >
                 {artistName} – {removeLeadingZero(month)}/{removeLeadingZero(day)}/{year.slice(2)}
               </Link>
             </Flex>
-            <div className="timing duration absolute right-[8px] top-1/2 translate-x-0 translate-y-[-50%] text-right text-[0.8em] text-gray-600">
+            <div className="timing duration absolute right-[8px] top-1/2 translate-x-0 translate-y-[-50%] text-right text-[0.8em] text-foreground-muted">
               <div>
                 <FastForwardIcon
-                  className="ml-auto cursor-pointer fill-gray-600"
+                  className="ml-auto cursor-pointer fill-foreground-muted"
                   onClick={() => player.playNext()}
                   size={16}
                 />
@@ -175,7 +175,7 @@ const Player = ({ artistSlugsToName }: Props) => {
         <Link
           href="/"
           as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
-          className="flex w-[40px] cursor-pointer items-center justify-center self-center text-gray-600 active:text-gray-800 max-lg:hidden"
+          className="flex w-[40px] cursor-pointer items-center justify-center self-center text-foreground-muted active:text-gray-800 max-lg:hidden"
         >
           <div>
             <ListMusicIcon size={22} />

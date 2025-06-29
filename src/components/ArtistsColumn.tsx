@@ -28,12 +28,12 @@ const ArtistsColumn = async () => {
                 <div>
                   <div>{artist.name}</div>
                   {byObject[String(artist.slug)] && (
-                    <span className="text-xs text-[#979797]">
+                    <span className="text-xs text-foreground-muted">
                       Powered by {byObject[String(artist.slug)]}
                     </span>
                   )}
                 </div>
-                <div className="min-w-[20%] text-right text-xs text-[#979797]">
+                <div className="min-w-[20%] text-right text-xs text-foreground-muted">
                   <div>{simplePluralize('show', artist.show_count)}</div>
                   <div>{simplePluralize('tape', artist.source_count)}</div>
                 </div>

@@ -102,7 +102,7 @@ export default function LiveTrack({
           </Flex>
           <div className="text-sm">{track.source.artist?.name}</div>
 
-          <div className="text-xxs text-[#979797]">
+          <div className="text-xxs text-foreground-muted">
             <VenueInfo
               track={track}
               app_type_description={app_type_description}

@@ -24,7 +24,7 @@ export default ({ day }: { day: Day }) => {
             {day.venue?.name || 'Unknown Venue'}
           </div>
           {day.venue?.location && (
-            <div className="text-sm text-gray-600 truncate">{day.venue.location}</div>
+            <div className="text-sm text-foreground-muted truncate">{day.venue.location}</div>
           )}
         </div>
         <div className="flex-shrink-0 ml-4 text-relisten-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200">

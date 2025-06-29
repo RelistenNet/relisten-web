@@ -22,16 +22,16 @@ export default function Error({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          
+
           <h1 className="text-3xl font-semibold text-gray-900 mb-3">
             Oops! Something went wrong
           </h1>
-          
-          <p className="text-lg text-gray-600 mb-8">
+
+          <p className="text-lg text-foreground-muted mb-8">
             We encountered an error while loading this page. Don't worry, it's not your fault.
           </p>
         </div>
-        
+
         <div className="space-y-4">
           <button
             onClick={() => reset()}
@@ -39,7 +39,7 @@ export default function Error({
           >
             Try again
           </button>
-          
+
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
               onClick={() => window.history.back()}
@@ -47,7 +47,7 @@ export default function Error({
             >
               Go back
             </button>
-            
+
             <button
               onClick={() => window.location.href = '/'}
               className="bg-gray-100 text-gray-900 px-6 py-3 rounded-lg hover:bg-gray-200 transition-colors"
@@ -56,7 +56,7 @@ export default function Error({
             </button>
           </div>
         </div>
-        
+
         {process.env.NODE_ENV === 'development' && (
           <details className="mt-8 text-left bg-white p-4 rounded-lg border border-gray-200">
             <summary className="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900 mb-3">

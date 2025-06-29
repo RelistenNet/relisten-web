@@ -58,13 +58,13 @@ const TodayInHistoryColumn = async ({
                     {show.has_soundboard_source && <Tag>SBD</Tag>}
                   </Flex>
                   {venue && (
-                    <div className="text-xxs text-[#979797]">
+                    <div className="text-xxs text-foreground-muted">
                       <div>{venue.name}</div>
                       <div>{venue.location}</div>
                     </div>
                   )}
                 </div>
-                <div className="flex h-full min-w-[20%] flex-col justify-center gap-2 text-right text-xxs text-[#979797]">
+                <div className="flex h-full min-w-[20%] flex-col justify-center gap-2 text-right text-xxs text-foreground-muted">
                   <div>{durationToHHMMSS(avg_duration)}</div>
                   <div>{simplePluralize('tape', show.source_count)}</div>
                 </div>

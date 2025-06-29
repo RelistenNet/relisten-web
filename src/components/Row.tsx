@@ -34,7 +34,7 @@ const Row = ({ children, href, activeSegments, isActiveOverride, loading, ...pro
     return (
       <div className="content relative w-full flex-1 items-center justify-between py-1">
         {loading && <RowLoading />}
-        {isActive && <div className="h-full w-2 bg-[#333333]" />}
+        {isActive && <div className="h-full w-2 bg-foreground" />}
 
         {children}
       </div>

@@ -35,14 +35,14 @@ export default async function NavBar() {
 
   return (
     <>
-      <div className="navigation relative flex h-[50px] max-h-[50px] min-h-[50px] grid-cols-3 justify-between border-b-[1px] border-b-[#aeaeae] bg-white text-[#333333] lg:grid">
+      <div className="navigation relative flex h-[50px] max-h-[50px] min-h-[50px] grid-cols-3 justify-between border-b-[1px] border-b-[#aeaeae] bg-white text-foreground lg:grid">
         <MainNavHeader artistSlugsToName={artistSlugsToName} />
         <div className="player min-w-[60%] flex-1 text-center lg:min-w-[44vw] xl:min-w-[38vw]">
           <Player artistSlugsToName={artistSlugsToName} />
         </div>
         <SimplePopover content={<Menu />}>
           <Flex className="ml-2 h-full cursor-pointer content-end items-center text-center font-medium 2xl:hidden">
-            <div className="ml-auto flex h-full items-center px-1 active:relative active:top-[1px] active:text-[#333333]">
+            <div className="ml-auto flex h-full items-center px-1 active:relative active:top-[1px] active:text-foreground">
               <MenuIcon />
             </div>
           </Flex>

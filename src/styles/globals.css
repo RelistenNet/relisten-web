@@ -4,8 +4,6 @@
   --text-xxs: 0.7rem;
   --text-xxs--line-height: 1rem;
 
-  /* --color-relisten-100: #279bbc; */
-
   --color-relisten-DEFAULT: #009DC1;
   --color-relisten-50: #A2EEFF;
   --color-relisten-100: #8EEAFF;
@@ -18,6 +16,14 @@
   --color-relisten-800: #004251;
   --color-relisten-900: #001D24;
   --color-relisten-950: #001114;
+
+  /* Basic foreground colors */
+  --color-foreground: #333;
+  --color-foreground-muted: var(--color-gray-500);
+
+  /* Basic background colors */
+  --color-background: #fefefe;
+  --color-background-muted: #f3f4f6;
 }
 
 /*
@@ -39,7 +45,7 @@
 }
 
 @utility nav-btn {
-  @apply flex h-full items-center px-2 text-center active:relative active:top-[1px] active:text-[#333333];
+  @apply flex h-full items-center px-2 text-center active:relative active:top-[1px] active:text-foreground;
 }
 
 @utility relisten-row {
@@ -62,7 +68,7 @@
   h1 {
     @apply text-3xl font-semibold mb-8;
   }
-}
 
-body { margin: 0; font-family: Roboto, Helvetica, Helvetica Neue, sans-serif; -webkit-font-smoothing: antialiased; color: #333; }
-a { text-decoration: none; color: #333; }
+  body { margin: 0; font-family: Roboto, Helvetica, Helvetica Neue, sans-serif; -webkit-font-smoothing: antialiased; @apply text-foreground; }
+  a { text-decoration: none; @apply text-foreground; }
+}

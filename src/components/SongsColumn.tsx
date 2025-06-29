@@ -108,12 +108,12 @@ const SongsColumn = (props: Props) => {
                   <div>
                     <div>{track.title}</div>
                     {track.duration && (
-                      <div className="text-xxs text-gray-400">
+                      <div className="text-xxs text-foreground-muted">
                         {durationToHHMMSS(track.duration)}
                       </div>
                     )}
                   </div>
-                  <div className="text-xxs min-w-[20%] text-right text-gray-400">
+                  <div className="text-xxs min-w-[20%] text-right text-foreground-muted">
                     <div>
                       {trackMetadata && trackMetadata.webAudioLoadingState !== 'NONE'
                         ? trackMetadata.webAudioLoadingState
