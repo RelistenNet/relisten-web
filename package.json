@@ -9,7 +9,8 @@
     "build": "NODE_ENV=production next build",
     "start": "next dev",
     "lint": "eslint src/**/*.ts src/**/*.tsx",
-    "bands": "node src/lib/generateSlugs.js"
+    "bands": "node src/lib/generateSlugs.js",
+    "types": "npx tsc --noEmit"
   },
   "author": "Daniel Saewitz",
   "license": "MIT",

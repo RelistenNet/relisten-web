@@ -1,19 +1,21 @@
 import sortActiveBands from '../lib/sortActiveBands';
 import { simplePluralize } from '../lib/utils';
 
-import { RawParams } from '@/types/params';
 import RelistenAPI from '@/lib/RelistenAPI';
-import { Year } from '../types';
+import { RawParams } from '@/types/params';
+import { notFound } from 'next/navigation';
 import Column from './Column';
 import Row from './Row';
 import TodayInHistoryRow from './TodayInHistoryRow';
 
 const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
-  const [artists, artistYears] = await Promise.all([RelistenAPI.fetchArtists(), RelistenAPI.fetchYears(artistSlug)]).catch(
-    () => {
-      notFound();
-    }
-  );
+  const [artists, artistYears] = await Promise.all([
+    RelistenAPI.fetchArtists(),
+    RelistenAPI.fetchYears(artistSlug),
+  ]).catch(() => {
+    notFound();
+    return [];
+  });
 
   const artist = artists?.find((artist) => artist.slug === artistSlug);
 
