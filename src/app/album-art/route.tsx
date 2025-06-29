@@ -1,9 +1,8 @@
 /* eslint-disable react/no-unknown-property */
 import 'server-only';
 
-import { fetchArtists, fetchShowByUUID } from '@/app/queries';
+import RelistenAPI from '@/lib/RelistenAPI';
 import { ImageResponse } from 'next/og';
-import { NextRequest } from 'next/server';
 import { notFound } from 'next/navigation';
 import { createZodRoute } from 'next-zod-route';
 import { z } from 'zod';
@@ -121,8 +120,8 @@ export const GET = createZodRoute()
     if (!context.query.showUuid) return notFound();
 
     const [artists, show, fontReg, fontBold, fontMegaBold] = await Promise.all([
-      fetchArtists(),
-      fetchShowByUUID(context.query.showUuid),
+      RelistenAPI.fetchArtists(),
+      RelistenAPI.fetchShowByUUID(context.query.showUuid),
       fetch(
         new URL('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-400-normal.ttf'),
         { next: { revalidate: 60 * 60 * 24 * 30 } } // Cache for 30 days

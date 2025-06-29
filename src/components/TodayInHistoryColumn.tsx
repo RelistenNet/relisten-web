@@ -1,37 +1,21 @@
 import sortActiveBands from '../lib/sortActiveBands';
 import { durationToHHMMSS, removeLeadingZero, simplePluralize, splitShowDate } from '../lib/utils';
 
-import { RawParams } from '@/app/(main)/(home)/layout';
-import ky from 'ky-universal';
-import { notFound } from 'next/navigation';
+import RelistenAPI from '@/lib/RelistenAPI';
+import { RawParams } from '@/types/params';
 import React from 'react';
-import { API_DOMAIN } from '../lib/constants';
-import { Show } from '../types';
 import Column from './Column';
 import Flex from './Flex';
 import Row from './Row';
 import RowHeader from './RowHeader';
 import Tag from './Tag';
-import { getCurrentMonthDay } from '@/lib/timezone';
-
-export const fetchToday = async (slug?: string): Promise<Show[] | undefined> => {
-  const currentMonthDay = await getCurrentMonthDay();
-  // TODO: pull time zone from cloudflare header and render "on date" for the users client
-  const parsed: Show[] = await ky(
-    `${API_DOMAIN}/api/v2/artists/${slug}/shows/today?month=${currentMonthDay.month}&day=${currentMonthDay.day}`,
-    {
-      cache: 'no-cache',
-    }
-  ).json();
-
-  return parsed;
-};
+import { notFound } from 'next/navigation';
 
 const TodayInHistoryColumn = async ({
   artistSlug,
   year,
 }: Pick<RawParams, 'artistSlug' | 'year'>) => {
-  const shows = await fetchToday(artistSlug).catch(() => {
+  const shows = await RelistenAPI.fetchTodayInHistory(artistSlug).catch(() => {
     notFound();
   });
   const tours = {};
@@ -64,10 +48,9 @@ const TodayInHistoryColumn = async ({
               <Row
                 href={`/${artistSlug}/${year}/${month}/${day}`}
                 activeSegments={{
-                  0: month,
-                  1: day,
+                  month,
+                  day,
                 }}
-                height={48}
               >
                 <div>
                   <Flex>

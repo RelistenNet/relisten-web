@@ -2,7 +2,7 @@
 
 import { durationToHHMMSS, removeLeadingZero } from '../lib/utils';
 
-import { RawParams } from '@/app/(main)/(home)/layout';
+import { RawParams } from '@/types/params';
 import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { useSelector } from 'react-redux';
 import { Set, Source, Tape } from '../types';

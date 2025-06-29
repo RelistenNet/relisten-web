@@ -9,22 +9,27 @@ const createURL = (obj: Day): string => {
   return '/' + [obj.artist?.slug, year, month, day].join('/');
 };
 
-// eslint-disable-next-line react/display-name
 export default ({ day }: { day: Day }) => {
   if (!day) return null;
 
   return (
     <Link href={createURL(day)} prefetch={false}>
-      <Flex className="w-full cursor-pointer border-b-2 border-b-[#eee] p-3">
-        <div className="mr-3">
-          <div className="font-semibold">{day.display_date}</div>
+      <Flex className="group w-full cursor-pointer hover:bg-relisten-50 transition-colors duration-200 py-4 px-6 relative">
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-transparent group-hover:bg-relisten-400/20 transition-colors duration-200"></div>
+        <div className="w-28 flex-shrink-0 mr-6">
+          <div className="font-semibold text-relisten-700">{day.display_date}</div>
         </div>
-
-        <div>
-          <div>{day.venue ? [day.venue.name, day.venue.location].join(' ') : ''}</div>
+        <div className="flex-1 min-w-0">
+          <div className="text-gray-900 font-medium truncate">
+            {day.venue?.name || 'Unknown Venue'}
+          </div>
+          {day.venue?.location && (
+            <div className="text-sm text-gray-600 truncate">{day.venue.location}</div>
+          )}
         </div>
-
-        <div className="ml-auto self-center">Listen</div>
+        <div className="flex-shrink-0 ml-4 text-relisten-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          →
+        </div>
       </Flex>
     </Link>
   );

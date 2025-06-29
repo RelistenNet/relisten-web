@@ -1,10 +1,9 @@
 import sortActiveBands from '../lib/sortActiveBands';
 import { durationToHHMMSS, removeLeadingZero, simplePluralize, splitShowDate } from '../lib/utils';
 
-import { RawParams } from '@/app/(main)/(home)/layout';
-import ky from 'ky-universal';
+import { RawParams } from '@/types/params';
 import React from 'react';
-import { API_DOMAIN } from '../lib/constants';
+import RelistenAPI from '@/lib/RelistenAPI';
 import { ArtistShows } from '../types';
 import Column from './Column';
 import Flex from './Flex';
@@ -14,20 +13,10 @@ import Tag from './Tag';
 import { notFound } from 'next/navigation';
 import TodayInHistoryColumn from './TodayInHistoryColumn';
 
-const fetchShows = async (slug?: string, year?: string): Promise<ArtistShows | undefined> => {
-  if (!slug || !year) return undefined;
-
-  const parsed: ArtistShows = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years/${year}`, {
-    cache: 'no-cache',
-  }).json();
-
-  return parsed;
-};
-
 const ShowsColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 'year'>) => {
   if (year === 'today-in-history') return <TodayInHistoryColumn artistSlug={artistSlug} />;
 
-  const artistShows = await fetchShows(artistSlug, year).catch(() => {
+  const artistShows = await RelistenAPI.fetchShows(artistSlug, year).catch(() => {
     notFound();
   });
   const tours = {};
@@ -56,10 +45,9 @@ const ShowsColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 
               <Row
                 href={`/${artistSlug}/${year}/${month}/${day}`}
                 activeSegments={{
-                  0: month,
-                  1: day,
+                  month,
+                  day,
                 }}
-                height={48}
               >
                 <div>
                   <Flex>

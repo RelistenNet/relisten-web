@@ -1,15 +1,14 @@
 'use client';
 
-import React, { MouseEvent, useTransition } from 'react';
-import Link from 'next/link';
-import RowLoading from './RowLoading';
-import Flex from './Flex';
-import { usePathname, useRouter, useSelectedLayoutSegments } from 'next/navigation';
 import cn from '@/lib/cn';
+import Link from 'next/link';
+import { useParams, usePathname, useRouter } from 'next/navigation';
+import React, { MouseEvent, useTransition } from 'react';
+import Flex from './Flex';
+import RowLoading from './RowLoading';
 import Spinner from './Spinner';
 
 type RowProps = {
-  height?: number;
   children?: React.ReactNode;
   href?: string;
   active?: boolean;
@@ -18,17 +17,9 @@ type RowProps = {
   isActiveOverride?: boolean;
 };
 
-const Row = ({
-  height,
-  children,
-  href,
-  activeSegments,
-  isActiveOverride,
-  loading,
-  ...props
-}: RowProps) => {
+const Row = ({ children, href, activeSegments, isActiveOverride, loading, ...props }: RowProps) => {
   const [isPending, startTransition] = useTransition();
-  const segments = useSelectedLayoutSegments();
+  const params = useParams();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -36,7 +27,7 @@ const Row = ({
 
   // if every segment is true, then we're active
   if (isActiveOverride === undefined && activeSegments) {
-    isActive = Object.entries(activeSegments).every(([key, value]) => segments[key] === value);
+    isActive = Object.entries(activeSegments).every(([key, value]) => params[key] === value);
   }
 
   if (!href) {

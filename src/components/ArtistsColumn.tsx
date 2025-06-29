@@ -1,4 +1,4 @@
-import { fetchArtists } from '../app/queries';
+import RelistenAPI from '@/lib/RelistenAPI';
 import { groupBy, simplePluralize } from '../lib/utils';
 import { Artist } from '../types';
 import Column from './Column';
@@ -10,7 +10,7 @@ const byObject = {
 };
 
 const ArtistsColumn = async () => {
-  const artists = await fetchArtists();
+  const artists = await RelistenAPI.fetchArtists();
 
   return (
     <Column heading="Bands">
@@ -23,7 +23,7 @@ const ArtistsColumn = async () => {
               <Row
                 key={[idx, artist.id].join(':')}
                 href={`/${artist.slug}`}
-                activeSegments={{ 0: artist.slug }}
+                activeSegments={{ artistSlug: artist.slug }}
               >
                 <div>
                   <div>{artist.name}</div>

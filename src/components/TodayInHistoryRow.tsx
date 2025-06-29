@@ -1,16 +1,17 @@
-import { RawParams } from '@/app/(main)/(home)/layout';
+import { RawParams } from '@/types/params';
 import Row from './Row';
 import { fetchToday } from './TodayInHistoryColumn';
 import { simplePluralize } from '@/lib/utils';
 import { Suspense } from 'react';
 import { getCurrentMonthDay } from '@/lib/timezone';
 import { format } from 'date-fns';
+import RelistenAPI from '@/lib/RelistenAPI';
 
 const TodayInHistoryRow = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
   const currentMonthDay = await getCurrentMonthDay();
 
   return (
-    <Row href={`/${artistSlug}/today-in-history`} activeSegments={{ 0: 'today-in-history' }}>
+    <Row href={`/${artistSlug}/today-in-history`} activeSegments={{ year: 'today-in-history' }}>
       <div>
         <div>Today In History</div>
         <div className="text-xxs text-[#979797]">{format(currentMonthDay.date, 'MMMM do')}</div>
@@ -27,7 +28,7 @@ const TodayInHistoryRow = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) 
 const TodayMetadata = async ({ artistSlug }: { artistSlug?: string }) => {
   if (!artistSlug) return null;
 
-  const data = await fetchToday(artistSlug);
+  const data = await RelistenAPI.fetchTodayInHistory(artistSlug);
 
   return (
     <>

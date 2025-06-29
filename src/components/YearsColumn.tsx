@@ -1,34 +1,15 @@
 import sortActiveBands from '../lib/sortActiveBands';
 import { simplePluralize } from '../lib/utils';
 
-import { RawParams } from '@/app/(main)/(home)/layout';
-import { fetchArtists } from '@/app/queries';
-import ky from 'ky-universal';
-import { API_DOMAIN } from '../lib/constants';
+import { RawParams } from '@/types/params';
+import RelistenAPI from '@/lib/RelistenAPI';
 import { Year } from '../types';
 import Column from './Column';
 import Row from './Row';
-import { notFound } from 'next/navigation';
 import TodayInHistoryRow from './TodayInHistoryRow';
 
-const fetchYears = async (slug?: string): Promise<Year[]> => {
-  if (!slug) return [];
-
-  const parsed = await ky(`${API_DOMAIN}/api/v2/artists/${slug}/years`, {
-    cache: 'no-cache',
-  })
-    .json<Year[]>()
-    .catch(() => {
-      notFound();
-
-      return [] as Year[];
-    });
-
-  return parsed ?? [];
-};
-
 const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
-  const [artists, artistYears] = await Promise.all([fetchArtists(), fetchYears(artistSlug)]).catch(
+  const [artists, artistYears] = await Promise.all([RelistenAPI.fetchArtists(), RelistenAPI.fetchYears(artistSlug)]).catch(
     () => {
       notFound();
     }
@@ -45,7 +26,7 @@ const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
           <Row
             key={yearObj.id}
             href={`/${artistSlug}/${yearObj.year}`}
-            activeSegments={{ 0: yearObj.year }}
+            activeSegments={{ year: yearObj.year }}
           >
             <div>
               <div>{yearObj.year}</div>
