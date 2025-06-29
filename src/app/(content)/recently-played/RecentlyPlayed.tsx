@@ -48,7 +48,7 @@ export default function RecentlyPlayed() {
     <div>
       <h1>Recently Played</h1>
 
-      <div className="grid grid-flow-row-dense grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-flow-row-dense grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-3">
         <AnimatePresence initial={false}>
           {!query.data
             ? null
