@@ -15,7 +15,9 @@ export class RelistenAPI {
       options: { revalidate?: number } = { revalidate: 60 * 5 }
     ): Promise<T> => {
       const url = `${this.baseURL}${endpoint}`;
-      console.log('Requesting', endpoint, options);
+
+      // console.log('Requesting', endpoint, options);
+
       try {
         const response = await ky(url, {
           next: options.revalidate ? { revalidate: options.revalidate } : undefined,
