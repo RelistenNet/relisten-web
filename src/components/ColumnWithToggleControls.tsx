@@ -83,7 +83,7 @@ const ColumnWithToggleControls = ({
                   onClick={onClearFilters}
                   className="underline hover:no-underline font-medium"
                 >
-                  Clear filters
+                  Clear Filters
                 </button>
               </>
             ) : (
@@ -93,7 +93,7 @@ const ColumnWithToggleControls = ({
                   onClick={onClearFilters}
                   className="underline hover:no-underline font-medium"
                 >
-                  Clear filters
+                  Clear Filters
                 </button>
               </>
             )}
