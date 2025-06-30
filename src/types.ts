@@ -82,6 +82,7 @@ export type Year = {
   uuid?: string;
   created_at?: string;
   updated_at?: string;
+  has_soundboard_source?: boolean;
 };
 
 export type Features = {

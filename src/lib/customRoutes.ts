@@ -1,10 +1,3 @@
-const customRoutes = [
-  'about',
-  'app',
-  'today',
-  'live',
-  'favicon.ico', // eslint-disable-line no-useless-escape
-  '_next',
-];
+const customRoutes = ['about', 'app', 'today', 'live', 'favicon.ico', '_next'];
 
 export default new RegExp(customRoutes.join('|'), 'gi');

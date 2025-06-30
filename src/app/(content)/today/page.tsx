@@ -1,19 +1,22 @@
 import TodayTrack from '@/components/TodayTrack';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { getCurrentMonthDay } from '@/lib/timezone';
-import { groupBy } from '@/lib/utils';
-import { Artist, Day } from '@/types';
+import { Day } from '@/types';
 
 export default async function Page() {
   const currentMonthDay = await getCurrentMonthDay();
 
   const data = await RelistenAPI.fetchTodayShows(currentMonthDay.month, currentMonthDay.day);
 
-  const artists: Artist[] = data.map((day: Day) => ({
-    ...day,
-    artistName: day.artist?.name,
-  }));
-  const groupedBy: Day[][] = groupBy(artists, 'artistName');
+  // Group by artist name manually since artist is a nested property
+  const groupedBy = data.reduce((acc, day) => {
+    const artistName = day.artist?.name || 'Unknown Artist';
+    if (!acc[artistName]) {
+      acc[artistName] = [];
+    }
+    acc[artistName].push(day);
+    return acc;
+  }, {} as Record<string, Day[]>);
 
   return (
     <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">

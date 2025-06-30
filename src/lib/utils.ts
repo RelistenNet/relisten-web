@@ -12,6 +12,8 @@ export const addZero = (str = ''): string => {
 export const removeLeadingZero = (str = ''): string => {
   const int = parseInt(str, 10);
 
+  if (isNaN(int)) return str;
+
   return String(int);
 };
 
@@ -59,9 +61,13 @@ export const simplePluralize = (str: string, count = 0): string => {
   return `${count?.toLocaleString()} ${count === 1 ? str : str + 's'}`;
 };
 
-export const groupBy = function (xs, key) {
-  return xs.reduce((rv, x) => {
-    (rv[x[key]] = rv[x[key]] || []).push(x);
-    return rv;
-  }, {});
+export const groupBy = function <T>(xs: T[], key: keyof T): Record<string, T[]> {
+  return xs.reduce(
+    (rv, x) => {
+      const keyValue = String(x[key]);
+      (rv[keyValue] = rv[keyValue] || []).push(x);
+      return rv;
+    },
+    {} as Record<string, T[]>
+  );
 };

@@ -123,9 +123,7 @@ export class RelistenAPI {
   static fetchRecentlyAdded = cache(async (artistSlug?: string): Promise<Show[]> => {
     if (!artistSlug) return [];
 
-    return this.cachedFetch<Show[]>(
-      `/api/v2/artists/${artistSlug}/shows/recently-added`
-    );
+    return this.cachedFetch<Show[]>(`/api/v2/artists/${artistSlug}/shows/recently-added`);
   });
 
   // Live API
