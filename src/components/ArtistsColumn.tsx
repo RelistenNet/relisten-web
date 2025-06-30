@@ -5,7 +5,7 @@ import ArtistsColumnWithControls from './ArtistsColumnWithControls';
 const ArtistsColumn = async () => {
   const [artists, initialFilters] = await Promise.all([
     RelistenAPI.fetchArtists(),
-    getServerFilters('/'),
+    getServerFilters('root', true),
   ]);
 
   return <ArtistsColumnWithControls artists={artists} initialFilters={initialFilters} />;

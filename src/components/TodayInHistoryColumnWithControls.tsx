@@ -25,18 +25,21 @@ const TodayInHistoryColumnWithControls = ({
   shows,
   initialFilters,
 }: TodayInHistoryColumnWithControlsProps) => {
-  const { dateDesc, sbdOnly, toggleFilter, clearFilters } = useFilterState(initialFilters);
+  const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(
+    initialFilters,
+    `${artistSlug}:shows`
+  );
 
   const toggles = [
     {
       type: 'sort' as const,
-      isActive: !dateDesc, // Show as active when reversed (oldest first)
+      isActive: dateAsc, // Show as active when oldest first (ascending)
       onToggle: () => toggleFilter('date'),
-      title: !dateDesc ? 'Newest First' : 'Oldest First',
+      title: !dateAsc ? 'Newest First' : 'Oldest First',
     },
     {
       type: 'filter' as const,
-      isActive: sbdOnly,
+      isActive: !!sbdOnly,
       onToggle: () => toggleFilter('sbd'),
       title: sbdOnly ? 'All Shows' : 'SBD Only',
       label: 'SBD',
@@ -56,13 +59,13 @@ const TodayInHistoryColumnWithControls = ({
       processedShows = sortActiveBands(artistSlug, processedShows);
     }
 
-    // Reverse if needed (default is newest first/desc, so reverse when date is asc)
-    if (!dateDesc) {
-      processedShows.reverse();
+    // Reverse if needed (default is desc/newest first when no filter set)
+    if (!dateAsc) {
+      processedShows.reverse(); // Change to oldest first
     }
 
     return processedShows;
-  }, [shows, artistSlug, dateDesc, sbdOnly]);
+  }, [shows, artistSlug, dateAsc, sbdOnly]);
 
   const tours = {};
 

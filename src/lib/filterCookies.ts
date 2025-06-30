@@ -1,7 +1,9 @@
+import { SORT_DIRECTION } from '@/hooks/useFilterState';
+
 export type FilterState = {
-  date?: 'asc' | 'desc';
+  date?: SORT_DIRECTION;
   sbd?: boolean;
-  alpha?: 'asc' | 'desc';
+  alpha?: SORT_DIRECTION;
 };
 
 export type FilterKey = string; // e.g., "/grateful-dead:filters" or "/grateful-dead/1977:filters"

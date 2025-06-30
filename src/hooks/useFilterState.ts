@@ -5,14 +5,34 @@ import { useCallback, useMemo } from 'react';
 import useCookie from 'react-use-cookie';
 import { FilterState, getFilterKey } from '@/lib/filterCookies';
 
-export function useFilterState(initialFilters?: FilterState) {
+export enum SORT_DIRECTION {
+  desc = 'desc',
+  asc = 'asc',
+}
+
+export const DEFAULT_FILTERS = {
+  date: SORT_DIRECTION.desc,
+  alpha: SORT_DIRECTION.desc,
+  sbd: undefined,
+};
+
+const getInverse = (key: string, sort?: SORT_DIRECTION) => {
+  if (sort === undefined) return getInverse(key, DEFAULT_FILTERS[key]);
+
+  if (sort === SORT_DIRECTION.asc) return SORT_DIRECTION.desc;
+  if (sort === SORT_DIRECTION.desc) return SORT_DIRECTION.asc;
+
+  return undefined;
+};
+
+export function useFilterState(initialFilters?: FilterState, filterKey?: string) {
   const pathname = usePathname();
 
-  // Generate cookie name based on pathname
+  // Generate cookie name based on custom key or pathname
   const cookieName = useMemo(() => {
-    const key = getFilterKey(pathname);
+    const key = filterKey || getFilterKey(pathname);
     return `relisten_filters_${key.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
-  }, [pathname]);
+  }, [pathname, filterKey]);
 
   // Use the cookie hook with initial value from server
   const defaultValue = initialFilters ? JSON.stringify(initialFilters) : '{}';
@@ -32,7 +52,14 @@ export function useFilterState(initialFilters?: FilterState) {
       const newFilters = { ...filters, [filterName]: value };
 
       // Remove the filter if it's set to default value
-      if (value === undefined || value === false || value === 'asc') {
+      if (value === undefined || value === false) {
+        delete newFilters[filterName];
+      }
+      // For both date and alpha, default is desc (newest first for dates, A-Z for alpha)
+      if (
+        (filterName === 'date' && value === DEFAULT_FILTERS[filterName]) ||
+        (filterName === 'alpha' && value === DEFAULT_FILTERS[filterName])
+      ) {
         delete newFilters[filterName];
       }
 
@@ -47,7 +74,8 @@ export function useFilterState(initialFilters?: FilterState) {
         setFilter('sbd', !filters.sbd);
       } else if (filterName === 'date' || filterName === 'alpha') {
         const currentValue = filters[filterName];
-        const newValue = currentValue === 'desc' ? 'asc' : 'desc';
+        const newValue = getInverse(filterName, currentValue);
+        console.log(filterName, newValue, currentValue);
         setFilter(filterName, newValue);
       }
     },
@@ -64,8 +92,8 @@ export function useFilterState(initialFilters?: FilterState) {
     toggleFilter,
     clearFilters,
     // Computed values for easier use
-    dateDesc: filters.date === 'desc',
+    alphaAsc: filters.alpha === SORT_DIRECTION.asc,
+    dateAsc: filters.date === SORT_DIRECTION.asc,
     sbdOnly: filters.sbd === true,
-    alphaDesc: filters.alpha === 'desc',
   };
 }

@@ -19,14 +19,14 @@ type ArtistsColumnWithControlsProps = {
 };
 
 const ArtistsColumnWithControls = ({ artists, initialFilters }: ArtistsColumnWithControlsProps) => {
-  const { alphaDesc, toggleFilter, clearFilters } = useFilterState(initialFilters);
+  const { alphaAsc, toggleFilter, clearFilters } = useFilterState(initialFilters, 'root');
 
   const toggles = [
     {
       type: 'sort' as const,
-      isActive: alphaDesc, // Show as active when Z-A
+      isActive: alphaAsc, // Show as active when Z-A (ascending)
       onToggle: () => toggleFilter('alpha'),
-      title: alphaDesc ? 'A-Z' : 'Z-A',
+      title: alphaAsc ? 'Z-A' : 'A-Z',
     },
   ];
 
@@ -37,16 +37,18 @@ const ArtistsColumnWithControls = ({ artists, initialFilters }: ArtistsColumnWit
     return sortedGroups.map(([type, groupArtists]) => {
       const sorted = [...groupArtists];
 
-      // Apply alphabetical sorting (default is asc/A-Z, desc is Z-A)
-      if (alphaDesc) {
+      // Apply alphabetical sorting (default is desc/A-Z when no filter set)
+      if (alphaAsc) {
+        // Z-A (ascending)
         sorted.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
       } else {
+        // Default: A-Z (descending)
         sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       }
 
       return [type, sorted] as [string, Artist[]];
     });
-  }, [artists, alphaDesc]);
+  }, [artists, alphaAsc]);
 
   const totalArtistCount = artists.length;
   const filteredArtistCount = processedArtists.reduce(

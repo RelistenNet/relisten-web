@@ -8,7 +8,7 @@ import RecentTapesColumnWithControls from './RecentTapesColumnWithControls';
 const RecentTapesColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 'year'>) => {
   const [shows, initialFilters] = await Promise.all([
     RelistenAPI.fetchRecentlyAdded(artistSlug),
-    getServerFilters(`/${artistSlug}`),
+    getServerFilters(`${artistSlug}:shows`, true),
   ]).catch(() => {
     notFound();
   });

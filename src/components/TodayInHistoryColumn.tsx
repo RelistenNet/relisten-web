@@ -11,7 +11,7 @@ const TodayInHistoryColumn = async ({
 }: Pick<RawParams, 'artistSlug' | 'year'>) => {
   const [shows, initialFilters] = await Promise.all([
     RelistenAPI.fetchTodayInHistory(artistSlug),
-    getServerFilters(`/${artistSlug}`),
+    getServerFilters(`${artistSlug}:shows`, true),
   ]).catch(() => {
     notFound();
   });

@@ -10,7 +10,7 @@ const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
   const [artists, artistYears, initialFilters] = await Promise.all([
     RelistenAPI.fetchArtists(),
     RelistenAPI.fetchYears(artistSlug),
-    getServerFilters(`/${artistSlug}`),
+    getServerFilters(artistSlug || '', true),
   ]).catch(() => {
     notFound();
   });

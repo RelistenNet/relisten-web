@@ -23,14 +23,17 @@ const YearsColumnWithControls = ({
   children,
   initialFilters,
 }: YearsColumnWithControlsProps) => {
-  const { dateDesc, sbdOnly, toggleFilter, clearFilters } = useFilterState(initialFilters);
+  const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(
+    initialFilters,
+    artistSlug
+  );
 
   const toggles = [
     {
       type: 'sort' as const,
-      isActive: !dateDesc, // Show as active when reversed (oldest first)
+      isActive: dateAsc, // Show as active when oldest first (ascending)
       onToggle: () => toggleFilter('date'),
-      title: !dateDesc ? 'Newest First' : 'Oldest First',
+      title: !dateAsc ? 'Newest First' : 'Oldest First',
     },
   ];
 
@@ -42,13 +45,13 @@ const YearsColumnWithControls = ({
       years = sortActiveBands(artistSlug, years);
     }
 
-    // Reverse if needed (default is newest first/desc, so reverse when date is asc)
-    if (!dateDesc) {
-      years.reverse();
+    // Reverse if needed (default is desc/newest first when no filter set)
+    if (!dateAsc) {
+      years.reverse(); // Change to oldest first
     }
 
     return years;
-  }, [artistYears, artistSlug, dateDesc, sbdOnly]);
+  }, [artistYears, artistSlug, dateAsc, sbdOnly]);
 
   return (
     <ColumnWithToggleControls
