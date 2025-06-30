@@ -7,6 +7,7 @@ import { notFound } from 'next/navigation';
 import Column from './Column';
 import Row from './Row';
 import TodayInHistoryRow from './TodayInHistoryRow';
+import RecentTapesRow from './RecentTapesRow';
 
 const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
   const [artists, artistYears] = await Promise.all([
@@ -22,6 +23,7 @@ const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
   return (
     <Column heading={artist?.name ?? 'Years'}>
       <TodayInHistoryRow artistSlug={artistSlug} />
+      <RecentTapesRow artistSlug={artistSlug} />
       {artistSlug &&
         artistYears.length &&
         sortActiveBands(artistSlug, artistYears).map((yearObj) => (

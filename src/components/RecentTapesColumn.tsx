@@ -3,30 +3,32 @@ import { durationToHHMMSS, removeLeadingZero, simplePluralize, splitShowDate } f
 
 import RelistenAPI from '@/lib/RelistenAPI';
 import { RawParams } from '@/types/params';
-import { notFound } from 'next/navigation';
 import React from 'react';
 import Column from './Column';
 import Flex from './Flex';
 import Row from './Row';
 import RowHeader from './RowHeader';
 import Tag from './Tag';
-import TodayInHistoryColumn from './TodayInHistoryColumn';
-import RecentTapesColumn from './RecentTapesColumn';
+import { notFound } from 'next/navigation';
 
-const ShowsColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 'year'>) => {
-  if (year === 'today-in-history') return <TodayInHistoryColumn artistSlug={artistSlug} />;
-  if (year === 'recently-added') return <RecentTapesColumn artistSlug={artistSlug} />;
-
-  const artistShows = await RelistenAPI.fetchShows(artistSlug, year).catch(() => {
+const RecentTapesColumn = async ({
+  artistSlug,
+  year,
+}: Pick<RawParams, 'artistSlug' | 'year'>) => {
+  const shows = await RelistenAPI.fetchRecentlyAdded(artistSlug).catch(() => {
     notFound();
   });
   const tours = {};
-
   return (
-    <Column heading={year ? year : 'Shows'} key={year}>
-      {artistShows?.shows &&
+    <Column heading={year ? year : 'Recently Added'} key={year}>
+      {(!shows || shows.length === 0) && (
+        <div className="text-center text-gray-700 text-sm py-2">
+          No recently added shows!
+        </div>
+      )}
+      {shows &&
         artistSlug &&
-        sortActiveBands(artistSlug, artistShows.shows).map((show) => {
+        sortActiveBands(artistSlug, shows).map((show) => {
           const { year, month, day } = splitShowDate(show.display_date);
           const { venue, avg_duration, tour } = show;
           let tourName = '';
@@ -52,7 +54,7 @@ const ShowsColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 
               >
                 <div>
                   <Flex>
-                    {removeLeadingZero(month)}/{day}
+                    {removeLeadingZero(month)}/{day}/{year}
                     {show.has_soundboard_source && <Tag>SBD</Tag>}
                   </Flex>
                   {venue && (
@@ -74,4 +76,4 @@ const ShowsColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 
   );
 };
 
-export default React.memo(ShowsColumn);
+export default React.memo(RecentTapesColumn);
