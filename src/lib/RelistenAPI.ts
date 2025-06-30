@@ -8,6 +8,11 @@ import type { Artist, Tape, Year, ArtistShows, Show, Day } from '@/types';
 export class RelistenAPI {
   private static baseURL = API_DOMAIN;
 
+  // Validate artist slug format
+  private static isValidArtistSlug(slug: string): boolean {
+    return /^[a-z-]+$/i.test(slug);
+  }
+
   // Generic cached fetch method
   private static cachedFetch = cache(
     async <T>(
@@ -72,10 +77,8 @@ export class RelistenAPI {
   static fetchRandomShow = cache(async (artistSlug: string): Promise<Partial<Tape> | undefined> => {
     if (!artistSlug) return undefined;
 
-    // if doesnt match
-    if (!/^[a-z-]+$/i.test(artistSlug)) {
+    if (!this.isValidArtistSlug(artistSlug)) {
       console.error('Tried to load url that doesnt match artist slug format:', artistSlug);
-
       return notFound();
     }
 
@@ -87,6 +90,11 @@ export class RelistenAPI {
   // Years API
   static fetchYears = cache(async (slug?: string): Promise<Year[]> => {
     if (!slug) return [];
+
+    if (!this.isValidArtistSlug(slug)) {
+      console.error('Tried to load url that doesnt match artist slug format:', slug);
+      return notFound();
+    }
 
     return this.cachedFetch<Year[]>(`/api/v2/artists/${slug}/years`);
   });
@@ -123,9 +131,7 @@ export class RelistenAPI {
   static fetchRecentlyAdded = cache(async (artistSlug?: string): Promise<Show[]> => {
     if (!artistSlug) return [];
 
-    return this.cachedFetch<Show[]>(
-      `/api/v2/artists/${artistSlug}/shows/recently-added`
-    );
+    return this.cachedFetch<Show[]>(`/api/v2/artists/${artistSlug}/shows/recently-added`);
   });
 
   // Live API
