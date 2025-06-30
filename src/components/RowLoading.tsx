@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import type { JSX } from 'react';
 const RowLoading = (): JSX.Element => (
   <div className="content h-full animate-pulse">
     <div className="w-1/2">

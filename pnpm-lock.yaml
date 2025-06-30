@@ -86,6 +86,9 @@ importers:
       react-timeago:
         specifier: ^8.2.0
         version: 8.2.0(react@19.1.0)
+      react-use-cookie:
+        specifier: ^1.6.1
+        version: 1.6.1(react@19.1.0)
       redux:
         specifier: ^4.2.1
         version: 4.2.1
@@ -2136,6 +2139,12 @@ packages:
     resolution: {integrity: sha512-RWDlG3Jj+iwv+yNEDweA/Qk1mxE8i/Oc4oW8Irp29ZfBp+eNpqqYPMLPYQJyfRMJcGB8CmWkEGMYhB4fW8eZlQ==}
     peerDependencies:
       react: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
+  react-use-cookie@1.6.1:
+    resolution: {integrity: sha512-77bENFpc+pi1roLJIrRvekprB4IjwG1Mowir0QdbwA0pDjgMtp3Ya9E1H9dJAisCxBvTZih6k5+2SSVo9BR2qw==}
+    engines: {node: '>=8', npm: '>=5'}
+    peerDependencies:
+      react: '>=16.8'
 
   react@19.1.0:
     resolution: {integrity: sha512-FS+XFBNvn3GTAWq26joslQgWNoFu08F4kl0J4CgdNKADkdSGXQyTCnKteIAJy96Br6YbpEU1LSzV5dYtjMkMDg==}
@@ -4903,6 +4912,10 @@ snapshots:
       redux: 4.2.1
 
   react-timeago@8.2.0(react@19.1.0):
+    dependencies:
+      react: 19.1.0
+
+  react-use-cookie@1.6.1(react@19.1.0):
     dependencies:
       react: 19.1.0
 
