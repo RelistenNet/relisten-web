@@ -6,7 +6,7 @@ const RecentTapesRow = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => 
     <Row href={`/${artistSlug}/recently-added`} activeSegments={{ year: 'recently-added' }}>
       <div>
         <div>Recent Tapes</div>
-        <div className="text-xxs text-foreground-muted">The newest recordings</div>
+        <div className="text-xxs text-foreground-muted">The Newest Recordings</div>
       </div>
       <div className="min-w-[20%] text-right text-xxs text-foreground-muted">
         <div>fresh shows</div>
