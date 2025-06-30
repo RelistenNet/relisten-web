@@ -1,16 +1,15 @@
 import sortActiveBands from '../lib/sortActiveBands';
 import { durationToHHMMSS, removeLeadingZero, simplePluralize, splitShowDate } from '../lib/utils';
 
-import { RawParams } from '@/types/params';
-import React from 'react';
 import RelistenAPI from '@/lib/RelistenAPI';
-import { ArtistShows } from '../types';
+import { RawParams } from '@/types/params';
+import { notFound } from 'next/navigation';
+import React from 'react';
 import Column from './Column';
 import Flex from './Flex';
 import Row from './Row';
 import RowHeader from './RowHeader';
 import Tag from './Tag';
-import { notFound } from 'next/navigation';
 import TodayInHistoryColumn from './TodayInHistoryColumn';
 
 const ShowsColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 'year'>) => {

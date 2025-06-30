@@ -1,7 +1,11 @@
 export const addZero = (str = ''): string => {
   const int = parseInt(str, 10);
 
+  // 'XX' should return 'XX'
+  if (isNaN(int)) return str;
+
   if (int < 10) return '0' + String(int);
+
   return String(int);
 };
 
