@@ -115,7 +115,7 @@ const ShowsColumnWithControls = ({
                     </div>
                   )}
                 </div>
-                <div className="flex h-full min-w-[20%] flex-col justify-center gap-2 text-right text-xxs text-foreground-muted">
+                <div className="text-xxs text-foreground-muted flex h-full min-w-[20%] flex-col justify-center gap-2 text-right">
                   <div>{durationToHHMMSS(avg_duration)}</div>
                   <div>{simplePluralize('tape', show.source_count)}</div>
                 </div>

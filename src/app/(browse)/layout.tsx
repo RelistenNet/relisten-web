@@ -26,7 +26,7 @@ export default async function BrowseLayout({
       <NavBar />
       <div
         className={cn(
-          'overflow-y-auto px-4 lg:grid lg:grid-flow-col lg:grid-cols-5 lg:grid-rows-1 lg:gap-8 max-md:[&>div:last-child]:block max-md:[&>div]:hidden',
+          'overflow-y-auto px-4 lg:grid lg:grid-flow-col lg:grid-cols-5 lg:grid-rows-1 lg:gap-8 max-md:[&>div]:hidden max-md:[&>div:last-child]:block',
           {
             ['lg:grid-cols-4']: isInIframe,
           }

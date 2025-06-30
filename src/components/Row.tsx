@@ -45,7 +45,7 @@ const Row = ({
     return (
       <div className="content relative w-full flex-1 items-center justify-between py-1">
         {loading && <RowLoading />}
-        {isActive && <div className="h-full w-2 bg-foreground" />}
+        {isActive && <div className="bg-foreground h-full w-2" />}
 
         {children}
       </div>
@@ -77,7 +77,7 @@ const Row = ({
       >
         {loading && <RowLoading />}
         {isPending && (
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-40">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-40">
             <Spinner />
           </div>
         )}

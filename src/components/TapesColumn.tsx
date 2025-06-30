@@ -56,7 +56,7 @@ const TapesColumn = (props: Props) => {
               </Flex>
               {Number(sourceObj?.avg_rating) > 0 && (
                 <Flex className="py-1 text-xs">
-                  <div className="min-w-[48px] pr-2 text-foreground-muted whitespace-nowrap">
+                  <div className="text-foreground-muted min-w-[48px] pr-2 whitespace-nowrap">
                     {artistSlug === 'phish' ? 'Dot Net' : 'Rating'}:
                   </div>{' '}
                   <div className="truncate">
@@ -68,7 +68,7 @@ const TapesColumn = (props: Props) => {
               )}
               {exists(sourceObj.taper) && (
                 <Flex className="py-1 text-xs">
-                  <div className="min-w-[48px] pr-2 text-foreground-muted whitespace-nowrap">
+                  <div className="text-foreground-muted min-w-[48px] pr-2 whitespace-nowrap">
                     Taper:
                   </div>{' '}
                   <div className="truncate">{sourceObj.taper}</div>
@@ -76,7 +76,7 @@ const TapesColumn = (props: Props) => {
               )}
               {exists(sourceObj.transferrer) && (
                 <Flex className="py-1 text-xs">
-                  <div className="min-w-[48px] pr-2 text-foreground-muted whitespace-nowrap">
+                  <div className="text-foreground-muted min-w-[48px] pr-2 whitespace-nowrap">
                     Transferrer:
                   </div>{' '}
                   <div className="truncate">{sourceObj.transferrer}</div>
@@ -84,7 +84,7 @@ const TapesColumn = (props: Props) => {
               )}
               {exists(sourceObj.upstream_identifier) && (
                 <Flex className="py-1 text-xs">
-                  <div className="min-w-[48px] pr-2 text-foreground-muted whitespace-nowrap">
+                  <div className="text-foreground-muted min-w-[48px] pr-2 whitespace-nowrap">
                     SHNID:
                   </div>{' '}
                   <div className="truncate">{sourceObj.upstream_identifier}</div>
@@ -92,7 +92,7 @@ const TapesColumn = (props: Props) => {
               )}
               {exists(sourceObj.source) && (
                 <Flex className="py-1 text-xs">
-                  <div className="min-w-[48px] pr-2 text-foreground-muted whitespace-nowrap">
+                  <div className="text-foreground-muted min-w-[48px] pr-2 whitespace-nowrap">
                     Source:
                   </div>{' '}
                   <div className="truncate">{sourceObj.source}</div>
@@ -100,7 +100,7 @@ const TapesColumn = (props: Props) => {
               )}
               {exists(sourceObj.lineage) && (
                 <Flex className="py-1 text-xs">
-                  <div className="min-w-[48px] pr-2 text-foreground-muted whitespace-nowrap">
+                  <div className="text-foreground-muted min-w-[48px] pr-2 whitespace-nowrap">
                     Lineage:
                   </div>{' '}
                   <div className="truncate">{sourceObj.lineage}</div>
@@ -108,7 +108,7 @@ const TapesColumn = (props: Props) => {
               )}
               {exists(sourceObj.taper_notes) && (
                 <Flex className="py-1 text-xs">
-                  <div className="min-w-[48px] pr-2 text-foreground-muted whitespace-nowrap">
+                  <div className="text-foreground-muted min-w-[48px] pr-2 whitespace-nowrap">
                     Taper Notes:
                   </div>{' '}
                   <TaperNotes notes={sourceObj.taper_notes} />

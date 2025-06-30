@@ -33,7 +33,7 @@ export default function AndroidUpgradeNotification() {
           </a>
           .
         </div>
-        <button className="absolute right-2 top-2 text-lg font-bold" onClick={dismissAlert}>
+        <button className="absolute top-2 right-2 text-lg font-bold" onClick={dismissAlert}>
           X
         </button>
       </section>

@@ -14,20 +14,20 @@ export default ({ day }: { day: Day }) => {
 
   return (
     <Link href={createURL(day)} prefetch={false}>
-      <Flex className="group w-full cursor-pointer hover:bg-relisten-50 transition-colors duration-200 py-4 px-6 relative">
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-transparent group-hover:bg-relisten-400/20 transition-colors duration-200"></div>
-        <div className="w-28 flex-shrink-0 mr-6">
-          <div className="font-semibold text-relisten-700">{day.display_date}</div>
+      <Flex className="group relative w-full cursor-pointer px-6 py-4 transition-colors duration-200 hover:bg-relisten-50">
+        <div className="group-hover:bg-relisten-400/20 absolute top-0 bottom-0 left-0 w-1 bg-transparent transition-colors duration-200"></div>
+        <div className="mr-6 w-28 flex-shrink-0">
+          <div className="text-relisten-700 font-semibold">{day.display_date}</div>
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-gray-900 font-medium truncate">
+        <div className="min-w-0 flex-1">
+          <div className="truncate font-medium text-gray-900">
             {day.venue?.name || 'Unknown Venue'}
           </div>
           {day.venue?.location && (
-            <div className="text-sm text-foreground-muted truncate">{day.venue.location}</div>
+            <div className="text-foreground-muted truncate text-sm">{day.venue.location}</div>
           )}
         </div>
-        <div className="flex-shrink-0 ml-4 text-relisten-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <div className="text-relisten-600 ml-4 flex-shrink-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
           →
         </div>
       </Flex>

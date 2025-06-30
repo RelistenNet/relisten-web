@@ -78,7 +78,7 @@ const RecentTapesColumnWithControls = ({
       onClearFilters={clearFilters}
     >
       {(!processedShows || processedShows.length === 0) && (
-        <div className="text-center text-gray-700 text-sm py-2">No recently added shows!</div>
+        <div className="py-2 text-center text-sm text-gray-700">No recently added shows!</div>
       )}
       {processedShows &&
         artistSlug &&
@@ -118,7 +118,7 @@ const RecentTapesColumnWithControls = ({
                     </div>
                   )}
                 </div>
-                <div className="flex h-full min-w-[20%] flex-col justify-center gap-2 text-right text-xxs text-foreground-muted">
+                <div className="text-xxs text-foreground-muted flex h-full min-w-[20%] flex-col justify-center gap-2 text-right">
                   <div>{durationToHHMMSS(avg_duration)}</div>
                   <div>{simplePluralize('tape', show.source_count)}</div>
                 </div>

@@ -75,12 +75,12 @@ const ArtistsColumnWithControls = ({ artists, initialFilters }: ArtistsColumnWit
             <div>
               <div>{artist.name}</div>
               {byObject[String(artist.slug)] && (
-                <span className="text-xs text-foreground-muted">
+                <span className="text-foreground-muted text-xs">
                   Powered by {byObject[String(artist.slug)]}
                 </span>
               )}
             </div>
-            <div className="min-w-[20%] text-right text-xs text-foreground-muted">
+            <div className="text-foreground-muted min-w-[20%] text-right text-xs">
               <div>{simplePluralize('show', artist.show_count)}</div>
               <div>{simplePluralize('tape', artist.source_count)}</div>
             </div>

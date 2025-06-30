@@ -37,23 +37,26 @@ const ColumnWithToggleControls = ({
   const ref = useRef<HTMLDivElement | null>(null);
 
   return (
-    <Flex ref={ref} className={cn('relisten-column flex-1 break-words relative', className)} column>
+    <Flex ref={ref} className={cn('relisten-column relative flex-1 break-words', className)} column>
       <Scroller containerRef={ref} key={heading} />
       {heading && (
-        <Flex className="bg-relisten-600 min-h-[32px] w-full text-white capitalize px-2 items-center justify-between">
+        <Flex className="bg-relisten-700/80 min-h-[32px] w-full items-center justify-between px-2 text-white capitalize">
           <span className="flex-1 text-center">{heading?.replaceAll('-', ' ')}</span>
 
-          <Flex className="gap-1 absolute right-2">
+          <Flex className="absolute right-2 gap-1">
             {toggles.map((toggle, index) => (
               <button
                 key={index}
                 onClick={toggle.onToggle}
                 className={cn(
-                  'p-1 rounded transition-all duration-200 flex items-center gap-1 cursor-pointer',
-                  'hover:bg-white/10 hover:scale-105 active:scale-95',
+                  'flex cursor-pointer items-center gap-1 rounded p-1 transition-all duration-200',
+                  'hover:scale-105 hover:bg-white/10 active:scale-95',
                   toggle.isActive
-                    ? 'bg-white/25 text-white shadow-md ring-1 ring-relisten-200 font-medium'
+                    ? 'ring-relisten-200 bg-white/25 font-medium text-white shadow-md ring-1'
                     : 'bg-white/5 text-white/80 hover:text-white',
+                  toggle.isActive && toggle.label
+                    ? 'bg-emerald-500 ring-emerald-300 hover:bg-emerald-500'
+                    : '',
                   toggle.label && 'text-[10px]'
                 )}
                 title={toggle.title}
@@ -62,9 +65,9 @@ const ColumnWithToggleControls = ({
                   toggle.icon
                 ) : toggle.type === 'sort' ? (
                   toggle.isActive ? (
-                    <ChevronUp className="w-3 h-3" />
+                    <ChevronUp className="h-3 w-3" />
                   ) : (
-                    <ChevronDown className="w-3 h-3" />
+                    <ChevronDown className="h-3 w-3" />
                   )
                 ) : null}
                 {toggle.label && <span>{toggle.label}</span>}
@@ -73,15 +76,15 @@ const ColumnWithToggleControls = ({
           </Flex>
         </Flex>
       )}
-      <Flex column className="flex-1 overflow-y-auto overflow-x-hidden">
+      <Flex column className="flex-1 overflow-x-hidden overflow-y-auto">
         {filteredCount !== undefined && totalCount !== undefined && filteredCount < totalCount && (
-          <div className="p-2 m-2 bg-amber-500/10 border border-amber-500/20 rounded text-amber-700 text-xs">
+          <div className="m-2 rounded border border-amber-500/20 bg-amber-500/10 p-2 text-xs text-amber-700">
             {filteredCount === 0 ? (
               <>
                 All {totalCount - filteredCount} rows are hidden by filters.{' '}
                 <button
                   onClick={onClearFilters}
-                  className="underline hover:no-underline font-medium"
+                  className="font-medium underline hover:no-underline"
                 >
                   Clear Filters
                 </button>
@@ -91,7 +94,7 @@ const ColumnWithToggleControls = ({
                 {totalCount - filteredCount} rows are hidden by filters.{' '}
                 <button
                   onClick={onClearFilters}
-                  className="underline hover:no-underline font-medium"
+                  className="font-medium underline hover:no-underline"
                 >
                   Clear Filters
                 </button>

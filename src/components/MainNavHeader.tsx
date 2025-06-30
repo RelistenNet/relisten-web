@@ -24,10 +24,10 @@ export default function MainNavHeader({
 
   return (
     <>
-      <Flex className="left h-full flex-1 items-center whitespace-nowrap font-medium max-lg:hidden lg:gap-1">
+      <Flex className="left h-full flex-1 items-center font-medium whitespace-nowrap max-lg:hidden lg:gap-1">
         <Link
           href={indexOverride ?? '/'}
-          className="ml-1 text-center"
+          className="text-center"
           prefetch={false}
           onClick={onClickNav}
         >

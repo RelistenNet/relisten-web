@@ -96,7 +96,7 @@ export default function LiveTrack({
         <Flex className="flex-1" column>
           <Flex gap={1} className="items-center justify-between">
             <div className="content font-semibold">{track.track.title}</div>
-            <span className="align-right text-nowrap text-xxs opacity-70">
+            <span className="align-right text-xxs text-nowrap opacity-70">
               {app_type_description} &middot; <TimeAgo date={created_at} formatter={formatterFn} />
             </span>
           </Flex>
@@ -110,7 +110,7 @@ export default function LiveTrack({
             />
           </div>
           <ArrowRight
-            className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-gray-900"
+            className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-gray-900"
             size={16}
           />
         </Flex>

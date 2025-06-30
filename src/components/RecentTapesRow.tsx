@@ -8,7 +8,7 @@ const RecentTapesRow = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => 
         <div>Recent Tapes</div>
         <div className="text-xxs text-foreground-muted">The Newest Recordings</div>
       </div>
-      <div className="min-w-[20%] text-right text-xxs text-foreground-muted">
+      <div className="text-xxs text-foreground-muted min-w-[20%] text-right">
         <div>fresh shows</div>
         <div>fresh tapes</div>
       </div>

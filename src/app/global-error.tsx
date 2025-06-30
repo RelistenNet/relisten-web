@@ -16,13 +16,13 @@ export default function GlobalError({
   return (
     <html>
       <body>
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="max-w-md w-full mx-auto p-6 bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+          <div className="mx-auto w-full max-w-md rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
             <div className="text-center">
               <div className="mb-4">
-                <div className="w-16 h-16 mx-auto bg-red-100 rounded-full flex items-center justify-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
                   <svg
-                    className="w-8 h-8 text-red-600"
+                    className="h-8 w-8 text-red-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -37,7 +37,7 @@ export default function GlobalError({
                 </div>
               </div>
 
-              <h1 className="text-2xl font-semibold text-gray-900 mb-2">Something went wrong</h1>
+              <h1 className="mb-2 text-2xl font-semibold text-gray-900">Something went wrong</h1>
 
               <p className="text-foreground-muted mb-6">
                 An unexpected error occurred. Please try again or contact support if the problem
@@ -47,14 +47,14 @@ export default function GlobalError({
               <div className="space-y-3">
                 <button
                   onClick={() => reset()}
-                  className="w-full bg-relisten-600 text-white px-4 py-2 rounded-md hover:bg-relisten-700 transition-colors"
+                  className="bg-relisten-600 w-full rounded-md px-4 py-2 text-white transition-colors hover:bg-relisten-700"
                 >
                   Try again
                 </button>
 
                 <button
                   onClick={() => (window.location.href = '/')}
-                  className="w-full bg-gray-100 text-gray-900 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors"
+                  className="w-full rounded-md bg-gray-100 px-4 py-2 text-gray-900 transition-colors hover:bg-gray-200"
                 >
                   Go to homepage
                 </button>
@@ -65,7 +65,7 @@ export default function GlobalError({
                   <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
                     Error details (development only)
                   </summary>
-                  <pre className="mt-2 text-xs bg-gray-100 p-3 rounded overflow-auto text-red-800">
+                  <pre className="mt-2 overflow-auto rounded bg-gray-100 p-3 text-xs text-red-800">
                     {error.message}
                     {error.stack && '\n\n' + error.stack}
                   </pre>

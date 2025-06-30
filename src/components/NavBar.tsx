@@ -39,7 +39,7 @@ export default async function NavBar() {
 
   return (
     <>
-      <div className="navigation relative flex h-[50px] max-h-[50px] min-h-[50px] grid-cols-3 justify-between border-b-[1px] border-b-[#aeaeae] bg-white text-foreground lg:grid">
+      <div className="navigation text-foreground relative flex h-[50px] max-h-[50px] min-h-[50px] grid-cols-3 justify-between border-b-[1px] border-b-[#aeaeae] bg-white px-4 lg:grid">
         <MainNavHeader
           artistSlugsToName={artistSlugsToName}
           indexOverride={isInIframe ? '/wsp' : undefined}
@@ -49,13 +49,13 @@ export default async function NavBar() {
         </div>
         <SimplePopover content={<Menu />}>
           <Flex className="ml-2 h-full cursor-pointer content-end items-center text-center font-medium xl:hidden">
-            <div className="ml-auto flex h-full items-center px-1 active:relative active:top-[1px] active:text-foreground">
+            <div className="active:text-foreground active:relative active:top-[1px] ml-auto flex h-full items-center px-1">
               <MenuIcon />
             </div>
           </Flex>
         </SimplePopover>
-        <div className="nav flex-2 hidden h-full cursor-pointer items-center justify-end text-center font-medium xl:flex">
-          <div className="h-full px-1">
+        <div className="nav hidden h-full flex-2 cursor-pointer items-center justify-end gap-4 text-center font-medium xl:flex">
+          <div className="h-full">
             <Link className="nav-btn" href="/today" prefetch={false}>
               TIH
             </Link>

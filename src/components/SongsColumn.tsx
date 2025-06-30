@@ -113,7 +113,7 @@ const SongsColumn = (props: Props) => {
                       </div>
                     )}
                   </div>
-                  <div className="text-xxs min-w-[20%] text-right text-foreground-muted">
+                  <div className="text-xxs text-foreground-muted min-w-[20%] text-right">
                     <div>
                       {trackMetadata && trackMetadata.webAudioLoadingState !== 'NONE'
                         ? trackMetadata.webAudioLoadingState

@@ -45,7 +45,7 @@
 }
 
 @utility nav-btn {
-  @apply flex h-full items-center px-2 text-center active:relative active:top-[1px] active:text-foreground;
+  @apply flex h-full items-center text-center active:relative active:top-[1px] active:text-foreground;
 }
 
 @utility relisten-row {
