@@ -10,7 +10,7 @@ export class RelistenAPI {
 
   // Validate artist slug format
   private static isValidArtistSlug(slug: string): boolean {
-    return /^[a-z-]+$/i.test(slug);
+    return /^[a-z-\d]+$/i.test(slug);
   }
 
   // Generic cached fetch method
