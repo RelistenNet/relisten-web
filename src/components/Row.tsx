@@ -14,10 +14,19 @@ type RowProps = {
   active?: boolean;
   loading?: boolean;
   activeSegments?: Record<string, string | undefined>;
+  fallbackParams?: Record<string, string>;
   isActiveOverride?: boolean;
 };
 
-const Row = ({ children, href, activeSegments, isActiveOverride, loading, ...props }: RowProps) => {
+const Row = ({
+  children,
+  href,
+  activeSegments,
+  isActiveOverride,
+  loading,
+  fallbackParams,
+  ...props
+}: RowProps) => {
   const [isPending, startTransition] = useTransition();
   const params = useParams();
   const pathname = usePathname();
@@ -27,7 +36,9 @@ const Row = ({ children, href, activeSegments, isActiveOverride, loading, ...pro
 
   // if every segment is true, then we're active
   if (isActiveOverride === undefined && activeSegments) {
-    isActive = Object.entries(activeSegments).every(([key, value]) => params[key] === value);
+    isActive = Object.entries(activeSegments).every(
+      ([key, value]) => (params[key] ?? fallbackParams?.[key]) === value
+    );
   }
 
   if (!href) {
