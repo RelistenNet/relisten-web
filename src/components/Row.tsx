@@ -72,7 +72,7 @@ const Row = ({ children, href, activeSegments, isActiveOverride, loading, ...pro
         )}
         {isPending && <div className="bg-relisten-600/30 w-2 animate-pulse" />}
 
-        {!isPending && isActive && <div className="bg-relisten-600 w-2" />}
+        {!isPending && isActive && <div className="bg-relisten-600 w-2 min-w-2" />}
         <Flex className="w-full flex-1 items-center justify-between p-1 leading-tight">
           {children}
         </Flex>
