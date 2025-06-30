@@ -49,7 +49,7 @@ const ColumnWithToggleControls = ({
                 key={index}
                 onClick={toggle.onToggle}
                 className={cn(
-                  'p-1 rounded transition-all duration-200 flex items-center gap-1',
+                  'p-1 rounded transition-all duration-200 flex items-center gap-1 cursor-pointer',
                   'hover:bg-white/10 hover:scale-105 active:scale-95',
                   toggle.isActive
                     ? 'bg-white/25 text-white shadow-md ring-1 ring-relisten-200 font-medium'
