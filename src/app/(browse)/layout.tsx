@@ -4,7 +4,7 @@ import cn from '@/lib/cn';
 import { getIsInIframe } from '@/lib/isInIframe';
 import { ReactNode } from 'react';
 
-export default function BrowseLayout({
+export default async function BrowseLayout({
   children,
   artists,
   years,
@@ -19,7 +19,7 @@ export default function BrowseLayout({
   songs: ReactNode;
   sources: ReactNode;
 }) {
-  const isInIframe = getIsInIframe();
+  const isInIframe = await getIsInIframe();
 
   return (
     <Flex column className="h-screen">
