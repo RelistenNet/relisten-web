@@ -62,9 +62,9 @@ const ColumnWithToggleControls = ({
                   toggle.icon
                 ) : toggle.type === 'sort' ? (
                   toggle.isActive ? (
-                    <ChevronUp className="w-3 h-3" />
-                  ) : (
                     <ChevronDown className="w-3 h-3" />
+                  ) : (
+                    <ChevronUp className="w-3 h-3" />
                   )
                 ) : null}
                 {toggle.label && <span>{toggle.label}</span>}
