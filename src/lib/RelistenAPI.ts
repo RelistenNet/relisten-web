@@ -72,6 +72,13 @@ export class RelistenAPI {
   static fetchRandomShow = cache(async (artistSlug: string): Promise<Partial<Tape> | undefined> => {
     if (!artistSlug) return undefined;
 
+    // if doesnt match
+    if (!/^[a-z-]+$/i.test(artistSlug)) {
+      console.error('Tried to load url that doesnt match artist slug format:', artistSlug);
+
+      return notFound();
+    }
+
     return this.cachedFetch<Partial<Tape>>(`/api/v2/artists/${artistSlug}/shows/random`, {
       revalidate: 0,
     });
