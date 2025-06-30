@@ -104,12 +104,12 @@ const ShowsColumnWithControls = ({
                 }}
               >
                 <div>
-                  <Flex>
+                  <Flex className="tabular-nums">
                     {removeLeadingZero(month)}/{day}
                     {show.has_soundboard_source && <Tag>SBD</Tag>}
                   </Flex>
                   {venue && (
-                    <div className="text-xxs text-foreground-muted">
+                    <div className="text-xxs text-foreground-muted my-0.5 leading-3.5">
                       <div>{venue.name}</div>
                       <div>{venue.location}</div>
                     </div>
