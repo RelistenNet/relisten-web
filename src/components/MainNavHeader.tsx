@@ -7,8 +7,10 @@ import { usePathname, useRouter } from 'next/navigation';
 
 export default function MainNavHeader({
   artistSlugsToName,
+  indexOverride,
 }: {
   artistSlugsToName: Record<string, string | undefined>;
+  indexOverride?: string;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -23,13 +25,18 @@ export default function MainNavHeader({
   return (
     <>
       <Flex className="left h-full flex-1 items-center whitespace-nowrap font-medium max-lg:hidden lg:gap-1">
-        <Link href="/" className="ml-1 text-center " prefetch={false} onClick={onClickNav}>
+        <Link
+          href={indexOverride ?? '/'}
+          className="ml-1 text-center"
+          prefetch={false}
+          onClick={onClickNav}
+        >
           RELISTEN
         </Link>
         <SecondaryNavBar artistSlugsToName={artistSlugsToName} />
       </Flex>
       <Flex className="h-full px-2 lg:hidden" center>
-        <Link href="/" prefetch={false}>
+        <Link href={indexOverride ?? '/'} prefetch={false}>
           Re
         </Link>
       </Flex>

@@ -1,5 +1,7 @@
 import Flex from '@/components/Flex';
 import NavBar from '@/components/NavBar';
+import cn from '@/lib/cn';
+import { getIsInIframe } from '@/lib/isInIframe';
 import { ReactNode } from 'react';
 
 export default function BrowseLayout({
@@ -17,10 +19,19 @@ export default function BrowseLayout({
   songs: ReactNode;
   sources: ReactNode;
 }) {
+  const isInIframe = getIsInIframe();
+
   return (
     <Flex column className="h-screen">
       <NavBar />
-      <div className="overflow-y-auto px-4 lg:grid lg:grid-flow-col lg:grid-cols-5 lg:grid-rows-1 lg:gap-8 max-md:[&>div:last-child]:block max-md:[&>div]:hidden">
+      <div
+        className={cn(
+          'overflow-y-auto px-4 lg:grid lg:grid-flow-col lg:grid-cols-5 lg:grid-rows-1 lg:gap-8 max-md:[&>div:last-child]:block max-md:[&>div]:hidden',
+          {
+            ['lg:grid-cols-4']: isInIframe,
+          }
+        )}
+      >
         {artists}
         {years}
         {shows}

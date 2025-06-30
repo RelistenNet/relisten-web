@@ -1,14 +1,10 @@
 import ArtistsColumn from '@/components/ArtistsColumn';
-import { hideArtistsSearchParamsLoader } from '@/lib/searchParams/hideArtistsSearchParams';
+import { getIsInIframe } from '@/lib/isInIframe';
 
-interface ArtistsSlotProps {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}
-
-export default async function ArtistsSlot({ searchParams }: ArtistsSlotProps) {
-  const { hideArtists } = await hideArtistsSearchParamsLoader.parseAndValidate(searchParams);
-
-  if (hideArtists) return null;
+export default async function ArtistsSlot() {
+  if (await getIsInIframe()) {
+    return null;
+  }
 
   return <ArtistsColumn />;
 }
