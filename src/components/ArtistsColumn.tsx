@@ -4,6 +4,7 @@ import { Artist } from '../types';
 import Column from './Column';
 import Row from './Row';
 import RowHeader from './RowHeader';
+import { DEFAULT_ARTIST_SLUG } from '@/lib/defaultArtist';
 
 const byObject = {
   phish: 'Phish.in',
@@ -24,6 +25,7 @@ const ArtistsColumn = async () => {
                 key={[idx, artist.id].join(':')}
                 href={`/${artist.slug}`}
                 activeSegments={{ artistSlug: artist.slug }}
+                fallbackParams={{ artistSlug: DEFAULT_ARTIST_SLUG }}
               >
                 <div>
                   <div>{artist.name}</div>

@@ -11,10 +11,7 @@ import RowHeader from './RowHeader';
 import Tag from './Tag';
 import { notFound } from 'next/navigation';
 
-const RecentTapesColumn = async ({
-  artistSlug,
-  year,
-}: Pick<RawParams, 'artistSlug' | 'year'>) => {
+const RecentTapesColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 'year'>) => {
   const shows = await RelistenAPI.fetchRecentlyAdded(artistSlug).catch(() => {
     notFound();
   });
@@ -22,29 +19,16 @@ const RecentTapesColumn = async ({
   return (
     <Column heading={year ? year : 'Recently Added'} key={year}>
       {(!shows || shows.length === 0) && (
-        <div className="text-center text-gray-700 text-sm py-2">
-          No recently added shows!
-        </div>
+        <div className="text-center text-gray-700 text-sm py-2">No recently added shows!</div>
       )}
       {shows &&
         artistSlug &&
         sortActiveBands(artistSlug, shows).map((show) => {
           const { year, month, day } = splitShowDate(show.display_date);
-          const { venue, avg_duration, tour } = show;
-          let tourName = '';
-
-          // keep track of which tours we've displayed
-          if (tour) {
-            if (!tours[tour.id]) tourName = tour.name ?? '';
-
-            tours[tour.id] = true;
-          }
+          const { venue, avg_duration } = show;
 
           return (
             <div key={show.id}>
-              {tourName && (
-                <RowHeader>{tourName === 'Not Part of a Tour' ? '' : tourName}</RowHeader>
-              )}
               <Row
                 href={`/${artistSlug}/${year}/${month}/${day}`}
                 activeSegments={{
