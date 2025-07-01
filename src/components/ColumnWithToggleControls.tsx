@@ -52,7 +52,7 @@ const ColumnWithToggleControls = ({
                   'flex cursor-pointer items-center gap-1 rounded p-1 transition-all duration-200',
                   'hover:scale-105 hover:bg-white/10 active:scale-95',
                   toggle.isActive
-                    ? 'ring-relisten-300 bg-white/25 font-medium text-white ring-1'
+                    ? 'ring-relisten-300/80 bg-white/25 font-medium text-white ring-1'
                     : 'bg-white/5 text-white/80 hover:text-white',
                   toggle.isActive && toggle.label
                     ? 'bg-emerald-500 ring-emerald-300 hover:bg-emerald-500'

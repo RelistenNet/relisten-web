@@ -28,6 +28,17 @@ const pluralize = (str: string, count: number): string => {
   return str + 's';
 };
 
+const author = (sourceObj: Source) => {
+  if (sourceObj.taper) {
+    return `Taper: ${sourceObj.taper}`;
+  }
+  if (sourceObj.transferrer) {
+    return `Transferrer: ${sourceObj.transferrer}`;
+  }
+
+  return undefined;
+};
+
 const TapesColumn = (props: Props) => {
   const [{ source: sourceId }] = sourceSearchParamsLoader.useQueryStates();
 
@@ -38,9 +49,7 @@ const TapesColumn = (props: Props) => {
     <Column heading="Sources" className="tapes-column">
       {sourcesData?.map((sourceObj: Source, idx: number) => (
         <div key={sourceObj.id}>
-          <RowHeader>
-            SOURCE {idx + 1} OF {sourcesData.length}
-          </RowHeader>
+          <RowHeader>{author(sourceObj) || `Source ${idx + 1} of ${sourcesData.length}`}</RowHeader>
           <Row
             href={`/${artistSlug}/${year}/${month}/${day}?source=${sourceObj.id}`}
             isActiveOverride={activeSourceId === sourceObj?.id}
@@ -56,7 +65,7 @@ const TapesColumn = (props: Props) => {
               </Flex>
               {Number(sourceObj?.avg_rating) > 0 && (
                 <Flex className="py-1 text-xs">
-                  <div className="text-foreground-muted min-w-[48px] pr-2 whitespace-nowrap">
+                  <div className="text-foreground-muted min-w-[48px] truncate pr-2 whitespace-nowrap">
                     {artistSlug === 'phish' ? 'Dot Net' : 'Rating'}:
                   </div>{' '}
                   <div className="truncate">
@@ -76,7 +85,7 @@ const TapesColumn = (props: Props) => {
               )}
               {exists(sourceObj.transferrer) && (
                 <Flex className="py-1 text-xs">
-                  <div className="text-foreground-muted min-w-[48px] pr-2 whitespace-nowrap">
+                  <div className="text-foreground-muted min-w-[48px] truncate pr-2 whitespace-nowrap">
                     Transferrer:
                   </div>{' '}
                   <div className="truncate">{sourceObj.transferrer}</div>
@@ -84,7 +93,7 @@ const TapesColumn = (props: Props) => {
               )}
               {exists(sourceObj.upstream_identifier) && (
                 <Flex className="py-1 text-xs">
-                  <div className="text-foreground-muted min-w-[48px] pr-2 whitespace-nowrap">
+                  <div className="text-foreground-muted min-w-[48px] truncate pr-2 whitespace-nowrap">
                     SHNID:
                   </div>{' '}
                   <div className="truncate">{sourceObj.upstream_identifier}</div>
@@ -92,7 +101,7 @@ const TapesColumn = (props: Props) => {
               )}
               {exists(sourceObj.source) && (
                 <Flex className="py-1 text-xs">
-                  <div className="text-foreground-muted min-w-[48px] pr-2 whitespace-nowrap">
+                  <div className="text-foreground-muted min-w-[48px] truncate pr-2 whitespace-nowrap">
                     Source:
                   </div>{' '}
                   <div className="truncate">{sourceObj.source}</div>
@@ -100,7 +109,7 @@ const TapesColumn = (props: Props) => {
               )}
               {exists(sourceObj.lineage) && (
                 <Flex className="py-1 text-xs">
-                  <div className="text-foreground-muted min-w-[48px] pr-2 whitespace-nowrap">
+                  <div className="text-foreground-muted min-w-[48px] truncate pr-2 whitespace-nowrap">
                     Lineage:
                   </div>{' '}
                   <div className="truncate">{sourceObj.lineage}</div>
@@ -108,7 +117,7 @@ const TapesColumn = (props: Props) => {
               )}
               {exists(sourceObj.taper_notes) && (
                 <Flex className="py-1 text-xs">
-                  <div className="text-foreground-muted min-w-[48px] pr-2 whitespace-nowrap">
+                  <div className="text-foreground-muted min-w-[48px] truncate pr-2 whitespace-nowrap">
                     Taper Notes:
                   </div>{' '}
                   <TaperNotes notes={sourceObj.taper_notes} />
