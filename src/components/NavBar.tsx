@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Flex from './Flex';
 import Menu from './Menu';
 import Player from './Player';
-import * as Popover from '@radix-ui/react-popover';
+import * as Popover from '@/components/Popover';
 import RelistenAPI from '@/lib/RelistenAPI';
 import MainNavHeader from './MainNavHeader';
 import AndroidUpgradeNotification from './AndroidUpgradeNotification';

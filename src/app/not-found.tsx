@@ -1,3 +1,6 @@
+'use client';
+
+import { ArrowDown } from 'lucide-react';
 import Link from 'next/link';
 
 export default function NotFound() {
@@ -24,7 +27,8 @@ export default function NotFound() {
           <h1 className="mb-3 text-3xl font-semibold text-gray-900">404 - Page Not Found</h1>
 
           <p className="text-foreground-muted mb-8 text-lg">
-            Looks like this show got lost in the lot. The page you're looking for doesn't exist.
+            Looks like this keyboardist got lost on the way to the show. The Page you're looking for
+            doesn't exist yet - maybe it's 1983.
           </p>
         </div>
 
@@ -33,24 +37,19 @@ export default function NotFound() {
             href="/"
             className="bg-relisten-600 inline-block w-full rounded-lg px-6 py-3 font-medium text-white transition-colors hover:bg-relisten-700 sm:w-auto"
           >
-            Go to homepage
+            Go to HomePage
+            <div className="flex flex-col items-center">
+              <ArrowDown />
+            </div>
+            <img
+              src="/homepage.jpg"
+              alt="HomePage"
+              width={140}
+              height={225}
+              sizes="(max-width: 640px) 100vw, 400px"
+              className="mx-auto"
+            />
           </Link>
-
-          <div className="flex flex-col justify-center gap-3 sm:flex-row">
-            <button
-              onClick={() => window.history.back()}
-              className="rounded-lg bg-gray-100 px-6 py-3 text-gray-900 transition-colors hover:bg-gray-200"
-            >
-              Go back
-            </button>
-
-            <Link
-              href="/artists"
-              className="rounded-lg bg-gray-100 px-6 py-3 text-gray-900 transition-colors hover:bg-gray-200"
-            >
-              Browse artists
-            </Link>
-          </div>
         </div>
       </div>
     </div>
