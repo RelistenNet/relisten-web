@@ -40,7 +40,7 @@ export default function NotFound() {
               <ArrowDown />
             </div>
             <img
-              src="/homepage.jpg"
+              src="/HomePage.jpg"
               alt="HomePage"
               width={140}
               height={225}
