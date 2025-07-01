@@ -22,16 +22,15 @@ export default async function Page() {
   );
 
   return (
-    <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
+    <div className="mx-auto w-full max-w-3xl flex-1">
       <div className="mb-8">
         <h1 className="mb-2 text-3xl font-semibold text-gray-900">Today in History</h1>
-        <div className="bg-relisten-600 h-1 w-16 rounded-full"></div>
       </div>
 
       <div className="space-y-8">
         {Object.entries(groupedBy).map(([artistName, days]) => (
           <div key={artistName}>
-            <h2 className="text-relisten-700 border-relisten-500 mb-4 border-l-4 pl-4 text-xl font-semibold">
+            <h2 className="text-relisten-700 mb-4 border-l-4 pl-4 text-xl font-semibold">
               {artistName}
             </h2>
             <div className="ml-2 space-y-0 border-l border-gray-200">
