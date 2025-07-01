@@ -67,8 +67,6 @@ const TodayInHistoryColumnWithControls = ({
     return processedShows;
   }, [shows, artistSlug, dateAsc, sbdOnly]);
 
-  const tours = {};
-
   return (
     <ColumnWithToggleControls
       heading={year ? year : 'Today In History'}
@@ -87,20 +85,10 @@ const TodayInHistoryColumnWithControls = ({
         processedShows.map((show) => {
           const { year, month, day } = splitShowDate(show.display_date);
           const { venue, avg_duration, tour } = show;
-          let tourName = '';
-
-          // keep track of which tours we've displayed
-          if (tour) {
-            if (!tours[tour.id]) tourName = tour.name ?? '';
-
-            tours[tour.id] = true;
-          }
 
           return (
             <div key={show.id}>
-              {tourName && (
-                <RowHeader>{tourName === 'Not Part of a Tour' ? '' : tourName}</RowHeader>
-              )}
+              <RowHeader>{year}</RowHeader>
               <Row
                 href={`/${artistSlug}/${year}/${month}/${day}`}
                 activeSegments={{
