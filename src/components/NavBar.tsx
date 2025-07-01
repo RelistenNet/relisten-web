@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Flex from './Flex';
 import Menu from './Menu';
 import Player from './Player';
-import { SimplePopover } from './Popover';
+import * as Popover from '@radix-ui/react-popover';
 import RelistenAPI from '@/lib/RelistenAPI';
 import MainNavHeader from './MainNavHeader';
 import AndroidUpgradeNotification from './AndroidUpgradeNotification';
@@ -47,13 +47,23 @@ export default async function NavBar() {
         <div className="player min-w-[60%] flex-1 text-center lg:min-w-[44vw] xl:min-w-[38vw]">
           <Player artistSlugsToName={artistSlugsToName} />
         </div>
-        <SimplePopover content={<Menu />}>
-          <Flex className="ml-2 h-full cursor-pointer content-end items-center text-center font-medium xl:hidden">
-            <div className="active:text-foreground active:relative active:top-[1px] ml-auto flex h-full items-center px-1">
-              <MenuIcon />
-            </div>
-          </Flex>
-        </SimplePopover>
+
+        <Popover.Root>
+          <Popover.Trigger className="ml-2 ml-auto h-full w-min cursor-pointer content-end items-center text-center font-medium xl:hidden">
+            <Flex className="ml-2 h-full cursor-pointer content-end items-center text-center font-medium xl:hidden">
+              <div className="active:text-foreground active:relative active:top-[1px] ml-auto flex h-full items-center px-1">
+                <MenuIcon />
+              </div>
+            </Flex>
+          </Popover.Trigger>
+          {/* <Popover.Anchor /> */}
+          <Popover.Portal>
+            <Popover.Content>
+              <Menu />
+            </Popover.Content>
+          </Popover.Portal>
+        </Popover.Root>
+
         <div className="nav hidden h-full flex-2 cursor-pointer items-center justify-end gap-4 text-center font-medium xl:flex">
           <div className="h-full">
             <Link className="nav-btn" href="/today" prefetch={false}>

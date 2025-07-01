@@ -27,20 +27,6 @@ export const splitShowDate = (showDate = ''): { year: string; month: string; day
   return { year, month, day };
 };
 
-// TODO: Update type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getParams = (query: string): any => {
-  if (!query) {
-    return {};
-  }
-
-  return (/^[?#]/.test(query) ? query.slice(1) : query).split('&').reduce((params, param) => {
-    const [key, value] = param.split('=');
-    params[key] = value ? decodeURIComponent(value.replace(/\+/g, ' ')) : '';
-    return params;
-  }, {});
-};
-
 export const durationToHHMMSS = (duration = 0): string => {
   const prefix = duration < 0 ? '-' : '';
   let totalSeconds = Math.abs(duration);

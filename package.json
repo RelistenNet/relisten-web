@@ -16,7 +16,7 @@
   "license": "MIT",
   "dependencies": {
     "@date-fns/tz": "^1.2.0",
-    "@floating-ui/react": "^0.27.7",
+    "@radix-ui/react-popover": "^1.1.14",
     "@reduxjs/toolkit": "^1.9.5",
     "@tanstack/react-query": "^5.74.4",
     "@tanstack/react-query-devtools": "^5.74.4",
