@@ -5,6 +5,7 @@ import { ChevronUp, ChevronDown } from 'lucide-react';
 import React, { useRef } from 'react';
 import Flex from './Flex';
 import Scroller from './Scroller';
+import { simplePluralize } from '@/lib/utils';
 
 type ToggleConfig = {
   type: 'sort' | 'filter';
@@ -35,6 +36,11 @@ const ColumnWithToggleControls = ({
   onClearFilters,
 }: ColumnWithToggleControlsProps) => {
   const ref = useRef<HTMLDivElement | null>(null);
+
+  const hiddenRows =
+    typeof totalCount === 'number' && typeof filteredCount === 'number'
+      ? totalCount - filteredCount
+      : 0;
 
   return (
     <Flex ref={ref} className={cn('relisten-column relative flex-1 break-words', className)} column>
@@ -81,7 +87,7 @@ const ColumnWithToggleControls = ({
           <div className="m-2 rounded border border-amber-500/20 bg-amber-500/10 p-2 text-xs text-amber-700">
             {filteredCount === 0 ? (
               <>
-                All {totalCount - filteredCount} rows are hidden by filters.{' '}
+                All {simplePluralize('row', hiddenRows)} are hidden by filters.{' '}
                 <button
                   onClick={onClearFilters}
                   className="font-medium underline hover:no-underline"
@@ -91,7 +97,7 @@ const ColumnWithToggleControls = ({
               </>
             ) : (
               <>
-                {totalCount - filteredCount} rows are hidden by filters.{' '}
+                {simplePluralize('row', hiddenRows)} are hidden by filters.{' '}
                 <button
                   onClick={onClearFilters}
                   className="font-medium underline hover:no-underline"
