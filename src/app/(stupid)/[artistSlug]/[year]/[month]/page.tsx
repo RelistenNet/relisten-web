@@ -1,8 +1,8 @@
 import RelistenAPI from '@/lib/RelistenAPI';
+import { format } from 'date-fns';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { format } from 'date-fns';
 
 interface Props {
   params: Promise<{ artistSlug: string; year: string; month: string }>;
@@ -17,10 +17,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: 'Not Found' };
   }
 
-  const monthName = format(new Date(parseInt(year), parseInt(month) - 1, 1), 'MMMM');
-
   return {
-    title: `Index of /${artist.name}/${year}/${monthName}`,
+    title: `Index of /${artist.slug}/${year}/${month}`,
   };
 }
 
@@ -65,12 +63,10 @@ export default async function MonthPage({ params }: Props) {
     (a, b) => new Date(a.display_date || '').getTime() - new Date(b.display_date || '').getTime()
   );
 
-  const monthName = format(new Date(parseInt(year), parseInt(month) - 1, 1), 'MMMM');
-
   return (
     <div className="bg-white p-4 font-serif text-black">
       <h1 className="mb-4 text-2xl font-bold">
-        Index of /{artist.slug}/{year}/{monthName}/
+        Index of /{artist.slug}/{year}/{month}/
       </h1>
       <table className="border-collapse">
         <tbody>
@@ -227,7 +223,7 @@ export default async function MonthPage({ params }: Props) {
           {monthShows.length === 0 && (
             <tr>
               <td colSpan={5} className="pt-4 pb-4 text-center">
-                No shows found for {monthName} {year}
+                No files found for /{artistSlug}/{year}/{month}
               </td>
             </tr>
           )}
