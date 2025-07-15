@@ -9,6 +9,7 @@ import { Set, Source, Tape } from '../types';
 import Column from './Column';
 import Row from './Row';
 import RowHeader from './RowHeader';
+import { sortSources } from '@/lib/sortSources';
 
 const getSetTime = (set: Set): string =>
   durationToHHMMSS(
@@ -59,7 +60,7 @@ export const useSourceData = ({
     isActiveSourcePlaying: activeSourceObj?.id === activePlaybackSourceId,
     displayDate,
     activeSourceObj,
-    sourcesData: show?.sources ?? [],
+    sourcesData: sortSources(show?.sources ?? []),
   };
 };
 
