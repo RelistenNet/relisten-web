@@ -62,6 +62,9 @@
   "pnpm": {
     "overrides": {
       "@types/react": "19.0.12"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "realm"
+    ]
   }
 }
