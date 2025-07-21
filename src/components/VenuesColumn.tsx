@@ -19,8 +19,6 @@ const VenuesColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
 
   const venues = artistVenues.filter((venue) => venue.shows_at_venue && venue.shows_at_venue > 0);
 
-  console.log(venues);
-
   return (
     <VenuesColumnWithControls
       artistSlug={artistSlug}

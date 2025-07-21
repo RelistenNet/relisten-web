@@ -37,9 +37,9 @@ export default async function BrowseLayout({
         {artists}
         {years}
         {venues}
-        {/* {shows} */}
-        {/* {songs} */}
-        {/* {sources} */}
+        {shows}
+        {songs}
+        {sources}
         {children}
       </div>
     </Flex>
