@@ -60,6 +60,8 @@ const YearsColumnWithControls = ({
       filteredCount={processedYears.length}
       totalCount={artistYears.length}
       onClearFilters={clearFilters}
+      showDisplayToggle
+      artistSlug={artistSlug}
     >
       {children}
       {artistSlug &&
