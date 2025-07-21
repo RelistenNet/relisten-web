@@ -5,6 +5,7 @@ import sortActiveBands from '../lib/sortActiveBands';
 import { durationToHHMMSS, removeLeadingZero, simplePluralize, splitShowDate } from '../lib/utils';
 import { Show } from '@/types';
 import { useFilterState } from '@/hooks/useFilterState';
+import { useSearchFilter } from '@/hooks/useSearchFilter';
 import { FilterState } from '@/lib/filterCookies';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import Flex from './Flex';
@@ -29,6 +30,16 @@ const ShowsColumnWithControls = ({
     initialFilters,
     `${artistSlug}:shows`
   );
+  
+  const { searchTerm, setSearchTerm, filteredItems: searchFilteredShows, clearSearch } = useSearchFilter({
+    items: shows,
+    searchFields: ['venue.name', 'venue.location', 'display_date', 'tour.name'],
+    searchOptions: {
+      prefix: true,
+      fuzzy: 0.2,
+      boost: { 'venue.name': 2, 'venue.location': 1.5 }
+    }
+  });
 
   const toggles = [
     {
@@ -47,7 +58,7 @@ const ShowsColumnWithControls = ({
   ];
 
   const processedShows = useMemo(() => {
-    let processedShows = [...shows];
+    let processedShows = [...searchFilteredShows];
 
     // Apply filter
     if (sbdOnly) {
@@ -65,7 +76,7 @@ const ShowsColumnWithControls = ({
     }
 
     return processedShows;
-  }, [shows, artistSlug, dateAsc, sbdOnly]);
+  }, [searchFilteredShows, artistSlug, dateAsc, sbdOnly]);
 
   const tours = {};
 
@@ -75,7 +86,13 @@ const ShowsColumnWithControls = ({
       toggles={toggles}
       filteredCount={processedShows.length}
       totalCount={shows.length}
-      onClearFilters={clearFilters}
+      onClearFilters={() => {
+        clearFilters();
+        clearSearch();
+      }}
+      showSearch={true}
+      searchTerm={searchTerm}
+      onSearch={setSearchTerm}
     >
       {processedShows &&
         artistSlug &&

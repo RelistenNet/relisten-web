@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { groupBy, simplePluralize } from '../lib/utils';
 import { Artist } from '../types';
 import { useFilterState } from '@/hooks/useFilterState';
+import { useSearchFilter } from '@/hooks/useSearchFilter';
 import { FilterState } from '@/lib/filterCookies';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import Row from './Row';
@@ -21,6 +22,21 @@ type ArtistsColumnWithControlsProps = {
 const ArtistsColumnWithControls = ({ artists, initialFilters }: ArtistsColumnWithControlsProps) => {
   const { alphaAsc, toggleFilter, clearFilters } = useFilterState(initialFilters, 'root');
 
+  const {
+    searchTerm,
+    setSearchTerm,
+    filteredItems: searchFilteredArtists,
+    clearSearch,
+  } = useSearchFilter({
+    items: artists,
+    searchFields: ['name', 'slug'],
+    searchOptions: {
+      prefix: true,
+      fuzzy: 0.2,
+      boost: { name: 2, slug: 1 },
+    },
+  });
+
   const toggles = [
     {
       type: 'sort' as const,
@@ -31,7 +47,7 @@ const ArtistsColumnWithControls = ({ artists, initialFilters }: ArtistsColumnWit
   ];
 
   const processedArtists = useMemo(() => {
-    const grouped = groupBy(artists, 'featured');
+    const grouped = groupBy(searchFilteredArtists, 'featured');
     const sortedGroups = Object.entries(grouped).sort(([a], [b]) => b.localeCompare(a));
 
     return sortedGroups.map(([type, groupArtists]) => {
@@ -48,7 +64,7 @@ const ArtistsColumnWithControls = ({ artists, initialFilters }: ArtistsColumnWit
 
       return [type, sorted] as [string, Artist[]];
     });
-  }, [artists, alphaAsc]);
+  }, [searchFilteredArtists, alphaAsc]);
 
   const totalArtistCount = artists.length;
   const filteredArtistCount = processedArtists.reduce(
@@ -62,7 +78,13 @@ const ArtistsColumnWithControls = ({ artists, initialFilters }: ArtistsColumnWit
       toggles={toggles}
       filteredCount={filteredArtistCount}
       totalCount={totalArtistCount}
-      onClearFilters={clearFilters}
+      onClearFilters={() => {
+        clearFilters();
+        clearSearch();
+      }}
+      showSearch={true}
+      searchTerm={searchTerm}
+      onSearch={setSearchTerm}
     >
       {processedArtists.map(([type, groupArtists]) => [
         <RowHeader key={`header-${type}`}>{type === '1' ? 'Featured' : 'Bands'}</RowHeader>,

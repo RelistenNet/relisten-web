@@ -30,6 +30,7 @@
     "ky": "^1.8.1",
     "ky-universal": "^0.12.0",
     "lucide-react": "^0.525.0",
+    "minisearch": "^7.1.2",
     "next": "15.3.4",
     "next-redux-wrapper": "8.1.0",
     "next-zod-route": "^0.2.5",

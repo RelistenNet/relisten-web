@@ -3,6 +3,7 @@
 import { Year } from '@/types';
 import { PropsWithChildren, useMemo } from 'react';
 import { useFilterState } from '@/hooks/useFilterState';
+import { useSearchFilter } from '@/hooks/useSearchFilter';
 import { FilterState } from '@/lib/filterCookies';
 import sortActiveBands from '../lib/sortActiveBands';
 import { simplePluralize } from '../lib/utils';
@@ -27,6 +28,21 @@ const YearsColumnWithControls = ({
     initialFilters,
     artistSlug
   );
+  console.log(artistYears);
+
+  const {
+    searchTerm,
+    setSearchTerm,
+    filteredItems: searchFilteredYears,
+    clearSearch,
+  } = useSearchFilter({
+    items: artistYears,
+    searchFields: ['year'],
+    searchOptions: {
+      prefix: true,
+      fuzzy: 0.1,
+    },
+  });
 
   const toggles = [
     {
@@ -38,7 +54,7 @@ const YearsColumnWithControls = ({
   ];
 
   const processedYears = useMemo(() => {
-    let years = [...artistYears];
+    let years = [...searchFilteredYears];
 
     // Apply sorting
     if (artistSlug) {
@@ -51,7 +67,7 @@ const YearsColumnWithControls = ({
     }
 
     return years;
-  }, [artistYears, artistSlug, dateAsc, sbdOnly]);
+  }, [searchFilteredYears, artistSlug, dateAsc]);
 
   return (
     <ColumnWithToggleControls
@@ -59,9 +75,15 @@ const YearsColumnWithControls = ({
       toggles={toggles}
       filteredCount={processedYears.length}
       totalCount={artistYears.length}
-      onClearFilters={clearFilters}
+      onClearFilters={() => {
+        clearFilters();
+        clearSearch();
+      }}
       showDisplayToggle
       artistSlug={artistSlug}
+      showSearch={true}
+      searchTerm={searchTerm}
+      onSearch={setSearchTerm}
     >
       {children}
       {artistSlug &&
