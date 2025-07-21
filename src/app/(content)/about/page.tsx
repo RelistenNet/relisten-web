@@ -1,8 +1,15 @@
+import Link from 'next/link';
+
 const About = () => (
-  <div>
-    <h1>Welcome to Relisten</h1>
+  <div className="content">
+    <h1 className="mb-4">Welcome to Relisten.net</h1>
 
     <p>Peruse the various bands and enjoy their extensive live catalogues for free.</p>
+
+    <p>
+      We started Relisten over a decade ago to make recorded concerts more accessible. It is a
+      completely free and open source platform available on Web, iOS, Android, and Sonos.
+    </p>
 
     <p>
       This site is powered by{' '}
@@ -13,7 +20,7 @@ const About = () => (
       <a href="https://phish.in" target="_blank" rel="noreferrer">
         Phish.in
       </a>
-      , and
+      , and&nbsp;
       <a
         href="https://docs.google.com/spreadsheets/d/1yAXu83gJBz08cW5OXoqNuN1IbvDXD2vCrDKj4zn1qmU/edit#gid=29"
         target="_blank"
@@ -21,30 +28,41 @@ const About = () => (
       >
         The Phish Spreadsheet
       </a>
-      .
+      . And of course, all of the tapers, tranferrers, uploaders, bands, and organizers who make
+      this all possible.
+    </p>
+
+    <p>
+      We operate completely non-commercially and do not accept donations. If you do wish to donate,
+      please direct donations towards the wonderful people at&nbsp;
+      <a href="https://archive.org/donate/">Archive.org</a> or{' '}
+      <a href="https://mbird.org/donations/">The Mockingbird Foundation</a>.
     </p>
 
     <h3>Mission</h3>
 
     <p>
-      We want to provide you with a simple and powerful experience that you can enjoy in the home or
-      in the rain.
+      We strive to provide you with a simple and powerful experience that you can enjoy in the home
+      or{' '}
+      <Link href="/grateful-dead/1976/06/12/mission-in-the-rain?source=2173898">in the rain</Link>.
     </p>
 
-    <h3>Open Source</h3>
+    <h3>Free & Open Source</h3>
 
     <p>
       This entire platform is open source at{' '}
       <a href="https://github.com/relistennet" target="_blank" rel="noreferrer">
         https://github.com/relistennet
       </a>
-      .
+      . We maintain a level of direction for our vision, but we do welcome contributions. If you are
+      interested, best to stop by <a href="/discord">our Discord</a> to discuss what you'd like to
+      contribute. Or you can always open an issue on Github with questions or bugs.
     </p>
 
-    <h3>Thank you</h3>
+    <h3>Thank You & Enjoy</h3>
 
     <p>
-      Enjoy <br />-{' '}
+      The Relisten Team: <br />
       <a href="https://saewitz.com" target="_blank" rel="noreferrer">
         Daniel Saewitz
       </a>{' '}
@@ -52,11 +70,25 @@ const About = () => (
       <a href="https://alecgorge.com" target="_blank" rel="noreferrer">
         Alec Gorge
       </a>
-      , <a href="mailto:team@relisten.net">team@relisten.net</a>
+      , contact us: <a href="mailto:team@relisten.net">team@relisten.net</a>
     </p>
 
     <br />
-    <br />
+
+    <h4 className="font-semibold">Significant Open Source Contributors</h4>
+
+    <ul className="mb-8">
+      <li>
+        <a href="https://github.com/Thenlie" target="_blank" rel="noreferrer">
+          Leithen Crider
+        </a>
+      </li>
+      <li>
+        <a href="https://github.com/farktronix" target="_blank" rel="noreferrer">
+          Jacob Farkas
+        </a>
+      </li>
+    </ul>
 
     <p>
       This site complies with{' '}

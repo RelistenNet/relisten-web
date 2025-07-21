@@ -42,6 +42,23 @@
   ::file-selector-button {
     border-color: var(--color-gray-200, currentColor);
   }
+
+  p {
+    @apply mb-4;
+  }
+
+  .content a {
+    @apply text-blue-500 hover:underline;
+  }
+
+  h3 {
+    @apply text-2xl font-semibold;
+  }
+
+  li {
+    margin-left: 24px;
+    list-style-type: disc;
+  }
 }
 
 @utility nav-btn {
