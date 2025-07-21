@@ -14,7 +14,7 @@ const DisplayToggleButton = ({ title, artistSlug }: { title: string; artistSlug:
   }
   return (
     <a href={`/${artistSlug}${path}`}>
-      <button className="bg-relisten-500 mx-1 cursor-pointer rounded-md p-1 hover:bg-relisten-500/80 hover:scale-105">
+      <button className="mx-1 cursor-pointer rounded-md bg-white/15 p-1 text-sm text-white hover:scale-105 hover:bg-white/25">
         {title}
       </button>
     </a>
@@ -101,7 +101,7 @@ const ColumnWithToggleControls = ({
             </Flex>
           </Flex>
           {showDisplayToggle && (
-            <Flex className="m-1 justify-center">
+            <Flex className="bg-relisten-700/80 border-relisten-700 justify-center border-t-1 p-1">
               <DisplayToggleButton title="Years" artistSlug={artistSlug} />
               <DisplayToggleButton title="Venues" artistSlug={artistSlug} />
               <DisplayToggleButton title="Songs" artistSlug={artistSlug} />

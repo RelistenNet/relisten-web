@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { cache } from 'react';
 import { API_DOMAIN } from './constants';
 import { sortSources } from './sortSources';
-import type { Artist, Tape, Year, ArtistShows, Show, Day } from '@/types';
+import type { Artist, Tape, Year, ArtistShows, Show, Day, Venue } from '@/types';
 
 export class RelistenAPI {
   private static baseURL = API_DOMAIN;
@@ -142,6 +142,18 @@ export class RelistenAPI {
   static fetchLiveHistory = cache(async (lastSeenId?: string): Promise<any[]> => {
     const params = lastSeenId ? `?lastSeenId=${lastSeenId}` : '';
     return this.cachedFetch<any[]>(`/api/v2/live/history${params}`, { revalidate: 0 });
+  });
+
+  // Venues API
+  static fetchVenues = cache(async (slug?: string): Promise<Venue[]> => {
+    if (!slug) return [];
+
+    if (!this.isValidArtistSlug(slug)) {
+      console.error('Tried to load url that doesnt match artist slug format:', slug);
+      return notFound();
+    }
+
+    return this.cachedFetch<Year[]>(`/api/v2/artists/${slug}/venues`);
   });
 }
 
