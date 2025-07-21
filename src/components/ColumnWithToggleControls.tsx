@@ -3,21 +3,27 @@
 import cn from '@/lib/cn';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import React, { useRef } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import Flex from './Flex';
 import Scroller from './Scroller';
 import { simplePluralize } from '@/lib/utils';
 
-const DisplayToggleButton = ({ title, artistSlug }: { title: string; artistSlug: string }) => {
-  let path = '';
-  if (title !== 'Years') {
-    path = '/venues';
-  }
+const DisplayToggleButton = ({ title, path }: { title: string; path: string }) => {
+  const pathname = usePathname();
+  const isActive = pathname === path;
+
   return (
-    <a href={`/${artistSlug}${path}`}>
-      <button className="mx-1 cursor-pointer rounded-md bg-white/15 p-1 text-sm text-white hover:scale-105 hover:bg-white/25">
-        {title}
-      </button>
-    </a>
+    <Link
+      href={path}
+      prefetch={false}
+      className={cn(
+        'cursor-pointer rounded-md p-1 text-xs hover:scale-105',
+        isActive ? 'bg-relisten-600 font-semibold text-white' : ''
+      )}
+    >
+      <button className={cn('mx-1 cursor-pointer')}>{title}</button>
+    </Link>
   );
 };
 
@@ -100,16 +106,16 @@ const ColumnWithToggleControls = ({
               ))}
             </Flex>
           </Flex>
-          {showDisplayToggle && (
-            <Flex className="bg-relisten-700/80 border-relisten-700 justify-center border-t-1 p-1">
-              <DisplayToggleButton title="Years" artistSlug={artistSlug} />
-              <DisplayToggleButton title="Venues" artistSlug={artistSlug} />
-              <DisplayToggleButton title="Songs" artistSlug={artistSlug} />
-            </Flex>
-          )}
         </>
       )}
-      <Flex column className="flex-1 overflow-x-hidden overflow-y-auto">
+      <Flex column className="flex-1 overflow-x-hidden overflow-y-auto overscroll-y-none">
+        {showDisplayToggle && (
+          <Flex className="border-relisten-600 mx-auto w-11/12 justify-center gap-1 rounded-b border-1 border-t-0 bg-gray-200 p-1">
+            <DisplayToggleButton title="Years" path={`/${artistSlug}`} />
+            <DisplayToggleButton title="Venues" path={`/${artistSlug}/venues`} />
+            <DisplayToggleButton title="Songs" path={`/${artistSlug}/venues`} />
+          </Flex>
+        )}
         {filteredCount !== undefined && totalCount !== undefined && filteredCount < totalCount && (
           <div className="m-2 rounded border border-amber-500/20 bg-amber-500/10 p-2 text-xs text-amber-700">
             {filteredCount === 0 ? (

@@ -1,9 +1,7 @@
 import RelistenAPI from '@/lib/RelistenAPI';
+import { getServerFilters } from '@/lib/serverFilterCookies';
 import { RawParams } from '@/types/params';
 import { notFound } from 'next/navigation';
-import { getServerFilters } from '@/lib/serverFilterCookies';
-import TodayInHistoryRow from './TodayInHistoryRow';
-import RecentTapesRow from './RecentTapesRow';
 import VenuesColumnWithControls from './VenuesColumnWithControls';
 
 const VenuesColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
@@ -25,10 +23,7 @@ const VenuesColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
       artistName={artist?.name}
       artistVenues={venues}
       initialFilters={initialFilters}
-    >
-      <TodayInHistoryRow artistSlug={artistSlug} />
-      <RecentTapesRow artistSlug={artistSlug} />
-    </VenuesColumnWithControls>
+    ></VenuesColumnWithControls>
   );
 };
 
