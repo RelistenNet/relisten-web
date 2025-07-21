@@ -8,6 +8,7 @@ export default async function BrowseLayout({
   children,
   artists,
   years,
+  venues,
   shows,
   songs,
   sources,
@@ -15,6 +16,7 @@ export default async function BrowseLayout({
   children: ReactNode;
   artists: ReactNode;
   years: ReactNode;
+  venues: ReactNode;
   shows: ReactNode;
   songs: ReactNode;
   sources: ReactNode;
@@ -34,9 +36,10 @@ export default async function BrowseLayout({
       >
         {artists}
         {years}
-        {shows}
-        {songs}
-        {sources}
+        {venues}
+        {/* {shows} */}
+        {/* {songs} */}
+        {/* {sources} */}
         {children}
       </div>
     </Flex>
