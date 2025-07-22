@@ -8,25 +8,34 @@ import sortActiveBands from '../lib/sortActiveBands';
 import { simplePluralize } from '../lib/utils';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import Row from './Row';
+import { Heart } from 'lucide-react';
+import { useFavoriteState } from '@/hooks/useFavoriteState';
+import cn from '@/lib/cn';
 
 type YearsColumnWithControlsProps = {
   artistSlug?: string;
   artistName?: string;
   artistYears: Year[];
+  artistId?: string;
   initialFilters?: FilterState;
+  initialFavorites: string[];
 } & PropsWithChildren;
 
 const YearsColumnWithControls = ({
   artistSlug,
   artistName,
   artistYears,
+  artistId,
   children,
   initialFilters,
+  initialFavorites,
 }: YearsColumnWithControlsProps) => {
   const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(
     initialFilters,
     artistSlug
   );
+
+  const { toggleFavorite, isFavorite } = useFavoriteState(initialFavorites);
 
   const toggles = [
     {
@@ -34,6 +43,13 @@ const YearsColumnWithControls = ({
       isActive: dateAsc, // Show as active when oldest first (ascending)
       onToggle: () => toggleFilter('date'),
       title: !dateAsc ? 'Newest First' : 'Oldest First',
+    },
+    {
+      type: 'favorite' as const,
+      isActive: isFavorite(artistId!),
+      onToggle: () => toggleFavorite(artistId!),
+      title: isFavorite(artistId!) ? 'Unfavorite' : 'Favorite',
+      icon: <Heart size={20} className={cn(isFavorite(artistId!) ? 'fill-white' : 'text-white')} />,
     },
   ];
 
