@@ -24,6 +24,7 @@ const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
       artistSlug={artistSlug}
       artistName={artist?.name}
       artistYears={artistYears}
+      artistId={artist?.uuid}
       initialFilters={initialFilters}
       initialFavorites={initialFavorites}
     >
