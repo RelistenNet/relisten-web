@@ -3,11 +3,12 @@
 import { useCallback, useMemo } from 'react';
 import useCookie from 'react-use-cookie';
 import { useRouter } from 'next/navigation';
+import { FAVORITE_ARTIST_COOKIE_NAME } from '@/lib/constants';
 
 export function useFavoriteState(initialFavorites: string[]) {
   const router = useRouter();
   const defaultValue = initialFavorites ? JSON.stringify(initialFavorites) : '[]';
-  const [cookieValue, setCookieValue] = useCookie('relisten_favorites:artists', defaultValue);
+  const [_cookieValue, setCookieValue] = useCookie(FAVORITE_ARTIST_COOKIE_NAME, defaultValue);
 
   const favorites = useMemo(() => {
     try {
