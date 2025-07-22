@@ -44,7 +44,6 @@ const ArtistsColumnWithControls = ({
   ];
 
   const processedArtists = useMemo(() => {
-    console.log('processing artists...')
     try {
       const favoritesGroup = artists.filter(
         (artist) => artist.uuid && favorites.includes(artist.uuid)
