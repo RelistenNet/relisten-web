@@ -28,7 +28,7 @@ export function useFavoriteState(initialFavorites: string[]) {
   const setFavorites = useCallback(
     (updatedFavorites: string[]) => {
       setCookieValue(JSON.stringify(updatedFavorites), {
-        days: 365,
+        days: 3650, // 10 years
         SameSite: 'Lax',
       });
 
