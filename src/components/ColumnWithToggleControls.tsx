@@ -8,7 +8,7 @@ import Scroller from './Scroller';
 import { simplePluralize } from '@/lib/utils';
 
 type ToggleConfig = {
-  type: 'sort' | 'filter';
+  type: 'sort' | 'filter' | 'favorite';
   isActive: boolean;
   onToggle: () => void;
   title: string;
