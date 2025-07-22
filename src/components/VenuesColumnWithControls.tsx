@@ -35,7 +35,7 @@ const VenuesColumnWithControls = ({
         artistVenues.map((venueObj) => (
           <Row
             key={venueObj.id}
-            // href={`/${artistSlug}/${venueObj.name}`}
+            href={`/${artistSlug}/venues/${venueObj.id}`}
             activeSegments={{ year: venueObj.name }}
           >
             <div className="flex items-center gap-1">

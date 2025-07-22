@@ -1,5 +1,4 @@
 import RelistenAPI from '@/lib/RelistenAPI';
-import { RawParams } from '@/types/params';
 import { notFound } from 'next/navigation';
 import { getServerFilters } from '@/lib/serverFilterCookies';
 import React from 'react';
@@ -7,12 +6,21 @@ import TodayInHistoryColumn from './TodayInHistoryColumn';
 import RecentTapesColumn from './RecentTapesColumn';
 import ShowsColumnWithControls from './ShowsColumnWithControls';
 
-const ShowsColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 'year'>) => {
+interface ShowsColumnProps {
+  artistSlug: string;
+  year?: string;
+  venueId?: string;
+}
+
+const ShowsColumn = async ({ artistSlug, year, venueId }: ShowsColumnProps) => {
+  const fetchShows = year ? RelistenAPI.fetchYearShows : RelistenAPI.fetchVenueShows;
+  const fetchParam = year ? year : venueId;
+
   if (year === 'today-in-history') return <TodayInHistoryColumn artistSlug={artistSlug} />;
   if (year === 'recently-added') return <RecentTapesColumn artistSlug={artistSlug} />;
 
   const [artistShows, initialFilters] = await Promise.all([
-    RelistenAPI.fetchShows(artistSlug, year),
+    fetchShows(artistSlug, fetchParam),
     getServerFilters(`${artistSlug}:shows`, true),
   ]).catch(() => {
     notFound();

@@ -100,11 +100,19 @@ export class RelistenAPI {
   });
 
   // Artist Shows API
-  static fetchShows = cache(
+  static fetchYearShows = cache(
     async (slug?: string, year?: string): Promise<ArtistShows | undefined> => {
       if (!slug || !year) return undefined;
 
       return this.cachedFetch<ArtistShows>(`/api/v2/artists/${slug}/years/${year}`);
+    }
+  );
+
+  static fetchVenueShows = cache(
+    async (slug?: string, venueId?: string): Promise<ArtistShows | undefined> => {
+      if (!slug || !venueId) return undefined;
+
+      return this.cachedFetch<ArtistShows>(`/api/v2/artists/${slug}/venues/${venueId}`);
     }
   );
 
