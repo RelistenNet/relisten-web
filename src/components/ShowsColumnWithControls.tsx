@@ -15,6 +15,7 @@ import Tag from './Tag';
 type ShowsColumnWithControlsProps = {
   artistSlug?: string;
   year?: string;
+  venueId?: string;
   shows: Show[];
   initialFilters?: FilterState;
 };
@@ -22,9 +23,11 @@ type ShowsColumnWithControlsProps = {
 const ShowsColumnWithControls = ({
   artistSlug,
   year,
+  venueId,
   shows,
   initialFilters,
 }: ShowsColumnWithControlsProps) => {
+  const isVenue = !!venueId;
   const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(
     initialFilters,
     `${artistSlug}:shows`
@@ -99,13 +102,16 @@ const ShowsColumnWithControls = ({
               <Row
                 href={`/${artistSlug}/${year}/${month}/${day}`}
                 activeSegments={{
+                  year,
                   month,
                   day,
                 }}
               >
                 <div>
                   <Flex className="tabular-nums">
+                    {/* TODO: Only display year on venue endpoint */}
                     {removeLeadingZero(month)}/{day}
+                    {isVenue && '/' + year}
                     {show.has_soundboard_source && <Tag>SBD</Tag>}
                   </Flex>
                   {venue && (

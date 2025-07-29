@@ -30,6 +30,7 @@ const ShowsColumn = async ({ artistSlug, year, venueId }: ShowsColumnProps) => {
     <ShowsColumnWithControls
       artistSlug={artistSlug}
       year={year}
+      venueId={venueId}
       shows={artistShows?.shows || []}
       initialFilters={initialFilters}
     />
