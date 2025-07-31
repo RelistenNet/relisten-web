@@ -9,12 +9,22 @@ import { updatePlayback } from '@/redux/modules/playback';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
-export default function PlayerManager(props: Props) {
+interface PlayerManagerProps extends Props {
+  playImmediately?: boolean;
+}
+
+export default function PlayerManager(props: PlayerManagerProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [{ source: sourceId }] = sourceSearchParamsLoader.useQueryStates();
 
-  const [artistSlug, year, month, day, songSlug] = String(pathname).replace(/^\//, '').split('/');
+  // Remove leading slash and handle embed routes
+  const pathParts = String(pathname)
+    .replace(/^\/embed/, '')
+    .replace(/^\//, '')
+    .split('/');
+
+  const [artistSlug, year, month, day, songSlug] = pathParts;
 
   const { activeSourceObj } = useSourceData({ ...props, source: sourceId });
 
@@ -23,7 +33,7 @@ export default function PlayerManager(props: Props) {
       const tracks = activeSourceObj.sets?.map((set) => set.tracks).flat() ?? [];
       const activeTrackIndex = tracks.findIndex((track) => track?.slug === songSlug);
       const activeTrack = tracks[activeTrackIndex];
-      const playImmediately = true;
+      const playImmediately = props.playImmediately ?? true;
 
       store.dispatch(
         updatePlayback({
@@ -45,7 +55,7 @@ export default function PlayerManager(props: Props) {
       if (!isPlayerMounted()) {
         initGaplessPlayer(store, (url: string) => {
           if (window.location.pathname !== url) {
-            router.replace(url);
+            router.replace((props.routePrefix ?? '') + url);
           }
         });
       } else {
