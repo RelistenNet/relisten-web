@@ -111,7 +111,7 @@ const Player = ({ artistSlugsToName }: Props) => {
               <div>{durationToHHMMSS(playback.activeTrack.currentTime)}</div>
             </div>
             <Flex column className="justify-center pb-1">
-              <div className="song-title relative top-1 text-[1em] text-gray-900">
+              <div className="song-title relative top-1 text-center text-[1em] text-gray-900">
                 {activeTrack.title}
                 {false && (
                   <Flex className="text-foreground-muted absolute top-[2px] left-full ml-2 w-full items-center text-[0.8em]">
