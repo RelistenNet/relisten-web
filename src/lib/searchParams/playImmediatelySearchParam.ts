@@ -10,4 +10,7 @@ export const playImmediatelyParser = {
   playImmediately: parseAsBoolean.withDefault(true),
 };
 
-export const playImmediatelySearchParamsLoader = createSearchParams(playImmediatelySchema, playImmediatelyParser);
+export const playImmediatelySearchParamsLoader = createSearchParams(
+  playImmediatelySchema,
+  playImmediatelyParser
+);

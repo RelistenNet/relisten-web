@@ -62,6 +62,7 @@ export default function PlayerManager(props: PlayerManagerProps) {
         // check if track is already in queue, and re-use
         if (player.currentTrack?.metadata?.trackId === activeTrack?.id) {
           console.log('track is already playing');
+          player.play();
           return;
         }
 
