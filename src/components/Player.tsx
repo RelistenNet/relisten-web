@@ -124,7 +124,7 @@ const Player = ({ artistSlugsToName }: Props) => {
               <Link
                 href="/"
                 as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
-                className="band-title text-foreground-muted justify-center text-[0.8em]"
+                className="band-title text-foreground-muted justify-center text-center text-[0.8em]"
               >
                 {artistName} – {removeLeadingZero(month)}/{removeLeadingZero(day)}/{year.slice(2)}
               </Link>
