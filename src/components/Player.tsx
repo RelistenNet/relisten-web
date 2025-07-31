@@ -15,6 +15,7 @@ import {
   PauseIcon,
   PlayIcon,
   RewindIcon,
+  Volume2Icon,
 } from 'lucide-react';
 
 interface Props {
@@ -59,18 +60,19 @@ const Player = ({ artistSlugsToName }: Props) => {
   };
 
   const updateVolume = (e: React.MouseEvent<HTMLElement>) => {
-    const height = e.currentTarget.offsetHeight;
-    const nextVolume = (height - e.pageY) / height;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const height = rect.height;
+    const nextVolume = (height - (e.pageY - rect.top)) / height;
 
-    setVolume(nextVolume);
+    setVolume(Math.max(0, Math.min(1, nextVolume)));
 
-    player.setVolume(nextVolume);
+    player.setVolume(Math.max(0, Math.min(1, nextVolume)));
 
-    localStorage.volume = nextVolume;
+    localStorage.volume = Math.max(0, Math.min(1, nextVolume));
   };
 
   return (
-    <Flex className="content relative h-[50px] flex-1">
+    <Flex className="content relative h-[50px] flex-1 px-2">
       {false && activeTrack && (
         <Head>
           <title>
@@ -158,14 +160,18 @@ const Player = ({ artistSlugsToName }: Props) => {
               style={{ transform: `translate(${notchPosition}px, 0)` }}
             />
           </div>
+        </div>
+      )}
+      {activeTrack && (
+        <div className="volume-control">
           <div
-            className="absolute top-0 right-[-6px] h-full w-[6px] cursor-pointer bg-[#0000001a]"
+            className="relative h-full w-[6px] cursor-pointer bg-[#0000001a]"
             onClick={updateVolume}
           >
             <div
-              className="pointer-events-none absolute top-0 right-0 bottom-0 left-0 bg-[#707070]"
+              className="pointer-events-none absolute right-0 bottom-0 left-0 bg-[#707070]"
               style={{
-                top: `${(1 - volume) * 100}%`,
+                height: `${volume * 100}%`,
               }}
             />
           </div>

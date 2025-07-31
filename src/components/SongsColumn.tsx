@@ -20,6 +20,7 @@ const getSetTime = (set: Set): string =>
 
 export type Props = Pick<RawParams, 'artistSlug' | 'year' | 'month' | 'day'> & {
   show?: Partial<Tape>;
+  routePrefix?: string;
 };
 
 interface SourceData {
@@ -103,7 +104,7 @@ const SongsColumn = (props: Props) => {
                 )}
                 <Row
                   key={track.id}
-                  href={`/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${activeSourceObj.id}`}
+                  href={`${props.routePrefix || ''}/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${activeSourceObj.id}`}
                   isActiveOverride={trackIsActive}
                 >
                   <div>
