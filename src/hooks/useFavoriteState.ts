@@ -39,12 +39,12 @@ export function useFavoriteState(initialFavorites: string[]) {
 
   const toggleFavorite = useCallback(
     (artistId: string) => {
-      let updatedFavorites = [...favorites];
+      const updatedFavorites = new Set([...initialFavorites]);
 
-      if (favorites.includes(artistId)) {
-        updatedFavorites = updatedFavorites.filter((favorite) => favorite !== artistId);
+      if (updatedFavorites.has(artistId)) {
+        updatedFavorites.delete(artistId);
       } else {
-        updatedFavorites.push(artistId);
+        updatedFavorites.add(artistId);
       }
 
       setFavorites([...updatedFavorites]);
