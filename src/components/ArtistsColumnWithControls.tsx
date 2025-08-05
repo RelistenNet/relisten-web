@@ -8,18 +8,31 @@ import { FilterState } from '@/lib/filterCookies';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import Row from './Row';
 import RowHeader from './RowHeader';
+import { useFavoriteState } from '@/hooks/useFavoriteState';
 
 const byObject = {
   phish: 'Phish.in',
 };
 
+const artistGroups = {
+  0: 'Bands',
+  1: 'Featured',
+  2: 'Favorites',
+};
+
 type ArtistsColumnWithControlsProps = {
   artists: Artist[];
   initialFilters?: FilterState;
+  initialFavorites: string[];
 };
 
-const ArtistsColumnWithControls = ({ artists, initialFilters }: ArtistsColumnWithControlsProps) => {
+const ArtistsColumnWithControls = ({
+  artists,
+  initialFilters,
+  initialFavorites,
+}: ArtistsColumnWithControlsProps) => {
   const { alphaAsc, toggleFilter, clearFilters } = useFilterState(initialFilters, 'root');
+  const { favorites } = useFavoriteState(initialFavorites);
 
   const toggles = [
     {
@@ -31,24 +44,36 @@ const ArtistsColumnWithControls = ({ artists, initialFilters }: ArtistsColumnWit
   ];
 
   const processedArtists = useMemo(() => {
-    const grouped = groupBy(artists, 'featured');
-    const sortedGroups = Object.entries(grouped).sort(([a], [b]) => b.localeCompare(a));
+    try {
+      const favoritesGroup = artists.filter(
+        (artist) => artist.uuid && favorites.includes(artist.uuid)
+      );
 
-    return sortedGroups.map(([type, groupArtists]) => {
-      const sorted = [...groupArtists];
-
-      // Apply alphabetical sorting (default is desc/A-Z when no filter set)
-      if (alphaAsc) {
-        // Z-A (ascending)
-        sorted.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
-      } else {
-        // Default: A-Z (descending)
-        sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      const grouped = groupBy(artists, 'featured');
+      if (favoritesGroup.length) {
+        grouped[2] = favoritesGroup;
       }
 
-      return [type, sorted] as [string, Artist[]];
-    });
-  }, [artists, alphaAsc]);
+      const sortedGroups = Object.entries(grouped).sort(([a], [b]) => b.localeCompare(a));
+      return sortedGroups.map(([type, groupArtists]) => {
+        const sorted = [...groupArtists];
+
+        // Apply alphabetical sorting (default is desc/A-Z when no filter set)
+        if (alphaAsc) {
+          // Z-A (ascending)
+          sorted.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
+        } else {
+          // Default: A-Z (descending)
+          sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        }
+
+        return [type, sorted] as [string, Artist[]];
+      });
+    } catch (error) {
+      console.error('Error processing artists:', error);
+      return [];
+    }
+  }, [artists, alphaAsc, favorites]);
 
   const totalArtistCount = artists.length;
   const filteredArtistCount = processedArtists.reduce(
@@ -65,7 +90,7 @@ const ArtistsColumnWithControls = ({ artists, initialFilters }: ArtistsColumnWit
       onClearFilters={clearFilters}
     >
       {processedArtists.map(([type, groupArtists]) => [
-        <RowHeader key={`header-${type}`}>{type === '1' ? 'Featured' : 'Bands'}</RowHeader>,
+        <RowHeader key={`header-${type}`}>{artistGroups[type]}</RowHeader>,
         ...groupArtists.map((artist: Artist, idx: number) => (
           <Row
             key={[idx, artist.id].join(':')}
