@@ -156,6 +156,9 @@ const player = new Gapless.Queue({
       }
     }
   },
+  onError: () => {
+    console.log('Leithen errors');
+  },
 });
 
 export function initGaplessPlayer(nextStore, changeURL) {
