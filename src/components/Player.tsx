@@ -2,7 +2,7 @@
 
 import Head from 'next/head';
 import Link from 'next/link';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 
 import { useSelector } from 'react-redux';
 import player from '../lib/player';
@@ -70,6 +70,17 @@ const Player = ({ artistSlugsToName }: Props) => {
 
     localStorage.volume = Math.max(0, Math.min(1, nextVolume));
   };
+
+  useEffect(() => {
+    const handleAudioError = (e: CustomEvent) => {
+      console.log('Audio error detected', e);
+    };
+
+    window.addEventListener('gapless-audio-error', handleAudioError);
+    return () => {
+      window.removeEventListener('gapless-audio-error', handleAudioError);
+    };
+  });
 
   return (
     <Flex className="content relative h-[50px] flex-1 px-2">
