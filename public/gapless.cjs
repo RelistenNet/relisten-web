@@ -491,7 +491,6 @@
     // basic event handlers
     audioOnError = (e) => {
       this.debug('audioOnError', e);
-      // window.dispatchEvent(new CustomEvent('gapless-audio-error', { error: e }));
       this.queue.onError();
     };
 

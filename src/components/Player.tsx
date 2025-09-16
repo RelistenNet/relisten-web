@@ -2,7 +2,7 @@
 
 import Head from 'next/head';
 import Link from 'next/link';
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 
 import { useSelector } from 'react-redux';
 import player from '../lib/player';
@@ -18,6 +18,7 @@ import {
   RewindIcon,
   Volume2Icon,
 } from 'lucide-react';
+import { Toaster } from 'sonner';
 
 interface Props {
   artistSlugsToName: Record<string, string | undefined>;
@@ -30,7 +31,6 @@ const Player = ({ artistSlugsToName }: Props) => {
   const [volume, setVolume] = useState(
     (typeof localStorage !== 'undefined' && localStorage.volume) || 1
   );
-  // const [hasAudioError, setHasAudioError] = useState(false);
 
   const { year, month, day } = splitShowDate(playback.showDate);
   const { artistSlug, source } = playback;
@@ -72,17 +72,6 @@ const Player = ({ artistSlugsToName }: Props) => {
 
     localStorage.volume = Math.max(0, Math.min(1, nextVolume));
   };
-
-  // useEffect(() => {
-  //   const handleAudioError = () => {
-  //     setHasAudioError(true);
-  //   };
-
-  //   window.addEventListener('gapless-audio-error', handleAudioError);
-  //   return () => {
-  //     window.removeEventListener('gapless-audio-error', handleAudioError);
-  //   };
-  // }, []);
 
   return (
     <Flex className="content relative h-[50px] flex-1 px-2">
@@ -201,12 +190,6 @@ const Player = ({ artistSlugsToName }: Props) => {
           </div>
         </Link>
       )}
-      {/* {hasAudioError && (
-        <Flex className="items-center">
-          <AlertCircle color="red" />
-          <p className="m-2">Error loading audio</p>
-        </Flex>
-      )} */}
     </Flex>
   );
 };

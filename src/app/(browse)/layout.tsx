@@ -3,6 +3,7 @@ import NavBar from '@/components/NavBar';
 import cn from '@/lib/cn';
 import { getIsInIframe } from '@/lib/isInIframe';
 import { ReactNode } from 'react';
+import { Toaster } from 'sonner';
 
 export default async function BrowseLayout({
   children,
@@ -23,6 +24,7 @@ export default async function BrowseLayout({
 
   return (
     <Flex column className="h-screen">
+      <Toaster id="audio-error" position="top-center" richColors closeButton />
       <NavBar />
       <div
         className={cn(

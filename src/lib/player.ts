@@ -5,6 +5,7 @@ import { splitShowDate } from './utils';
 import { scrobblePlay } from '../redux/modules/live';
 import { updatePlayback } from '../redux/modules/playback';
 import { ActiveTrack, GaplessMetadata } from '../types';
+import { toast } from 'sonner';
 
 declare global {
   interface Window {
@@ -157,7 +158,10 @@ const player = new Gapless.Queue({
     }
   },
   onError: () => {
-    console.log('Leithen errors');
+    toast.error('There was an error loading your audio', {
+      toasterId: 'audio-error',
+      duration: Infinity,
+    });
   },
 });
 
