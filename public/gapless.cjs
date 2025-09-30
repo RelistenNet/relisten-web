@@ -42,6 +42,7 @@
         onPlayPreviousTrack,
         onStartNewTrack,
         webAudioIsDisabled = false,
+        onError,
       } = props;
 
       this.props = {
@@ -50,6 +51,7 @@
         onPlayNextTrack,
         onPlayPreviousTrack,
         onStartNewTrack,
+        onError,
       };
 
       this.state = {
@@ -208,6 +210,10 @@
       this.state.volume = nextVolume;
 
       this.tracks.map((track) => track.setVolume(nextVolume));
+    }
+
+    onError() {
+      if (this.props.onError) this.props.onError();
     }
   }
 
@@ -485,6 +491,7 @@
     // basic event handlers
     audioOnError = (e) => {
       this.debug('audioOnError', e);
+      this.queue.onError();
     };
 
     onEnded(from) {

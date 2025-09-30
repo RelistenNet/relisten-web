@@ -9,6 +9,7 @@ import player from '../lib/player';
 import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
 import Flex from './Flex';
 import {
+  AlertCircle,
   ChevronDown,
   FastForwardIcon,
   ListMusicIcon,
@@ -17,6 +18,7 @@ import {
   RewindIcon,
   Volume2Icon,
 } from 'lucide-react';
+import { Toaster } from 'sonner';
 
 interface Props {
   artistSlugsToName: Record<string, string | undefined>;
