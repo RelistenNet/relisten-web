@@ -87,8 +87,8 @@ export default function LiveTrack({
           damping: 20,
           stiffness: 300,
         }}
-        className={`relative h-full rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition-all duration-200 hover:border-gray-200 hover:shadow-lg ${
-          isLastSeen ? 'border-green-200 ring-2 ring-green-100' : ''
+        className={`relative h-full rounded-xl border border-border-light bg-surface p-4 shadow-sm transition-all duration-200 hover:border-border hover:shadow-lg ${
+          isLastSeen ? 'border-green-200 ring-2 ring-green-100 dark:border-green-700 dark:ring-green-900' : ''
         }`}
         data-is-last-seen={isLastSeen}
       >
@@ -99,12 +99,12 @@ export default function LiveTrack({
 
         <div className="space-y-1">
           {/* Track title */}
-          <div className="truncate leading-tight font-semibold text-gray-900 transition-colors group-hover:text-gray-700">
+          <div className="truncate leading-tight font-semibold text-foreground transition-colors group-hover:text-foreground-muted">
             {track.track.title}
           </div>
 
           {/* Artist name */}
-          <div className="text-sm font-medium text-gray-700">{track.source.artist?.name}</div>
+          <div className="text-sm font-medium text-foreground">{track.source.artist?.name}</div>
 
           {/* Venue and date info */}
           <div className="text-foreground-muted space-y-1 text-xs">
