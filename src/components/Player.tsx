@@ -113,7 +113,7 @@ const Player = ({ artistSlugsToName }: Props) => {
               <div>{durationToHHMMSS(playback.activeTrack.currentTime)}</div>
             </div>
             <Flex column className="justify-center pb-1">
-              <div className="song-title relative top-1 text-center text-[1em] text-gray-900">
+              <div className="song-title relative top-1 text-center text-[1em] text-foreground">
                 {activeTrack.title}
                 {false && (
                   <Flex className="text-foreground-muted absolute top-[2px] left-full ml-2 w-full items-center text-[0.8em]">
@@ -149,16 +149,16 @@ const Player = ({ artistSlugsToName }: Props) => {
             </div>
           </Flex>
           <div
-            className="absolute bottom-0 left-0 z-1 h-1 w-full cursor-pointer bg-[#bcbcbc]"
+            className="absolute bottom-0 left-0 z-1 h-1 w-full cursor-pointer bg-progress-bg"
             onClick={onProgressClick}
             style={{ opacity: playback.activeTrack.currentTime < 0.1 ? 0.8 : 1 }}
           >
             <div
-              className="absolute bottom-0 left-0 h-1 bg-[#707070]"
+              className="absolute bottom-0 left-0 h-1 bg-progress-fg"
               style={{ width: notchPosition ? notchPosition + 2 : 'auto' }}
             />
             <div
-              className="absolute bottom-0 left-0 z-1 h-2 w-[3px] bg-black"
+              className="absolute bottom-0 left-0 z-1 h-2 w-[3px] bg-foreground"
               style={{ transform: `translate(${notchPosition}px, 0)` }}
             />
           </div>
@@ -167,11 +167,11 @@ const Player = ({ artistSlugsToName }: Props) => {
       {activeTrack && (
         <div className="volume-control">
           <div
-            className="relative h-full w-[6px] cursor-pointer bg-[#0000001a]"
+            className="relative h-full w-[6px] cursor-pointer bg-progress-bg/20"
             onClick={updateVolume}
           >
             <div
-              className="pointer-events-none absolute right-0 bottom-0 left-0 bg-[#707070]"
+              className="pointer-events-none absolute right-0 bottom-0 left-0 bg-progress-fg"
               style={{
                 height: `${volume * 100}%`,
               }}

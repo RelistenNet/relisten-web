@@ -6,6 +6,7 @@ import * as Popover from '@/components/Popover';
 import RelistenAPI from '@/lib/RelistenAPI';
 import MainNavHeader from './MainNavHeader';
 import AndroidUpgradeNotification from './AndroidUpgradeNotification';
+import ThemeToggle from './ThemeToggle';
 import { MenuIcon } from 'lucide-react';
 import { headers } from 'next/headers';
 import parser from 'ua-parser-js';
@@ -39,7 +40,7 @@ export default async function NavBar() {
 
   return (
     <>
-      <div className="navigation text-foreground relative flex h-[50px] max-h-[50px] min-h-[50px] grid-cols-3 justify-between border-b-[1px] border-b-[#aeaeae] bg-white px-4 lg:grid">
+      <div className="navigation text-foreground relative flex h-[50px] max-h-[50px] min-h-[50px] grid-cols-3 justify-between border-b-[1px] border-b-border bg-surface px-4 lg:grid">
         <MainNavHeader
           artistSlugsToName={artistSlugsToName}
           indexOverride={isInIframe ? '/wsp' : undefined}
@@ -94,6 +95,9 @@ export default async function NavBar() {
             <Link className="nav-btn" href="/about" prefetch={false}>
               ABOUT
             </Link>
+          </div>
+          <div className="h-full">
+            <ThemeToggle />
           </div>
         </div>
       </div>

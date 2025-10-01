@@ -15,14 +15,14 @@ export default async function EmbedLayout({ children }: { children: ReactNode })
   );
 
   return (
-    <Flex column className="h-screen bg-white">
-      <div className="bg-amber-500 text-center text-xs font-semibold tracking-wider">
+    <Flex column className="h-screen bg-surface">
+      <div className="bg-amber-500 text-center text-xs font-semibold tracking-wider dark:bg-amber-600">
         POWERED BY{' '}
         <a
           href="https://relisten.net"
           target="_blank"
           rel="noopener noreferrer"
-          className="underline hover:text-amber-700"
+          className="underline hover:text-amber-700 dark:hover:text-amber-200"
         >
           RELISTEN.NET
         </a>{' '}
@@ -31,12 +31,12 @@ export default async function EmbedLayout({ children }: { children: ReactNode })
           href="https://phish.in"
           target="_blank"
           rel="noopener noreferrer"
-          className="underline hover:text-amber-700"
+          className="underline hover:text-amber-700 dark:hover:text-amber-200"
         >
           PHISH.IN
         </a>
       </div>
-      <div className="flex h-[50px] min-h-[50px] items-center justify-center border-b border-gray-300 bg-white">
+      <div className="flex h-[50px] min-h-[50px] items-center justify-center border-b border-border bg-surface">
         <div className="w-full max-w-2xl">
           <Player artistSlugsToName={artistSlugsToName} />
         </div>

@@ -15,8 +15,26 @@ const font = Roboto({ subsets: ['latin'], weight: ['400', '500', '700', '900'] }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="bg-background">
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  const stored = localStorage.getItem('theme');
+                  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+                  if (stored === 'dark' || (!stored && prefersDark)) {
+                    document.documentElement.classList.add('dark');
+                  } else if (stored === 'light') {
+                    document.documentElement.classList.remove('dark');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
         <link rel="icon" href="/favicon.ico" />
         <meta name="apple-itunes-app" content="app-id=715886886" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
