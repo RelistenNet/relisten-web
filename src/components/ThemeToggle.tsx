@@ -2,35 +2,41 @@
 
 import { Moon, Sun } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { setTheme as setThemeCookie } from '@/lib/theme';
 
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    setMounted(true);
-
-    // Sync with current DOM state (set by blocking script)
+    // Sync with current DOM state (set server-side)
     const isDark = document.documentElement.classList.contains('dark');
     setTheme(isDark ? 'dark' : 'light');
   }, []);
 
-  const toggleTheme = () => {
+  const toggleTheme = async () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
-  };
 
-  // Prevent hydration mismatch
-  if (!mounted) {
-    return <div className="h-5 w-5" />;
-  }
+    // Update DOM immediately for instant feedback
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    } else {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    }
+
+    // Update cookie and refresh server-side data
+    await setThemeCookie(newTheme);
+    router.refresh();
+  };
 
   return (
     <button
       onClick={toggleTheme}
-      className="flex h-full items-center justify-center px-2 text-foreground-muted transition-colors hover:text-foreground active:relative active:top-[1px]"
+      className="text-foreground-muted flex h-full items-center justify-center px-2 transition-colors hover:text-foreground active:relative active:top-[1px]"
       aria-label="Toggle theme"
       title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
     >

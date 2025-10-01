@@ -82,6 +82,77 @@ const throttledUpdateLocalStorage = () => {
   throttle(updateLocalStorage, 1000);
 };
 
+// Media Session API helpers
+const updateMediaSessionMetadata = (track: any, artistName: string, showDate: string) => {
+  if (!('mediaSession' in navigator)) return;
+
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: track.title || 'Unknown Track',
+    artist: artistName || 'Unknown Artist',
+    album: showDate || '',
+    artwork: track.artwork || [],
+  });
+};
+
+const updateMediaSessionPositionState = (currentTime: number, duration: number) => {
+  if (!('mediaSession' in navigator)) return;
+  if (!duration || duration <= 0) return;
+
+  try {
+    navigator.mediaSession.setPositionState({
+      duration,
+      playbackRate: 1.0,
+      position: Math.min(currentTime, duration),
+    });
+  } catch (error) {
+    // Some browsers may not support position state
+    console.debug('Media Session position state not supported:', error);
+  }
+};
+
+const initMediaSession = () => {
+  if (!('mediaSession' in navigator)) return;
+
+  navigator.mediaSession.setActionHandler('play', () => {
+    player.play();
+  });
+
+  navigator.mediaSession.setActionHandler('pause', () => {
+    player.pause();
+  });
+
+  navigator.mediaSession.setActionHandler('previoustrack', () => {
+    player.playPrevious();
+  });
+
+  navigator.mediaSession.setActionHandler('nexttrack', () => {
+    player.playNext();
+  });
+
+  // Optional: seek backward/forward (10 seconds)
+  try {
+    navigator.mediaSession.setActionHandler('seekbackward', () => {
+      if (player.currentTrack) {
+        const newTime = Math.max(0, player.currentTrack.currentTime - 10);
+        player.currentTrack.seek(newTime);
+      }
+    });
+
+    navigator.mediaSession.setActionHandler('seekforward', () => {
+      if (player.currentTrack) {
+        const newTime = Math.min(
+          player.currentTrack.duration,
+          player.currentTrack.currentTime + 10
+        );
+        player.currentTrack.seek(newTime);
+      }
+    });
+  } catch (error) {
+    // Seek actions may not be supported in all browsers
+    console.debug('Media Session seek actions not supported:', error);
+  }
+};
+
 // TODO: Update type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let store: any;
@@ -91,6 +162,12 @@ const player = new Gapless.Queue({
     if (!store) return;
     if (player.currentTrack) {
       throttledUpdateLocalStorage();
+
+      // Update Media Session position state
+      const { currentTime, duration } = player.currentTrack;
+      if (currentTime >= 0 && duration > 0) {
+        updateMediaSessionPositionState(currentTime, duration);
+      }
     }
     store.dispatch(
       updatePlayback({
@@ -112,7 +189,7 @@ const player = new Gapless.Queue({
 
     const idx = currentTrack.idx;
 
-    const { playback } = store.getState();
+    const { playback, artists } = store.getState();
 
     if (playback.tracks && playback.tracks.length) {
       const track = playback.tracks[String(idx)];
@@ -121,6 +198,10 @@ const player = new Gapless.Queue({
         const songSlug = track.slug;
         const { artistSlug, showDate, source } = playback;
         const { year, month, day } = splitShowDate(showDate);
+
+        // Update Media Session metadata
+        const artistName = artists.data[artistSlug]?.name || artistSlug;
+        updateMediaSessionMetadata(track, artistName, showDate);
 
         if (typeof window.Notification !== 'undefined') {
           // only show notification if permission granted
@@ -185,6 +266,9 @@ export function initGaplessPlayer(nextStore, changeURL) {
   }
 
   player.changeURL = changeURL;
+
+  // Initialize Media Session API for hardware media key support
+  initMediaSession();
 
   mounted = true;
 }
