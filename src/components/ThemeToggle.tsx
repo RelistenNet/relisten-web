@@ -2,12 +2,10 @@
 
 import { Moon, Sun } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { setTheme as setThemeCookie } from '@/lib/theme';
 
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const router = useRouter();
 
   useEffect(() => {
     // Sync with current DOM state (set server-side)
@@ -28,9 +26,8 @@ export default function ThemeToggle() {
       document.documentElement.classList.remove('dark');
     }
 
-    // Update cookie and refresh server-side data
+    // Update cookie for persistence across navigation
     await setThemeCookie(newTheme);
-    router.refresh();
   };
 
   return (
