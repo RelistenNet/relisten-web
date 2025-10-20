@@ -93,9 +93,9 @@ const Player = ({ artistSlugsToName }: Props) => {
           onClick={() => player.togglePlayPause()}
         >
           {playback.activeTrack.isPaused ? (
-            <PlayIcon size={20} className="fill-foreground-muted active:fill-gray-800" />
+            <PlayIcon size={20} className="fas fa fa-play fill-foreground-muted active:fill-gray-800" />
           ) : (
-            <PauseIcon size={20} className="fill-foreground-muted active:fill-gray-800" />
+            <PauseIcon size={20} className="fas fa fa-pause fill-foreground-muted active:fill-gray-800" />
           )}
         </Flex>
       )}
