@@ -8,7 +8,7 @@ import MainNavHeader from './MainNavHeader';
 import AndroidUpgradeNotification from './AndroidUpgradeNotification';
 import { MenuIcon } from 'lucide-react';
 import { headers } from 'next/headers';
-import parser from 'ua-parser-js';
+import { UAParser } from 'ua-parser-js';
 import { getIsInIframe } from '@/lib/isInIframe';
 
 export const getUserAgent = async () => {
@@ -17,7 +17,7 @@ export const getUserAgent = async () => {
 
   if (!userAgent) return null;
 
-  return parser(userAgent);
+  return UAParser(userAgent);
 };
 
 export default async function NavBar() {
