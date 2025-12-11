@@ -4,21 +4,18 @@ import Head from 'next/head';
 import Link from 'next/link';
 import React, { useRef, useState } from 'react';
 
-import { useSelector } from 'react-redux';
-import player from '../lib/player';
-import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
-import Flex from './Flex';
 import {
-  AlertCircle,
   ChevronDown,
   FastForwardIcon,
   ListMusicIcon,
   PauseIcon,
   PlayIcon,
   RewindIcon,
-  Volume2Icon,
 } from 'lucide-react';
-import { Toaster } from 'sonner';
+import { useSelector } from 'react-redux';
+import player from '../lib/player';
+import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
+import Flex from './Flex';
 
 interface Props {
   artistSlugsToName: Record<string, string | undefined>;
@@ -93,9 +90,15 @@ const Player = ({ artistSlugsToName }: Props) => {
           onClick={() => player.togglePlayPause()}
         >
           {playback.activeTrack.isPaused ? (
-            <PlayIcon size={20} className="fas fa fa-play fill-foreground-muted active:fill-gray-800" />
+            <PlayIcon
+              size={20}
+              className="fas fa fa-play fill-foreground-muted active:fill-gray-800"
+            />
           ) : (
-            <PauseIcon size={20} className="fas fa fa-pause fill-foreground-muted active:fill-gray-800" />
+            <PauseIcon
+              size={20}
+              className="fas fa fa-pause fill-foreground-muted active:fill-gray-800"
+            />
           )}
         </Flex>
       )}
