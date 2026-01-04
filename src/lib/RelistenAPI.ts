@@ -1,4 +1,4 @@
-import ky from 'ky-universal';
+import ky, { HTTPError } from 'ky-universal';
 import { notFound } from 'next/navigation';
 import { cache } from 'react';
 import { API_DOMAIN } from './constants';
@@ -30,7 +30,11 @@ export class RelistenAPI {
 
         return response as T;
       } catch (err) {
-        console.error(`API fetch error for ${url}:`, err);
+        if (err instanceof HTTPError && err.response.status === 404) {
+          console.log(`404: ${url}`);
+        } else {
+          console.error(`API fetch error for ${url}:`, err);
+        }
         notFound();
       }
     }
