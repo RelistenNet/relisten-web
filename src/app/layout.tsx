@@ -8,6 +8,7 @@ import Providers from './Providers';
 dns.setDefaultResultOrder('ipv4first');
 
 import '../styles/globals.css';
+import Link from 'next/link';
 // import Link from 'next/link';
 
 // TODO: figure out if we don't need any weights
@@ -23,9 +24,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={font.className}>
         <NextTopLoader showSpinner={false} />
-        {/* <Link href="https://en.wikipedia.org/wiki/Phil_Lesh" target="_blank">
+        <Link href="https://en.wikipedia.org/wiki/Bob_Weir" target="_blank">
           <div className="fixed top-0 z-10 h-2 w-full bg-black" />
-        </Link> */}
+        </Link>
         <Providers>{children}</Providers>
       </body>
     </html>
