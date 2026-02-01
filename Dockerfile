@@ -15,7 +15,6 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV NODE_ENV=production
-RUN pnpm run bands
 RUN pnpm run build
 
 # Stage 3: Production runner

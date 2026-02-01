@@ -4,7 +4,9 @@ import ArtistsColumnWithControls from './ArtistsColumnWithControls';
 
 const ArtistsColumn = async () => {
   const [artists, initialFilters] = await Promise.all([
-    RelistenAPI.fetchArtists(),
+    RelistenAPI.fetchArtists().then((artists) =>
+      artists.filter((artist) => Number(artist.featured) <= 1)
+    ),
     getServerFilters('root', true),
   ]);
 

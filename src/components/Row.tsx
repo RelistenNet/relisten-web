@@ -18,6 +18,12 @@ type RowProps = {
   isActiveOverride?: boolean;
 };
 
+const unwrap = (val: Array<any> | any) => {
+  if (Array.isArray(val)) return val[0];
+
+  return val;
+};
+
 const Row = ({
   children,
   href,
@@ -34,10 +40,9 @@ const Row = ({
 
   let isActive = isActiveOverride ?? false;
 
-  // if every segment is true, then we're active
   if (isActiveOverride === undefined && activeSegments) {
     isActive = Object.entries(activeSegments).every(
-      ([key, value]) => (params[key] ?? fallbackParams?.[key]) === value
+      ([key, value]) => (unwrap(params[key]) ?? fallbackParams?.[key]) === value
     );
   }
 
