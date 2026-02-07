@@ -7,6 +7,7 @@ import { FilterState } from '@/lib/filterCookies';
 import sortActiveBands from '../lib/sortActiveBands';
 import { simplePluralize } from '../lib/utils';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
+import PopularityBadge from './PopularityBadge';
 import Row from './Row';
 
 type YearsColumnWithControlsProps = {
@@ -66,15 +67,20 @@ const YearsColumnWithControls = ({
         processedYears.length > 0 &&
         processedYears.map((yearObj) => (
           <Row
-            key={yearObj.id}
+            key={yearObj.uuid}
             href={`/${artistSlug}/${yearObj.year}`}
             activeSegments={{ year: yearObj.year }}
           >
-            <div className="flex items-center gap-1">
-              <div>{yearObj.year}</div>
-              {yearObj.has_soundboard_source && (
-                <span className="rounded bg-green-500/20 px-1 text-[10px] text-green-700">SBD</span>
-              )}
+            <div>
+              <div className="flex items-center gap-1">
+                <div>{yearObj.year}</div>
+                {yearObj.has_soundboard_source && (
+                  <span className="rounded bg-green-500/20 px-1 text-[10px] text-green-700">
+                    SBD
+                  </span>
+                )}
+              </div>
+              <PopularityBadge popularity={yearObj.popularity} />
             </div>
             <div className="text-xxs text-foreground-muted min-w-[20%] text-right">
               <div>{simplePluralize('show', yearObj.show_count)}</div>

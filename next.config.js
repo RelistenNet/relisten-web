@@ -1,5 +1,6 @@
 export default {
   output: 'standalone',
+        serverExternalPackages: ["@takumi-rs/image-response"],
   async rewrites() {
     return [
       {

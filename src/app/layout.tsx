@@ -24,9 +24,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={font.className}>
         <NextTopLoader showSpinner={false} />
-        <Link href="https://en.wikipedia.org/wiki/Bob_Weir" target="_blank">
+        {/* <Link href="https://en.wikipedia.org/wiki/Bob_Weir" target="_blank">
           <div className="fixed top-0 z-10 h-2 w-full bg-black" />
-        </Link>
+        </Link> */}
         <Providers>{children}</Providers>
       </body>
     </html>
@@ -34,6 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 
 export const metadata = {
+  metadataBase: new URL('https://relisten.net'),
   title: {
     template: '%s | Relisten',
     default: 'Relisten', // a default is required when creating a template

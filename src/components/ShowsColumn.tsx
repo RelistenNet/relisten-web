@@ -11,12 +11,17 @@ const ShowsColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 
   if (year === 'today-in-history') return <TodayInHistoryColumn artistSlug={artistSlug} />;
   if (year === 'recently-added') return <RecentTapesColumn artistSlug={artistSlug} />;
 
-  const [artistShows, initialFilters] = await Promise.all([
-    RelistenAPI.fetchShows(artistSlug, year),
+  const [artists, initialFilters] = await Promise.all([
+    RelistenAPI.fetchArtists(),
     getServerFilters(`${artistSlug}:shows`, true),
   ]).catch(() => {
     notFound();
   });
+
+  const artist = artists?.find((a) => a.slug === artistSlug);
+  const artistYears = await RelistenAPI.fetchYears(artist?.uuid);
+  const yearObj = artistYears?.find((y) => y.year === year);
+  const artistShows = await RelistenAPI.fetchShows(artist?.uuid, yearObj?.uuid);
 
   return (
     <ShowsColumnWithControls

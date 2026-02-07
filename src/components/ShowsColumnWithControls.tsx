@@ -8,6 +8,7 @@ import { useFilterState } from '@/hooks/useFilterState';
 import { FilterState } from '@/lib/filterCookies';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import Flex from './Flex';
+import PopularityBadge from './PopularityBadge';
 import Row from './Row';
 import RowHeader from './RowHeader';
 import Tag from './Tag';
@@ -92,7 +93,7 @@ const ShowsColumnWithControls = ({
           }
 
           return (
-            <div key={show.id}>
+            <div key={show.uuid}>
               {tourName && (
                 <RowHeader>{tourName === 'Not Part of a Tour' ? '' : tourName}</RowHeader>
               )}
@@ -115,7 +116,8 @@ const ShowsColumnWithControls = ({
                     </div>
                   )}
                 </div>
-                <div className="text-xxs text-foreground-muted flex h-full min-w-[20%] flex-col justify-center gap-2 text-right">
+                <div className="text-xxs text-foreground-muted flex h-full min-w-[20%] flex-col justify-between text-right">
+                  <PopularityBadge popularity={show.popularity} align="right" />
                   <div>{durationToHHMMSS(avg_duration)}</div>
                   <div>{simplePluralize('tape', show.source_count)}</div>
                 </div>

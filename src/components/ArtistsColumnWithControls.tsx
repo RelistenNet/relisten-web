@@ -6,6 +6,7 @@ import { Artist } from '../types';
 import { useFilterState } from '@/hooks/useFilterState';
 import { FilterState } from '@/lib/filterCookies';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
+import PopularityBadge from './PopularityBadge';
 import Row from './Row';
 import RowHeader from './RowHeader';
 
@@ -55,7 +56,7 @@ const ArtistsColumnWithControls = ({ artists, initialFilters }: ArtistsColumnWit
     (acc, [, groupArtists]) => acc + groupArtists.length,
     0
   );
-
+  console.log(artists);
   return (
     <ColumnWithToggleControls
       heading="Bands"
@@ -68,16 +69,17 @@ const ArtistsColumnWithControls = ({ artists, initialFilters }: ArtistsColumnWit
         <RowHeader key={`header-${type}`}>{type === '1' ? 'Featured' : 'Bands'}</RowHeader>,
         ...groupArtists.map((artist: Artist, idx: number) => (
           <Row
-            key={[idx, artist.id].join(':')}
+            key={[idx, artist.uuid].join(':')}
             href={`/${artist.slug}`}
             activeSegments={{ artistSlug: artist.slug }}
           >
             <div>
               <div>{artist.name}</div>
+              <PopularityBadge popularity={artist.popularity} />
               {byObject[String(artist.slug)] && (
-                <span className="text-foreground-muted text-xs">
+                <div className="text-foreground-muted text-xxs">
                   Powered by {byObject[String(artist.slug)]}
-                </span>
+                </div>
               )}
             </div>
             <div className="text-foreground-muted min-w-[20%] text-right text-xs">

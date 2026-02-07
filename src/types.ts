@@ -4,6 +4,17 @@ export type Meta = {
   error: boolean;
 };
 
+export type PopularityWindow = { plays: number; hot_score: number; hours: number };
+export type Popularity = {
+  momentum_score?: number;
+  trend_ratio?: number;
+  windows?: {
+    '48h'?: PopularityWindow;
+    '7d'?: PopularityWindow;
+    '30d'?: PopularityWindow;
+  };
+};
+
 export type Artist = {
   id: number;
   uuid?: string;
@@ -19,6 +30,7 @@ export type Artist = {
   the?: boolean;
   created_at?: string;
   updated_at?: string;
+  popularity?: Popularity | null;
 };
 
 export type Day = {
@@ -83,6 +95,7 @@ export type Year = {
   created_at?: string;
   updated_at?: string;
   has_soundboard_source?: boolean;
+  popularity?: Popularity | null;
 };
 
 export type Features = {
@@ -160,6 +173,7 @@ export type Show = {
   uuid?: string;
   created_at?: string;
   updated_at?: string;
+  popularity?: Popularity | null;
 };
 
 export type TrackSource = {

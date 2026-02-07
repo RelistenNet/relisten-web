@@ -40,15 +40,14 @@ export default async function MonthPage({ params }: Props) {
   const { artistSlug, year, month } = await params;
 
   // Fetch artist and shows
-  const [artists, artistShows] = await Promise.all([
-    RelistenAPI.fetchArtists(),
-    RelistenAPI.fetchShows(artistSlug, year),
-  ]);
-
+  const artists = await RelistenAPI.fetchArtists();
   const artist = artists?.find((a) => a.slug === artistSlug);
-  if (!artist || !artistShows) {
-    notFound();
-  }
+  if (!artist) notFound();
+
+  const artistYears = await RelistenAPI.fetchYears(artist.uuid);
+  const yearObj = artistYears?.find((y) => y.year === year);
+  const artistShows = await RelistenAPI.fetchShows(artist.uuid, yearObj?.uuid);
+  if (!artistShows) notFound();
 
   const shows = artistShows.shows || [];
 

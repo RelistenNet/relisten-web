@@ -7,15 +7,15 @@ import TodayInHistoryRow from './TodayInHistoryRow';
 import RecentTapesRow from './RecentTapesRow';
 
 const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
-  const [artists, artistYears, initialFilters] = await Promise.all([
+  const [artists, initialFilters] = await Promise.all([
     RelistenAPI.fetchArtists(),
-    RelistenAPI.fetchYears(artistSlug),
     getServerFilters(artistSlug || '', true),
   ]).catch(() => {
     notFound();
   });
 
   const artist = artists?.find((artist) => artist.slug === artistSlug);
+  const artistYears = await RelistenAPI.fetchYears(artist?.uuid);
 
   return (
     <YearsColumnWithControls

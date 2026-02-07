@@ -41,6 +41,9 @@ export const generateMetadata = async (props) => {
           url: song?.mp3_url, // Must be an absolute URL
         },
       ],
+      images: show?.uuid
+        ? [{ url: `/api/og?showUuid=${show.uuid}`, width: 550, height: 550 }]
+        : [],
     },
   };
 };

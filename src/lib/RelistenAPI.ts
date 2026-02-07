@@ -91,24 +91,19 @@ export class RelistenAPI {
     });
   });
 
-  // Years API
-  static fetchYears = cache(async (slug?: string): Promise<Year[]> => {
-    if (!slug) return [];
+  // Years API (v3 — UUID-based, includes popularity)
+  static fetchYears = cache(async (artistUuid?: string): Promise<Year[]> => {
+    if (!artistUuid) return [];
 
-    if (!this.isValidArtistSlug(slug)) {
-      console.error('Tried to load url that doesnt match artist slug format:', slug);
-      return notFound();
-    }
-
-    return this.cachedFetch<Year[]>(`/api/v2/artists/${slug}/years`);
+    return this.cachedFetch<Year[]>(`/api/v3/artists/${artistUuid}/years`);
   });
 
-  // Artist Shows API
+  // Artist Shows API (v3 — UUID-based, includes popularity)
   static fetchShows = cache(
-    async (slug?: string, year?: string): Promise<ArtistShows | undefined> => {
-      if (!slug || !year) return undefined;
+    async (artistUuid?: string, yearUuid?: string): Promise<ArtistShows | undefined> => {
+      if (!artistUuid || !yearUuid) return undefined;
 
-      return this.cachedFetch<ArtistShows>(`/api/v2/artists/${slug}/years/${year}`);
+      return this.cachedFetch<ArtistShows>(`/api/v3/artists/${artistUuid}/years/${yearUuid}`);
     }
   );
 

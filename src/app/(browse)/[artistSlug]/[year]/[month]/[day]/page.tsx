@@ -18,5 +18,10 @@ export const generateMetadata = async (props) => {
   return {
     title: [createShowDate(year, month, day), name].join(' | '),
     description: [show?.venue?.name, show?.venue?.location].filter((x) => x).join(' '),
+    openGraph: {
+      images: show?.uuid
+        ? [{ url: `/api/og?showUuid=${show.uuid}`, width: 550, height: 550 }]
+        : [],
+    },
   };
 };
