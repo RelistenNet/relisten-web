@@ -44,7 +44,7 @@ const generatePixelatedSVG = (opacity = 0.4, size: number) => {
 };
 
 const querySchema = z.object({
-    showUuid: z.uuid({ version: 'v4' }),
+  showUuid: z.uuid({ version: 'v4' }),
   size: z.coerce.number().gte(256).lte(1024).default(1024),
 });
 
@@ -83,55 +83,53 @@ export const GET = createZodRoute()
     const pixelatedSVG = generatePixelatedSVG(0.8, size);
 
     return new ImageResponse(
-      (
-        <div
-          tw="flex h-full w-full flex-col items-center justify-center p-10 text-white relative overflow-hidden"
-          style={{
-            backgroundImage: `${pixelatedSVG}, ${bgGradient}`,
-            backgroundBlendMode: 'overlay',
-          }}
-        >
-          <div tw="flex w-full max-w-[800px] flex-col items-center justify-center rounded-2xl bg-black/25 p-12 relative">
-            <div
-              tw="mb-2 text-center font-extrabold tracking-tight"
-              style={{
-                fontSize: (size / 1024) * 72,
-              }}
-            >
-              {artistName}
-            </div>
-            <div
-              tw="mb-2 text-center font-bold"
-              style={{
-                fontSize: (size / 1024) * 60,
-              }}
-            >
-              {show.display_date}
-            </div>
-            <div tw="flex items-center justify-center" style={{ gap: 8 }}>
-              {show.venue?.name && (
-                <div
-                  tw="rounded-xl bg-white/20 px-6 py-3 flex text-center"
-                  style={{
-                    fontSize: (size / 1024) * 36,
-                  }}
-                >
-                  {show.venue?.name} {show.venue?.location ? `• ${show.venue.location}` : ''}
-                </div>
-              )}
-            </div>
-          </div>
-
+      <div
+        tw="flex h-full w-full flex-col items-center justify-center p-10 text-white relative overflow-hidden"
+        style={{
+          backgroundImage: `${pixelatedSVG}, ${bgGradient}`,
+          backgroundBlendMode: 'overlay',
+        }}
+      >
+        <div tw="flex w-full max-w-[800px] flex-col items-center justify-center rounded-2xl bg-black/25 p-12 relative">
           <div
-            tw="absolute bottom-6 right-6 font-bold"
+            tw="mb-2 text-center font-extrabold tracking-tight"
             style={{
-              fontSize: (size / 1024) * 36,
+              fontSize: (size / 1024) * 72,
             }}
           >
-            Relisten.net
+            {artistName}
+          </div>
+          <div
+            tw="mb-2 text-center font-bold"
+            style={{
+              fontSize: (size / 1024) * 60,
+            }}
+          >
+            {show.display_date}
+          </div>
+          <div tw="flex items-center justify-center" style={{ gap: 8 }}>
+            {show.venue?.name && (
+              <div
+                tw="rounded-xl bg-white/20 px-6 py-3 flex text-center"
+                style={{
+                  fontSize: (size / 1024) * 36,
+                }}
+              >
+                {show.venue?.name} {show.venue?.location ? `• ${show.venue.location}` : ''}
+              </div>
+            )}
           </div>
         </div>
-      ),
+
+        <div
+          tw="absolute bottom-6 right-6 font-bold"
+          style={{
+            fontSize: (size / 1024) * 36,
+          }}
+        >
+          Relisten.net
+        </div>
+      </div>,
       {
         width: size,
         height: size,

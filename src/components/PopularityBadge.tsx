@@ -2,6 +2,7 @@ import { Music } from 'lucide-react';
 import { formatNumber, formatHours } from '@/lib/formatPlays';
 import Tooltip from './Tooltip';
 import type { Popularity } from '@/types';
+import cn from '@/lib/cn';
 
 export default function PopularityBadge({
   popularity,
@@ -15,7 +16,9 @@ export default function PopularityBadge({
 
   return (
     <Tooltip
-      className="text-foreground-muted text-xxs flex items-center tracking-wide"
+      className={cn('text-foreground-muted text-xxs flex items-center tracking-wide', {
+        ['justify-end']: align === 'right',
+      })}
       align={align}
       content={
         popularity?.windows && (
@@ -43,10 +46,9 @@ export default function PopularityBadge({
         )
       }
     >
-      <div className="flex items-center gap-1 text-right">
+      <div className="text-foreground-muted flex items-center gap-1 text-right">
         <Music className="size-3" />
         {formatNumber(plays)}
-        <div>30d</div>
       </div>
     </Tooltip>
   );
