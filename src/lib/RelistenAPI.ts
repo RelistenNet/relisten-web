@@ -18,7 +18,7 @@ export class RelistenAPI {
     async <T>(
       endpoint: string,
       options: { revalidate?: number } = { revalidate: 60 * 5 }
-    ): Promise<T | undefined> => {
+    ): Promise<T> => {
       const url = `${this.baseURL}${endpoint}`;
 
       // console.log('Requesting', endpoint, options);
