@@ -97,7 +97,7 @@ const ColumnWithToggleControls = ({
               </>
             ) : (
               <>
-                {simplePluralize('row', hiddenRows)} are hidden by filters.{' '}
+                {simplePluralize('row', hiddenRows)} {hiddenRows === 1 ? 'is' : 'are'} hidden by filters.{' '}
                 <button
                   onClick={onClearFilters}
                   className="font-medium underline hover:no-underline"
