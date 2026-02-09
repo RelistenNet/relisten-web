@@ -56,7 +56,7 @@ const ArtistsColumnWithControls = ({ artists, initialFilters }: ArtistsColumnWit
     (acc, [, groupArtists]) => acc + groupArtists.length,
     0
   );
-  console.log(artists);
+
   return (
     <ColumnWithToggleControls
       heading="Bands"

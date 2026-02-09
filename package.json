@@ -57,7 +57,7 @@
   "devDependencies": {
     "@switz/eslint-config": "^12.4.0",
     "@tailwindcss/postcss": "^4.1.18",
-    "@types/node": "^25.2.1",
+    "@types/node": "^25.2.2",
     "@types/react": "19.2.13",
     "@types/ua-parser-js": "^0.7.39",
     "eslint": "^9.39.1",
