@@ -1,12 +1,22 @@
+import TodayDateNav from '@/components/TodayDateNav';
 import TodayTrack from '@/components/TodayTrack';
 import RelistenAPI from '@/lib/RelistenAPI';
+import { dateSearchParams } from '@/lib/searchParams/dateSearchParam';
 import { getCurrentMonthDay } from '@/lib/timezone';
 import { Day } from '@/types';
 
-export default async function Page() {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const parsed = await dateSearchParams.parseAndValidate(searchParams);
   const currentMonthDay = await getCurrentMonthDay();
 
-  const data = await RelistenAPI.fetchTodayShows(currentMonthDay.month, currentMonthDay.day);
+  const month = parsed.month ?? currentMonthDay.month;
+  const day = parsed.day ?? currentMonthDay.day;
+
+  const data = await RelistenAPI.fetchTodayShows(month, day);
 
   // Group by artist name manually since artist is a nested property
   const groupedBy = data.reduce(
@@ -25,6 +35,7 @@ export default async function Page() {
     <div className="mx-auto w-full max-w-3xl flex-1">
       <div className="mb-8">
         <h1 className="mb-2 text-3xl font-semibold text-gray-900">Today in History</h1>
+        <TodayDateNav month={month} day={day} pathname="/today" />
       </div>
 
       <div className="space-y-8">

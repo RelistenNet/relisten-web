@@ -5,11 +5,19 @@ import { getServerFilters } from '@/lib/serverFilterCookies';
 import React from 'react';
 import TodayInHistoryColumn from './TodayInHistoryColumn';
 import RecentTapesColumn from './RecentTapesColumn';
+import TopTapesColumn from './TopTapesColumn';
 import ShowsColumnWithControls from './ShowsColumnWithControls';
 
-const ShowsColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 'year'>) => {
-  if (year === 'today-in-history') return <TodayInHistoryColumn artistSlug={artistSlug} />;
+const ShowsColumn = async ({
+  artistSlug,
+  year,
+  month,
+  day,
+}: Pick<RawParams, 'artistSlug' | 'year'> & { month?: string; day?: string }) => {
+  if (year === 'today-in-history' && month && day)
+    return <TodayInHistoryColumn artistSlug={artistSlug} month={month} day={day} />;
   if (year === 'recently-added') return <RecentTapesColumn artistSlug={artistSlug} />;
+  if (year === 'top') return <TopTapesColumn artistSlug={artistSlug} />;
 
   const [artists, initialFilters] = await Promise.all([
     RelistenAPI.fetchArtists(),

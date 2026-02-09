@@ -108,23 +108,28 @@ export class RelistenAPI {
   );
 
   // Today in History API
-  static fetchTodayInHistory = cache(async (artistSlug?: string): Promise<Show[]> => {
-    if (!artistSlug) return [];
+  static fetchTodayInHistory = cache(
+    async (artistSlug: string | undefined, month: number | string, day: number | string): Promise<Show[]> => {
+      if (!artistSlug) return [];
 
-    const now = new Date();
-    const month = now.getMonth() + 1;
-    const day = now.getDate();
-
-    return this.cachedFetch<Show[]>(
-      `/api/v2/artists/${artistSlug}/shows/on-date?month=${month}&day=${day}`
-    );
-  });
+      return this.cachedFetch<Show[]>(
+        `/api/v2/artists/${artistSlug}/shows/on-date?month=${month}&day=${day}`
+      );
+    }
+  );
 
   static fetchTodayShows = cache(
     async (month: number | string, day: number | string): Promise<Day[]> => {
       return this.cachedFetch<Day[]>(`/api/v2/shows/today?month=${month}&day=${day}`);
     }
   );
+
+  // Top Shows API (sorted by rating)
+  static fetchTopShows = cache(async (artistSlug?: string): Promise<Show[]> => {
+    if (!artistSlug) return [];
+
+    return this.cachedFetch<Show[]>(`/api/v2/artists/${artistSlug}/shows/top`);
+  });
 
   // Recently Added Shows API
   static fetchRecentlyAdded = cache(async (artistSlug?: string): Promise<Show[]> => {

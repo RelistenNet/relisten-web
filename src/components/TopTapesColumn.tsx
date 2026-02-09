@@ -3,31 +3,24 @@ import { RawParams } from '@/types/params';
 import React from 'react';
 import { notFound } from 'next/navigation';
 import { getServerFilters } from '@/lib/serverFilterCookies';
-import TodayInHistoryColumnWithControls from './TodayInHistoryColumnWithControls';
+import TopTapesColumnWithControls from './TopTapesColumnWithControls';
 
-const TodayInHistoryColumn = async ({
-  artistSlug,
-  year,
-  month,
-  day,
-}: Pick<RawParams, 'artistSlug' | 'year'> & { month: string; day: string }) => {
+const TopTapesColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 'year'>) => {
   const [shows, initialFilters] = await Promise.all([
-    RelistenAPI.fetchTodayInHistory(artistSlug, month, day),
+    RelistenAPI.fetchTopShows(artistSlug),
     getServerFilters(`${artistSlug}:shows`, true),
   ]).catch(() => {
     notFound();
   });
 
   return (
-    <TodayInHistoryColumnWithControls
+    <TopTapesColumnWithControls
       artistSlug={artistSlug}
       year={year}
       shows={shows}
       initialFilters={initialFilters}
-      month={month}
-      day={day}
     />
   );
 };
 
-export default React.memo(TodayInHistoryColumn);
+export default React.memo(TopTapesColumn);

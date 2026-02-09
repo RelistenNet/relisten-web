@@ -5,6 +5,7 @@ import { getServerFilters } from '@/lib/serverFilterCookies';
 import YearsColumnWithControls from './YearsColumnWithControls';
 import TodayInHistoryRow from './TodayInHistoryRow';
 import RecentTapesRow from './RecentTapesRow';
+import TopTapesRow from './TopTapesRow';
 
 const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
   const [artists, initialFilters] = await Promise.all([
@@ -26,6 +27,7 @@ const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
     >
       <TodayInHistoryRow artistSlug={artistSlug} />
       <RecentTapesRow artistSlug={artistSlug} />
+      <TopTapesRow artistSlug={artistSlug} />
     </YearsColumnWithControls>
   );
 };

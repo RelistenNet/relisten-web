@@ -19,17 +19,29 @@ const TodayInHistoryRow = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) 
       </div>
       <div className="text-xxs text-foreground-muted min-w-[20%] text-right">
         <Suspense fallback={null}>
-          <TodayMetadata artistSlug={artistSlug} />
+          <TodayMetadata
+            artistSlug={artistSlug}
+            month={currentMonthDay.month}
+            day={currentMonthDay.day}
+          />
         </Suspense>
       </div>
     </Row>
   );
 };
 
-const TodayMetadata = async ({ artistSlug }: { artistSlug?: string }) => {
+const TodayMetadata = async ({
+  artistSlug,
+  month,
+  day,
+}: {
+  artistSlug?: string;
+  month: string;
+  day: string;
+}) => {
   if (!artistSlug) return null;
 
-  const data = await RelistenAPI.fetchTodayInHistory(artistSlug);
+  const data = await RelistenAPI.fetchTodayInHistory(artistSlug, month, day);
 
   return (
     <>
