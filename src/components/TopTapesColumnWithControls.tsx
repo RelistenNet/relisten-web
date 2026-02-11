@@ -30,12 +30,6 @@ const TopTapesColumnWithControls = ({
 
   const toggles = [
     {
-      type: 'sort' as const,
-      isActive: dateAsc,
-      onToggle: () => toggleFilter('date'),
-      title: !dateAsc ? 'By Rating' : 'By Date',
-    },
-    {
       type: 'filter' as const,
       isActive: !!sbdOnly,
       onToggle: () => toggleFilter('sbd'),
@@ -49,13 +43,6 @@ const TopTapesColumnWithControls = ({
 
     if (sbdOnly) {
       processedShows = processedShows.filter((show) => show.has_soundboard_source);
-    }
-
-    // When dateAsc is toggled, sort by date instead of keeping API rating order
-    if (dateAsc) {
-      processedShows.sort(
-        (a, b) => new Date(a.display_date ?? '').getTime() - new Date(b.display_date ?? '').getTime()
-      );
     }
 
     return processedShows;

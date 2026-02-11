@@ -1,11 +1,10 @@
 'use client';
 
-import { useMemo } from 'react';
-import sortActiveBands from '../lib/sortActiveBands';
-import { durationToHHMMSS, removeLeadingZero, simplePluralize, splitShowDate } from '../lib/utils';
-import { Show } from '@/types';
 import { useFilterState } from '@/hooks/useFilterState';
 import { FilterState } from '@/lib/filterCookies';
+import { Show } from '@/types';
+import { useMemo } from 'react';
+import { durationToHHMMSS, removeLeadingZero, simplePluralize, splitShowDate } from '../lib/utils';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import Flex from './Flex';
 import Row from './Row';
@@ -32,12 +31,6 @@ const RecentTapesColumnWithControls = ({
 
   const toggles = [
     {
-      type: 'sort' as const,
-      isActive: dateAsc, // Show as active when oldest first (ascending)
-      onToggle: () => toggleFilter('date'),
-      title: !dateAsc ? 'Newest First' : 'Oldest First',
-    },
-    {
       type: 'filter' as const,
       isActive: !!sbdOnly,
       onToggle: () => toggleFilter('sbd'),
@@ -52,16 +45,6 @@ const RecentTapesColumnWithControls = ({
     // Apply filter
     if (sbdOnly) {
       processedShows = processedShows.filter((show) => show.has_soundboard_source);
-    }
-
-    // Apply sorting
-    if (artistSlug) {
-      processedShows = sortActiveBands(artistSlug, processedShows);
-    }
-
-    // Reverse if needed (default is desc/newest first when no filter set)
-    if (!dateAsc) {
-      processedShows.reverse(); // Change to oldest first
     }
 
     return processedShows;
