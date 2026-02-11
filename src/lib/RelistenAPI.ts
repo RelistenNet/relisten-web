@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { cache } from 'react';
 import { API_DOMAIN } from './constants';
 import { sortSources } from './sortSources';
-import type { Artist, Tape, Year, ArtistShows, Show, Day } from '@/types';
+import type { Artist, Tape, Year, ArtistShows, Show, Day, Venue, Song, Tour, VenueWithShows, SongWithShows, TourWithShows } from '@/types';
 
 export class RelistenAPI {
   private static baseURL = API_DOMAIN;
@@ -136,6 +136,40 @@ export class RelistenAPI {
     if (!artistSlug) return [];
 
     return this.cachedFetch<Show[]>(`/api/v2/artists/${artistSlug}/shows/recently-added`);
+  });
+
+  // Venues API
+  static fetchVenues = cache(async (artistSlug?: string): Promise<Venue[]> => {
+    if (!artistSlug) return [];
+
+    return this.cachedFetch<Venue[]>(`/api/v2/artists/${artistSlug}/venues`);
+  });
+
+  // Songs API
+  static fetchSongs = cache(async (artistSlug?: string): Promise<Song[]> => {
+    if (!artistSlug) return [];
+
+    return this.cachedFetch<Song[]>(`/api/v2/artists/${artistSlug}/songs`);
+  });
+
+  // Tours API
+  static fetchTours = cache(async (artistSlug?: string): Promise<Tour[]> => {
+    if (!artistSlug) return [];
+
+    return this.cachedFetch<Tour[]>(`/api/v2/artists/${artistSlug}/tours`);
+  });
+
+  // Detail endpoints — v3, slug-based
+  static fetchVenueShows = cache(async (artistSlug: string, venueSlug: string) => {
+    return this.cachedFetch<VenueWithShows>(`/api/v3/artists/${artistSlug}/venues/${venueSlug}`);
+  });
+
+  static fetchSongShows = cache(async (artistSlug: string, songSlug: string) => {
+    return this.cachedFetch<SongWithShows>(`/api/v3/artists/${artistSlug}/songs/${songSlug}`);
+  });
+
+  static fetchTourShows = cache(async (artistSlug: string, tourSlug: string) => {
+    return this.cachedFetch<TourWithShows>(`/api/v3/artists/${artistSlug}/tours/${tourSlug}`);
   });
 
   // Live API

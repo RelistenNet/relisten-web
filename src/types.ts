@@ -218,6 +218,20 @@ export type ArtistShows = {
   updated_at?: string;
 };
 
+export type Song = {
+  id: number;
+  shows_played_at?: number;
+  artist_id?: number;
+  artist_uuid?: string;
+  name?: string;
+  slug?: string;
+  upstream_identifier?: string;
+  sortName?: string;
+  uuid?: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
 export type Tour = {
   id: number;
   artist_id?: number;
@@ -227,6 +241,7 @@ export type Tour = {
   name?: string;
   slug?: string;
   upstream_identifier?: string;
+  shows_on_tour?: number;
   uuid?: string;
   created_at?: string;
   updated_at?: string;
@@ -360,3 +375,7 @@ export type ActiveTrack = {
   playbackType?: string;
   webAudioLoadingState?: string;
 };
+
+export type VenueWithShows = Venue & { shows?: Show[] };
+export type SongWithShows = Song & { shows?: Show[] };
+export type TourWithShows = Tour & { shows?: Show[] };

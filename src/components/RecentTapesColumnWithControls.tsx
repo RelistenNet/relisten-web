@@ -91,7 +91,7 @@ const RecentTapesColumnWithControls = ({
               >
                 <div>
                   <Flex>
-                    {removeLeadingZero(month)}/{day}/{year}
+                    {year}-{month}-{day}
                     {show.has_soundboard_source && <Tag>SBD</Tag>}
                   </Flex>
                   {venue && (

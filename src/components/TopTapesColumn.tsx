@@ -1,8 +1,7 @@
 import RelistenAPI from '@/lib/RelistenAPI';
-import { RawParams } from '@/types/params';
-import React from 'react';
-import { notFound } from 'next/navigation';
 import { getServerFilters } from '@/lib/serverFilterCookies';
+import { RawParams } from '@/types/params';
+import { notFound } from 'next/navigation';
 import TopTapesColumnWithControls from './TopTapesColumnWithControls';
 
 const TopTapesColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 'year'>) => {
@@ -23,4 +22,4 @@ const TopTapesColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug'
   );
 };
 
-export default React.memo(TopTapesColumn);
+export default TopTapesColumn;

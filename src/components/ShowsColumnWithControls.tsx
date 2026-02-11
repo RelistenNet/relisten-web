@@ -1,6 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
+import Link from 'next/link';
+import { ChevronLeft } from 'lucide-react';
 import sortActiveBands from '../lib/sortActiveBands';
 import { durationToHHMMSS, removeLeadingZero, simplePluralize, splitShowDate } from '../lib/utils';
 import { Show } from '@/types';
@@ -18,6 +20,8 @@ type ShowsColumnWithControlsProps = {
   year?: string;
   shows: Show[];
   initialFilters?: FilterState;
+  backHref?: string;
+  fullDate?: boolean;
 };
 
 const ShowsColumnWithControls = ({
@@ -25,6 +29,8 @@ const ShowsColumnWithControls = ({
   year,
   shows,
   initialFilters,
+  backHref,
+  fullDate,
 }: ShowsColumnWithControlsProps) => {
   const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(
     initialFilters,
@@ -78,6 +84,15 @@ const ShowsColumnWithControls = ({
       totalCount={shows.length}
       onClearFilters={clearFilters}
     >
+      {backHref && (
+        <Link
+          href={backHref}
+          className="flex items-center gap-1 border-b border-gray-100 px-2 py-2 text-sm hover:bg-gray-50"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Back
+        </Link>
+      )}
       {processedShows &&
         artistSlug &&
         processedShows.map((show) => {
@@ -94,7 +109,7 @@ const ShowsColumnWithControls = ({
 
           return (
             <div key={show.uuid}>
-              {tourName && (
+              {!fullDate && tourName && (
                 <RowHeader>{tourName === 'Not Part of a Tour' ? '' : tourName}</RowHeader>
               )}
               <Row
@@ -106,7 +121,7 @@ const ShowsColumnWithControls = ({
               >
                 <div>
                   <Flex className="tabular-nums">
-                    {removeLeadingZero(month)}/{day}
+                    {fullDate ? `${year}-${month}-${day}` : `${removeLeadingZero(month)}/${day}`}
                     {show.has_soundboard_source && <Tag>SBD</Tag>}
                   </Flex>
                   {venue && (

@@ -1,8 +1,7 @@
 import RelistenAPI from '@/lib/RelistenAPI';
-import { RawParams } from '@/types/params';
-import React from 'react';
-import { notFound } from 'next/navigation';
 import { getServerFilters } from '@/lib/serverFilterCookies';
+import { RawParams } from '@/types/params';
+import { notFound } from 'next/navigation';
 import TodayInHistoryColumnWithControls from './TodayInHistoryColumnWithControls';
 
 const TodayInHistoryColumn = async ({
@@ -30,4 +29,4 @@ const TodayInHistoryColumn = async ({
   );
 };
 
-export default React.memo(TodayInHistoryColumn);
+export default TodayInHistoryColumn;

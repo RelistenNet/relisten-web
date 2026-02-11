@@ -2,7 +2,7 @@
 
 import cn from '@/lib/cn';
 import Link from 'next/link';
-import { useParams, usePathname, useRouter } from 'next/navigation';
+import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { MouseEvent, useTransition } from 'react';
 import Flex from './Flex';
 import RowLoading from './RowLoading';
@@ -36,6 +36,7 @@ const Row = ({
   const [isPending, startTransition] = useTransition();
   const params = useParams();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
 
   let isActive = isActiveOverride ?? false;
@@ -63,7 +64,10 @@ const Row = ({
       return;
     }
     e.preventDefault();
-    if (pathname === href) {
+
+    const fullPath = [pathname, searchParams].filter((x) => x).join('?');
+
+    if (fullPath === href) {
       startTransition(() => router.refresh());
       console.log('refreshing from row', pathname, href);
     } else {
