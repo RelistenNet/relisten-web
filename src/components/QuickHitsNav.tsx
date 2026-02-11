@@ -67,7 +67,7 @@ const QuickHitsPill = ({
         isActive
           ? 'bg-relisten-600 font-medium text-white'
           : 'text-foreground-muted hover:text-foreground hover:bg-gray-100',
-        isPending && 'bg-relisten-600/60 text-white hover:bg-relisten-600/60'
+        isPending && 'bg-relisten-600/60 text-white hover:bg-relisten-600/60 hover:text-white'
       )}
     >
       {label}
