@@ -1,15 +1,14 @@
 'use client';
 
-import { useMemo } from 'react';
-import sortActiveBands from '../lib/sortActiveBands';
-import { durationToHHMMSS, removeLeadingZero, simplePluralize, splitShowDate } from '../lib/utils';
-import { Show } from '@/types';
 import { useFilterState } from '@/hooks/useFilterState';
 import { FilterState } from '@/lib/filterCookies';
+import { Show } from '@/types';
+import { useMemo } from 'react';
+import sortActiveBands from '../lib/sortActiveBands';
+import { durationToHHMMSS, simplePluralize, splitShowDate } from '../lib/utils';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import Flex from './Flex';
 import Row from './Row';
-import RowHeader from './RowHeader';
 import Tag from './Tag';
 import TodayDateNav from './TodayDateNav';
 
@@ -94,11 +93,10 @@ const TodayInHistoryColumnWithControls = ({
         artistSlug &&
         processedShows.map((show) => {
           const { year, month, day } = splitShowDate(show.display_date);
-          const { venue, avg_duration, tour } = show;
+          const { venue, avg_duration } = show;
 
           return (
             <div key={show.id}>
-              <RowHeader>{year}</RowHeader>
               <Row
                 href={`/${artistSlug}/${year}/${month}/${day}`}
                 activeSegments={{
