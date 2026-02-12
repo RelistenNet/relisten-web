@@ -3,6 +3,7 @@ import NextTopLoader from 'nextjs-toploader';
 import dns from 'node:dns';
 import React from 'react';
 import Providers from './Providers';
+import { getTheme } from '@/lib/theme';
 
 // https://github.com/node-fetch/node-fetch/issues/1624#issuecomment-1407717012
 dns.setDefaultResultOrder('ipv4first');
@@ -14,9 +15,18 @@ import Link from 'next/link';
 // TODO: figure out if we don't need any weights
 const font = Roboto({ subsets: ['latin'], weight: ['400', '500', '700', '900'] });
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const theme = await getTheme();
+
+  // Determine class names: if theme is explicitly set, use it; otherwise let CSS media query decide
+  const htmlClasses = theme === 'dark'
+    ? 'dark bg-background'
+    : theme === 'light'
+      ? 'light bg-background'
+      : 'bg-background';
+
   return (
-    <html lang="en">
+    <html lang="en" className={htmlClasses}>
       <head>
         <link rel="icon" href="/favicon.ico" />
         <meta name="apple-itunes-app" content="app-id=715886886" />

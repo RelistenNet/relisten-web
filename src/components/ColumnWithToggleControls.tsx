@@ -84,7 +84,7 @@ const ColumnWithToggleControls = ({
       )}
       <Flex column className="flex-1 overflow-x-hidden overflow-y-auto">
         {filteredCount !== undefined && totalCount !== undefined && filteredCount < totalCount && (
-          <div className="m-2 rounded border border-amber-500/20 bg-amber-500/10 p-2 text-xs text-amber-700">
+          <div className="m-2 rounded border border-amber-500/20 bg-amber-500/10 p-2 text-xs text-amber-700 dark:border-amber-700/30 dark:bg-amber-900/20 dark:text-amber-400">
             {filteredCount === 0 ? (
               <>
                 All {simplePluralize('row', hiddenRows)} are hidden by filters.{' '}
