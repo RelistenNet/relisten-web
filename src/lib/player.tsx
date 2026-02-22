@@ -95,6 +95,9 @@ const player = new Gapless.Queue({
     if (!store) return;
     if (player.currentTrack) {
       throttledUpdateLocalStorage();
+      if (!player.currentTrack.isPaused) {
+        toast.dismiss('autoplay-blocked');
+      }
     }
     store.dispatch(
       updatePlayback({
