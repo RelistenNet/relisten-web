@@ -10,7 +10,6 @@ import { toast } from 'sonner';
 declare global {
   interface Window {
     player: HTMLAudioElement;
-    UPDATED_TRACK_VIA_GAPLESS: boolean;
     FLAC: string;
   }
 }
@@ -86,6 +85,11 @@ const throttledUpdateLocalStorage = () => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let store: any;
 let mounted: boolean;
+let pendingSeekTime: number | null = null;
+
+export function setPendingSeekTime(seconds: number) {
+  pendingSeekTime = seconds;
+}
 const player = new Gapless.Queue({
   onProgress: () => {
     if (!store) return;
@@ -161,6 +165,45 @@ const player = new Gapless.Queue({
     toast.error('There was an error loading your audio', {
       toasterId: 'audio-error',
       duration: Infinity,
+    });
+  },
+  onPlayBlocked: () => {
+    toast.warning('Autoplay blocked', {
+      toasterId: 'audio-error',
+      id: 'autoplay-blocked',
+      duration: Infinity,
+      description: (
+        <ol className="m-0 flex flex-col gap-1 pl-0">
+          <li>
+            To start playing, hit <strong>Play now</strong>
+          </li>
+          <li>
+            To prevent this in the future, click the <strong>lock icon</strong> in your address bar,
+            select <strong>Sound</strong>, and choose <strong>Always Allow</strong>
+          </li>
+        </ol>
+      ),
+      classNames: {
+        toast: '!bg-amber-100 !text-amber-800 !border-amber-500',
+        title: '!text-base !font-semibold !inline !align-middle',
+        icon: '!inline !align-middle !mr-1',
+        actionButton: '!bg-amber-700 !text-white',
+        closeButton: '!border-amber-400',
+      },
+      action: {
+        label: 'Play now',
+        onClick: () => {
+          player.resumeAudioContext();
+          player.play();
+          if (pendingSeekTime && pendingSeekTime > 0 && player.currentTrack) {
+            setTimeout(() => {
+              player.currentTrack.seek(pendingSeekTime);
+              pendingSeekTime = null;
+            }, 100);
+          }
+          toast.dismiss('autoplay-blocked');
+        },
+      },
     });
   },
 });

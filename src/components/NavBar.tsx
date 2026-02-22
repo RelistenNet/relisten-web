@@ -44,7 +44,7 @@ export default async function NavBar() {
           artistSlugsToName={artistSlugsToName}
           indexOverride={isInIframe ? '/wsp' : undefined}
         />
-        <div className="player min-w-[60%] flex-1 text-center lg:min-w-[44vw] xl:min-w-[38vw]">
+        <div className="player min-w-[60%] flex-1 text-center lg:min-w-[44vw] lg:max-w-[44vw] xl:min-w-[38vw] xl:max-w-[38vw]">
           <Player artistSlugsToName={artistSlugsToName} />
         </div>
 

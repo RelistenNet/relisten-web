@@ -24,7 +24,7 @@ export default async function BrowseLayout({
 
   return (
     <Flex column className="h-screen">
-      <Toaster id="audio-error" position="top-center" richColors closeButton />
+      <Toaster id="audio-error" position="top-center" offset="54px" richColors closeButton />
       <NavBar />
       <div
         className={cn(

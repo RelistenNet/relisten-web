@@ -43,6 +43,7 @@
         onStartNewTrack,
         webAudioIsDisabled = false,
         onError,
+        onPlayBlocked,
       } = props;
 
       this.props = {
@@ -52,6 +53,7 @@
         onPlayPreviousTrack,
         onStartNewTrack,
         onError,
+        onPlayBlocked,
       };
 
       this.state = {
@@ -214,6 +216,17 @@
 
     onError() {
       if (this.props.onError) this.props.onError();
+    }
+
+    onPlayBlocked() {
+      if (this.props.onPlayBlocked) this.props.onPlayBlocked();
+    }
+
+    resumeAudioContext() {
+      if (audioContext && audioContext.state === 'suspended') {
+        return audioContext.resume();
+      }
+      return Promise.resolve();
     }
   }
 
@@ -415,7 +428,14 @@
         this.queue.loadTrack(this.idx + 1);
       } else {
         this.audio.preload = 'auto';
-        this.audio.play();
+        const playPromise = this.audio.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+          playPromise.catch((err) => {
+            if (err.name === 'NotAllowedError') {
+              this.queue.onPlayBlocked();
+            }
+          });
+        }
         if (!this.queue.state.webAudioIsDisabled) {
           if (this.skipHEAD) {
             this.loadBuffer();

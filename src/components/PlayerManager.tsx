@@ -1,8 +1,9 @@
 'use client';
 
 import { Props, useSourceData } from '@/components/SongsColumn';
-import player, { initGaplessPlayer, isPlayerMounted } from '@/lib/player';
+import player, { initGaplessPlayer, isPlayerMounted, setPendingSeekTime } from '@/lib/player';
 import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
+import { tSearchParamsLoader } from '@/lib/searchParams/tSearchParam';
 import { createShowDate } from '@/lib/utils';
 import { store } from '@/redux';
 import { updatePlayback } from '@/redux/modules/playback';
@@ -17,6 +18,7 @@ export default function PlayerManager(props: PlayerManagerProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [{ source: sourceId }] = sourceSearchParamsLoader.useQueryStates();
+  const [{ t: seekTime }] = tSearchParamsLoader.useQueryStates();
 
   // Remove leading slash and handle embed routes
   const pathParts = String(pathname)
@@ -97,6 +99,16 @@ export default function PlayerManager(props: PlayerManagerProps) {
       store.dispatch(updatePlayback({ tracks }));
 
       player.gotoTrack(activeTrackIndex, playImmediately);
+
+      // Store seek time for deferred use if autoplay is blocked
+      if (seekTime > 0) {
+        setPendingSeekTime(seekTime);
+      }
+
+      // Seek to time offset if `t` param is present (e.g. from embed popout)
+      if (seekTime > 0 && player.currentTrack) {
+        player.currentTrack.seek(seekTime);
+      }
     }
   }, [pathname, sourceId, activeSourceObj]);
 
