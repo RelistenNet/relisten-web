@@ -1,12 +1,12 @@
 import ky, { HTTPError } from 'ky-universal';
 import { notFound } from 'next/navigation';
 import { cache } from 'react';
-import { API_DOMAIN } from './constants';
+import { SERVER_API_DOMAIN } from './constants';
 import { sortSources } from './sortSources';
 import type { Artist, Tape, Year, ArtistShows, Show, Day, Venue, Song, Tour, VenueWithShows, SongWithShows, TourWithShows } from '@/types';
 
 export class RelistenAPI {
-  private static baseURL = API_DOMAIN;
+  private static baseURL = SERVER_API_DOMAIN;
 
   // Validate artist slug format
   private static isValidArtistSlug(slug: string): boolean {

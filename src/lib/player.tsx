@@ -215,14 +215,6 @@ export function initGaplessPlayer(nextStore, changeURL) {
   if (typeof window === 'undefined') return;
   store = nextStore;
 
-  const { isMobile } = store.getState().app;
-
-  // if we're on mobile, disable web audio
-  // TODO: triage mobile gapless
-  if (isMobile) {
-    player.disableWebAudio();
-  }
-
   // just for debugging purposes
   window.player = player;
 

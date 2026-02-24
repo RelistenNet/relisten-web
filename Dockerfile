@@ -37,5 +37,6 @@ EXPOSE 3000
 
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+ENV RELISTEN_API_URL="http://relistenapi-srv.default:3823"
 
 CMD ["node", "server.js"]
