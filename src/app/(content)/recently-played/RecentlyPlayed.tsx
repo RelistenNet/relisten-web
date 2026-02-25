@@ -5,27 +5,26 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Activity, Clock } from 'lucide-react';
 import LiveTrack from '@/components/LiveTrack';
 import RelistenAPI from '@/lib/RelistenAPI';
+import type { LiveHistoryItem } from '@/types';
 
-function uniqBy(a: any[], key: (item: any) => boolean) {
+function uniqBy(a: LiveHistoryItem[], key: (item: LiveHistoryItem) => number | undefined) {
   const seen = new Set();
   return a
     .filter((item) => {
       const k = key(item);
       return seen.has(k) ? false : seen.add(k);
     })
-    .sort((itemA, itemB) => itemB?.id - itemA?.id);
+    .sort((itemA, itemB) => itemB.id - itemA.id);
 }
 
-// TODO: Update types
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const keyFn = (item: any): boolean => {
-  return item && item.track && item.track.track && item.track.track.id;
+const keyFn = (item: LiveHistoryItem): number | undefined => {
+  return item.track?.track?.id;
 };
 
 const QUERY_KEY = ['recentlyPlayed'];
 
 const fetchRecentlyPlayed = async (queryClient: QueryClient) => {
-  const cache = queryClient.getQueryData(QUERY_KEY) as any[];
+  const cache = queryClient.getQueryData(QUERY_KEY) as LiveHistoryItem[] | undefined;
   const lastSeenId = cache ? Math.max(...cache.map((t) => t.id)) : '';
 
   const parsed = await RelistenAPI.fetchLiveHistory(String(lastSeenId) || undefined);

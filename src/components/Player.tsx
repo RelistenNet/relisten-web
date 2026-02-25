@@ -13,6 +13,7 @@ import {
   RewindIcon,
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
+import type { RootState } from '@/redux';
 import player from '../lib/player';
 import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
 import Flex from './Flex';
@@ -23,7 +24,7 @@ interface Props {
 
 const Player = ({ artistSlugsToName }: Props) => {
   const playerRef = useRef<HTMLDivElement>(null);
-  const playback = useSelector((state: any) => state.playback);
+  const playback = useSelector((state: RootState) => state.playback);
   const [showRemainingDuration, setShowRemainingDuration] = useState(false);
   const [volume, setVolume] = useState(
     (typeof localStorage !== 'undefined' && localStorage.volume) || 1
@@ -31,17 +32,17 @@ const Player = ({ artistSlugsToName }: Props) => {
 
   const { year, month, day } = splitShowDate(playback.showDate);
   const { artistSlug, source } = playback;
-  const artistName = artistSlugsToName[artistSlug];
+  const artistName = artistSlug ? artistSlugsToName[artistSlug] : undefined;
   const activeTrack = playback.tracks.find(
-    (track, idx: number) => idx === playback.activeTrack.idx
+    (_track, idx: number) => idx === playback.activeTrack.idx
   );
   const nextTrack = playback.tracks.find(
-    (track, idx: number) => idx === playback.activeTrack.idx + 1
+    (_track, idx: number) => idx === (playback.activeTrack.idx ?? -1) + 1
   );
   const notchPosition =
     typeof window === 'undefined' || !playerRef
       ? 0
-      : (playback.activeTrack.currentTime / playback.activeTrack.duration) *
+      : ((playback.activeTrack.currentTime ?? 0) / (playback.activeTrack.duration ?? 1)) *
         (Number(playerRef.current?.clientWidth) - 3);
 
   const onProgressClick = (e: React.MouseEvent) => {
@@ -76,8 +77,8 @@ const Player = ({ artistSlugsToName }: Props) => {
         <Head>
           <title>
             {`${playback.activeTrack.isPaused ? '❚❚' : '▶'} ${
-              activeTrack.title
-            } ${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(
+              activeTrack?.title
+            } ${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year?.slice(
               2
             )} ${artistName}`}{' '}
             | Relisten
@@ -120,7 +121,7 @@ const Player = ({ artistSlugsToName }: Props) => {
                 {activeTrack.title}
                 {false && (
                   <Flex className="text-foreground-muted absolute top-[2px] left-full ml-2 w-full items-center text-[0.8em]">
-                    <div>Next: {nextTrack && nextTrack.title}&nbsp;</div>
+                    <div>Next: {nextTrack?.title}&nbsp;</div>
                     <ChevronDown size={12} className="cursor-pointer" />
                   </Flex>
                 )}
@@ -145,8 +146,8 @@ const Player = ({ artistSlugsToName }: Props) => {
               <div onClick={toggleRemainingDuration} className="cursor-pointer">
                 {durationToHHMMSS(
                   showRemainingDuration
-                    ? playback.activeTrack.currentTime - playback.activeTrack.duration
-                    : playback.activeTrack.duration
+                    ? (playback.activeTrack.currentTime ?? 0) - (playback.activeTrack.duration ?? 0)
+                    : (playback.activeTrack.duration ?? 0)
                 )}
               </div>
             </div>
@@ -154,7 +155,7 @@ const Player = ({ artistSlugsToName }: Props) => {
           <div
             className="absolute bottom-0 left-0 z-1 h-1 w-full cursor-pointer bg-[#bcbcbc]"
             onClick={onProgressClick}
-            style={{ opacity: playback.activeTrack.currentTime < 0.1 ? 0.8 : 1 }}
+            style={{ opacity: (playback.activeTrack.currentTime ?? 0) < 0.1 ? 0.8 : 1 }}
           >
             <div
               className="absolute bottom-0 left-0 h-1 bg-[#707070]"

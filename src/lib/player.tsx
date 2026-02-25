@@ -2,10 +2,11 @@ import Gapless from '../../public/gapless.cjs';
 
 import { splitShowDate } from './utils';
 
-import { scrobblePlay } from '../redux/modules/live';
+import { scrobblePlay } from './scrobble';
 import { updatePlayback } from '../redux/modules/playback';
 import { ActiveTrack, GaplessMetadata } from '../types';
 import { toast } from 'sonner';
+import type { RootState, AppDispatch } from '../redux';
 
 declare global {
   interface Window {
@@ -34,7 +35,7 @@ function throttle(
   ...args: IArguments[]
 ) {
   let context, result;
-  let timeout: any = null;
+  let timeout: ReturnType<typeof setTimeout> | null = null;
   let previous = 0;
   const later = function () {
     previous = options.leading === false ? 0 : Date.now();
@@ -81,9 +82,7 @@ const throttledUpdateLocalStorage = () => {
   throttle(updateLocalStorage, 1000);
 };
 
-// TODO: Update type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let store: any;
+let store: { dispatch: AppDispatch; getState: () => RootState } | undefined;
 let mounted: boolean;
 let pendingSeekTime: number | null = null;
 
@@ -145,7 +144,7 @@ const player = new Gapless.Queue({
           }
         }
 
-        store.dispatch(scrobblePlay({ uuid: track.uuid }));
+        scrobblePlay(track.uuid);
 
         const nextUrl = `/${artistSlug}/${year}/${month}/${day}/${songSlug}?source=${source}`;
 
@@ -211,7 +210,10 @@ const player = new Gapless.Queue({
   },
 });
 
-export function initGaplessPlayer(nextStore, changeURL) {
+export function initGaplessPlayer(
+  nextStore: { dispatch: AppDispatch; getState: () => RootState },
+  changeURL: (url: string) => void
+) {
   if (typeof window === 'undefined') return;
   store = nextStore;
 

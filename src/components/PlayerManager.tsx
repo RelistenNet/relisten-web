@@ -32,7 +32,9 @@ export default function PlayerManager(props: PlayerManagerProps) {
 
   useEffect(() => {
     if (activeSourceObj) {
-      const tracks = activeSourceObj.sets?.map((set) => set.tracks).flat() ?? [];
+      const tracks = (activeSourceObj.sets?.map((set) => set.tracks).flat() ?? []).filter(
+        (t): t is NonNullable<typeof t> => t != null
+      );
       const activeTrackIndex = tracks.findIndex((track) => track?.slug === songSlug);
       const activeTrack = tracks[activeTrackIndex];
       const playImmediately = props.playImmediately ?? true;

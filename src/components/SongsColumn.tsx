@@ -5,7 +5,8 @@ import { durationToHHMMSS, removeLeadingZero } from '../lib/utils';
 import { RawParams } from '@/types/params';
 import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { useSelector } from 'react-redux';
-import { Set, Source, Tape } from '../types';
+import { GaplessMetadata, Set, Source, Tape } from '../types';
+import type { RootState } from '@/redux';
 import Column from './Column';
 import Row from './Row';
 import RowHeader from './RowHeader';
@@ -24,14 +25,14 @@ export type Props = Pick<RawParams, 'artistSlug' | 'year' | 'month' | 'day'> & {
 };
 
 interface SourceData {
-  gaplessTracksMetadata: any;
-  activePlaybackSourceId: any;
+  gaplessTracksMetadata: GaplessMetadata[];
+  activePlaybackSourceId: number | undefined;
   activeSourceId: number | undefined;
   isActiveSourcePlaying: boolean;
   activePlaybackTrackId?: number;
-  displayDate: any;
+  displayDate: string | undefined;
   activeSourceObj: Source | undefined;
-  sourcesData: any;
+  sourcesData: Source[];
 }
 
 export const useSourceData = ({
@@ -41,11 +42,13 @@ export const useSourceData = ({
   show,
   source,
 }: Props & { source: string }): SourceData => {
-  const activePlaybackSourceId = useSelector(({ playback }) =>
+  const activePlaybackSourceId = useSelector(({ playback }: RootState) =>
     playback.source ? parseInt(playback.source, 10) : undefined
   );
-  const activePlaybackTrackId = useSelector(({ playback }) => playback.activeTrack?.id);
-  const gaplessTracksMetadata = useSelector(({ playback }) => playback.gaplessTracksMetadata);
+  const activePlaybackTrackId = useSelector(({ playback }: RootState) => playback.activeTrack?.id);
+  const gaplessTracksMetadata = useSelector(
+    ({ playback }: RootState) => playback.gaplessTracksMetadata
+  );
 
   const displayDate = year && month && day ? [year, month, day].join('-') : undefined;
 

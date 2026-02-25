@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { cache } from 'react';
 import { SERVER_API_DOMAIN } from './constants';
 import { sortSources } from './sortSources';
-import type { Artist, Tape, Year, ArtistShows, Show, Day, Venue, Song, Tour, VenueWithShows, SongWithShows, TourWithShows } from '@/types';
+import type { Artist, Tape, Year, ArtistShows, Show, Day, Venue, Song, Tour, VenueWithShows, SongWithShows, TourWithShows, LiveHistoryItem } from '@/types';
 
 export class RelistenAPI {
   private static baseURL = SERVER_API_DOMAIN;
@@ -177,9 +177,9 @@ export class RelistenAPI {
     return this.cachedFetch<any[]>('/api/v2/live/recently_played', { revalidate: 0 });
   });
 
-  static fetchLiveHistory = cache(async (lastSeenId?: string): Promise<any[]> => {
+  static fetchLiveHistory = cache(async (lastSeenId?: string): Promise<LiveHistoryItem[]> => {
     const params = lastSeenId ? `?lastSeenId=${lastSeenId}` : '';
-    return this.cachedFetch<any[]>(`/api/v2/live/history${params}`, { revalidate: 0 });
+    return this.cachedFetch<LiveHistoryItem[]>(`/api/v2/live/history${params}`, { revalidate: 0 });
   });
 }
 

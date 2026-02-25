@@ -4,7 +4,7 @@ import TimeAgo from 'react-timeago';
 
 import { ArrowRight } from 'lucide-react';
 import { splitShowDate } from '../lib/utils';
-import { Track, TrackSource, Venue } from '../types';
+import { LiveHistoryItem, Track, TrackSource, Venue } from '../types';
 import Flex from './Flex';
 
 const createURL = (track: { track: Track; source: TrackSource }): string => {
@@ -57,15 +57,9 @@ const VenueInfo = ({ track, app_type_description, created_at }: VenueInfoProps) 
 // shorten date
 const formatterFn = (value: number, unit: string) => value + unit.slice(0, 1);
 
-type LiveTrackProps = {
-  app_type_description: string;
-  created_at: string;
-  track: {
-    source: TrackSource;
-    track: Track;
-  };
-  isFirstRender: boolean;
-  isLastSeen: boolean;
+type LiveTrackProps = LiveHistoryItem & {
+  isFirstRender?: boolean;
+  isLastSeen?: boolean;
 };
 
 export default function LiveTrack({

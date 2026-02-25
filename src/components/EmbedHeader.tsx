@@ -4,11 +4,12 @@ import { ExternalLinkIcon } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import player from '@/lib/player';
 import { splitShowDate } from '@/lib/utils';
+import type { RootState } from '@/redux';
 import Tooltip from '@/components/Tooltip';
 import { formatTimeParam } from '@/lib/timeParam';
 
 export default function EmbedHeader() {
-  const playback = useSelector((state: any) => state.playback);
+  const playback = useSelector((state: RootState) => state.playback);
 
   const popout = (e: React.MouseEvent) => {
     e.preventDefault();

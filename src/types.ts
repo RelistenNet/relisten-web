@@ -202,6 +202,16 @@ export type TrackSource = {
   updated_at?: string;
 };
 
+export type LiveHistoryItem = {
+  id: number;
+  app_type_description: string;
+  created_at: string;
+  track: {
+    source: TrackSource;
+    track: Track;
+  };
+};
+
 export type ArtistShows = {
   id: number;
   shows?: Show[];
@@ -314,9 +324,9 @@ export type GaplessMetadata = {
   idx?: number;
   loadedHead?: undefined;
   playbackType?: string;
-  //TODO: Update type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  metadata?: any;
+  metadata?: {
+    trackId?: number;
+  };
   trackMetadata?: {
     trackId?: number;
   };
