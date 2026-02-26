@@ -212,13 +212,18 @@ const player = new Gapless.Queue({
 
 export function initGaplessPlayer(
   nextStore: { dispatch: AppDispatch; getState: () => RootState },
-  changeURL: (url: string) => void
+  changeURL: (url: string) => void,
+  { isMobile }: { isMobile?: boolean } = {}
 ) {
   if (typeof window === 'undefined') return;
   store = nextStore;
 
   // just for debugging purposes
   window.player = player;
+
+  if (isMobile) {
+    player.disableWebAudio();
+  }
 
   if (localStorage.volume) {
     player.setVolume(localStorage.volume);

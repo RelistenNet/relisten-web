@@ -1,6 +1,7 @@
 import PlayerManager from '@/components/PlayerManager';
 import SongsColumn from '@/components/SongsColumn';
 import RelistenAPI from '@/lib/RelistenAPI';
+import { isMobile } from '@/lib/isMobile';
 import { createShowDate } from '@/lib/utils';
 import { RawParams } from '@/types/params';
 import { notFound } from 'next/navigation';
@@ -17,7 +18,10 @@ export default async function EmbedSongPage({ params, searchParams }: EmbedSongP
 
   if (!year || !month || !day) return notFound();
 
-  const show = await RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day));
+  const [show, mobile] = await Promise.all([
+    RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day)),
+    isMobile(),
+  ]);
 
   if (!show) {
     notFound();
@@ -44,6 +48,7 @@ export default async function EmbedSongPage({ params, searchParams }: EmbedSongP
         show={show}
         routePrefix="/embed"
         playImmediately={playImmediately}
+        isMobile={mobile}
       />
     </div>
   );

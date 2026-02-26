@@ -1,5 +1,6 @@
 import PlayerManager from '@/components/PlayerManager';
 import RelistenAPI from '@/lib/RelistenAPI';
+import { isMobile } from '@/lib/isMobile';
 import { createShowDate } from '@/lib/utils';
 import { RawParams } from '@/types/params';
 import { notFound } from 'next/navigation';
@@ -10,9 +11,12 @@ export default async function Page(props: { params: Promise<RawParams> }) {
 
   if (!year || !month || !day) return notFound();
 
-  const show = await RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day));
+  const [show, mobile] = await Promise.all([
+    RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day)),
+    isMobile(),
+  ]);
 
-  return <PlayerManager {...params} show={show} />;
+  return <PlayerManager {...params} show={show} isMobile={mobile} />;
 }
 
 export const generateMetadata = async (props) => {

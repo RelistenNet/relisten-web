@@ -12,6 +12,7 @@ import { useEffect } from 'react';
 
 interface PlayerManagerProps extends Props {
   playImmediately?: boolean;
+  isMobile?: boolean;
 }
 
 export default function PlayerManager(props: PlayerManagerProps) {
@@ -57,11 +58,15 @@ export default function PlayerManager(props: PlayerManagerProps) {
       }
 
       if (!isPlayerMounted()) {
-        initGaplessPlayer(store, (url: string) => {
-          if (window.location.pathname !== url) {
-            router.replace((props.routePrefix ?? '') + url);
-          }
-        });
+        initGaplessPlayer(
+          store,
+          (url: string) => {
+            if (window.location.pathname !== url) {
+              router.replace((props.routePrefix ?? '') + url);
+            }
+          },
+          { isMobile: props.isMobile }
+        );
       } else {
         // check if track is already in queue, and re-use
         if (player.currentTrack?.metadata?.trackId === activeTrack?.id) {
