@@ -28,5 +28,4 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'pnpm'
     - run: pnpm install --frozen-lockfile
-    - run: npm run bands
     - run: npm run build
