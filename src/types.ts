@@ -321,14 +321,15 @@ export type Source = {
 };
 
 export type GaplessMetadata = {
-  idx?: number;
-  loadedHead?: undefined;
+  index?: number;
   playbackType?: string;
   metadata?: {
     trackId?: number;
+    [key: string]: unknown;
   };
   trackMetadata?: {
     trackId?: number;
+    [key: string]: unknown;
   };
   webAudioLoadingState?: string;
 };
@@ -380,7 +381,7 @@ export type Playback = {
 export type ActiveTrack = {
   currentTime?: number;
   duration?: number;
-  idx?: number;
+  index?: number;
   isPaused?: boolean;
   playbackType?: string;
   webAudioLoadingState?: string;

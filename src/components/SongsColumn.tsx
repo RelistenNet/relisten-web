@@ -10,6 +10,7 @@ import type { RootState } from '@/redux';
 import Column from './Column';
 import Row from './Row';
 import RowHeader from './RowHeader';
+import Tag from './Tag';
 import { sortSources } from '@/lib/sortSources';
 
 const getSetTime = (set: Set): string =>
@@ -118,12 +119,16 @@ const SongsColumn = (props: Props) => {
                       </div>
                     )}
                   </div>
-                  <div className="text-xxs text-foreground-muted min-w-[20%] text-right">
-                    <div>
-                      {trackMetadata && trackMetadata.webAudioLoadingState !== 'NONE'
-                        ? trackMetadata.webAudioLoadingState
-                        : ''}
-                    </div>
+                  <div className="shrink-0 text-right">
+                    {trackMetadata && (() => {
+                      if (trackMetadata.webAudioLoadingState === 'LOADED')
+                        return <Tag variant="success">{'\u2713'} GAPLESS</Tag>;
+                      if (trackMetadata.webAudioLoadingState === 'LOADING')
+                        return <Tag variant="warning">LOADING</Tag>;
+                      if (trackMetadata.webAudioLoadingState === 'ERROR')
+                        return <Tag variant="error">ERROR</Tag>;
+                      return null;
+                    })()}
                   </div>
                 </Row>
               </div>

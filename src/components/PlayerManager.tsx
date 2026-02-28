@@ -1,7 +1,7 @@
 'use client';
 
 import { Props, useSourceData } from '@/components/SongsColumn';
-import player, { initGaplessPlayer, isPlayerMounted, setPendingSeekTime } from '@/lib/player';
+import player, { initGaplessPlayer, isPlayerMounted, resetPlayer, setPendingSeekTime } from '@/lib/player';
 import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { tSearchParamsLoader } from '@/lib/searchParams/tSearchParam';
 import { createShowDate } from '@/lib/utils';
@@ -80,22 +80,20 @@ export default function PlayerManager(props: PlayerManagerProps) {
         if (
           prevFirstTrack &&
           nextFirstTrack &&
-          prevFirstTrack.metadata.trackId === nextFirstTrack.id
+          prevFirstTrack.metadata?.trackId === nextFirstTrack.id
         ) {
           player.gotoTrack(activeTrackIndex, playImmediately);
           return;
         } else {
-          player.pauseAll();
-          // player.cleanUp();
-          player.tracks = [];
+          resetPlayer();
         }
       }
 
       tracks.map((track) => {
         const url = window.FLAC ? track?.flac_url || track?.mp3_url : track?.mp3_url;
 
-        player.addTrack({
-          trackUrl: url,
+        if (!url) return;
+        player.addTrack(url, {
           skipHEAD: /phish\.in/.test(String(url)), // skip phish from loading head due to cloudflare
           metadata: {
             trackId: track?.id,
@@ -114,7 +112,7 @@ export default function PlayerManager(props: PlayerManagerProps) {
 
       // Seek to time offset if `t` param is present (e.g. from embed popout)
       if (seekTime > 0 && player.currentTrack) {
-        player.currentTrack.seek(seekTime);
+        player.seek(seekTime);
       }
     }
   }, [pathname, sourceId, activeSourceObj]);

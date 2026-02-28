@@ -27,10 +27,10 @@ export default function Providers({ children }: PropsWithChildren) {
         player.togglePlayPause();
       }
       if (e.code === 'ArrowRight') {
-        player.playNext();
+        player.next();
       }
       if (e.code === 'ArrowLeft') {
-        player.playPrevious();
+        player.previous();
       }
     };
     document.addEventListener('keydown', onKeyDown);
