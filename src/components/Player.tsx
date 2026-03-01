@@ -34,10 +34,10 @@ const Player = ({ artistSlugsToName }: Props) => {
   const { artistSlug, source } = playback;
   const artistName = artistSlug ? artistSlugsToName[artistSlug] : undefined;
   const activeTrack = playback.tracks.find(
-    (_track, idx: number) => idx === playback.activeTrack.idx
+    (_track, idx: number) => idx === playback.activeTrack.index
   );
   const nextTrack = playback.tracks.find(
-    (_track, idx: number) => idx === (playback.activeTrack.idx ?? -1) + 1
+    (_track, idx: number) => idx === (playback.activeTrack.index ?? -1) + 1
   );
   const notchPosition =
     typeof window === 'undefined' || !playerRef
@@ -52,7 +52,7 @@ const Player = ({ artistSlugsToName }: Props) => {
 
     const percentage = (e.pageX - rect?.left) / rect?.width;
 
-    player.currentTrack.seek(percentage * (playback?.activeTrack?.duration ?? 0));
+    player.seek(percentage * (playback?.activeTrack?.duration ?? 0));
   };
 
   const toggleRemainingDuration = () => {
@@ -110,7 +110,7 @@ const Player = ({ artistSlugsToName }: Props) => {
               <div>
                 <RewindIcon
                   className="fill-foreground-muted cursor-pointer"
-                  onClick={() => player.playPrevious()}
+                  onClick={() => player.previous()}
                   size={16}
                 />
               </div>
@@ -139,7 +139,7 @@ const Player = ({ artistSlugsToName }: Props) => {
               <div>
                 <FastForwardIcon
                   className="fill-foreground-muted ml-auto cursor-pointer"
-                  onClick={() => player.playNext()}
+                  onClick={() => player.next()}
                   size={16}
                 />
               </div>

@@ -6,7 +6,7 @@ const UPDATE_TRACK = 'playback/UPDATE_TRACK' as const;
 
 export interface ActiveTrack {
   id?: number;
-  idx?: number;
+  index?: number;
   isPaused?: boolean;
   currentTime?: number;
   duration?: number;

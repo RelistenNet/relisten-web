@@ -22,7 +22,7 @@ export default function EmbedHeader() {
       const t = formatTimeParam(activeTrack?.currentTime || 0);
       const url = `https://relisten.net/${artistSlug}/${year}/${month}/${day}/${songSlug}?source=${source}&t=${t}`;
       window.open(url, '_blank');
-      player.pauseAll();
+      player.pause();
     } else {
       window.open('https://relisten.net', '_blank');
     }

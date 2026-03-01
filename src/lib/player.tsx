@@ -1,16 +1,16 @@
-import Gapless from '../../public/gapless.cjs';
+import { Queue, type TrackInfo } from 'gapless';
 
 import { splitShowDate } from './utils';
 
 import { scrobblePlay } from './scrobble';
 import { updatePlayback } from '../redux/modules/playback';
-import { ActiveTrack, GaplessMetadata } from '../types';
+import type { GaplessMetadata } from '../types';
 import { toast } from 'sonner';
 import type { RootState, AppDispatch } from '../redux';
 
 declare global {
   interface Window {
-    player: HTMLAudioElement;
+    player: any;
     FLAC: string;
   }
 }
@@ -85,157 +85,201 @@ const throttledUpdateLocalStorage = () => {
 let store: { dispatch: AppDispatch; getState: () => RootState } | undefined;
 let mounted: boolean;
 let pendingSeekTime: number | null = null;
+let lastScrobbledTrackUuid: string | null = null;
 
 export function setPendingSeekTime(seconds: number) {
   pendingSeekTime = seconds;
 }
-const player = new Gapless.Queue({
-  onProgress: () => {
-    if (!store) return;
-    if (player.currentTrack) {
-      throttledUpdateLocalStorage();
-      if (!player.currentTrack.isPaused) {
-        toast.dismiss('autoplay-blocked');
-      }
-    }
-    store.dispatch(
-      updatePlayback({
-        activeTrack: player.currentTrack ? player.currentTrack.completeState : {},
-        gaplessTracksMetadata: player.tracks
-          ? player.tracks.map((metadata: GaplessMetadata) => ({
-              idx: metadata.idx,
-              trackMetadata: metadata.metadata, // <-- lol, I suck.
-              playbackType: metadata.playbackType,
-              webAudioLoadingState: metadata.webAudioLoadingState,
-              loadedHead: metadata.loadedHead,
-            }))
-          : [],
-      })
-    );
-  },
-  onStartNewTrack: (currentTrack?: ActiveTrack) => {
-    if (!store || !currentTrack) return;
 
-    const idx = currentTrack.idx;
+let player: Queue | undefined;
 
-    const { playback } = store.getState();
-
-    if (playback.tracks && playback.tracks.length) {
-      const track = playback.tracks[String(idx)];
-
-      if (track) {
-        const songSlug = track.slug;
-        const { artistSlug, showDate, source } = playback;
-        const { year, month, day } = splitShowDate(showDate);
-
-        if (typeof window.Notification !== 'undefined') {
-          // only show notification if permission granted
-          if (
-            window.Notification.permission === 'granted' &&
-            typeof Notification === 'function' &&
-            (document.hasFocus ? !document.hasFocus() : true)
-          ) {
-            // const bandName = `${artists.data[artistSlug] ? artists.data[artistSlug].name : ''}`;
-            // const notification = new Notification(track.title, {
-            //   body: `${bandName} \n${showDate}`,
-            //   silent: true, // only for Firefox
-            // });
-            // setTimeout(() => notification.close(), 3000);
-          }
-        }
-
-        scrobblePlay(track.uuid);
-
-        const nextUrl = `/${artistSlug}/${year}/${month}/${day}/${songSlug}?source=${source}`;
-
-        if (playback !== songSlug) {
-          store.dispatch(updatePlayback({ songSlug, artistSlug, year, month, day, source }));
-        }
-
-        if (songSlug) {
-          window.localStorage.lastPlayedUrl = nextUrl;
-        }
-
-        // shitty hack to prevent view updating content because of URL
-        if (window.location.pathname.indexOf(`/${artistSlug}/${year}/${month}/${day}`) !== -1) {
-          player.changeURL(nextUrl);
-        }
-      }
-    }
-  },
-  onError: () => {
-    toast.error('There was an error loading your audio', {
-      toasterId: 'audio-error',
-      duration: Infinity,
-    });
-  },
-  onPlayBlocked: () => {
-    toast.warning('Autoplay blocked', {
-      toasterId: 'audio-error',
-      id: 'autoplay-blocked',
-      duration: Infinity,
-      description: (
-        <ol className="m-0 flex flex-col gap-1 pl-0">
-          <li>
-            To start playing, hit <strong>Play now</strong>
-          </li>
-          <li>
-            To prevent this in the future, click the <strong>lock icon</strong> in your address bar,
-            select <strong>Sound</strong>, and choose <strong>Always Allow</strong>
-          </li>
-        </ol>
-      ),
-      classNames: {
-        toast: '!bg-amber-100 !text-amber-800 !border-amber-500',
-        title: '!text-base !font-semibold !inline !align-middle',
-        icon: '!inline !align-middle !mr-1',
-        actionButton: '!bg-amber-700 !text-white',
-        closeButton: '!border-amber-400',
-      },
-      action: {
-        label: 'Play now',
-        onClick: () => {
-          player.resumeAudioContext();
-          player.play();
-          if (pendingSeekTime && pendingSeekTime > 0 && player.currentTrack) {
-            setTimeout(() => {
-              player.currentTrack.seek(pendingSeekTime);
-              pendingSeekTime = null;
-            }, 100);
-          }
-          toast.dismiss('autoplay-blocked');
-        },
-      },
-    });
+// Proxy that always delegates to the current `player` instance.
+// This is needed because `export default` captures the value at declaration time,
+// but `player` gets reassigned in initGaplessPlayer/resetPlayer.
+const playerProxy = new Proxy({} as Queue, {
+  get(_target, prop) {
+    if (!player) return undefined;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const val = (player as any)[prop];
+    return typeof val === 'function' ? val.bind(player) : val;
   },
 });
 
+function createQueue(options?: { webAudioIsDisabled?: boolean }): Queue {
+  return new Queue({
+    webAudioIsDisabled: options?.webAudioIsDisabled,
+    onDebug: (msg: string) => console.log('[gapless]', msg),
+    onProgress: (info: TrackInfo) => {
+      if (!store) return;
+      if (info) {
+        throttledUpdateLocalStorage();
+        if (!info.isPaused) {
+          toast.dismiss('autoplay-blocked');
+        }
+        // Scrobble after 5 seconds of playback
+        if (info.currentTime >= 5) {
+          const { playback } = store.getState();
+          const track = playback.tracks?.[info.index];
+          if (track?.uuid && lastScrobbledTrackUuid !== track.uuid) {
+            lastScrobbledTrackUuid = track.uuid;
+            scrobblePlay(track.uuid);
+          }
+        }
+      }
+      store.dispatch(
+        updatePlayback({
+          activeTrack: info
+            ? {
+                id: info.metadata?.trackId as number | undefined,
+                index: info.index,
+                currentTime: info.currentTime,
+                duration: info.duration,
+                isPaused: info.isPaused,
+                playbackType: info.playbackType,
+                webAudioLoadingState: info.webAudioLoadingState,
+              }
+            : {},
+          gaplessTracksMetadata: player?.tracks
+            ? player.tracks.map((trackInfo: TrackInfo) => ({
+                index: trackInfo.index,
+                trackMetadata: trackInfo.metadata as GaplessMetadata['trackMetadata'],
+                playbackType: trackInfo.playbackType,
+                webAudioLoadingState: trackInfo.webAudioLoadingState,
+              }))
+            : [],
+        })
+      );
+    },
+    onStartNewTrack: (info: TrackInfo) => {
+      if (!store || !info) return;
+
+      const idx = info.index;
+
+      const { playback } = store.getState();
+
+      if (playback.tracks && playback.tracks.length) {
+        const track = playback.tracks[String(idx)];
+
+        if (track) {
+          const songSlug = track.slug;
+          const { artistSlug, showDate, source } = playback;
+          const { year, month, day } = splitShowDate(showDate);
+
+          if (typeof window.Notification !== 'undefined') {
+            // only show notification if permission granted
+            if (
+              window.Notification.permission === 'granted' &&
+              typeof Notification === 'function' &&
+              (document.hasFocus ? !document.hasFocus() : true)
+            ) {
+              // const bandName = `${artists.data[artistSlug] ? artists.data[artistSlug].name : ''}`;
+              // const notification = new Notification(track.title, {
+              //   body: `${bandName} \n${showDate}`,
+              //   silent: true, // only for Firefox
+              // });
+              // setTimeout(() => notification.close(), 3000);
+            }
+          }
+
+          const nextUrl = `/${artistSlug}/${year}/${month}/${day}/${songSlug}?source=${source}`;
+
+          if (playback !== songSlug) {
+            store.dispatch(updatePlayback({ songSlug, artistSlug, year, month, day, source }));
+          }
+
+          if (songSlug) {
+            window.localStorage.lastPlayedUrl = nextUrl;
+          }
+
+          // update URL to reflect current track without triggering a full navigation
+          if (window.location.pathname.indexOf(`/${artistSlug}/${year}/${month}/${day}`) !== -1) {
+            window.history.replaceState(window.history.state, '', nextUrl);
+          }
+        }
+      }
+    },
+    onError: () => {
+      toast.error('There was an error loading your audio', {
+        toasterId: 'audio-error',
+        duration: Infinity,
+      });
+    },
+    onPlayBlocked: () => {
+      toast.warning('Autoplay blocked', {
+        toasterId: 'audio-error',
+        id: 'autoplay-blocked',
+        duration: Infinity,
+        description: (
+          <ol className="m-0 flex flex-col gap-1 pl-0">
+            <li>
+              To start playing, hit <strong>Play now</strong>
+            </li>
+            <li>
+              To prevent this in the future, click the <strong>lock icon</strong> in your address
+              bar, select <strong>Sound</strong>, and choose <strong>Always Allow</strong>
+            </li>
+          </ol>
+        ),
+        classNames: {
+          toast: '!bg-amber-100 !text-amber-800 !border-amber-500',
+          title: '!text-base !font-semibold !inline !align-middle',
+          icon: '!inline !align-middle !mr-1',
+          actionButton: '!bg-amber-700 !text-white',
+          closeButton: '!border-amber-400',
+        },
+        action: {
+          label: 'Play now',
+          onClick: () => {
+            if (!player) return;
+            player.resumeAudioContext();
+            player.play();
+            if (pendingSeekTime && pendingSeekTime > 0 && player.currentTrack) {
+              setTimeout(() => {
+                player!.seek(pendingSeekTime!);
+                pendingSeekTime = null;
+              }, 100);
+            }
+            toast.dismiss('autoplay-blocked');
+          },
+        },
+      });
+    },
+  });
+}
+
 export function initGaplessPlayer(
   nextStore: { dispatch: AppDispatch; getState: () => RootState },
-  changeURL: (url: string) => void,
   { isMobile }: { isMobile?: boolean } = {}
 ) {
   if (typeof window === 'undefined') return;
   store = nextStore;
 
+  player = createQueue({ webAudioIsDisabled: isMobile });
+
   // just for debugging purposes
   window.player = player;
-
-  if (isMobile) {
-    player.disableWebAudio();
-  }
 
   if (localStorage.volume) {
     player.setVolume(localStorage.volume);
   }
 
-  player.changeURL = changeURL;
-
   mounted = true;
+}
+
+export function resetPlayer() {
+  const wasWebAudioDisabled = player?.webAudioIsDisabled;
+  if (player) {
+    player.destroy();
+  }
+  player = createQueue({ webAudioIsDisabled: wasWebAudioDisabled });
+  window.player = player;
+  if (localStorage.volume) {
+    player.setVolume(localStorage.volume);
+  }
 }
 
 export function isPlayerMounted() {
   return mounted;
 }
 
-export default player;
+export default playerProxy;
