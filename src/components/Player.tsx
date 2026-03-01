@@ -1,9 +1,9 @@
 'use client';
 
-import Head from 'next/head';
 import Link from 'next/link';
 import React, { useRef, useState } from 'react';
 
+import type { RootState } from '@/redux';
 import {
   ChevronDown,
   FastForwardIcon,
@@ -13,7 +13,6 @@ import {
   RewindIcon,
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
-import type { RootState } from '@/redux';
 import player from '../lib/player';
 import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
 import Flex from './Flex';
@@ -81,19 +80,7 @@ const Player = ({ artistSlugsToName }: Props) => {
   };
 
   return (
-    <Flex className="content relative h-[50px] flex-1 px-2">
-      {false && activeTrack && (
-        <Head>
-          <title>
-            {`${playback.activeTrack.isPaused ? '❚❚' : '▶'} ${
-              activeTrack?.title
-            } ${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year?.slice(
-              2
-            )} ${artistName}`}{' '}
-            | Relisten
-          </title>
-        </Head>
-      )}
+    <Flex className="content relative h-[50px] flex-1">
       {activeTrack && (
         <Flex
           className="playpause text-foreground-muted cursor-pointer items-center justify-center active:text-gray-800 lg:w-[40px]"

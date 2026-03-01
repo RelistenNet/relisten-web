@@ -34,7 +34,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "framer-motion": "12.34.3",
-    "gapless": "4.0.11",
+    "gapless": "4.0.12",
     "isomorphic-fetch": "3.0.0",
     "ky": "^1.14.3",
     "ky-universal": "^0.12.0",

@@ -69,8 +69,8 @@ importers:
         specifier: 12.34.3
         version: 12.34.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       gapless:
-        specifier: 4.0.11
-        version: 4.0.11
+        specifier: 4.0.12
+        version: 4.0.12
       isomorphic-fetch:
         specifier: 3.0.0
         version: 3.0.0
@@ -1795,8 +1795,8 @@ packages:
   functions-have-names@1.2.3:
     resolution: {integrity: sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ==}
 
-  gapless@4.0.11:
-    resolution: {integrity: sha512-Zr9t6SsZwnHy1sshurD6M6rItjSO+oS7+VGyr8IDlUTpqodEEchP+nipE6MrDA6zBpyjMbTKAjzcEX+plP05/A==}
+  gapless@4.0.12:
+    resolution: {integrity: sha512-1DOJQU1MLSsY/c9kzZwIcU1XWULLNH78AO8YAWEH1NDjBr8d9uGbyzPE3N5SPjrEaOcm08L2DdeVz3xJ/1a6VA==}
 
   generator-function@2.0.1:
     resolution: {integrity: sha512-SFdFmIJi+ybC0vjlHN0ZGVGHc3lgE0DxPAT0djjVg+kjOnSqclqmj0KQ7ykTOLP6YxoqOvuAODGdcHJn+43q3g==}
@@ -4950,7 +4950,7 @@ snapshots:
 
   functions-have-names@1.2.3: {}
 
-  gapless@4.0.11:
+  gapless@4.0.12:
     dependencies:
       xstate: 5.28.0
 
