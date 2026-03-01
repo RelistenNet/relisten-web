@@ -85,7 +85,6 @@ const throttledUpdateLocalStorage = () => {
 let store: { dispatch: AppDispatch; getState: () => RootState } | undefined;
 let mounted: boolean;
 let pendingSeekTime: number | null = null;
-let changeURL: ((url: string) => void) | undefined;
 let lastScrobbledTrackUuid: string | null = null;
 
 export function setPendingSeekTime(seconds: number) {
@@ -192,12 +191,9 @@ function createQueue(options?: { webAudioIsDisabled?: boolean }): Queue {
             window.localStorage.lastPlayedUrl = nextUrl;
           }
 
-          // shitty hack to prevent view updating content because of URL
-          if (
-            changeURL &&
-            window.location.pathname.indexOf(`/${artistSlug}/${year}/${month}/${day}`) !== -1
-          ) {
-            changeURL(nextUrl);
+          // update URL to reflect current track without triggering a full navigation
+          if (window.location.pathname.indexOf(`/${artistSlug}/${year}/${month}/${day}`) !== -1) {
+            window.history.replaceState(window.history.state, '', nextUrl);
           }
         }
       }
@@ -253,12 +249,10 @@ function createQueue(options?: { webAudioIsDisabled?: boolean }): Queue {
 
 export function initGaplessPlayer(
   nextStore: { dispatch: AppDispatch; getState: () => RootState },
-  nextChangeURL: (url: string) => void,
   { isMobile }: { isMobile?: boolean } = {}
 ) {
   if (typeof window === 'undefined') return;
   store = nextStore;
-  changeURL = nextChangeURL;
 
   player = createQueue({ webAudioIsDisabled: isMobile });
 

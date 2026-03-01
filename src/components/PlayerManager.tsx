@@ -1,13 +1,18 @@
 'use client';
 
 import { Props, useSourceData } from '@/components/SongsColumn';
-import player, { initGaplessPlayer, isPlayerMounted, resetPlayer, setPendingSeekTime } from '@/lib/player';
+import player, {
+  initGaplessPlayer,
+  isPlayerMounted,
+  resetPlayer,
+  setPendingSeekTime,
+} from '@/lib/player';
 import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { tSearchParamsLoader } from '@/lib/searchParams/tSearchParam';
 import { createShowDate } from '@/lib/utils';
 import { store } from '@/redux';
 import { updatePlayback } from '@/redux/modules/playback';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 
 interface PlayerManagerProps extends Props {
@@ -16,7 +21,6 @@ interface PlayerManagerProps extends Props {
 }
 
 export default function PlayerManager(props: PlayerManagerProps) {
-  const router = useRouter();
   const pathname = usePathname();
   const [{ source: sourceId }] = sourceSearchParamsLoader.useQueryStates();
   const [{ t: seekTime }] = tSearchParamsLoader.useQueryStates();
@@ -58,19 +62,10 @@ export default function PlayerManager(props: PlayerManagerProps) {
       }
 
       if (!isPlayerMounted()) {
-        initGaplessPlayer(
-          store,
-          (url: string) => {
-            if (window.location.pathname !== url) {
-              router.replace((props.routePrefix ?? '') + url);
-            }
-          },
-          { isMobile: props.isMobile }
-        );
+        initGaplessPlayer(store, { isMobile: props.isMobile });
       } else {
         // check if track is already in queue, and re-use
         if (player.currentTrack?.metadata?.trackId === activeTrack?.id) {
-          console.log('track is already playing');
           player.play();
           return;
         }
