@@ -3,7 +3,21 @@ import { notFound } from 'next/navigation';
 import { cache } from 'react';
 import { SERVER_API_DOMAIN } from './constants';
 import { sortSources } from './sortSources';
-import type { Artist, Tape, Year, ArtistShows, Show, Day, Venue, Song, Tour, VenueWithShows, SongWithShows, TourWithShows, LiveHistoryItem } from '@/types';
+import type {
+  Artist,
+  Tape,
+  Year,
+  ArtistShows,
+  Show,
+  Day,
+  Venue,
+  Song,
+  Tour,
+  VenueWithShows,
+  SongWithShows,
+  TourWithShows,
+  LiveHistoryItem,
+} from '@/types';
 
 export class RelistenAPI {
   private static baseURL = SERVER_API_DOMAIN;
@@ -33,7 +47,7 @@ export class RelistenAPI {
         if (err instanceof HTTPError && err.response.status === 404) {
           console.log(`404: ${url}`);
         } else {
-          console.error(`API fetch error for ${url}:`, err);
+          console.error(`API fetch error for ${url}:`);
         }
         notFound();
       }
@@ -109,7 +123,11 @@ export class RelistenAPI {
 
   // Today in History API
   static fetchTodayInHistory = cache(
-    async (artistSlug: string | undefined, month: number | string, day: number | string): Promise<Show[]> => {
+    async (
+      artistSlug: string | undefined,
+      month: number | string,
+      day: number | string
+    ): Promise<Show[]> => {
       if (!artistSlug) return [];
 
       return this.cachedFetch<Show[]>(

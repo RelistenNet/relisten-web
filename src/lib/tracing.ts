@@ -1,5 +1,7 @@
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
+import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import {
@@ -56,12 +58,21 @@ function parseHeaders(env?: string): Record<string, string> {
 export function initTracing() {
   diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.WARN);
 
+  const headers = parseHeaders(process.env.OTEL_EXPORTER_OTLP_HEADERS);
+  const baseUrl = process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? 'https://otlp.myfountain.io';
+
   const sdk = new NodeSDK({
     resource: resourceFromAttributes({ [ATTR_SERVICE_NAME]: 'relisten-web' }),
     traceExporter: new OTLPTraceExporter({
-      url: process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT ?? 'https://otlp.myfountain.io/v1/traces',
-      headers: parseHeaders(process.env.OTEL_EXPORTER_OTLP_HEADERS),
+      url: process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT ?? `${baseUrl}/v1/traces`,
+      headers,
     }),
+    metricReaders: [new PeriodicExportingMetricReader({
+      exporter: new OTLPMetricExporter({
+        url: process.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT ?? `${baseUrl}/v1/metrics`,
+        headers,
+      }),
+    })],
     sampler: new NoiseFilterSampler(
       new ParentBasedSampler({ root: new TraceIdRatioBasedSampler(0.05) })
     ),
