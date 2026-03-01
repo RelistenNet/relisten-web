@@ -47,7 +47,7 @@ export class RelistenAPI {
         if (err instanceof HTTPError && err.response.status === 404) {
           console.log(`404: ${url}`);
         } else {
-          console.error(`API fetch error for ${url}:`);
+          console.error(`API fetch error for ${url}`);
         }
         notFound();
       }

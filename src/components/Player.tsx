@@ -26,6 +26,7 @@ const Player = ({ artistSlugsToName }: Props) => {
   const playerRef = useRef<HTMLDivElement>(null);
   const playback = useSelector((state: RootState) => state.playback);
   const [showRemainingDuration, setShowRemainingDuration] = useState(false);
+  const hoverTextRef = useRef<HTMLSpanElement>(null);
   const [volume, setVolume] = useState(
     (typeof localStorage !== 'undefined' && localStorage.volume) || 1
   );
@@ -53,6 +54,14 @@ const Player = ({ artistSlugsToName }: Props) => {
     const percentage = (e.pageX - rect?.left) / rect?.width;
 
     player.seek(percentage * (playback?.activeTrack?.duration ?? 0));
+  };
+
+  const onProgressMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const time = (x / rect.width) * (playback.activeTrack.duration ?? 0);
+    e.currentTarget.style.setProperty('--hover-x', `${x}px`);
+    if (hoverTextRef.current) hoverTextRef.current.textContent = durationToHHMMSS(time);
   };
 
   const toggleRemainingDuration = () => {
@@ -153,8 +162,9 @@ const Player = ({ artistSlugsToName }: Props) => {
             </div>
           </Flex>
           <div
-            className="absolute bottom-0 left-0 z-1 h-1 w-full cursor-pointer bg-[#bcbcbc]"
+            className="group absolute bottom-0 left-0 z-1 h-1 w-full cursor-pointer bg-[#bcbcbc] before:absolute before:-top-2 before:left-0 before:h-3 before:w-full before:content-['']"
             onClick={onProgressClick}
+            onMouseMove={onProgressMouseMove}
             style={{ opacity: (playback.activeTrack.currentTime ?? 0) < 0.1 ? 0.8 : 1 }}
           >
             <div
@@ -165,6 +175,13 @@ const Player = ({ artistSlugsToName }: Props) => {
               className="absolute bottom-0 left-0 z-1 h-2 w-[3px] bg-black"
               style={{ transform: `translate(${notchPosition}px, 0)` }}
             />
+            <div
+              className="pointer-events-none absolute bottom-full z-2 mb-2 hidden -translate-x-1/2 rounded-md bg-gray-900 px-2.5 py-1 text-xs text-gray-100 tabular-nums shadow-lg ring-1 ring-white/10 group-hover:block"
+              style={{ left: 'var(--hover-x)' }}
+            >
+              <span ref={hoverTextRef} />
+              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+            </div>
           </div>
         </div>
       )}

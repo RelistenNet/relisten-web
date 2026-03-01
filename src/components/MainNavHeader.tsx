@@ -35,7 +35,7 @@ export default function MainNavHeader({
         </Link>
         <SecondaryNavBar artistSlugsToName={artistSlugsToName} />
       </Flex>
-      <Flex className="h-full px-2 lg:hidden" center>
+      <Flex className="h-full pr-2 font-medium lg:hidden" center>
         <Link href={indexOverride ?? '/'} prefetch={false}>
           Re
         </Link>

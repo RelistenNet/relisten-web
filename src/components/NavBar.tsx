@@ -39,17 +39,17 @@ export default async function NavBar() {
 
   return (
     <>
-      <div className="navigation text-foreground relative flex h-[50px] max-h-[50px] min-h-[50px] grid-cols-3 justify-between border-b-[1px] border-b-[#aeaeae] bg-white px-4 lg:grid">
+      <div className="navigation text-foreground relative grid h-[50px] max-h-[50px] min-h-[50px] grid-cols-[auto_1fr_auto] border-b-[1px] border-b-[#aeaeae] bg-white px-2 lg:grid-cols-[1fr_auto_1fr] lg:px-4">
         <MainNavHeader
           artistSlugsToName={artistSlugsToName}
           indexOverride={isInIframe ? '/wsp' : undefined}
         />
-        <div className="player min-w-[60%] flex-1 text-center lg:min-w-[44vw] lg:max-w-[44vw] xl:min-w-[38vw] xl:max-w-[38vw]">
+        <div className="player overflow-hidden text-center lg:max-w-[44vw] lg:min-w-[44vw] lg:justify-self-center xl:max-w-[38vw] xl:min-w-[38vw]">
           <Player artistSlugsToName={artistSlugsToName} />
         </div>
 
         <Popover.Root>
-          <Popover.Trigger className="ml-2 ml-auto h-full w-min cursor-pointer content-end items-center text-center font-medium xl:hidden">
+          <Popover.Trigger className="ml-2 ml-auto h-full w-min cursor-pointer content-end items-center justify-self-end text-center font-medium xl:hidden">
             <Flex className="ml-2 h-full cursor-pointer content-end items-center text-center font-medium xl:hidden">
               <div className="active:text-foreground active:relative active:top-[1px] ml-auto flex h-full items-center px-1">
                 <MenuIcon />
@@ -64,7 +64,7 @@ export default async function NavBar() {
           </Popover.Portal>
         </Popover.Root>
 
-        <div className="nav hidden h-full flex-2 cursor-pointer items-center justify-end gap-4 text-center font-medium xl:flex">
+        <div className="nav hidden h-full cursor-pointer items-center gap-4 justify-self-end text-center font-medium xl:flex">
           <div className="h-full">
             <Link className="nav-btn" href="/today" prefetch={false}>
               TIH
