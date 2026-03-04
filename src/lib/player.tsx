@@ -92,6 +92,7 @@ export function setPendingSeekTime(seconds: number) {
 }
 
 let player: Queue | undefined;
+let currentPlaybackMethod: 'HYBRID' | 'HTML5_ONLY' = 'HYBRID'; // reassigned in initGaplessPlayer
 
 // Proxy that always delegates to the current `player` instance.
 // This is needed because `export default` captures the value at declaration time,
@@ -105,9 +106,9 @@ const playerProxy = new Proxy({} as Queue, {
   },
 });
 
-function createQueue(options?: { webAudioIsDisabled?: boolean }): Queue {
+function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Queue {
   return new Queue({
-    webAudioIsDisabled: options?.webAudioIsDisabled,
+    playbackMethod: options?.playbackMethod ?? 'HYBRID',
     onDebug: (msg: string) => console.log('[gapless]', msg),
     onProgress: (info: TrackInfo) => {
       if (!store) return;
@@ -191,9 +192,14 @@ function createQueue(options?: { webAudioIsDisabled?: boolean }): Queue {
             window.localStorage.lastPlayedUrl = nextUrl;
           }
 
-          // update URL to reflect current track without triggering a full navigation
+          // update URL and page title to reflect current track without triggering a full navigation
           if (window.location.pathname.indexOf(`/${artistSlug}/${year}/${month}/${day}`) !== -1) {
             window.history.replaceState(window.history.state, '', nextUrl);
+            // Keep everything after the first " | " (e.g. "2024-01-01 | Grateful Dead | Relisten")
+            // and replace only the track name portion
+            const titleParts = document.title.split(' | ');
+            titleParts[0] = track.title;
+            document.title = titleParts.join(' | ');
           }
         }
       }
@@ -254,7 +260,8 @@ export function initGaplessPlayer(
   if (typeof window === 'undefined') return;
   store = nextStore;
 
-  player = createQueue({ webAudioIsDisabled: isMobile });
+  currentPlaybackMethod = isMobile ? 'HTML5_ONLY' : 'HYBRID';
+  player = createQueue({ playbackMethod: currentPlaybackMethod });
 
   // just for debugging purposes
   window.player = player;
@@ -267,11 +274,10 @@ export function initGaplessPlayer(
 }
 
 export function resetPlayer() {
-  const wasWebAudioDisabled = player?.webAudioIsDisabled;
   if (player) {
     player.destroy();
   }
-  player = createQueue({ webAudioIsDisabled: wasWebAudioDisabled });
+  player = createQueue({ playbackMethod: currentPlaybackMethod });
   window.player = player;
   if (localStorage.volume) {
     player.setVolume(localStorage.volume);
