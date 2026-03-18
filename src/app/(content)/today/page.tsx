@@ -1,17 +1,14 @@
 import TodayDateNav from '@/components/TodayDateNav';
 import TodayTrack from '@/components/TodayTrack';
 import RelistenAPI from '@/lib/RelistenAPI';
-import { dateSearchParams } from '@/lib/searchParams/dateSearchParam';
 import { getCurrentMonthDay } from '@/lib/timezone';
 import { Day } from '@/types';
+import { searchParams } from '@timber-js/app/server';
 
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const parsed = await dateSearchParams.parseAndValidate(searchParams);
+export default async function Page() {
   const currentMonthDay = await getCurrentMonthDay();
+
+  const parsed = await searchParams<'/today'>();
 
   const month = parsed.month ?? currentMonthDay.month;
   const day = parsed.day ?? currentMonthDay.day;
@@ -41,7 +38,7 @@ export default async function Page({
       <div className="space-y-8">
         {Object.entries(groupedBy).map(([artistName, days]) => (
           <div key={artistName}>
-            <h2 className="text-relisten-700 mb-4 border-l-4 pl-4 text-xl font-semibold">
+            <h2 className="mb-4 border-l-4 pl-4 text-xl font-semibold text-relisten-700">
               {artistName}
             </h2>
             <div className="ml-2 space-y-0 border-l border-gray-200">

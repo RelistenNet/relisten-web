@@ -54,8 +54,8 @@ importers:
         specifier: ^5.91.3
         version: 5.91.3(@tanstack/react-query@5.91.0(react@19.2.4))(react@19.2.4)
       '@timber-js/app':
-        specifier: latest
-        version: 0.1.6(@vitejs/plugin-react@6.0.1(vite@8.0.0(@types/node@25.5.0)(jiti@2.6.1)(yaml@2.8.2)))(@vitejs/plugin-rsc@0.5.21(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vite@8.0.0(@types/node@25.5.0)(jiti@2.6.1)(yaml@2.8.2)))(nuqs@2.8.9(next@16.1.6(@opentelemetry/api@1.9.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vite@8.0.0(@types/node@25.5.0)(jiti@2.6.1)(yaml@2.8.2))(zod@4.3.6)
+        specifier: 0.1.10
+        version: 0.1.10(@vitejs/plugin-react@6.0.1(vite@8.0.0(@types/node@25.5.0)(jiti@2.6.1)(yaml@2.8.2)))(@vitejs/plugin-rsc@0.5.21(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vite@8.0.0(@types/node@25.5.0)(jiti@2.6.1)(yaml@2.8.2)))(nuqs@2.8.9(next@16.1.6(@opentelemetry/api@1.9.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vite@8.0.0(@types/node@25.5.0)(jiti@2.6.1)(yaml@2.8.2))(zod@4.3.6)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1272,8 +1272,8 @@ packages:
     peerDependencies:
       react: ^18 || ^19
 
-  '@timber-js/app@0.1.6':
-    resolution: {integrity: sha512-rqsZHEU8swp1qQrAS1DqHmBXpAAYDNm8tiYZfm7Y7nSfjqOi/eKoe+6bcA10hW+y848icBVS8RduGfbB0uJ2tQ==}
+  '@timber-js/app@0.1.10':
+    resolution: {integrity: sha512-AV3prxTUSX4aMNKFyHV275W36s01eTh6yZgu0nbAe96pmcFCniFGgtCq0+2DLVD3PWNe62Z/8vO84uUsiSb4zQ==}
     engines: {node: '>=20.0.0'}
     hasBin: true
     peerDependencies:
@@ -4461,7 +4461,7 @@ snapshots:
       '@tanstack/query-core': 5.91.0
       react: 19.2.4
 
-  '@timber-js/app@0.1.6(@vitejs/plugin-react@6.0.1(vite@8.0.0(@types/node@25.5.0)(jiti@2.6.1)(yaml@2.8.2)))(@vitejs/plugin-rsc@0.5.21(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vite@8.0.0(@types/node@25.5.0)(jiti@2.6.1)(yaml@2.8.2)))(nuqs@2.8.9(next@16.1.6(@opentelemetry/api@1.9.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vite@8.0.0(@types/node@25.5.0)(jiti@2.6.1)(yaml@2.8.2))(zod@4.3.6)':
+  '@timber-js/app@0.1.10(@vitejs/plugin-react@6.0.1(vite@8.0.0(@types/node@25.5.0)(jiti@2.6.1)(yaml@2.8.2)))(@vitejs/plugin-rsc@0.5.21(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vite@8.0.0(@types/node@25.5.0)(jiti@2.6.1)(yaml@2.8.2)))(nuqs@2.8.9(next@16.1.6(@opentelemetry/api@1.9.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vite@8.0.0(@types/node@25.5.0)(jiti@2.6.1)(yaml@2.8.2))(zod@4.3.6)':
     dependencies:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/context-async-hooks': 2.6.0(@opentelemetry/api@1.9.0)
