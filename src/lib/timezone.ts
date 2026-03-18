@@ -1,11 +1,11 @@
 import 'server-only';
 
 import { TZDate } from '@date-fns/tz';
-import { headers } from 'next/headers';
+import { headers } from '@timber-js/app/server';
 import { format } from 'date-fns';
 
-export const getCurrentMonthDay = async () => {
-  const h = await headers();
+export const getCurrentMonthDay = () => {
+  const h = headers();
 
   const timezone = String(h.get('cf-timezone') ?? 'America/New_York');
 

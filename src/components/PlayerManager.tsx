@@ -12,7 +12,7 @@ import { tSearchParamsLoader } from '@/lib/searchParams/tSearchParam';
 import { createShowDate } from '@/lib/utils';
 import { store } from '@/redux';
 import { updatePlayback } from '@/redux/modules/playback';
-import { usePathname } from 'next/navigation';
+import { usePathname } from '@timber-js/app/client';
 import { useEffect } from 'react';
 
 interface PlayerManagerProps extends Props {

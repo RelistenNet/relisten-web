@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@timber-js/app/client';
 import React, { useRef, useState } from 'react';
 
 import type { RootState } from '@/redux';

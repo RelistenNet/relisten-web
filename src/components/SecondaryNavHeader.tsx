@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
-import { useParams, usePathname, useSelectedLayoutSegments } from 'next/navigation';
+import { Link } from '@timber-js/app/client';
+import { useParams, usePathname, useSelectedLayoutSegments } from '@timber-js/app/client';
 
 const pages = {
   'sonos': {

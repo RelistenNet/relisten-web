@@ -3,7 +3,7 @@ import RelistenAPI from '@/lib/RelistenAPI';
 import { isMobile } from '@/lib/isMobile';
 import { createShowDate } from '@/lib/utils';
 import { RawParams } from '@/types/params';
-import { notFound } from 'next/navigation';
+import { notFound } from '@timber-js/app/server';
 
 export default async function Page(props: { params: Promise<RawParams> }) {
   const params = await props.params;
@@ -19,7 +19,7 @@ export default async function Page(props: { params: Promise<RawParams> }) {
   return <PlayerManager {...params} show={show} isMobile={mobile} />;
 }
 
-export const generateMetadata = async (props) => {
+export const metadata = async (props) => {
   const [params, artists] = await Promise.all([props.params, RelistenAPI.fetchArtists()]);
   const { artistSlug, year, month, day, songSlug } = params;
 

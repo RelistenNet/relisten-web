@@ -1,15 +1,13 @@
 import { Roboto } from 'next/font/google';
-import NextTopLoader from 'nextjs-toploader';
 import dns from 'node:dns';
 import React from 'react';
+import type { Metadata } from '@timber-js/app/server';
 import Providers from './Providers';
 
 // https://github.com/node-fetch/node-fetch/issues/1624#issuecomment-1407717012
 dns.setDefaultResultOrder('ipv4first');
 
 import '../styles/globals.css';
-import Link from 'next/link';
-// import Link from 'next/link';
 
 // TODO: figure out if we don't need any weights
 const font = Roboto({ subsets: ['latin'], weight: ['400', '500', '700', '900'] });
@@ -23,20 +21,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body className={font.className}>
-        <NextTopLoader showSpinner={false} />
-        {/* <Link href="https://en.wikipedia.org/wiki/Bob_Weir" target="_blank">
-          <div className="fixed top-0 z-10 h-2 w-full bg-black" />
-        </Link> */}
         <Providers>{children}</Providers>
       </body>
     </html>
   );
 }
 
-export const metadata = {
+export const metadata: Metadata = {
   metadataBase: new URL('https://relisten.net'),
   title: {
     template: '%s | Relisten',
-    default: 'Relisten', // a default is required when creating a template
+    default: 'Relisten',
   },
 };

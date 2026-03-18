@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@timber-js/app/client';
 import { format, addDays, subDays, parse, getMonth, getDate } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import DateJumper from './DateJumper';

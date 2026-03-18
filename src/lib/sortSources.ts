@@ -1,5 +1,4 @@
 import { Source } from '@/types';
-import { firstBy } from 'thenby';
 
 const getEtreeId = (s = '') =>
   Number(
@@ -12,25 +11,26 @@ const getEtreeId = (s = '') =>
 // tapes: TODO: GD sort (charlie miller, sbd + etree id, weighted average), sbd + etree id, weighted avg, asc, desc
 // for now, hardcode sort: sbd, charlie miller, etree id, weighted average
 export const sortSources = (sources: Source[]) => {
-  const sortedSources = sources
-    ? [...sources].sort(
-        firstBy((t: Source) => t.is_soundboard, 'desc')
-          // Charlie for GD, Pete for JRAD
-          .thenBy(
-            (t: Source) =>
-              /(charlie miller)|(peter costello)/i.test(
-                [t.taper, t.transferrer, t.source].join('')
-              ),
-            'desc'
-          )
-          .thenBy(
-            (t1: Source, t2: Source) =>
-              getEtreeId(t1.upstream_identifier) - getEtreeId(t2.upstream_identifier),
-            'desc'
-          )
-          .thenBy((t) => t.avg_rating_weighted, 'desc')
-      )
-    : [];
+  if (!sources) return [];
 
-  return sortedSources;
+  return [...sources].sort((a, b) => {
+    // 1. SBD first
+    const sbd = Number(b.is_soundboard) - Number(a.is_soundboard);
+    if (sbd !== 0) return sbd;
+
+    // 2. Charlie Miller (GD) / Pete Costello (JRAD) first
+    const specialTaper = (t: Source) =>
+      /(charlie miller)|(peter costello)/i.test(
+        [t.taper, t.transferrer, t.source].join('')
+      );
+    const taper = Number(specialTaper(b)) - Number(specialTaper(a));
+    if (taper !== 0) return taper;
+
+    // 3. Higher etree ID first
+    const etree = getEtreeId(b.upstream_identifier) - getEtreeId(a.upstream_identifier);
+    if (etree !== 0) return etree;
+
+    // 4. Higher weighted rating first
+    return (b.avg_rating_weighted ?? 0) - (a.avg_rating_weighted ?? 0);
+  });
 };

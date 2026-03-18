@@ -1,9 +1,9 @@
 'use client';
 
-import Link from 'next/link';
+import { Link } from '@timber-js/app/client';
 import Flex from './Flex';
 import SecondaryNavBar from './SecondaryNavHeader';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter } from '@timber-js/app/client';
 
 export default function MainNavHeader({
   artistSlugsToName,

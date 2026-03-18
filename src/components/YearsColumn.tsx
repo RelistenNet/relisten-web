@@ -1,6 +1,6 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { RawParams } from '@/types/params';
-import { notFound } from 'next/navigation';
+import { notFound } from '@timber-js/app/server';
 import { getServerFilters } from '@/lib/serverFilterCookies';
 import YearsColumnWithControls from './YearsColumnWithControls';
 import QuickHitsNav from './QuickHitsNav';

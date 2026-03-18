@@ -1,5 +1,5 @@
 import ky, { HTTPError } from 'ky-universal';
-import { notFound } from 'next/navigation';
+import { notFound } from '@timber-js/app/server';
 import { cache } from 'react';
 import { SERVER_API_DOMAIN } from './constants';
 import { sortSources } from './sortSources';
@@ -31,16 +31,12 @@ export class RelistenAPI {
   private static cachedFetch = cache(
     async <T>(
       endpoint: string,
-      options: { revalidate?: number } = { revalidate: 60 * 5 }
+      _options: { revalidate?: number } = { revalidate: 60 * 5 }
     ): Promise<T> => {
       const url = `${this.baseURL}${endpoint}`;
 
-      // console.log('Requesting', endpoint, options);
-
       try {
-        const response = await ky(url, {
-          next: options.revalidate ? { revalidate: options.revalidate } : undefined,
-        }).json();
+        const response = await ky(url).json();
 
         return response as T;
       } catch (err) {

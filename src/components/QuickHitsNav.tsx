@@ -2,8 +2,8 @@
 
 import cn from '@/lib/cn';
 import { Features } from '@/types';
-import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { Link } from '@timber-js/app/client';
+import { useParams, useRouter } from '@timber-js/app/client';
 import { MouseEvent, useTransition } from 'react';
 
 type QuickHitsNavProps = {

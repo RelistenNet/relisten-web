@@ -1,6 +1,6 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import type { RawParams } from '@/types/params';
-import { notFound, redirect } from 'next/navigation';
+import { notFound, redirect } from '@timber-js/app/server';
 
 interface EmbedShowPageProps {
   params: Promise<RawParams>;
@@ -40,7 +40,7 @@ export default async function EmbedShowPage({ params }: EmbedShowPageProps) {
   redirect(`/embed/${artistSlug}/${year}/${month}/${day}/${firstTrack.slug}?playImmediately=false`);
 }
 
-export async function generateMetadata(props: EmbedShowPageProps) {
+export async function metadata(props: EmbedShowPageProps) {
   const params = await props.params;
   const { artistSlug, year, month, day } = params;
 

@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@timber-js/app/client';
 import { splitShowDate } from '../lib/utils';
 import { Day } from '../types';
 import Flex from './Flex';

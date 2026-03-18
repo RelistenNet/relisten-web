@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import Link from 'next/link';
+import { Link } from '@timber-js/app/client';
 import { ChevronLeft } from 'lucide-react';
 import sortActiveBands from '../lib/sortActiveBands';
 import { durationToHHMMSS, removeLeadingZero, simplePluralize, splitShowDate } from '../lib/utils';

@@ -16,7 +16,7 @@ import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
 import type { Context, SpanKind, Attributes, Link } from '@opentelemetry/api';
 
 const staticExtensions = ['.js', '.css', '.map', '.png', '.jpg', '.svg', '.ico', '.woff', '.woff2'];
-const ignorePaths = ['/api/health', '/api/status', '/_next/static/', '/_next/image'];
+const ignorePaths = ['/api/health', '/api/status'];
 
 function shouldIgnorePath(path: string): boolean {
   if (ignorePaths.some((p) => path.startsWith(p))) return true;

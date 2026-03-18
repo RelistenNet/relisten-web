@@ -1,5 +1,5 @@
 import RelistenAPI from '@/lib/RelistenAPI';
-import { notFound } from 'next/navigation';
+import { notFound } from '@timber-js/app/server';
 
 export default function Page() {
   return null;
@@ -13,7 +13,7 @@ function capitalizeFirstLetterOfEachWord(val: string): string {
     .join(' ');
 }
 
-export const generateMetadata = async (props) => {
+export const metadata = async (props) => {
   const params = await props.params;
   const { artistSlug, year } = params;
 

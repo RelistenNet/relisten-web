@@ -1,5 +1,3 @@
-import { HYDRATE } from 'next-redux-wrapper';
-
 export interface LiveState {
   data: unknown[];
   meta: {
@@ -14,21 +12,13 @@ const defaultState: LiveState = {
   },
 };
 
-type LiveAction =
-  | { type: typeof HYDRATE; payload?: { live?: Partial<LiveState> } }
-  | { type: string };
+type LiveAction = { type: string };
 
 export default function liveReducer(
   state: LiveState = defaultState,
   action: LiveAction
 ): LiveState {
   switch (action.type) {
-    case HYDRATE:
-      return {
-        ...state,
-        ...(action as { type: typeof HYDRATE; payload?: { live?: Partial<LiveState> } }).payload
-          ?.live,
-      };
     default:
       return state;
   }

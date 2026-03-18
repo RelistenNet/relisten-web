@@ -1,6 +1,6 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { isMobile } from '@/lib/isMobile';
-import { notFound } from 'next/navigation';
+import { notFound } from '@timber-js/app/server';
 
 type PageProps = {
   params: Promise<{
@@ -40,7 +40,7 @@ export default async function Page({ params }: PageProps) {
   return null;
 }
 
-export const generateMetadata = async (props) => {
+export const metadata = async (props) => {
   const params = await props.params;
   const { artistSlug } = params;
 

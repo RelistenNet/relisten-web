@@ -1,11 +1,11 @@
-import { cookies } from 'next/headers';
+import { cookies } from '@timber-js/app/server';
 import { FilterState, getFilterKey } from './filterCookies';
 
 const COOKIE_PREFIX = 'relisten_filters_';
 
 // Server-side function to read filter cookies
-export async function getServerFilters(pathOrKey: string, useAsKey = false): Promise<FilterState> {
-  const cookieStore = await cookies();
+export function getServerFilters(pathOrKey: string, useAsKey = false): FilterState {
+  const cookieStore = cookies();
   const key = useAsKey ? pathOrKey : getFilterKey(pathOrKey);
   const cookieName = `${COOKIE_PREFIX}${key.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
 

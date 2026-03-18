@@ -1,29 +1,19 @@
-import { createWrapper } from 'next-redux-wrapper';
 import reducers from './modules';
 import { configureStore } from '@reduxjs/toolkit';
 
 declare global {
   interface Window {
-    store: ReturnType<typeof initStore>;
+    store: ReturnType<typeof configureStore>;
   }
 }
 
-export const initStore = () => {
-  const store = configureStore({
-    reducer: reducers,
-  });
+export const store = configureStore({
+  reducer: reducers,
+});
 
-  if (typeof window !== 'undefined') {
-    window.store = store;
-  }
-
-  return store;
-};
-
-export const store = initStore();
+if (typeof window !== 'undefined') {
+  window.store = store;
+}
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
-
-// export an assembled wrapper
-export const wrapper = createWrapper(initStore, { debug: false });

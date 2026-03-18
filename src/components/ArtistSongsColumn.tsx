@@ -1,7 +1,7 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { RawParams } from '@/types/params';
 import React from 'react';
-import { notFound } from 'next/navigation';
+import { notFound } from '@timber-js/app/server';
 import ArtistSongsColumnWithControls from './ArtistSongsColumnWithControls';
 
 const ArtistSongsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {

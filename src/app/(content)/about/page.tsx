@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@timber-js/app/client';
 
 const About = () => (
   <div className="content">

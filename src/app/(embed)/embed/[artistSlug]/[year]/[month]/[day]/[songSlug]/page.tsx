@@ -4,7 +4,7 @@ import RelistenAPI from '@/lib/RelistenAPI';
 import { isMobile } from '@/lib/isMobile';
 import { createShowDate } from '@/lib/utils';
 import { RawParams } from '@/types/params';
-import { notFound } from 'next/navigation';
+import { notFound } from '@timber-js/app/server';
 import { playImmediatelySearchParamsLoader } from '@/lib/searchParams/playImmediatelySearchParam';
 
 interface EmbedSongPageProps {
@@ -54,7 +54,7 @@ export default async function EmbedSongPage({ params, searchParams }: EmbedSongP
   );
 }
 
-export async function generateMetadata(props) {
+export async function metadata(props) {
   const [params, artists] = await Promise.all([props.params, RelistenAPI.fetchArtists()]);
   const { artistSlug, year, month, day, songSlug } = params;
 

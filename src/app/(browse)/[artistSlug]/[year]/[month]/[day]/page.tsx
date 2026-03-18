@@ -1,10 +1,10 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { createShowDate } from '@/lib/utils';
-import { notFound } from 'next/navigation';
+import { notFound } from '@timber-js/app/server';
 
 export default () => null;
 
-export const generateMetadata = async (props) => {
+export const metadata = async (props) => {
   const params = await props.params;
   const { artistSlug, year, month, day } = params;
 

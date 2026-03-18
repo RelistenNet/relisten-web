@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import Link from 'next/link';
+import { Link } from '@timber-js/app/client';
 import TimeAgo from 'react-timeago';
 
 import { ArrowRight } from 'lucide-react';

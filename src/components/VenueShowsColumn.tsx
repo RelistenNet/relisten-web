@@ -1,6 +1,6 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { getServerFilters } from '@/lib/serverFilterCookies';
-import { notFound } from 'next/navigation';
+import { notFound } from '@timber-js/app/server';
 import ShowsColumnWithControls from './ShowsColumnWithControls';
 
 const VenueShowsColumn = async ({ artistSlug, slug }: { artistSlug: string; slug: string }) => {

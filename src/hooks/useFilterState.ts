@@ -1,8 +1,8 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname } from '@timber-js/app/client';
 import { useCallback, useMemo } from 'react';
-import useCookie from 'react-use-cookie';
+import { useCookie } from '@timber-js/app/client';
 import { FilterState, getFilterKey } from '@/lib/filterCookies';
 
 export enum SORT_DIRECTION {
@@ -25,6 +25,8 @@ const getInverse = (key: string, sort?: SORT_DIRECTION) => {
   return undefined;
 };
 
+const COOKIE_OPTIONS = { maxAge: 365 * 24 * 60 * 60, sameSite: 'lax' as const };
+
 export function useFilterState(initialFilters?: FilterState, filterKey?: string) {
   const pathname = usePathname();
 
@@ -34,18 +36,20 @@ export function useFilterState(initialFilters?: FilterState, filterKey?: string)
     return `relisten_filters_${key.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
   }, [pathname, filterKey]);
 
-  // Use the cookie hook with initial value from server
-  const defaultValue = initialFilters ? JSON.stringify(initialFilters) : '{}';
-  const [cookieValue, setCookieValue] = useCookie(cookieName, defaultValue);
+  // Use timber's cookie hook
+  const [cookieValue, setCookieValue] = useCookie(cookieName, COOKIE_OPTIONS);
 
-  // Parse the filter state from cookie
+  // Parse the filter state from cookie, with fallback to initial filters
   const filters = useMemo(() => {
-    try {
-      return JSON.parse(cookieValue) as FilterState;
-    } catch {
-      return {} as FilterState;
+    if (cookieValue) {
+      try {
+        return JSON.parse(cookieValue) as FilterState;
+      } catch {
+        // fall through
+      }
     }
-  }, [cookieValue]);
+    return initialFilters ?? ({} as FilterState);
+  }, [cookieValue, initialFilters]);
 
   const setFilter = useCallback(
     <K extends keyof FilterState>(filterName: K, value: FilterState[K]) => {
@@ -63,7 +67,7 @@ export function useFilterState(initialFilters?: FilterState, filterKey?: string)
         delete newFilters[filterName];
       }
 
-      setCookieValue(JSON.stringify(newFilters), { days: 365, SameSite: 'Lax' });
+      setCookieValue(JSON.stringify(newFilters));
     },
     [filters, setCookieValue]
   );
@@ -83,7 +87,7 @@ export function useFilterState(initialFilters?: FilterState, filterKey?: string)
   );
 
   const clearFilters = useCallback(() => {
-    setCookieValue('{}', { days: 365, SameSite: 'Lax' });
+    setCookieValue('{}');
   }, [setCookieValue]);
 
   return {

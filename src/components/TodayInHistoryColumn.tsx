@@ -1,7 +1,7 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { getServerFilters } from '@/lib/serverFilterCookies';
 import { RawParams } from '@/types/params';
-import { notFound } from 'next/navigation';
+import { notFound } from '@timber-js/app/server';
 import TodayInHistoryColumnWithControls from './TodayInHistoryColumnWithControls';
 
 const TodayInHistoryColumn = async ({

@@ -1,8 +1,8 @@
 'use client';
 
 import cn from '@/lib/cn';
-import Link from 'next/link';
-import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { Link } from '@timber-js/app/client';
+import { useParams, usePathname, useRouter, useSearchParams } from '@timber-js/app/client';
 import React, { MouseEvent, useTransition } from 'react';
 import Flex from './Flex';
 import RowLoading from './RowLoading';

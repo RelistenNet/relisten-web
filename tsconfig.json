@@ -13,15 +13,10 @@
     "incremental": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
     "strictNullChecks": true,
     "baseUrl": ".",
     "paths": {
@@ -32,11 +27,8 @@
     "target": "ES2017"
   },
   "include": [
-    "next-env.d.ts",
     "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    "**/*.tsx"
   ],
   "exclude": [
     "node_modules"

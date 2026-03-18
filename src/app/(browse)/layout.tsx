@@ -20,7 +20,7 @@ export default async function BrowseLayout({
   songs: ReactNode;
   sources: ReactNode;
 }) {
-  const isInIframe = await getIsInIframe();
+  const isInIframe = getIsInIframe();
 
   return (
     <Flex column className="h-screen">

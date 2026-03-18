@@ -1,7 +1,6 @@
 import SongsColumn from '@/components/SongsColumn';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { createShowDate } from '@/lib/utils';
-import { notFound } from 'next/navigation';
 
 export default async function SongsDaySlot({
   params,
@@ -13,7 +12,7 @@ export default async function SongsDaySlot({
   // Fetch show data
   const show = await RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day));
 
-  if (!show) return notFound();
+  if (!show) return null;
 
   return <SongsColumn artistSlug={artistSlug} year={year} month={month} day={day} show={show} />;
 }

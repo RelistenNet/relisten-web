@@ -3,12 +3,9 @@ import 'server-only';
 
 import { getArtistGradient } from '@/lib/artistColors';
 import RelistenAPI from '@/lib/RelistenAPI';
-import { ImageResponse } from 'next/og';
-import { notFound } from 'next/navigation';
-import { createZodRoute } from 'next-zod-route';
+import ImageResponse from '@takumi-rs/image-response';
+import { notFound } from '@timber-js/app/server';
 import { z } from 'zod/v4';
-
-export const runtime = 'edge';
 
 // Create a pixelated pattern with large squares
 const generatePixelatedSVG = (opacity = 0.4, size: number) => {
@@ -48,111 +45,114 @@ const querySchema = z.object({
   size: z.coerce.number().gte(256).lte(1024).default(1024),
 });
 
-export const GET = createZodRoute()
-  .query(querySchema)
-  .handler(async (request, context) => {
-    if (!context.query.showUuid) return notFound();
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const parsed = querySchema.safeParse({
+    showUuid: url.searchParams.get('showUuid'),
+    size: url.searchParams.get('size') ?? undefined,
+  });
 
-    const [artists, show, fontReg, fontBold, fontMegaBold] = await Promise.all([
-      RelistenAPI.fetchArtists(),
-      RelistenAPI.fetchShowByUUID(context.query.showUuid),
-      fetch(
-        new URL('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-400-normal.ttf'),
-        { next: { revalidate: 60 * 60 * 24 * 30 } } // Cache for 30 days
-      ).then((res) => res.arrayBuffer()),
-      fetch(
-        new URL('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-700-normal.ttf'),
-        { next: { revalidate: 60 * 60 * 24 * 30 } } // Cache for 30 days
-      ).then((res) => res.arrayBuffer()),
-      fetch(
-        new URL('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-900-normal.ttf'),
-        { next: { revalidate: 60 * 60 * 24 * 30 } } // Cache for 30 days
-      ).then((res) => res.arrayBuffer()),
-    ]);
+  if (!parsed.success) return notFound();
+  const { showUuid, size } = parsed.data;
 
-    if (!show || !show.sources?.length) return notFound();
+  if (!showUuid) return notFound();
 
-    // Get params
-    const artist = artists.find((artist) => artist.uuid === show.artist_uuid);
-    const artistName = artist?.name ?? 'Unknown Artist';
+  const [artists, show, fontReg, fontBold, fontMegaBold] = await Promise.all([
+    RelistenAPI.fetchArtists(),
+    RelistenAPI.fetchShowByUUID(showUuid),
+    fetch(
+      'https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-400-normal.ttf'
+    ).then((res) => res.arrayBuffer()),
+    fetch(
+      'https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-700-normal.ttf'
+    ).then((res) => res.arrayBuffer()),
+    fetch(
+      'https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-900-normal.ttf'
+    ).then((res) => res.arrayBuffer()),
+  ]);
 
-    // Generate dynamic background color and pattern based on artist UUID
-    const bgGradient = getArtistGradient(show.artist_uuid || '');
-    // Generate pixelated background pattern
-    const size = context.query.size;
-    const pixelatedSVG = generatePixelatedSVG(0.8, size);
+  if (!show || !show.sources?.length) return notFound();
 
-    return new ImageResponse(
-      <div
-        tw="flex h-full w-full flex-col items-center justify-center p-10 text-white relative overflow-hidden"
-        style={{
-          backgroundImage: `${pixelatedSVG}, ${bgGradient}`,
-          backgroundBlendMode: 'overlay',
-        }}
-      >
-        <div tw="flex w-full max-w-[800px] flex-col items-center justify-center rounded-2xl bg-black/25 p-12 relative">
-          <div
-            tw="mb-2 text-center font-extrabold tracking-tight"
-            style={{
-              fontSize: (size / 1024) * 72,
-            }}
-          >
-            {artistName}
-          </div>
-          <div
-            tw="mb-2 text-center font-bold"
-            style={{
-              fontSize: (size / 1024) * 60,
-            }}
-          >
-            {show.display_date}
-          </div>
-          <div tw="flex items-center justify-center" style={{ gap: 8 }}>
-            {show.venue?.name && (
-              <div
-                tw="rounded-xl bg-white/20 px-6 py-3 flex text-center"
-                style={{
-                  fontSize: (size / 1024) * 36,
-                }}
-              >
-                {show.venue?.name} {show.venue?.location ? `• ${show.venue.location}` : ''}
-              </div>
-            )}
-          </div>
-        </div>
+  // Get params
+  const artist = artists.find((artist) => artist.uuid === show.artist_uuid);
+  const artistName = artist?.name ?? 'Unknown Artist';
 
+  // Generate dynamic background color and pattern based on artist UUID
+  const bgGradient = getArtistGradient(show.artist_uuid || '');
+  // Generate pixelated background pattern
+  const pixelatedSVG = generatePixelatedSVG(0.8, size);
+
+  return new ImageResponse(
+    <div
+      tw="flex h-full w-full flex-col items-center justify-center p-10 text-white relative overflow-hidden"
+      style={{
+        backgroundImage: `${pixelatedSVG}, ${bgGradient}`,
+        backgroundBlendMode: 'overlay',
+      }}
+    >
+      <div tw="flex w-full max-w-[800px] flex-col items-center justify-center rounded-2xl bg-black/25 p-12 relative">
         <div
-          tw="absolute bottom-6 right-6 font-bold"
+          tw="mb-2 text-center font-extrabold tracking-tight"
           style={{
-            fontSize: (size / 1024) * 36,
+            fontSize: (size / 1024) * 72,
           }}
         >
-          Relisten.net
+          {artistName}
         </div>
-      </div>,
-      {
-        width: size,
-        height: size,
-        fonts: [
-          {
-            name: 'Roboto',
-            data: fontReg,
-            weight: 400,
-            style: 'normal',
-          },
-          {
-            name: 'Roboto',
-            data: fontBold,
-            weight: 700,
-            style: 'normal',
-          },
-          {
-            name: 'Roboto',
-            data: fontMegaBold,
-            weight: 900,
-            style: 'normal',
-          },
-        ],
-      }
-    );
-  });
+        <div
+          tw="mb-2 text-center font-bold"
+          style={{
+            fontSize: (size / 1024) * 60,
+          }}
+        >
+          {show.display_date}
+        </div>
+        <div tw="flex items-center justify-center" style={{ gap: 8 }}>
+          {show.venue?.name && (
+            <div
+              tw="rounded-xl bg-white/20 px-6 py-3 flex text-center"
+              style={{
+                fontSize: (size / 1024) * 36,
+              }}
+            >
+              {show.venue?.name} {show.venue?.location ? `• ${show.venue.location}` : ''}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div
+        tw="absolute bottom-6 right-6 font-bold"
+        style={{
+          fontSize: (size / 1024) * 36,
+        }}
+      >
+        Relisten.net
+      </div>
+    </div>,
+    {
+      width: size,
+      height: size,
+      fonts: [
+        {
+          name: 'Roboto',
+          data: fontReg,
+          weight: 400,
+          style: 'normal',
+        },
+        {
+          name: 'Roboto',
+          data: fontBold,
+          weight: 700,
+          style: 'normal',
+        },
+        {
+          name: 'Roboto',
+          data: fontMegaBold,
+          weight: 900,
+          style: 'normal',
+        },
+      ],
+    }
+  );
+}

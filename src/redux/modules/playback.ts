@@ -1,4 +1,3 @@
-import { HYDRATE } from 'next-redux-wrapper';
 import type { GaplessMetadata, Track } from '../../types';
 
 const UPDATE = 'playback/UPDATE' as const;
@@ -43,7 +42,6 @@ const defaultState: PlaybackState = {
 };
 
 type PlaybackAction =
-  | { type: typeof HYDRATE; payload?: { playback?: Partial<PlaybackState> } }
   | { type: typeof UPDATE; data: Partial<PlaybackState> }
   | { type: typeof UPDATE_TRACK; data: Partial<ActiveTrack> };
 
@@ -52,11 +50,6 @@ export default function playbackReducer(
   action: PlaybackAction
 ): PlaybackState {
   switch (action.type) {
-    case HYDRATE:
-      return {
-        ...state,
-        ...action.payload?.playback,
-      };
     case UPDATE:
       return {
         ...state,

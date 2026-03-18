@@ -2,8 +2,6 @@ import ShowsColumn from '@/components/ShowsColumn';
 import { isMobile } from '@/lib/isMobile';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { splitShowDate } from '@/lib/utils';
-import { notFound } from 'next/navigation';
-
 export default async function ShowsDaySlot({
   params,
 }: {
@@ -15,7 +13,7 @@ export default async function ShowsDaySlot({
 
   const show = await RelistenAPI.fetchRandomShow(artistSlug);
 
-  if (!show) return notFound();
+  if (!show) return null;
 
   const { year } = splitShowDate(show.display_date);
 

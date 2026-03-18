@@ -3,7 +3,6 @@
 import player from '@/lib/player';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { ReactQueryStreamedHydration } from '@tanstack/react-query-next-experimental';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { PropsWithChildren, useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
@@ -42,7 +41,7 @@ export default function Providers({ children }: PropsWithChildren) {
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
         <NuqsAdapter>
-          <ReactQueryStreamedHydration>{children}</ReactQueryStreamedHydration>
+          {children}
         </NuqsAdapter>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>

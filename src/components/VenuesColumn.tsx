@@ -1,6 +1,6 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { RawParams } from '@/types/params';
-import { notFound } from 'next/navigation';
+import { notFound } from '@timber-js/app/server';
 import VenuesColumnWithControls from './VenuesColumnWithControls';
 
 const VenuesColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {

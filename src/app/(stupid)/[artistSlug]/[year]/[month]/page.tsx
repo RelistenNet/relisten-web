@@ -1,14 +1,14 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { format } from 'date-fns';
-import { Metadata } from 'next';
-import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import type { Metadata } from '@timber-js/app/server';
+import { Link } from '@timber-js/app/client';
+import { notFound } from '@timber-js/app/server';
 
 interface Props {
   params: Promise<{ artistSlug: string; year: string; month: string }>;
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function metadata({ params }: Props): Promise<Metadata> {
   const { artistSlug, year, month } = await params;
   const artists = await RelistenAPI.fetchArtists();
   const artist = artists?.find((a) => a.slug === artistSlug);

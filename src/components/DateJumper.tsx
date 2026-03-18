@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname } from '@timber-js/app/client';
 import { format, parse, getMonth, getDate } from 'date-fns';
 import { Calendar } from 'lucide-react';
 
