@@ -26,21 +26,20 @@
     "@opentelemetry/semantic-conventions": "^1.40.0",
     "@radix-ui/react-popover": "^1.1.15",
     "@reduxjs/toolkit": "^2.11.2",
-    "@takumi-rs/image-response": "^0.70.4",
-    "@tanstack/react-query": "^5.90.21",
+    "@takumi-rs/image-response": "^0.73.1",
+    "@tanstack/react-query": "^5.91.0",
     "@tanstack/react-query-devtools": "^5.91.3",
-    "@timber-js/app": "^0.1.4",
+    "@timber-js/app": "latest",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "framer-motion": "12.35.1",
+    "framer-motion": "12.38.0",
     "gapless": "4.1.1",
     "isomorphic-fetch": "3.0.0",
     "ky": "^1.14.3",
     "ky-universal": "^0.12.0",
     "lucide-react": "^0.577.0",
     "node-device-detector": "^2.2.5",
-    "nuqs": "^2.8.9",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-redux": "^9.2.0",
@@ -52,16 +51,16 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@switz/eslint-config": "^12.5.2",
-    "@tailwindcss/postcss": "^4.2.1",
-    "@types/node": "^25.3.5",
+    "@switz/eslint-config": "^13.0.0",
+    "@tailwindcss/postcss": "^4.2.2",
+    "@types/node": "^25.5.0",
     "@types/react": "19.2.14",
     "@types/ua-parser-js": "^0.7.39",
     "@vitejs/plugin-react": "^6.0.1",
     "@vitejs/plugin-rsc": "^0.5.21",
     "eslint": "^9.39.1",
     "postcss": "^8.5.8",
-    "tailwindcss": "^4.2.1",
+    "tailwindcss": "^4.2.2",
     "typescript": "^5.9.3",
     "vite": "^8.0.0"
   },
@@ -70,8 +69,6 @@
       "protobufjs",
       "sharp"
     ],
-    "overrides": {
-      "@timber-js/app": "link:../../timber-js-fresh/packages/timber-app"
-    }
+    "overrides": {}
   }
 }

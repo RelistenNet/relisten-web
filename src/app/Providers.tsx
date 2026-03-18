@@ -3,7 +3,6 @@
 import player from '@/lib/player';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { PropsWithChildren, useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
 import { store } from '../redux';
@@ -40,9 +39,7 @@ export default function Providers({ children }: PropsWithChildren) {
   return (
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <NuqsAdapter>
           {children}
-        </NuqsAdapter>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </Provider>

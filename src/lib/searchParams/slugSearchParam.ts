@@ -1,13 +1,6 @@
-import { createSearchParams } from '@/lib/searchParams/createSearchParams';
-import { parseAsString } from 'nuqs/server';
+import { createSearchParams, fromSchema } from '@timber-js/app/search-params';
 import { z } from 'zod/v4';
 
-export const slugSchema = z.object({
-  slug: z.string().nullable(),
+export const slugSearchParams = createSearchParams({
+  slug: fromSchema(z.string().optional()),
 });
-
-export const slugParser = {
-  slug: parseAsString,
-};
-
-export const slugSearchParams = createSearchParams(slugSchema, slugParser);

@@ -1,22 +1,19 @@
-import { createSearchParams } from '@/lib/searchParams/createSearchParams';
+import { createSearchParams } from '@timber-js/app/search-params';
+import type { SearchParamCodec } from '@timber-js/app/search-params';
 import { formatTimeParam, parseTimeParam } from '@/lib/timeParam';
-import { createParser } from 'nuqs/server';
-import { z } from 'zod/v4';
 
-const parseAsTime = createParser({
-  parse: (value: string) => {
-    const seconds = parseTimeParam(value);
-    return seconds > 0 ? seconds : null;
+const timeCodec: SearchParamCodec<number> = {
+  parse(value) {
+    if (value === undefined || value === null) return 0;
+    const str = Array.isArray(value) ? value[value.length - 1] : value;
+    const seconds = parseTimeParam(str ?? '');
+    return seconds > 0 ? seconds : 0;
   },
-  serialize: (value: number) => formatTimeParam(value),
-});
-
-export const tSchema = z.object({
-  t: z.number().nullable(),
-});
-
-export const tParser = {
-  t: parseAsTime.withDefault(0),
+  serialize(value) {
+    return value > 0 ? formatTimeParam(value) : null;
+  },
 };
 
-export const tSearchParamsLoader = createSearchParams(tSchema, tParser);
+export const tSearchParamsLoader = createSearchParams({
+  t: timeCodec,
+});
