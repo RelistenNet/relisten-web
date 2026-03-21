@@ -10,3 +10,4 @@ db/
 *.tsbuildinfo
 .timber
 
+dist/

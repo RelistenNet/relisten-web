@@ -25,18 +25,16 @@ ENV NODE_ENV=production
 ENV NODE_OPTIONS=--max-old-space-size=2048
 
 RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN adduser --system --uid 1001 appuser
 
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=appuser:nodejs /app/dist/nitro/.output ./
 
-USER nextjs
+USER appuser
 
 EXPOSE 3000
 
 ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
+ENV HOST="0.0.0.0"
 ENV RELISTEN_API_URL="http://relistenapi-srv.default:3823"
 
-CMD ["node", "server.js"]
+CMD ["node", "server/index.mjs"]
