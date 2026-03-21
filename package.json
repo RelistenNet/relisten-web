@@ -30,7 +30,7 @@
     "@takumi-rs/image-response": "^0.73.1",
     "@tanstack/react-query": "^5.91.0",
     "@tanstack/react-query-devtools": "^5.91.3",
-    "@timber-js/app": "0.1.39",
+    "@timber-js/app": "0.1.40",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
