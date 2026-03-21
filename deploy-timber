@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REGISTRY="relisten2.tail09dbf.ts.net:32000"
+IMAGE="relistennet/relisten-web-timber:latest"
+
+echo "Building..."
+docker build --platform linux/amd64 -t "$REGISTRY/$IMAGE" .
+
+echo "Pushing..."
+docker push "$REGISTRY/$IMAGE"
+
+echo "Restarting pods..."
+kubectl rollout restart deployment/relisten-web-timber
+
+echo "Waiting for rollout..."
+kubectl rollout status deployment/relisten-web-timber --timeout=120s
+
+echo "Done."

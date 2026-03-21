@@ -4,7 +4,7 @@ import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Activity, Clock } from 'lucide-react';
 import LiveTrack from '@/components/LiveTrack';
-import RelistenAPI from '@/lib/RelistenAPI';
+import { API_DOMAIN } from '@/lib/constants';
 import type { LiveHistoryItem } from '@/types';
 
 function uniqBy(a: LiveHistoryItem[], key: (item: LiveHistoryItem) => number | undefined) {
@@ -27,7 +27,9 @@ const fetchRecentlyPlayed = async (queryClient: QueryClient) => {
   const cache = queryClient.getQueryData(QUERY_KEY) as LiveHistoryItem[] | undefined;
   const lastSeenId = cache ? Math.max(...cache.map((t) => t.id)) : '';
 
-  const parsed = await RelistenAPI.fetchLiveHistory(String(lastSeenId) || undefined);
+  const params = lastSeenId ? `?lastSeenId=${lastSeenId}` : '';
+  const res = await fetch(`${API_DOMAIN}/api/v2/live/history${params}`);
+  const parsed = await res.json() as LiveHistoryItem[];
 
   if (Array.isArray(parsed)) {
     return parsed.concat(cache ?? []).slice(0, 500);

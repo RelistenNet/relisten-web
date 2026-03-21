@@ -1,6 +1,9 @@
+import 'server-only';
+
 import ky, { HTTPError } from 'ky-universal';
 import { notFound } from '@timber-js/app/server';
 import { cache } from 'react';
+import { createCache, MemoryCacheHandler } from '@timber-js/app/cache';
 import { SERVER_API_DOMAIN } from './constants';
 import { sortSources } from './sortSources';
 import type {
@@ -19,6 +22,36 @@ import type {
   LiveHistoryItem,
 } from '@/types';
 
+const cacheHandler = new MemoryCacheHandler({ maxSize: 500 });
+
+// Cross-request cached fetch — caches API responses in memory with TTL.
+// React cache() still deduplicates within a single render pass on top of this.
+async function apiFetch<T>(endpoint: string): Promise<T> {
+  const url = `${SERVER_API_DOMAIN}${endpoint}`;
+
+  try {
+    const response = await ky(url).json();
+    return response as T;
+  } catch (err) {
+    if (err instanceof HTTPError && err.response.status === 404) {
+      console.log(`404: ${url}`);
+    } else {
+      console.error(`API fetch error for ${url}`);
+    }
+    notFound();
+  }
+}
+
+const cachedApiFetch = createCache(
+  apiFetch,
+  {
+    ttl: 60 * 5, // 5 minutes
+    key: (endpoint: string) => `api:${endpoint}`,
+    staleWhileRevalidate: true,
+  },
+  cacheHandler
+);
+
 export class RelistenAPI {
   private static baseURL = SERVER_API_DOMAIN;
 
@@ -27,32 +60,9 @@ export class RelistenAPI {
     return /^[a-z-\d]+$/i.test(slug);
   }
 
-  // Generic cached fetch method
-  private static cachedFetch = cache(
-    async <T>(
-      endpoint: string,
-      _options: { revalidate?: number } = { revalidate: 60 * 5 }
-    ): Promise<T> => {
-      const url = `${this.baseURL}${endpoint}`;
-
-      try {
-        const response = await ky(url).json();
-
-        return response as T;
-      } catch (err) {
-        if (err instanceof HTTPError && err.response.status === 404) {
-          console.log(`404: ${url}`);
-        } else {
-          console.error(`API fetch error for ${url}`);
-        }
-        notFound();
-      }
-    }
-  );
-
   // Artists API
   static fetchArtists = cache(async (): Promise<Artist[]> => {
-    return this.cachedFetch<Artist[]>('/api/v3/artists');
+    return cachedApiFetch<Artist[]>('/api/v3/artists');
   });
 
   // Shows API
@@ -64,7 +74,7 @@ export class RelistenAPI {
     ): Promise<Partial<Tape> | undefined> => {
       if (!slug || !year || !displayDate) return { sources: [] };
 
-      const show = await this.cachedFetch<Tape>(
+      const show = await cachedApiFetch<Tape>(
         `/api/v2/artists/${slug}/years/${year}/${displayDate}`
       );
 
@@ -79,7 +89,7 @@ export class RelistenAPI {
   static fetchShowByUUID = cache(async (showUuid: string): Promise<Partial<Tape> | undefined> => {
     if (!showUuid) return { sources: [] };
 
-    const show = await this.cachedFetch<Tape>(`/api/v3/shows/${showUuid}`);
+    const show = await cachedApiFetch<Tape>(`/api/v3/shows/${showUuid}`);
 
     if (show?.sources?.length) {
       show.sources = sortSources(show.sources);
@@ -96,16 +106,14 @@ export class RelistenAPI {
       return notFound();
     }
 
-    return this.cachedFetch<Partial<Tape>>(`/api/v2/artists/${artistSlug}/shows/random`, {
-      revalidate: 0,
-    });
+    return apiFetch<Partial<Tape>>(`/api/v2/artists/${artistSlug}/shows/random`);
   });
 
   // Years API (v3 — UUID-based, includes popularity)
   static fetchYears = cache(async (artistUuid?: string): Promise<Year[]> => {
     if (!artistUuid) return [];
 
-    return this.cachedFetch<Year[]>(`/api/v3/artists/${artistUuid}/years`);
+    return cachedApiFetch<Year[]>(`/api/v3/artists/${artistUuid}/years`);
   });
 
   // Artist Shows API (v3 — UUID-based, includes popularity)
@@ -113,7 +121,7 @@ export class RelistenAPI {
     async (artistUuid?: string, yearUuid?: string): Promise<ArtistShows | undefined> => {
       if (!artistUuid || !yearUuid) return undefined;
 
-      return this.cachedFetch<ArtistShows>(`/api/v3/artists/${artistUuid}/years/${yearUuid}`);
+      return cachedApiFetch<ArtistShows>(`/api/v3/artists/${artistUuid}/years/${yearUuid}`);
     }
   );
 
@@ -126,7 +134,7 @@ export class RelistenAPI {
     ): Promise<Show[]> => {
       if (!artistSlug) return [];
 
-      return this.cachedFetch<Show[]>(
+      return cachedApiFetch<Show[]>(
         `/api/v2/artists/${artistSlug}/shows/on-date?month=${month}&day=${day}`
       );
     }
@@ -134,7 +142,7 @@ export class RelistenAPI {
 
   static fetchTodayShows = cache(
     async (month: number | string, day: number | string): Promise<Day[]> => {
-      return this.cachedFetch<Day[]>(`/api/v2/shows/today?month=${month}&day=${day}`);
+      return cachedApiFetch<Day[]>(`/api/v2/shows/today?month=${month}&day=${day}`);
     }
   );
 
@@ -142,58 +150,58 @@ export class RelistenAPI {
   static fetchTopShows = cache(async (artistSlug?: string): Promise<Show[]> => {
     if (!artistSlug) return [];
 
-    return this.cachedFetch<Show[]>(`/api/v2/artists/${artistSlug}/shows/top`);
+    return cachedApiFetch<Show[]>(`/api/v2/artists/${artistSlug}/shows/top`);
   });
 
   // Recently Added Shows API
   static fetchRecentlyAdded = cache(async (artistSlug?: string): Promise<Show[]> => {
     if (!artistSlug) return [];
 
-    return this.cachedFetch<Show[]>(`/api/v2/artists/${artistSlug}/shows/recently-added`);
+    return cachedApiFetch<Show[]>(`/api/v2/artists/${artistSlug}/shows/recently-added`);
   });
 
   // Venues API
   static fetchVenues = cache(async (artistSlug?: string): Promise<Venue[]> => {
     if (!artistSlug) return [];
 
-    return this.cachedFetch<Venue[]>(`/api/v2/artists/${artistSlug}/venues`);
+    return cachedApiFetch<Venue[]>(`/api/v2/artists/${artistSlug}/venues`);
   });
 
   // Songs API
   static fetchSongs = cache(async (artistSlug?: string): Promise<Song[]> => {
     if (!artistSlug) return [];
 
-    return this.cachedFetch<Song[]>(`/api/v2/artists/${artistSlug}/songs`);
+    return cachedApiFetch<Song[]>(`/api/v2/artists/${artistSlug}/songs`);
   });
 
   // Tours API
   static fetchTours = cache(async (artistSlug?: string): Promise<Tour[]> => {
     if (!artistSlug) return [];
 
-    return this.cachedFetch<Tour[]>(`/api/v2/artists/${artistSlug}/tours`);
+    return cachedApiFetch<Tour[]>(`/api/v2/artists/${artistSlug}/tours`);
   });
 
   // Detail endpoints — v3, slug-based
   static fetchVenueShows = cache(async (artistSlug: string, venueSlug: string) => {
-    return this.cachedFetch<VenueWithShows>(`/api/v3/artists/${artistSlug}/venues/${venueSlug}`);
+    return cachedApiFetch<VenueWithShows>(`/api/v3/artists/${artistSlug}/venues/${venueSlug}`);
   });
 
   static fetchSongShows = cache(async (artistSlug: string, songSlug: string) => {
-    return this.cachedFetch<SongWithShows>(`/api/v3/artists/${artistSlug}/songs/${songSlug}`);
+    return cachedApiFetch<SongWithShows>(`/api/v3/artists/${artistSlug}/songs/${songSlug}`);
   });
 
   static fetchTourShows = cache(async (artistSlug: string, tourSlug: string) => {
-    return this.cachedFetch<TourWithShows>(`/api/v3/artists/${artistSlug}/tours/${tourSlug}`);
+    return cachedApiFetch<TourWithShows>(`/api/v3/artists/${artistSlug}/tours/${tourSlug}`);
   });
 
   // Live API
   static fetchRecentlyPlayed = cache(async (): Promise<any[]> => {
-    return this.cachedFetch<any[]>('/api/v2/live/recently_played', { revalidate: 0 });
+    return apiFetch<any[]>('/api/v2/live/recently_played');
   });
 
   static fetchLiveHistory = cache(async (lastSeenId?: string): Promise<LiveHistoryItem[]> => {
     const params = lastSeenId ? `?lastSeenId=${lastSeenId}` : '';
-    return this.cachedFetch<LiveHistoryItem[]>(`/api/v2/live/history${params}`, { revalidate: 0 });
+    return apiFetch<LiveHistoryItem[]>(`/api/v2/live/history${params}`);
   });
 }
 

@@ -1,4 +1,6 @@
 export async function register() {
-  const { initTracing } = await import('./lib/tracing');
-  initTracing();
+  if (process.env.TIMBER_RUNTIME === 'node-server') {
+    const { initTracing } = await import('./lib/tracing');
+    initTracing();
+  }
 }
