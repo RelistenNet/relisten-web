@@ -1,4 +1,0 @@
-language: node_js
-script: yarn build
-cache: yarn
-node_js: lts/*
