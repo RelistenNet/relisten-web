@@ -14,4 +14,5 @@ export default defineConfig({
   ssr: {
     external: ['@takumi-rs/image-response'],
   },
+
 });

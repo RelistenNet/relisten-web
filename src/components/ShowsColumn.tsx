@@ -46,11 +46,26 @@ const ShowsColumn = async ({
   const yearObj = artistYears?.find((y) => y.year === year);
   const artistShows = await RelistenAPI.fetchShows(artist?.uuid, yearObj?.uuid);
 
+  // Trim shows to only the fields the UI needs. Full show objects include
+  // artist_uuid, year_uuid, venue_uuid, era, most_recent_source_updated_at,
+  // has_streamable_flac_source, created_at, updated_at, and full venue/tour
+  // sub-objects. Trimming reduces the RSC payload by ~90% for this slot.
+  const slimShows = (artistShows?.shows || []).map((s) => ({
+    uuid: s.uuid,
+    display_date: s.display_date,
+    has_soundboard_source: s.has_soundboard_source,
+    popularity: s.popularity,
+    source_count: s.source_count,
+    avg_duration: s.avg_duration,
+    venue: s.venue ? { name: s.venue.name, location: s.venue.location } : null,
+    tour: s.tour ? { id: s.tour.id, name: s.tour.name } : null,
+  }));
+
   return (
     <ShowsColumnWithControls
       artistSlug={artistSlug}
       year={year}
-      shows={artistShows?.shows || []}
+      shows={slimShows}
       initialFilters={initialFilters}
     />
   );

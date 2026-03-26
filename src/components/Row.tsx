@@ -1,7 +1,7 @@
 'use client';
 
 import cn from '@/lib/cn';
-import { Link, useLinkStatus, useParams } from '@timber-js/app/client';
+import { Link, useLinkStatus, useSegmentParams } from '@timber-js/app/client';
 import React from 'react';
 import Flex from './Flex';
 import RowLoading from './RowLoading';
@@ -71,7 +71,7 @@ const Row = ({
   fallbackParams,
   ...props
 }: RowProps) => {
-  const params = useParams();
+  const params = useSegmentParams();
   let isActive = isActiveOverride ?? false;
 
   if (isActiveOverride === undefined && activeSegments) {

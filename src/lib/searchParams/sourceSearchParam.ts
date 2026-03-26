@@ -1,6 +1,6 @@
-import { createSearchParams, fromSchema } from '@timber-js/app/search-params';
+import { defineSearchParams, fromSchema } from '@timber-js/app/params';
 import { z } from 'zod/v4';
 
-export const sourceSearchParamsLoader = createSearchParams({
+export const sourceSearchParamsLoader = defineSearchParams({
   source: fromSchema(z.coerce.string().default('')),
 });

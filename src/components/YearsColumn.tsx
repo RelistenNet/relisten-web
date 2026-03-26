@@ -19,11 +19,22 @@ const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
   const artistYears = await RelistenAPI.fetchYears(artist?.uuid);
   const features = artist?.features;
 
+  // Trim year objects to only what the UI reads. Drops duration,
+  // avg_duration, avg_rating, artist_uuid, created_at, updated_at.
+  const slimYears = (artistYears || []).map((y) => ({
+    uuid: y.uuid,
+    year: y.year,
+    show_count: y.show_count,
+    source_count: y.source_count,
+    has_soundboard_source: y.has_soundboard_source,
+    popularity: y.popularity,
+  }));
+
   return (
     <YearsColumnWithControls
       artistSlug={artistSlug}
       artistName={artist?.name}
-      artistYears={artistYears}
+      artistYears={slimYears}
       initialFilters={initialFilters}
     >
       <QuickHitsNav artistSlug={artistSlug} features={features} />

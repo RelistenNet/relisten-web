@@ -1,8 +1,6 @@
 import ShowsColumn from '@/components/ShowsColumn';
-import { dateSearchParams } from '@/lib/searchParams/dateSearchParam';
-import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
 import { getCurrentMonthDay } from '@/lib/timezone';
-import { searchParams } from '@timber-js/app/server';
+import showsSearchParams from './search-params';
 
 export default async function ShowsDaySlot({
   params,
@@ -11,7 +9,7 @@ export default async function ShowsDaySlot({
 }) {
   const { artistSlug, year } = await params;
   const [parsed, currentMonthDay] = await Promise.all([
-    searchParams<'/today'>(),
+    showsSearchParams.load(),
     getCurrentMonthDay(),
   ]);
 

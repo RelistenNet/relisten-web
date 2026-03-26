@@ -1,5 +1,5 @@
-import { createSearchParams } from '@timber-js/app/search-params';
-import type { SearchParamCodec } from '@timber-js/app/search-params';
+import { defineSearchParams } from '@timber-js/app/params';
+import type { SearchParamCodec } from '@timber-js/app/params';
 import { formatTimeParam, parseTimeParam } from '@/lib/timeParam';
 
 const timeCodec: SearchParamCodec<number> = {
@@ -14,6 +14,6 @@ const timeCodec: SearchParamCodec<number> = {
   },
 };
 
-export const tSearchParamsLoader = createSearchParams({
+export const tSearchParamsLoader = defineSearchParams({
   t: timeCodec,
 });

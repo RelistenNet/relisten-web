@@ -3,12 +3,12 @@ import TodayTrack from '@/components/TodayTrack';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { getCurrentMonthDay } from '@/lib/timezone';
 import { Day } from '@/types';
-import { searchParams } from '@timber-js/app/server';
+import todaySearchParams from './search-params';
 
 export default async function Page() {
   const currentMonthDay = await getCurrentMonthDay();
 
-  const parsed = await searchParams<'/today'>();
+  const parsed = await todaySearchParams.load();
 
   const month = parsed.month ?? currentMonthDay.month;
   const day = parsed.day ?? currentMonthDay.day;

@@ -3,7 +3,7 @@
 import cn from '@/lib/cn';
 import { Features } from '@/types';
 import { Link } from '@timber-js/app/client';
-import { useParams, useRouter } from '@timber-js/app/client';
+import { useSegmentParams, useRouter } from '@timber-js/app/client';
 import { MouseEvent, useTransition } from 'react';
 
 type QuickHitsNavProps = {
@@ -12,7 +12,7 @@ type QuickHitsNavProps = {
 };
 
 const QuickHitsNav = ({ artistSlug, features }: QuickHitsNavProps) => {
-  const params = useParams();
+  const params = useSegmentParams();
   const year = Array.isArray(params.year) ? params.year[0] : params.year;
 
   const links = [

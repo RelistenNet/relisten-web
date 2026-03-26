@@ -1,7 +1,7 @@
 'use client';
 
 import { Link } from '@timber-js/app/client';
-import { useParams, usePathname, useSelectedLayoutSegments } from '@timber-js/app/client';
+import { useSegmentParams, usePathname, useSelectedLayoutSegments } from '@timber-js/app/client';
 
 const pages = {
   'sonos': {
@@ -53,7 +53,7 @@ const bandsWithThe = [
 export default function SecondaryNavBar({ artistSlugsToName }: Props) {
   const pathname = usePathname();
   const key = pathname.replace('/', '');
-  const { artistSlug } = useParams();
+  const { artistSlug } = useSegmentParams();
 
   const pageMetadata = pages[key];
 

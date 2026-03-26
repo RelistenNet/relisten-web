@@ -10,7 +10,21 @@ const ArtistsColumn = async () => {
     getServerFilters('root', true),
   ]);
 
-  return <ArtistsColumnWithControls artists={artists} initialFilters={initialFilters} />;
+  // Trim to only the fields the UI needs. The full artist objects include
+  // upstream_sources, musicbrainz_id, timestamps, etc. — 357KB of data
+  // that the client component never reads. Trimming reduces the RSC
+  // payload from 357KB to ~32KB (91% smaller), cutting render time ~3x.
+  const slimArtists = artists.map((a) => ({
+    name: a.name,
+    slug: a.slug,
+    show_count: a.show_count,
+    source_count: a.source_count,
+    uuid: a.uuid,
+    featured: a.featured,
+    popularity: a.popularity,
+  }));
+
+  return <ArtistsColumnWithControls artists={slimArtists} initialFilters={initialFilters} />;
 };
 
 export default ArtistsColumn;

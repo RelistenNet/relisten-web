@@ -30,7 +30,7 @@
     "@takumi-rs/image-response": "^0.73.1",
     "@tanstack/react-query": "^5.95.0",
     "@tanstack/react-query-devtools": "^5.95.0",
-    "@timber-js/app": "0.2.0-alpha.14",
+    "@timber-js/app": "0.2.0-alpha.36",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -42,11 +42,13 @@
     "lucide-react": "^0.577.0",
     "node-device-detector": "^2.2.5",
     "nuqs": "^2.8.9",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
+    "react": "npm:@switz/react@0.0.0-fizz-perf-1",
+    "react-dom": "npm:@switz/react-dom@0.0.0-fizz-perf-1",
     "react-redux": "^9.2.0",
+    "react-server-dom-webpack": "npm:@switz/react-server-dom-webpack@0.0.0-fizz-perf-1",
     "react-timeago": "^8.3.0",
     "redux": "^5.0.1",
+    "scheduler": "npm:@switz/scheduler@0.0.0-fizz-perf-1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",
     "ua-parser-js": "^2.0.9",
@@ -71,6 +73,9 @@
       "esbuild",
       "protobufjs",
       "sharp"
-    ]
+    ],
+    "overrides": {
+      "scheduler": "npm:@switz/scheduler@0.0.0-fizz-perf-1"
+    }
   }
 }
