@@ -3,12 +3,12 @@ import TodayTrack from '@/components/TodayTrack';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { getCurrentMonthDay } from '@/lib/timezone';
 import { Day } from '@/types';
-import todaySearchParams from './search-params';
+import { searchParams } from './params';
 
 export default async function Page() {
   const currentMonthDay = await getCurrentMonthDay();
 
-  const parsed = await todaySearchParams.load();
+  const parsed = await searchParams.load();
 
   const month = parsed.month ?? currentMonthDay.month;
   const day = parsed.day ?? currentMonthDay.day;

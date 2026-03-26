@@ -1,6 +1,6 @@
 import ShowsColumn from '@/components/ShowsColumn';
 import { getCurrentMonthDay } from '@/lib/timezone';
-import showsSearchParams from './search-params';
+import { searchParams } from './params';
 
 export default async function ShowsDaySlot({
   params,
@@ -9,7 +9,7 @@ export default async function ShowsDaySlot({
 }) {
   const { artistSlug, year } = await params;
   const [parsed, currentMonthDay] = await Promise.all([
-    showsSearchParams.load(),
+    searchParams.load(),
     getCurrentMonthDay(),
   ]);
 
