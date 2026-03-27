@@ -3,10 +3,10 @@ import RelistenAPI from '@/lib/RelistenAPI';
 import { isMobile } from '@/lib/isMobile';
 import { createShowDate } from '@/lib/utils';
 import { RawParams } from '@/types/params';
-import { notFound } from '@timber-js/app/server';
+import { notFound, rawSegmentParams } from '@timber-js/app/server';
 
-export default async function Page(props: { params: Promise<RawParams> }) {
-  const params = await props.params;
+export default async function Page() {
+  const params = await rawSegmentParams();
   const { artistSlug, year, month, day } = params;
 
   if (!year || !month || !day) return notFound();
@@ -19,14 +19,17 @@ export default async function Page(props: { params: Promise<RawParams> }) {
   return <PlayerManager {...params} show={show} isMobile={mobile} />;
 }
 
-export const metadata = async (props) => {
-  const [params, artists] = await Promise.all([props.params, RelistenAPI.fetchArtists()]);
-  const { artistSlug, year, month, day, songSlug } = params;
+export const metadata = async () => {
+  const [params, artists] = await Promise.all([rawSegmentParams().catch(() => null), RelistenAPI.fetchArtists()]);
+  const artistSlug = params?.artistSlug as string | undefined;
+  const year = params?.year as string | undefined;
+  const month = params?.month as string | undefined;
+  const day = params?.day as string | undefined;
+  const songSlug = params?.songSlug as string | undefined;
 
-  const name = artists.find((a) => a.slug === artistSlug)?.name;
+  const name = artists?.find((a) => a.slug === artistSlug)?.name;
 
-  if (!name) return notFound();
-  if (!year || !month || !day) return notFound();
+  if (!name || !year || !month || !day) return {};
 
   const show = await RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day));
 

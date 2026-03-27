@@ -38,7 +38,7 @@ const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
       initialFilters={initialFilters}
     >
       <QuickHitsNav artistSlug={artistSlug} features={features} />
-      <TodayInHistoryRow artistSlug={artistSlug} />
+      {/* <TodayInHistoryRow artistSlug={artistSlug} /> */}
       <RowHeader>Years</RowHeader>
     </YearsColumnWithControls>
   );

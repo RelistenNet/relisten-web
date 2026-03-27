@@ -1,5 +1,5 @@
 import RelistenAPI from '@/lib/RelistenAPI';
-import { notFound } from '@timber-js/app/server';
+import { notFound, rawSegmentParams } from '@timber-js/app/server';
 
 export default function Page() {
   return null;
@@ -13,14 +13,16 @@ function capitalizeFirstLetterOfEachWord(val: string): string {
     .join(' ');
 }
 
-export const metadata = async (props) => {
-  const params = await props.params;
-  const { artistSlug, year } = params;
+export const metadata = async () => {
+  const params = await rawSegmentParams().catch(() => null);
+  const artistSlug = params?.artistSlug as string | undefined;
+  const year = params?.year as string | undefined;
+  if (!artistSlug || !year) return {};
 
   const artists = await RelistenAPI.fetchArtists();
   const name = artists.find((a) => a.slug === artistSlug)?.name;
 
-  if (!name) return notFound();
+  if (!name) return {};
 
   return {
     title: [capitalizeFirstLetterOfEachWord(year?.replaceAll('-', ' ')), name].join(' | '),

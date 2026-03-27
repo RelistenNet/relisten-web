@@ -4,7 +4,7 @@ import RelistenAPI from '@/lib/RelistenAPI';
 import { isMobile } from '@/lib/isMobile';
 import { createShowDate } from '@/lib/utils';
 import { RawParams } from '@/types/params';
-import { notFound } from '@timber-js/app/server';
+import { notFound, rawSegmentParams } from '@timber-js/app/server';
 import { playImmediatelySearchParamsLoader } from '@/lib/searchParams/playImmediatelySearchParam';
 
 interface EmbedSongPageProps {
@@ -12,8 +12,8 @@ interface EmbedSongPageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default async function EmbedSongPage({ params, searchParams }: EmbedSongPageProps) {
-  const resolvedParams = await params;
+export default async function EmbedSongPage() {
+  const resolvedParams = await rawSegmentParams();
   const { artistSlug, year, month, day } = resolvedParams;
 
   if (!year || !month || !day) return notFound();
@@ -33,7 +33,7 @@ export default async function EmbedSongPage({ params, searchParams }: EmbedSongP
 
   return (
     <div className="flex h-full">
-      <div className="w-full flex-shrink-0 overflow-y-auto border-r px-2">
+      <div className="w-full shrink-0 overflow-y-auto border-r px-2">
         <SongsColumn
           artistSlug={artistSlug}
           year={year}
@@ -54,14 +54,17 @@ export default async function EmbedSongPage({ params, searchParams }: EmbedSongP
   );
 }
 
-export async function metadata(props) {
-  const [params, artists] = await Promise.all([props.params, RelistenAPI.fetchArtists()]);
-  const { artistSlug, year, month, day, songSlug } = params;
+export async function metadata() {
+  const [params, artists] = await Promise.all([rawSegmentParams(), RelistenAPI.fetchArtists()]);
+  const artistSlug = params?.artistSlug as string | undefined;
+  const year = params?.year as string | undefined;
+  const month = params?.month as string | undefined;
+  const day = params?.day as string | undefined;
+  const songSlug = params?.songSlug as string | undefined;
 
-  const name = artists.find((a) => a.slug === artistSlug)?.name;
+  const name = artists?.find((a) => a.slug === artistSlug)?.name;
 
-  if (!name) return notFound();
-  if (!year || !month || !day) return notFound();
+  if (!name || !year || !month || !day) return {};
 
   const show = await RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day));
 

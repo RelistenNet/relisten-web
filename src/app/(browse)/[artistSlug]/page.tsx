@@ -1,6 +1,6 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { isMobile } from '@/lib/isMobile';
-import { notFound } from '@timber-js/app/server';
+import { notFound, rawSegmentParams } from '@timber-js/app/server';
 
 type PageProps = {
   params: Promise<{
@@ -8,8 +8,8 @@ type PageProps = {
   }>;
 };
 
-export default async function Page({ params }: PageProps) {
-  const { artistSlug } = await params;
+export default async function Page() {
+  const { artistSlug } = await rawSegmentParams();
 
   if (await isMobile()) return null;
 
@@ -40,14 +40,15 @@ export default async function Page({ params }: PageProps) {
   return null;
 }
 
-export const metadata = async (props) => {
-  const params = await props.params;
-  const { artistSlug } = params;
+export const metadata = async () => {
+  const params = await rawSegmentParams().catch(() => null);
+  const artistSlug = params?.artistSlug as string | undefined;
+  if (!artistSlug) return {};
 
   const artists = await RelistenAPI.fetchArtists();
   const name = artists.find((a) => a.slug === artistSlug)?.name;
 
-  if (!name) return notFound();
+  if (!name) return {};
 
   return {
     title: name,

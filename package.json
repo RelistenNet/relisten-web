@@ -30,7 +30,7 @@
     "@takumi-rs/image-response": "^0.73.1",
     "@tanstack/react-query": "^5.95.0",
     "@tanstack/react-query-devtools": "^5.95.0",
-    "@timber-js/app": "0.2.0-alpha.37",
+    "@timber-js/app": "0.2.0-alpha.47",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -42,13 +42,12 @@
     "lucide-react": "^0.577.0",
     "node-device-detector": "^2.2.5",
     "nuqs": "^2.8.9",
-    "react": "npm:@switz/react@0.0.0-fizz-perf-1",
-    "react-dom": "npm:@switz/react-dom@0.0.0-fizz-perf-1",
+    "react": "19.3.0-canary-ed69815c-20260323",
+    "react-dom": "19.3.0-canary-ed69815c-20260323",
     "react-redux": "^9.2.0",
-    "react-server-dom-webpack": "npm:@switz/react-server-dom-webpack@0.0.0-fizz-perf-1",
     "react-timeago": "^8.3.0",
     "redux": "^5.0.1",
-    "scheduler": "npm:@switz/scheduler@0.0.0-fizz-perf-1",
+    "scheduler": "0.28.0-canary-ed69815c-20260323",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",
     "ua-parser-js": "^2.0.9",
@@ -66,7 +65,7 @@
     "postcss": "^8.5.8",
     "tailwindcss": "^4.2.2",
     "typescript": "^5.9.3",
-    "vite": "^8.0.1"
+    "vite": "^8.0.3"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -75,7 +74,9 @@
       "sharp"
     ],
     "overrides": {
-      "scheduler": "npm:@switz/scheduler@0.0.0-fizz-perf-1"
+      "react": "19.3.0-canary-ed69815c-20260323",
+      "react-dom": "19.3.0-canary-ed69815c-20260323",
+      "scheduler": "0.28.0-canary-ed69815c-20260323"
     }
   }
 }

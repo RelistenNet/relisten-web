@@ -17,14 +17,14 @@ const TodayInHistoryRow = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) 
           {format(currentMonthDay.date, 'MMMM do')}
         </div>
       </div>
-      <div className="text-xxs text-foreground-muted min-w-[20%] text-right">
-        <Suspense fallback={null}>
+      <div className="min-w-[20%] text-right text-xxs text-foreground-muted">
+        {/* <Suspense fallback={null}>
           <TodayMetadata
             artistSlug={artistSlug}
             month={currentMonthDay.month}
             day={currentMonthDay.day}
           />
-        </Suspense>
+        </Suspense> */}
       </div>
     </Row>
   );
