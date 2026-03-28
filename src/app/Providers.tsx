@@ -21,6 +21,10 @@ export default function Providers({ children }: PropsWithChildren) {
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
+      // Guard: player proxy returns undefined for methods when
+      // initGaplessPlayer() hasn't been called yet (no track loaded).
+      if (!player.togglePlayPause) return;
+
       if (e.code === 'Space') {
         player.togglePlayPause();
       }
