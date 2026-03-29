@@ -2,6 +2,7 @@ import RelistenAPI from '@/lib/RelistenAPI';
 import { format } from 'date-fns';
 import type { Metadata } from '@timber-js/app/server';
 import { Link } from '@timber-js/app/client';
+import { paramAsString } from '@/lib/paramHelpers';
 import { notFound, rawSegmentParams } from '@timber-js/app/server';
 
 export async function metadata(): Promise<Metadata> {
@@ -37,7 +38,10 @@ function formatDate(date: string): string {
 }
 
 export default async function MonthPage() {
-  const { artistSlug, year, month } = await rawSegmentParams();
+  const raw = await rawSegmentParams();
+  const artistSlug = paramAsString(raw.artistSlug);
+  const year = paramAsString(raw.year);
+  const month = paramAsString(raw.month);
 
   // Fetch artist and shows
   const artists = await RelistenAPI.fetchArtists();
@@ -54,7 +58,7 @@ export default async function MonthPage() {
   // Filter shows for the specific month
   const monthShows = shows.filter((show) => {
     const showMonth = new Date(show.display_date || '').getMonth() + 1;
-    return showMonth === parseInt(month, 10);
+    return showMonth === parseInt(month || '', 10);
   });
 
   // Sort shows by date

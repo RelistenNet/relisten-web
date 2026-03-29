@@ -53,7 +53,7 @@ const ToursColumnWithControls = ({ artistSlug, tours }: ToursColumnWithControlsP
       {artistSlug &&
         sortedTours.map((tour) => (
           <div key={tour.id}>
-            <Row href={slugSearchParams.buildUrl(`/${artistSlug}/tours`, { slug: tour.slug || String(tour.id) })}>
+            <Row href={slugSearchParams.href(`/${artistSlug}/tours`, { slug: tour.slug || String(tour.id) })}>
               <div>
                 <div>{tour.name}</div>
                 {(tour.start_date || tour.end_date) && (

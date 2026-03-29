@@ -1,12 +1,17 @@
 import TapesColumn from '@/components/TapesColumn';
 import { isMobile } from '@/lib/isMobile';
+import { paramAsString } from '@/lib/paramHelpers';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { createShowDate } from '@/lib/utils';
 import { rawSegmentParams } from '@timber-js/app/server';
 
 export default async function SourcesDaySlot() {
   if (await isMobile()) return null;
-  const { artistSlug, year, month, day } = await rawSegmentParams();
+  const raw = await rawSegmentParams();
+  const artistSlug = paramAsString(raw.artistSlug);
+  const year = paramAsString(raw.year);
+  const month = paramAsString(raw.month);
+  const day = paramAsString(raw.day);
 
   // Fetch show data
   const show = await RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day));

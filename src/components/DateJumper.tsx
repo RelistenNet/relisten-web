@@ -1,12 +1,17 @@
 'use client';
 
-import { useRouter, usePathname } from '@timber-js/app/client';
-import { format, parse, getMonth, getDate } from 'date-fns';
+import { format, getDate, getMonth, parse } from 'date-fns';
 import { Calendar } from 'lucide-react';
+import { parseAsString, useQueryStates } from 'nuqs';
 
 export default function DateJumper({ month, day }: { month: string; day: string }) {
-  const router = useRouter();
-  const pathname = usePathname();
+  const [, setParams] = useQueryStates(
+    {
+      month: parseAsString.withDefault(month),
+      day: parseAsString.withDefault(day),
+    },
+    { shallow: false }
+  );
 
   // Use 2024 as reference year (leap year) so Feb 29 works
   const date = parse(`2024-${month}-${day}`, 'yyyy-M-d', new Date());
@@ -14,7 +19,12 @@ export default function DateJumper({ month, day }: { month: string; day: string 
 
   return (
     <label className="relative cursor-pointer" title="Jump to date">
-      <Calendar className="h-4 w-4 text-gray-500 hover:text-gray-700" />
+      <Calendar
+        className="
+          size-4 text-gray-500
+          hover:text-gray-700
+        "
+      />
       <input
         type="date"
         value={value}
@@ -22,7 +32,10 @@ export default function DateJumper({ month, day }: { month: string; day: string 
           const d = e.target.value;
           if (!d) return;
           const selected = parse(d, 'yyyy-MM-dd', new Date());
-          router.replace(`${pathname}?month=${getMonth(selected) + 1}&day=${getDate(selected)}`);
+          setParams({
+            month: String(getMonth(selected) + 1),
+            day: String(getDate(selected)),
+          });
         }}
         className="absolute inset-0 cursor-pointer opacity-0"
       />

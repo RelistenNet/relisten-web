@@ -1,13 +1,14 @@
 import RelistenAPI from '@/lib/RelistenAPI';
+import { paramAsString } from '@/lib/paramHelpers';
 import type { RawParams } from '@/types/params';
 import { notFound, redirect, rawSegmentParams } from '@timber-js/app/server';
 
-interface EmbedShowPageProps {
-  params: Promise<RawParams>;
-}
-
 export default async function EmbedShowPage() {
-  const { artistSlug, year, month, day } = await rawSegmentParams();
+  const raw = await rawSegmentParams();
+  const artistSlug = paramAsString(raw.artistSlug);
+  const year = paramAsString(raw.year);
+  const month = paramAsString(raw.month);
+  const day = paramAsString(raw.day);
 
   if (!artistSlug || !year || !month || !day) {
     return (

@@ -25,10 +25,13 @@ export default function TodayDateNav({ month, day, pathname }: TodayDateNavProps
     <div className="flex items-center justify-center gap-2">
       <Link
         href={buildDateUrl(pathname, prev)}
-        className="rounded p-0.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+        className="
+          rounded-sm p-0.5 text-gray-500
+          hover:bg-gray-100 hover:text-gray-700
+        "
         title="Previous day"
       >
-        <ChevronLeft className="h-4 w-4" />
+        <ChevronLeft className="size-4" />
       </Link>
 
       <div className="flex items-center gap-1.5">
@@ -38,10 +41,13 @@ export default function TodayDateNav({ month, day, pathname }: TodayDateNavProps
 
       <Link
         href={buildDateUrl(pathname, next)}
-        className="rounded p-0.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+        className="
+          rounded-sm p-0.5 text-gray-500
+          hover:bg-gray-100 hover:text-gray-700
+        "
         title="Next day"
       >
-        <ChevronRight className="h-4 w-4" />
+        <ChevronRight className="size-4" />
       </Link>
     </div>
   );

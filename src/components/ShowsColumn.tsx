@@ -1,6 +1,7 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { getServerFilters } from '@/lib/serverFilterCookies';
 import { RawParams } from '@/types/params';
+import type { Venue, Tour } from '@/types';
 import { notFound } from '@timber-js/app/server';
 import ArtistSongsColumn from './ArtistSongsColumn';
 import RecentTapesColumn from './RecentTapesColumn';
@@ -51,14 +52,15 @@ const ShowsColumn = async ({
   // has_streamable_flac_source, created_at, updated_at, and full venue/tour
   // sub-objects. Trimming reduces the RSC payload by ~90% for this slot.
   const slimShows = (artistShows?.shows || []).map((s) => ({
+    id: s.id,
     uuid: s.uuid,
     display_date: s.display_date,
     has_soundboard_source: s.has_soundboard_source,
     popularity: s.popularity,
     source_count: s.source_count,
     avg_duration: s.avg_duration,
-    venue: s.venue ? { name: s.venue.name, location: s.venue.location } : null,
-    tour: s.tour ? { id: s.tour.id, name: s.tour.name } : null,
+    venue: s.venue ? { name: s.venue.name, location: s.venue.location } as Venue : undefined,
+    tour: s.tour ? { id: s.tour.id, name: s.tour.name } as Tour : undefined,
   }));
 
   return (

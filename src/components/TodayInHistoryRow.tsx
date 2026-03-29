@@ -44,7 +44,7 @@ const TodayMetadata = async ({
   const data = await RelistenAPI.fetchTodayInHistory(artistSlug, month, day);
 
   return (
-    <>
+    <div className="animate-fade-in">
       <div>{simplePluralize('show', data?.length)}</div>
       <div>
         {simplePluralize(
@@ -52,7 +52,7 @@ const TodayMetadata = async ({
           data?.reduce((memo, next) => memo + (next.source_count ?? 0), 0)
         )}
       </div>
-    </>
+    </div>
   );
 };
 

@@ -6,9 +6,7 @@ import { Day } from '@/types';
 import { searchParams } from './params';
 
 export default async function Page() {
-  const currentMonthDay = await getCurrentMonthDay();
-
-  const parsed = await searchParams.load();
+  const [currentMonthDay, parsed] = await Promise.all([getCurrentMonthDay(), searchParams.load()]);
 
   const month = parsed.month ?? currentMonthDay.month;
   const day = parsed.day ?? currentMonthDay.day;

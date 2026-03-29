@@ -17,8 +17,8 @@ export const removeLeadingZero = (str = ''): string => {
   return String(int);
 };
 
-export const createShowDate = (year: string, month: string, day: string): string => {
-  return `${year}-${addZero(month)}-${addZero(day)}`;
+export const createShowDate = (year?: string, month?: string, day?: string): string => {
+  return `${year ?? ''}-${addZero(month ?? '')}-${addZero(day ?? '')}`;
 };
 
 export const splitShowDate = (showDate = ''): { year: string; month: string; day: string } => {

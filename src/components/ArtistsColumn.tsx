@@ -15,6 +15,7 @@ const ArtistsColumn = async () => {
   // that the client component never reads. Trimming reduces the RSC
   // payload from 357KB to ~32KB (91% smaller), cutting render time ~3x.
   const slimArtists = artists.map((a) => ({
+    id: a.id,
     name: a.name,
     slug: a.slug,
     show_count: a.show_count,

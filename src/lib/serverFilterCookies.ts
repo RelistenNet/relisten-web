@@ -10,7 +10,7 @@ export function getServerFilters(pathOrKey: string, useAsKey = false): FilterSta
   const cookieName = `${COOKIE_PREFIX}${key.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
 
   try {
-    const value = cookieStore.get(cookieName)?.value;
+    const value = cookieStore.get(cookieName);
     if (value) {
       return JSON.parse(value);
     }

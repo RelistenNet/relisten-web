@@ -47,7 +47,7 @@ const VenuesColumnWithControls = ({ artistSlug, venues }: VenuesColumnWithContro
       {artistSlug &&
         sortedVenues.map((venue) => (
           <div key={venue.id}>
-            <Row href={slugSearchParams.buildUrl(`/${artistSlug}/venues`, { slug: venue.slug || String(venue.id) })}>
+            <Row href={slugSearchParams.href(`/${artistSlug}/venues`, { slug: venue.slug || String(venue.id) })}>
               <div>
                 <div>{venue.name}</div>
                 {venue.location && (

@@ -1,10 +1,13 @@
 import ShowsColumn from '@/components/ShowsColumn';
+import { paramAsString } from '@/lib/paramHelpers';
 import { getCurrentMonthDay } from '@/lib/timezone';
 import { rawSegmentParams } from '@timber-js/app/server';
 import { searchParams } from './params';
 
 export default async function ShowsDaySlot() {
-  const { artistSlug, year } = await rawSegmentParams();
+  const raw = await rawSegmentParams();
+  const artistSlug = paramAsString(raw.artistSlug);
+  const year = paramAsString(raw.year);
   let month: string | undefined;
   let day: string | undefined;
 

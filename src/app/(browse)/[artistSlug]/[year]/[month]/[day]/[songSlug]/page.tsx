@@ -1,13 +1,18 @@
 import PlayerManager from '@/components/PlayerManager';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { isMobile } from '@/lib/isMobile';
+import { paramAsString } from '@/lib/paramHelpers';
 import { createShowDate } from '@/lib/utils';
 import { RawParams } from '@/types/params';
 import { notFound, rawSegmentParams } from '@timber-js/app/server';
 
 export default async function Page() {
-  const params = await rawSegmentParams();
-  const { artistSlug, year, month, day } = params;
+  const raw = await rawSegmentParams();
+  const artistSlug = paramAsString(raw.artistSlug);
+  const year = paramAsString(raw.year);
+  const month = paramAsString(raw.month);
+  const day = paramAsString(raw.day);
+  const params = { artistSlug, year, month, day, songSlug: paramAsString(raw.songSlug) };
 
   if (!year || !month || !day) return notFound();
 

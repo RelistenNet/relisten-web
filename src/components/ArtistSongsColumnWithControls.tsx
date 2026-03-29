@@ -50,7 +50,7 @@ const ArtistSongsColumnWithControls = ({
       {artistSlug &&
         sortedSongs.map((song) => (
           <div key={song.id}>
-            <Row href={slugSearchParams.buildUrl(`/${artistSlug}/songs`, { slug: song.slug || String(song.id) })}>
+            <Row href={slugSearchParams.href(`/${artistSlug}/songs`, { slug: song.slug || String(song.id) })}>
               <div>
                 <div>{song.name}</div>
               </div>

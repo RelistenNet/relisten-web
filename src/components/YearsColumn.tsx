@@ -22,6 +22,7 @@ const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
   // Trim year objects to only what the UI reads. Drops duration,
   // avg_duration, avg_rating, artist_uuid, created_at, updated_at.
   const slimYears = (artistYears || []).map((y) => ({
+    id: y.id,
     uuid: y.uuid,
     year: y.year,
     show_count: y.show_count,
@@ -38,7 +39,7 @@ const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
       initialFilters={initialFilters}
     >
       <QuickHitsNav artistSlug={artistSlug} features={features} />
-      {/* <TodayInHistoryRow artistSlug={artistSlug} /> */}
+      <TodayInHistoryRow artistSlug={artistSlug} />
       <RowHeader>Years</RowHeader>
     </YearsColumnWithControls>
   );

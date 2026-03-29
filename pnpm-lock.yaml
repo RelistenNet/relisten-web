@@ -62,8 +62,8 @@ importers:
         specifier: ^5.95.0
         version: 5.95.2(@tanstack/react-query@5.95.2(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)
       '@timber-js/app':
-        specifier: 0.2.0-alpha.50
-        version: 0.2.0-alpha.50(@vitejs/plugin-react@6.0.1(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3)))(@vitejs/plugin-rsc@0.5.21(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3)))(jiti@2.6.1)(nuqs@2.8.9(react@19.3.0-canary-ed69815c-20260323))(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3))(zod@4.3.6)
+        specifier: 0.2.0-alpha.61
+        version: 0.2.0-alpha.61(@vitejs/plugin-react@6.0.1(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3)))(@vitejs/plugin-rsc@0.5.21(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3)))(jiti@2.6.1)(nuqs@2.8.9(react@19.3.0-canary-ed69815c-20260323))(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3))(zod@4.3.6)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1113,8 +1113,8 @@ packages:
     peerDependencies:
       react: 19.3.0-canary-ed69815c-20260323
 
-  '@timber-js/app@0.2.0-alpha.50':
-    resolution: {integrity: sha512-5a9JLduvkz8HWgntN4PVBJnxREVLJzRPG3N19t3bxqJaDaeAoFApxK99tRx9AwjIf8VwzzrpGtQ+y8Q7iv5tqQ==}
+  '@timber-js/app@0.2.0-alpha.61':
+    resolution: {integrity: sha512-ydO+MMeQFxwLRQ+HPAqKHkirsNR+uM93zyMNfqMU3zd2Gn1IZKP4BX8T7eMtd2TPSCPRudr7Jgb7SeTmlkOJHw==}
     engines: {node: '>=22.12.0'}
     hasBin: true
     peerDependencies:
@@ -4360,7 +4360,7 @@ snapshots:
       '@tanstack/query-core': 5.95.2
       react: 19.3.0-canary-ed69815c-20260323
 
-  '@timber-js/app@0.2.0-alpha.50(@vitejs/plugin-react@6.0.1(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3)))(@vitejs/plugin-rsc@0.5.21(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3)))(jiti@2.6.1)(nuqs@2.8.9(react@19.3.0-canary-ed69815c-20260323))(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3))(zod@4.3.6)':
+  '@timber-js/app@0.2.0-alpha.61(@vitejs/plugin-react@6.0.1(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3)))(@vitejs/plugin-rsc@0.5.21(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3)))(jiti@2.6.1)(nuqs@2.8.9(react@19.3.0-canary-ed69815c-20260323))(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3))(zod@4.3.6)':
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/context-async-hooks': 2.6.1(@opentelemetry/api@1.9.1)

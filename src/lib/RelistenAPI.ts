@@ -98,7 +98,7 @@ export class RelistenAPI {
     return show;
   });
 
-  static fetchRandomShow = cache(async (artistSlug: string): Promise<Partial<Tape> | undefined> => {
+  static fetchRandomShow = cache(async (artistSlug?: string): Promise<Partial<Tape> | undefined> => {
     if (!artistSlug) return undefined;
 
     if (!this.isValidArtistSlug(artistSlug)) {
