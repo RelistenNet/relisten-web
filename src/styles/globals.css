@@ -92,6 +92,6 @@
     @apply text-3xl font-semibold mb-8;
   }
 
-  body { margin: 0; font-family: Roboto, Helvetica, Helvetica Neue, sans-serif; -webkit-font-smoothing: antialiased; @apply text-foreground; }
+  body { margin: 0; -webkit-font-smoothing: antialiased; @apply text-foreground; }
   a { text-decoration: none; @apply text-foreground; }
 }
