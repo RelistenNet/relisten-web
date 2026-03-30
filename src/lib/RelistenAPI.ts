@@ -3,7 +3,7 @@ import 'server-only';
 import ky, { HTTPError } from 'ky-universal';
 import { notFound } from '@timber-js/app/server';
 import { cache } from 'react';
-import { createCache, MemoryCacheHandler } from '@timber-js/app/cache';
+import { cache as timberCache } from '@timber-js/app/cache';
 import { SERVER_API_DOMAIN } from './constants';
 import { sortSources } from './sortSources';
 import type {
@@ -21,8 +21,6 @@ import type {
   TourWithShows,
   LiveHistoryItem,
 } from '@/types';
-
-const cacheHandler = new MemoryCacheHandler({ maxSize: 500 });
 
 // Cross-request cached fetch — caches API responses in memory with TTL.
 // React cache() still deduplicates within a single render pass on top of this.
@@ -42,15 +40,11 @@ async function apiFetch<T>(endpoint: string): Promise<T> {
   }
 }
 
-const cachedApiFetch = createCache(
-  apiFetch,
-  {
-    ttl: 60 * 5, // 5 minutes
-    key: (endpoint: string) => `api:${endpoint}`,
-    staleWhileRevalidate: true,
-  },
-  cacheHandler
-);
+const cachedApiFetch = timberCache(apiFetch, {
+  ttl: 60 * 5, // 5 minutes
+  key: (endpoint: string) => `api:${endpoint}`,
+  staleWhileRevalidate: true,
+});
 
 export class RelistenAPI {
   private static baseURL = SERVER_API_DOMAIN;
