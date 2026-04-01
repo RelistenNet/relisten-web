@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { timber } from '@timber-js/app';
 
 export default defineConfig({
-  plugins: [timber()],
+  plugins: [timber({ reactCompiler: true })],
   resolve: {
     alias: { '@': resolve(import.meta.dirname, 'src') },
     dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
