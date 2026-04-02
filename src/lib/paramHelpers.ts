@@ -1,6 +1,6 @@
 /**
  * Extract a string from a raw segment param value.
- * timber's rawSegmentParams() returns Record<string, string | string[]>.
+ * timber's getSegmentParams() returns Record<string, string | string[]>.
  * For single-segment params like [artistSlug], the value is always a string,
  * but TypeScript sees string | string[]. This helper narrows the type.
  */

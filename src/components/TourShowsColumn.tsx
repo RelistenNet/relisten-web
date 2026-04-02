@@ -1,6 +1,6 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { getServerFilters } from '@/lib/serverFilterCookies';
-import { notFound } from '@timber-js/app/server';
+import { deny } from '@timber-js/app/server';
 import ShowsColumnWithControls from './ShowsColumnWithControls';
 
 const TourShowsColumn = async ({ artistSlug, slug }: { artistSlug: string; slug: string }) => {
@@ -8,7 +8,7 @@ const TourShowsColumn = async ({ artistSlug, slug }: { artistSlug: string; slug:
     RelistenAPI.fetchTourShows(artistSlug, slug),
     getServerFilters(`${artistSlug}:shows`, true),
   ]).catch(() => {
-    notFound();
+    deny(404);
   });
 
   return (

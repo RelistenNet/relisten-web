@@ -1,7 +1,7 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { isMobile } from '@/lib/isMobile';
 import { paramAsString } from '@/lib/paramHelpers';
-import { notFound, rawSegmentParams } from '@timber-js/app/server';
+import { deny, getSegmentParams } from '@timber-js/app/server';
 
 type PageProps = {
   params: Promise<{
@@ -10,7 +10,7 @@ type PageProps = {
 };
 
 export default async function Page() {
-  const artistSlug = paramAsString((await rawSegmentParams()).artistSlug);
+  const artistSlug = paramAsString((await getSegmentParams()).artistSlug);
 
   if (await isMobile()) return null;
 
@@ -21,17 +21,17 @@ export default async function Page() {
       console.log('failed random show', artistSlug, statusCode);
     }
 
-    notFound();
+    deny(404);
 
     return null;
   });
 
-  if (!randomShow) return notFound();
+  if (!randomShow) return deny(404);
 
   const { display_date } = randomShow ?? {};
   const [year, month, day] = display_date?.split('-') ?? [];
 
-  if (!year || !month || !day) return notFound();
+  if (!year || !month || !day) return deny(404);
 
   // On mobile, redirect to random show for better UX
   if (await isMobile()) {
@@ -42,7 +42,7 @@ export default async function Page() {
 }
 
 export const metadata = async () => {
-  const params = await rawSegmentParams().catch(() => null);
+  const params = await getSegmentParams().catch(() => null);
   const artistSlug = params?.artistSlug as string | undefined;
   if (!artistSlug) return {};
 

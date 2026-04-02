@@ -3,10 +3,10 @@ import { format } from 'date-fns';
 import type { Metadata } from '@timber-js/app/server';
 import { Link } from '@timber-js/app/client';
 import { paramAsString } from '@/lib/paramHelpers';
-import { notFound, rawSegmentParams } from '@timber-js/app/server';
+import { deny, getSegmentParams } from '@timber-js/app/server';
 
 export async function metadata(): Promise<Metadata> {
-  const params = await rawSegmentParams().catch(() => null);
+  const params = await getSegmentParams().catch(() => null);
   const artistSlug = params?.artistSlug as string | undefined;
   const year = params?.year as string | undefined;
   const month = params?.month as string | undefined;
@@ -38,7 +38,7 @@ function formatDate(date: string): string {
 }
 
 export default async function MonthPage() {
-  const raw = await rawSegmentParams();
+  const raw = await getSegmentParams();
   const artistSlug = paramAsString(raw.artistSlug);
   const year = paramAsString(raw.year);
   const month = paramAsString(raw.month);
@@ -46,12 +46,12 @@ export default async function MonthPage() {
   // Fetch artist and shows
   const artists = await RelistenAPI.fetchArtists();
   const artist = artists?.find((a) => a.slug === artistSlug);
-  if (!artist) notFound();
+  if (!artist) deny(404);
 
   const artistYears = await RelistenAPI.fetchYears(artist.uuid);
   const yearObj = artistYears?.find((y) => y.year === year);
   const artistShows = await RelistenAPI.fetchShows(artist.uuid, yearObj?.uuid);
-  if (!artistShows) notFound();
+  if (!artistShows) deny(404);
 
   const shows = artistShows.shows || [];
 

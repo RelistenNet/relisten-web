@@ -1,11 +1,11 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { createShowDate } from '@/lib/utils';
-import { notFound, rawSegmentParams } from '@timber-js/app/server';
+import { deny, getSegmentParams } from '@timber-js/app/server';
 
 export default () => null;
 
 export const metadata = async () => {
-  const params = await rawSegmentParams().catch(() => null);
+  const params = await getSegmentParams().catch(() => null);
   const artistSlug = params?.artistSlug as string | undefined;
   const year = params?.year as string | undefined;
   const month = params?.month as string | undefined;

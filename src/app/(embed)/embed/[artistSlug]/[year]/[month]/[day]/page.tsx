@@ -1,10 +1,10 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { paramAsString } from '@/lib/paramHelpers';
 import type { RawParams } from '@/types/params';
-import { notFound, redirect, rawSegmentParams } from '@timber-js/app/server';
+import { deny, redirect, getSegmentParams } from '@timber-js/app/server';
 
 export default async function EmbedShowPage() {
-  const raw = await rawSegmentParams();
+  const raw = await getSegmentParams();
   const artistSlug = paramAsString(raw.artistSlug);
   const year = paramAsString(raw.year);
   const month = paramAsString(raw.month);
@@ -22,7 +22,7 @@ export default async function EmbedShowPage() {
   const show = await RelistenAPI.fetchShow(artistSlug, year, displayDate);
 
   if (!show) {
-    notFound();
+    deny(404);
   }
 
   // Find the first song from the first source and redirect to it
@@ -42,7 +42,7 @@ export default async function EmbedShowPage() {
 }
 
 export async function metadata() {
-  const params = await rawSegmentParams().catch(() => null);
+  const params = await getSegmentParams().catch(() => null);
   const artistSlug = params?.artistSlug as string | undefined;
   const year = params?.year as string | undefined;
   const month = params?.month as string | undefined;

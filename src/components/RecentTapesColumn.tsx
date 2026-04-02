@@ -1,7 +1,7 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { getServerFilters } from '@/lib/serverFilterCookies';
 import { RawParams } from '@/types/params';
-import { notFound } from '@timber-js/app/server';
+import { deny } from '@timber-js/app/server';
 import RecentTapesColumnWithControls from './RecentTapesColumnWithControls';
 
 const RecentTapesColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 'year'>) => {
@@ -9,7 +9,7 @@ const RecentTapesColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSl
     RelistenAPI.fetchRecentlyAdded(artistSlug),
     getServerFilters(`${artistSlug}:shows`, true),
   ]).catch(() => {
-    notFound();
+    deny(404);
   });
 
   return (

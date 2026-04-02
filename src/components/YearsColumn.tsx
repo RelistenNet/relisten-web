@@ -1,6 +1,6 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { RawParams } from '@/types/params';
-import { notFound } from '@timber-js/app/server';
+import { deny } from '@timber-js/app/server';
 import { getServerFilters } from '@/lib/serverFilterCookies';
 import YearsColumnWithControls from './YearsColumnWithControls';
 import QuickHitsNav from './QuickHitsNav';
@@ -12,7 +12,7 @@ const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
     RelistenAPI.fetchArtists(),
     getServerFilters(artistSlug || '', true),
   ]).catch(() => {
-    notFound();
+    deny(404);
   });
 
   const artist = artists?.find((artist) => artist.slug === artistSlug);

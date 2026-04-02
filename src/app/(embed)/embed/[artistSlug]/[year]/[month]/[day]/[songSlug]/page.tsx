@@ -5,11 +5,11 @@ import { isMobile } from '@/lib/isMobile';
 import { paramAsString } from '@/lib/paramHelpers';
 import { createShowDate } from '@/lib/utils';
 import { RawParams } from '@/types/params';
-import { notFound, rawSegmentParams } from '@timber-js/app/server';
+import { deny, getSegmentParams } from '@timber-js/app/server';
 import { playImmediatelySearchParamsLoader } from '@/lib/searchParams/playImmediatelySearchParam';
 
 export default async function EmbedSongPage() {
-  const raw = await rawSegmentParams();
+  const raw = await getSegmentParams();
   const artistSlug = paramAsString(raw.artistSlug);
   const year = paramAsString(raw.year);
   const month = paramAsString(raw.month);
@@ -17,7 +17,7 @@ export default async function EmbedSongPage() {
   const songSlug = paramAsString(raw.songSlug);
   const resolvedParams = { artistSlug, year, month, day, songSlug };
 
-  if (!year || !month || !day) return notFound();
+  if (!year || !month || !day) return deny(404);
 
   const [show, mobile] = await Promise.all([
     RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day)),
@@ -25,11 +25,11 @@ export default async function EmbedSongPage() {
   ]);
 
   if (!show) {
-    notFound();
+    deny(404);
   }
 
   // Parse search params on server
-  const parsedSearchParams = await playImmediatelySearchParamsLoader.load();
+  const parsedSearchParams = await playImmediatelySearchParamsLoader.get();
   const playImmediately = parsedSearchParams.playImmediately ?? true;
 
   return (
@@ -56,7 +56,7 @@ export default async function EmbedSongPage() {
 }
 
 export async function metadata() {
-  const [params, artists] = await Promise.all([rawSegmentParams(), RelistenAPI.fetchArtists()]);
+  const [params, artists] = await Promise.all([getSegmentParams(), RelistenAPI.fetchArtists()]);
   const artistSlug = params?.artistSlug as string | undefined;
   const year = params?.year as string | undefined;
   const month = params?.month as string | undefined;

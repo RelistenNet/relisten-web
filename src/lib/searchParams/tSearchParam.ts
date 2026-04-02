@@ -1,5 +1,5 @@
-import { defineSearchParams } from '@timber-js/app/segment-params';
-import type { SearchParamCodec } from '@timber-js/app/segment-params';
+import { defineSearchParams } from '@timber-js/app/search-params';
+import type { SearchParamCodec } from '@timber-js/app/search-params';
 import { formatTimeParam, parseTimeParam } from '@/lib/timeParam';
 
 const timeCodec: SearchParamCodec<number> = {

@@ -4,7 +4,7 @@ import 'server-only';
 import { getArtistGradient } from '@/lib/artistColors';
 import RelistenAPI from '@/lib/RelistenAPI';
 import ImageResponse from '@takumi-rs/image-response';
-import { notFound } from '@timber-js/app/server';
+import { deny } from '@timber-js/app/server';
 import { z } from 'zod/v4';
 
 // Create a pixelated pattern with large squares
@@ -52,10 +52,10 @@ export async function GET(request: Request) {
     size: url.searchParams.get('size') ?? undefined,
   });
 
-  if (!parsed.success) return notFound();
+  if (!parsed.success) return deny(404);
   const { showUuid, size } = parsed.data;
 
-  if (!showUuid) return notFound();
+  if (!showUuid) return deny(404);
 
   const [artists, show, fontReg, fontBold, fontMegaBold] = await Promise.all([
     RelistenAPI.fetchArtists(),
@@ -71,7 +71,7 @@ export async function GET(request: Request) {
     ).then((res) => res.arrayBuffer()),
   ]);
 
-  if (!show || !show.sources?.length) return notFound();
+  if (!show || !show.sources?.length) return deny(404);
 
   // Get params
   const artist = artists.find((artist) => artist.uuid === show.artist_uuid);

@@ -1,7 +1,7 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { getServerFilters } from '@/lib/serverFilterCookies';
 import { RawParams } from '@/types/params';
-import { notFound } from '@timber-js/app/server';
+import { deny } from '@timber-js/app/server';
 import TopTapesColumnWithControls from './TopTapesColumnWithControls';
 
 const TopTapesColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 'year'>) => {
@@ -9,7 +9,7 @@ const TopTapesColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug'
     RelistenAPI.fetchTopShows(artistSlug),
     getServerFilters(`${artistSlug}:shows`, true),
   ]).catch(() => {
-    notFound();
+    deny(404);
   });
 
   return (

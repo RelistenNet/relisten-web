@@ -1,7 +1,7 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { getServerFilters } from '@/lib/serverFilterCookies';
 import { RawParams } from '@/types/params';
-import { notFound } from '@timber-js/app/server';
+import { deny } from '@timber-js/app/server';
 import TodayInHistoryColumnWithControls from './TodayInHistoryColumnWithControls';
 
 const TodayInHistoryColumn = async ({
@@ -14,7 +14,7 @@ const TodayInHistoryColumn = async ({
     RelistenAPI.fetchTodayInHistory(artistSlug, month, day),
     getServerFilters(`${artistSlug}:shows`, true),
   ]).catch(() => {
-    notFound();
+    deny(404);
   });
 
   return (

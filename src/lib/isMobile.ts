@@ -1,8 +1,8 @@
-import { headers } from '@timber-js/app/server';
+import { getHeaders } from '@timber-js/app/server';
 import { UAParser } from 'ua-parser-js';
 
-export const isMobile = () => {
-  const headersList = headers();
+export const isMobile = async () => {
+  const headersList = await getHeaders();
   const userAgent = headersList.get('user-agent');
 
   if (!userAgent) return false;

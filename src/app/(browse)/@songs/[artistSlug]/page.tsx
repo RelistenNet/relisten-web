@@ -3,12 +3,12 @@ import { isMobile } from '@/lib/isMobile';
 import { paramAsString } from '@/lib/paramHelpers';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { splitShowDate } from '@/lib/utils';
-import { rawSegmentParams } from '@timber-js/app/server';
+import { getSegmentParams } from '@timber-js/app/server';
 
 export default async function SongsDaySlot() {
   if (await isMobile()) return null;
 
-  const artistSlug = paramAsString((await rawSegmentParams()).artistSlug);
+  const artistSlug = paramAsString((await getSegmentParams()).artistSlug);
 
   // Fetch show data
   const show = await RelistenAPI.fetchRandomShow(artistSlug);

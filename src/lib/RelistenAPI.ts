@@ -1,7 +1,7 @@
 import 'server-only';
 
 import ky, { HTTPError } from 'ky-universal';
-import { notFound } from '@timber-js/app/server';
+import { deny } from '@timber-js/app/server';
 import { cache } from 'react';
 import { cache as timberCache } from '@timber-js/app/cache';
 import { SERVER_API_DOMAIN } from './constants';
@@ -36,7 +36,7 @@ async function apiFetch<T>(endpoint: string): Promise<T> {
     } else {
       console.error(`API fetch error for ${url}`);
     }
-    notFound();
+    deny(404);
   }
 }
 
@@ -97,7 +97,7 @@ export class RelistenAPI {
 
     if (!this.isValidArtistSlug(artistSlug)) {
       console.error('Tried to load url that doesnt match artist slug format:', artistSlug);
-      return notFound();
+      return deny(404);
     }
 
     return apiFetch<Partial<Tape>>(`/api/v2/artists/${artistSlug}/shows/random`);

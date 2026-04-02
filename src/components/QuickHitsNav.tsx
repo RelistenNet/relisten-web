@@ -26,7 +26,11 @@ const QuickHitsNav = ({ artistSlug, features }: QuickHitsNavProps) => {
   ];
 
   return (
-    <div className="border-background-muted flex flex-wrap justify-between gap-1.5 border-b px-2 py-1.5">
+    <div
+      className="
+        flex flex-wrap justify-between gap-1.5 border-b border-background-muted px-2 py-1.5
+      "
+    >
       {links.map(({ label, segment }) => (
         <QuickHitsPill
           key={segment}
@@ -63,11 +67,18 @@ const QuickHitsPill = ({
       prefetch={false}
       onClick={onClick}
       className={cn(
-        'rounded px-2 py-0.5 text-sm transition-colors',
+        'rounded-sm px-2 py-0.5 text-sm transition-colors',
         isActive
           ? 'bg-relisten-600 font-medium text-white'
-          : 'text-foreground-muted hover:text-foreground hover:bg-gray-100',
-        isPending && 'bg-relisten-600/60 text-white hover:bg-relisten-600/60 hover:text-white'
+          : `
+            text-foreground-muted
+            hover:bg-gray-100 hover:text-foreground
+          `,
+        isPending &&
+          `
+            bg-relisten-600/60 text-white
+            hover:bg-relisten-600/60 hover:text-white
+          `
       )}
     >
       {label}

@@ -2,7 +2,7 @@ import RelistenAPI from '@/lib/RelistenAPI';
 import { getServerFilters } from '@/lib/serverFilterCookies';
 import { RawParams } from '@/types/params';
 import type { Venue, Tour } from '@/types';
-import { notFound } from '@timber-js/app/server';
+import { deny } from '@timber-js/app/server';
 import ArtistSongsColumn from './ArtistSongsColumn';
 import RecentTapesColumn from './RecentTapesColumn';
 import ShowsColumnWithControls from './ShowsColumnWithControls';
@@ -39,7 +39,7 @@ const ShowsColumn = async ({
     RelistenAPI.fetchArtists(),
     getServerFilters(`${artistSlug}:shows`, true),
   ]).catch(() => {
-    notFound();
+    deny(404);
   });
 
   const artist = artists?.find((a) => a.slug === artistSlug);

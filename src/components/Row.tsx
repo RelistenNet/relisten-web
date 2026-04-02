@@ -37,7 +37,7 @@ function RowLinkContent({
   isActive: boolean;
   loading?: boolean;
 }) {
-  const { pending: isPending } = useLinkStatus();
+  const { isPending } = useLinkStatus();
 
   return (
     <Flex

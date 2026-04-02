@@ -7,12 +7,12 @@ import RelistenAPI from '@/lib/RelistenAPI';
 import MainNavHeader from './MainNavHeader';
 import AndroidUpgradeNotification from './AndroidUpgradeNotification';
 import { MenuIcon } from 'lucide-react';
-import { headers } from '@timber-js/app/server';
+import { getHeaders } from '@timber-js/app/server';
 import { UAParser } from 'ua-parser-js';
 import { getIsInIframe } from '@/lib/isInIframe';
 
-export const getUserAgent = () => {
-  const headersList = headers();
+export const getUserAgent = async () => {
+  const headersList = await getHeaders();
   const userAgent = headersList.get('user-agent');
 
   if (!userAgent) return null;

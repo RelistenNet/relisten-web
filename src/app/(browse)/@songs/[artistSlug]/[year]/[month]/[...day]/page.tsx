@@ -2,10 +2,10 @@ import SongsColumn from '@/components/SongsColumn';
 import { paramAsString } from '@/lib/paramHelpers';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { createShowDate } from '@/lib/utils';
-import { rawSegmentParams } from '@timber-js/app/server';
+import { getSegmentParams } from '@timber-js/app/server';
 
 export default async function SongsDaySlot() {
-  const raw = await rawSegmentParams();
+  const raw = await getSegmentParams();
   const artistSlug = paramAsString(raw.artistSlug);
   const year = paramAsString(raw.year);
   const month = paramAsString(raw.month);

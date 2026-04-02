@@ -2,7 +2,7 @@ import { getArtistGradient } from '@/lib/artistColors';
 import RelistenAPI from '@/lib/RelistenAPI';
 import ImageResponse from '@takumi-rs/image-response';
 import { format, parseISO } from 'date-fns';
-import { notFound } from '@timber-js/app/server';
+import { deny } from '@timber-js/app/server';
 import { z } from 'zod';
 
 const querySchema = z.object({
@@ -17,17 +17,17 @@ export async function GET(request: Request) {
     size: url.searchParams.get('size') ?? undefined,
   });
 
-  if (!parsed.success) return notFound();
+  if (!parsed.success) return deny(404);
   const { showUuid, size } = parsed.data;
 
-  if (!showUuid) return notFound();
+  if (!showUuid) return deny(404);
 
   const [artists, show] = await Promise.all([
     RelistenAPI.fetchArtists(),
     RelistenAPI.fetchShowByUUID(showUuid),
   ]);
 
-  if (!show || !show.sources?.length) return notFound();
+  if (!show || !show.sources?.length) return deny(404);
 
   const artist = artists.find((a) => a.uuid === show.artist_uuid);
   const artistName = artist?.name ?? 'Unknown Artist';
