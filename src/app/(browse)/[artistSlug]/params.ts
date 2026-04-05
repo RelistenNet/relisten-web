@@ -1,4 +1,4 @@
-import { defineSegmentParams } from '@timber-js/app/server';
+import { defineSegmentParams } from '@timber-js/app/segment-params';
 import { z } from 'zod/v4';
 
 export const params = defineSegmentParams({
