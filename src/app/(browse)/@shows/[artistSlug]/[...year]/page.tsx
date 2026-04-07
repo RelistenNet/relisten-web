@@ -12,10 +12,7 @@ export default async function ShowsDaySlot() {
   let day: string | undefined;
 
   try {
-    const [parsed, currentMonthDay] = await Promise.all([
-      searchParams.get(),
-      getCurrentMonthDay(),
-    ]);
+    const [parsed, currentMonthDay] = await Promise.all([searchParams.get(), getCurrentMonthDay()]);
     month = parsed.month ?? currentMonthDay.month;
     day = parsed.day ?? currentMonthDay.day;
   } catch {

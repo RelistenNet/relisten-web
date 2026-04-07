@@ -1,6 +1,9 @@
 import { defineSegmentParams } from '@timber-js/app/segment-params';
 import { z } from 'zod/v4';
 
-export const params = defineSegmentParams({
+export const segmentParams = defineSegmentParams({
   artistSlug: z.string().regex(/^[a-zA-Z0-9-]+$/),
+  year: z.coerce.number().int().min(1991).max(2200),
+  month: z.string().regex(/[\dx]{1,2}/i),
+  day: z.string().regex(/[\dx]{1,2}/i),
 });

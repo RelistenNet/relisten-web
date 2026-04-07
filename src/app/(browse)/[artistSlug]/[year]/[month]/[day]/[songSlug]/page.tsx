@@ -25,7 +25,10 @@ export default async function Page() {
 }
 
 export const metadata = async () => {
-  const [params, artists] = await Promise.all([getSegmentParams().catch(() => null), RelistenAPI.fetchArtists()]);
+  const [params, artists] = await Promise.all([
+    getSegmentParams().catch(() => null),
+    RelistenAPI.fetchArtists(),
+  ]);
   const artistSlug = params?.artistSlug as string | undefined;
   const year = params?.year as string | undefined;
   const month = params?.month as string | undefined;
@@ -53,9 +56,7 @@ export const metadata = async () => {
           url: song?.mp3_url, // Must be an absolute URL
         },
       ],
-      images: show?.uuid
-        ? [{ url: `/api/og?showUuid=${show.uuid}`, width: 550, height: 550 }]
-        : [],
+      images: show?.uuid ? [{ url: `/api/og?showUuid=${show.uuid}`, width: 550, height: 550 }] : [],
     },
   };
 };

@@ -7,16 +7,6 @@ import { splitShowDate } from '../lib/utils';
 import { LiveHistoryItem, Track, TrackSource, Venue } from '../types';
 import Flex from './Flex';
 
-const createURL = (track: { track: Track; source: TrackSource }): string => {
-  const { year, month, day } = splitShowDate(track.source.display_date);
-
-  return (
-    '/' +
-    [track.source.artist?.slug, year, month, day, track.track.slug].join('/') +
-    `?source=${track.source.id}`
-  );
-};
-
 const getVenueInfo = (track: TrackSource): Venue | undefined => {
   if (track.artist && track.artist.features) {
     if (track.artist.features.per_show_venues && track.artist.features.per_source_venues) {
@@ -70,9 +60,24 @@ export default function LiveTrack({
   isLastSeen,
 }: LiveTrackProps) {
   if (!track?.track) return null;
+  const [year, month, day] = track.source?.display_date?.split('-') ?? [];
 
   return (
-    <Link href={createURL(track)} prefetch={false} className="group h-full">
+    <Link
+      href="/[artistSlug]/[year]/[month]/[day]/[songSlug]"
+      segmentParams={{
+        artistSlug: String(track.source.artist?.slug),
+        year,
+        month,
+        day,
+        songSlug: track?.track.slug ?? '',
+      }}
+      searchParams={{
+        sourceId: track.source.id,
+      }}
+      prefetch={false}
+      className="group h-full"
+    >
       <motion.div
         whileHover={{ y: -4, scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
@@ -81,19 +86,27 @@ export default function LiveTrack({
           damping: 20,
           stiffness: 300,
         }}
-        className={`relative h-full rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition-all duration-200 hover:border-gray-200 hover:shadow-lg ${
-          isLastSeen ? 'border-green-200 ring-2 ring-green-100' : ''
-        }`}
+        className={`
+          relative h-full rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition-all
+          duration-200
+          hover:border-gray-200 hover:shadow-lg
+          ${isLastSeen ? 'border-green-200 ring-2 ring-green-100' : ''}
+        `}
         data-is-last-seen={isLastSeen}
       >
         {/* New track indicator */}
         {isLastSeen && (
-          <div className="absolute -top-1 -right-1 h-3 w-3 animate-pulse rounded-full bg-green-500"></div>
+          <div className="absolute -top-1 -right-1 size-3 animate-pulse rounded-full bg-green-500"></div>
         )}
 
         <div className="space-y-1">
           {/* Track title */}
-          <div className="truncate leading-tight font-semibold text-gray-900 transition-colors group-hover:text-gray-700">
+          <div
+            className="
+              truncate leading-tight font-semibold text-gray-900 transition-colors
+              group-hover:text-gray-700
+            "
+          >
             {track.track.title}
           </div>
 
@@ -101,7 +114,7 @@ export default function LiveTrack({
           <div className="text-sm font-medium text-gray-700">{track.source.artist?.name}</div>
 
           {/* Venue and date info */}
-          <div className="text-foreground-muted space-y-1 text-xs">
+          <div className="space-y-1 text-xs text-foreground-muted">
             <VenueInfo
               track={track}
               app_type_description={app_type_description}
@@ -111,8 +124,8 @@ export default function LiveTrack({
 
           {/* Footer with app type and time */}
           <div className="flex items-center justify-between">
-            <span className="text-foreground-muted text-xs capitalize">{app_type_description}</span>
-            <span className="text-foreground-muted text-xs">
+            <span className="text-xs text-foreground-muted capitalize">{app_type_description}</span>
+            <span className="text-xs text-foreground-muted">
               <TimeAgo date={created_at} formatter={formatterFn} />
             </span>
           </div>
@@ -120,7 +133,10 @@ export default function LiveTrack({
 
         {/* Hover arrow */}
         <ArrowRight
-          className="text-foreground-muted absolute top-4 right-4 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+          className="
+            absolute top-4 right-4 text-foreground-muted opacity-0 transition-opacity duration-200
+            group-hover:opacity-100
+          "
           size={16}
         />
       </motion.div>

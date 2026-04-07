@@ -27,7 +27,7 @@ ENV NODE_OPTIONS=--max-old-space-size=2048
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 appuser
 
-COPY --from=builder --chown=appuser:nodejs /app/dist/nitro/.output ./
+COPY --from=builder --chown=appuser:nodejs /app/.timber/dist/nitro/.output ./
 
 USER appuser
 
