@@ -2,13 +2,14 @@
 
 import { usePathname } from '@timber-js/app/client';
 import { useCallback, useMemo } from 'react';
-import { useCookie } from '@timber-js/app/client';
-import { FilterState, getFilterKey } from '@/lib/filterCookies';
+import {
+  SORT_DIRECTION,
+  type FilterState,
+  getFilterKey,
+  getFilterCookie,
+} from '@/lib/filterCookies';
 
-export enum SORT_DIRECTION {
-  desc = 'desc',
-  asc = 'asc',
-}
+export { SORT_DIRECTION } from '@/lib/filterCookies';
 
 export const DEFAULT_FILTERS = {
   date: SORT_DIRECTION.desc,
@@ -25,28 +26,17 @@ const getInverse = (key: string, sort?: SORT_DIRECTION) => {
   return undefined;
 };
 
-const COOKIE_OPTIONS = { maxAge: 365 * 24 * 60 * 60, sameSite: 'lax' as const };
-
 export function useFilterState(initialFilters?: FilterState, filterKey?: string) {
   const pathname = usePathname();
 
-  // Generate cookie name based on custom key or pathname
-  const cookieName = useMemo(() => {
-    const key = filterKey || getFilterKey(pathname);
-    return `relisten_filters_${key.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
-  }, [pathname, filterKey]);
+  const key = useMemo(() => filterKey || getFilterKey(pathname), [pathname, filterKey]);
 
-  // Use timber's cookie hook
-  const [cookieValue, setCookieValue] = useCookie(cookieName, COOKIE_OPTIONS);
+  const cookie = getFilterCookie(key);
+  const [cookieValue, setCookieValue, deleteCookie] = cookie.useCookie();
 
-  // Parse the filter state from cookie, with fallback to initial filters
   const filters = useMemo(() => {
-    if (cookieValue) {
-      try {
-        return JSON.parse(cookieValue) as FilterState;
-      } catch {
-        // fall through
-      }
+    if (cookieValue && Object.keys(cookieValue).length > 0) {
+      return cookieValue;
     }
     return initialFilters ?? ({} as FilterState);
   }, [cookieValue, initialFilters]);
@@ -67,7 +57,7 @@ export function useFilterState(initialFilters?: FilterState, filterKey?: string)
         delete newFilters[filterName];
       }
 
-      setCookieValue(JSON.stringify(newFilters));
+      setCookieValue(newFilters);
     },
     [filters, setCookieValue]
   );
@@ -87,7 +77,7 @@ export function useFilterState(initialFilters?: FilterState, filterKey?: string)
   );
 
   const clearFilters = useCallback(() => {
-    setCookieValue('{}');
+    setCookieValue({});
   }, [setCookieValue]);
 
   return {

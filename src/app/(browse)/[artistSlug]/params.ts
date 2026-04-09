@@ -3,7 +3,8 @@ import { z } from 'zod/v4';
 
 export const segmentParams = defineSegmentParams({
   artistSlug: z.string().regex(/^[a-zA-Z0-9-]+$/),
-  year: z.coerce.number().int().min(1991).max(2200),
+  year: z.string().regex(/[\d]{4}/),
   month: z.string().regex(/[\dx]{1,2}/i),
   day: z.string().regex(/[\dx]{1,2}/i),
+  songSlug: z.string(),
 });

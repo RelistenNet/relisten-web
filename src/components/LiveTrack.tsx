@@ -73,7 +73,7 @@ export default function LiveTrack({
         songSlug: track?.track.slug ?? '',
       }}
       searchParams={{
-        sourceId: track.source.id,
+        sourceId: String(track.source.id),
       }}
       prefetch={false}
       className="group h-full"
