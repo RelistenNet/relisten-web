@@ -3,10 +3,11 @@ import PlayerManager from '@/components/PlayerManager';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { isMobile } from '@/lib/isMobile';
 import { createShowDate } from '@/lib/utils';
-import { deny } from '@timber-js/app/server';
+import { deny, getSegmentParams } from '@timber-js/app/server';
+import { route } from './_segment';
 
 export default async function Page() {
-  const { artistSlug, year, month, day } = segmentParams.get();
+  const { artistSlug, year, month, day } = getSegmentParams(route);
 
   const params = { artistSlug, year, month, day };
 

@@ -18,6 +18,7 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "strictNullChecks": true,
+    "rootDirs": [".", ".timber/types"],
     "baseUrl": ".",
     "paths": {
       "@/*": [
