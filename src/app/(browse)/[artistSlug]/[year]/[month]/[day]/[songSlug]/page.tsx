@@ -1,18 +1,14 @@
+import { segmentParams } from '@/app/(browse)/[artistSlug]/params';
 import PlayerManager from '@/components/PlayerManager';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { isMobile } from '@/lib/isMobile';
-import { paramAsString } from '@/lib/paramHelpers';
 import { createShowDate } from '@/lib/utils';
-import { RawParams } from '@/types/params';
-import { deny, getSegmentParams } from '@timber-js/app/server';
+import { deny } from '@timber-js/app/server';
 
 export default async function Page() {
-  const raw = await getSegmentParams();
-  const artistSlug = paramAsString(raw.artistSlug);
-  const year = paramAsString(raw.year);
-  const month = paramAsString(raw.month);
-  const day = paramAsString(raw.day);
-  const params = { artistSlug, year, month, day, songSlug: paramAsString(raw.songSlug) };
+  const { artistSlug, year, month, day } = segmentParams.get();
+
+  const params = { artistSlug, year, month, day };
 
   if (!year || !month || !day) return deny(404);
 
@@ -25,15 +21,9 @@ export default async function Page() {
 }
 
 export const metadata = async () => {
-  const [params, artists] = await Promise.all([
-    getSegmentParams().catch(() => null),
-    RelistenAPI.fetchArtists(),
-  ]);
-  const artistSlug = params?.artistSlug as string | undefined;
-  const year = params?.year as string | undefined;
-  const month = params?.month as string | undefined;
-  const day = params?.day as string | undefined;
-  const songSlug = params?.songSlug as string | undefined;
+  const { artistSlug, year, month, day, songSlug } = segmentParams.get();
+
+  const [artists] = await Promise.all([RelistenAPI.fetchArtists()]);
 
   const name = artists?.find((a) => a.slug === artistSlug)?.name;
 

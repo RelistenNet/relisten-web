@@ -8,7 +8,7 @@ import { getSegmentParams } from '@timber-js/app/server';
 export default async function SongsDaySlot() {
   if (await isMobile()) return null;
 
-  const artistSlug = paramAsString((await getSegmentParams()).artistSlug);
+  const artistSlug = paramAsString(getSegmentParams().artistSlug);
 
   // Fetch show data
   const show = await RelistenAPI.fetchRandomShow(artistSlug);

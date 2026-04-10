@@ -5,7 +5,7 @@ import { getSegmentParams } from '@timber-js/app/server';
 import { searchParams } from './params';
 
 export default async function ShowsDaySlot() {
-  const raw = await getSegmentParams();
+  const raw = getSegmentParams();
   const artistSlug = paramAsString(raw.artistSlug);
   const year = paramAsString(raw.year);
   let month: string | undefined;

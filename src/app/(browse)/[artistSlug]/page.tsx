@@ -10,7 +10,7 @@ type PageProps = {
 };
 
 export default async function Page() {
-  const artistSlug = paramAsString((await getSegmentParams()).artistSlug);
+  const artistSlug = paramAsString(getSegmentParams().artistSlug);
 
   if (await isMobile()) return null;
 
@@ -42,7 +42,7 @@ export default async function Page() {
 }
 
 export const metadata = async () => {
-  const params = await getSegmentParams().catch(() => null);
+  const params = getSegmentParams();
   const artistSlug = params?.artistSlug as string | undefined;
   if (!artistSlug) return {};
 

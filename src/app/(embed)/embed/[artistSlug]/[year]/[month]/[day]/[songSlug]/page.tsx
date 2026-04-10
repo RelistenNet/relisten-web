@@ -9,7 +9,7 @@ import { deny, getSegmentParams } from '@timber-js/app/server';
 import { playImmediatelySearchParamsLoader } from '@/lib/searchParams/playImmediatelySearchParam';
 
 export default async function EmbedSongPage() {
-  const raw = await getSegmentParams();
+  const raw = getSegmentParams();
   const artistSlug = paramAsString(raw.artistSlug);
   const year = paramAsString(raw.year);
   const month = paramAsString(raw.month);
@@ -56,7 +56,8 @@ export default async function EmbedSongPage() {
 }
 
 export async function metadata() {
-  const [params, artists] = await Promise.all([getSegmentParams(), RelistenAPI.fetchArtists()]);
+  const params = getSegmentParams();
+  const artists = await RelistenAPI.fetchArtists();
   const artistSlug = params?.artistSlug as string | undefined;
   const year = params?.year as string | undefined;
   const month = params?.month as string | undefined;

@@ -6,7 +6,7 @@ import { paramAsString } from '@/lib/paramHelpers';
 import { deny, getSegmentParams } from '@timber-js/app/server';
 
 export async function metadata(): Promise<Metadata> {
-  const params = await getSegmentParams().catch(() => null);
+  const params = getSegmentParams();
   const artistSlug = params?.artistSlug as string | undefined;
   const year = params?.year as string | undefined;
   const month = params?.month as string | undefined;
@@ -38,7 +38,7 @@ function formatDate(date: string): string {
 }
 
 export default async function MonthPage() {
-  const raw = await getSegmentParams();
+  const raw = getSegmentParams();
   const artistSlug = paramAsString(raw.artistSlug);
   const year = paramAsString(raw.year);
   const month = paramAsString(raw.month);

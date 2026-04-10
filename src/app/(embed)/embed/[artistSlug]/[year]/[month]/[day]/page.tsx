@@ -4,7 +4,7 @@ import type { RawParams } from '@/types/params';
 import { deny, redirect, getSegmentParams } from '@timber-js/app/server';
 
 export default async function EmbedShowPage() {
-  const raw = await getSegmentParams();
+  const raw = getSegmentParams();
   const artistSlug = paramAsString(raw.artistSlug);
   const year = paramAsString(raw.year);
   const month = paramAsString(raw.month);
@@ -42,7 +42,7 @@ export default async function EmbedShowPage() {
 }
 
 export async function metadata() {
-  const params = await getSegmentParams().catch(() => null);
+  const params = getSegmentParams();
   const artistSlug = params?.artistSlug as string | undefined;
   const year = params?.year as string | undefined;
   const month = params?.month as string | undefined;

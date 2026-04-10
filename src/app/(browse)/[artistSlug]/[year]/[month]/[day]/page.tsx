@@ -5,7 +5,7 @@ import { deny, getSegmentParams } from '@timber-js/app/server';
 export default () => null;
 
 export const metadata = async () => {
-  const params = await getSegmentParams().catch(() => null);
+  const params = getSegmentParams();
   const artistSlug = params?.artistSlug as string | undefined;
   const year = params?.year as string | undefined;
   const month = params?.month as string | undefined;

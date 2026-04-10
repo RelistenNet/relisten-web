@@ -14,7 +14,7 @@ function capitalizeFirstLetterOfEachWord(val: string): string {
 }
 
 export const metadata = async () => {
-  const params = await getSegmentParams().catch(() => null);
+  const params = getSegmentParams();
   const artistSlug = params?.artistSlug as string | undefined;
   const year = params?.year as string | undefined;
   if (!artistSlug || !year) return {};
