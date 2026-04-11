@@ -2,8 +2,8 @@ import RelistenAPI from '@/lib/RelistenAPI';
 import { format } from 'date-fns';
 import type { Metadata } from '@timber-js/app/server';
 import { Link } from '@timber-js/app/client';
-import { paramAsString } from '@/lib/paramHelpers';
 import { deny, getSegmentParams } from '@timber-js/app/server';
+import { SEGMENT_PATH } from './$segment';
 
 export async function metadata(): Promise<Metadata> {
   const params = getSegmentParams();
@@ -38,10 +38,7 @@ function formatDate(date: string): string {
 }
 
 export default async function MonthPage() {
-  const raw = getSegmentParams();
-  const artistSlug = paramAsString(raw.artistSlug);
-  const year = paramAsString(raw.year);
-  const month = paramAsString(raw.month);
+  const { artistSlug, year, month } = getSegmentParams(SEGMENT_PATH);
 
   // Fetch artist and shows
   const artists = await RelistenAPI.fetchArtists();
