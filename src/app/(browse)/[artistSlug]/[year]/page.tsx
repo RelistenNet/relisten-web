@@ -1,6 +1,6 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { deny, getSegmentParams } from '@timber-js/app/server';
-import { route } from './_segment';
+import { SEGMENT_PATH } from './$segment';
 
 export default function Page() {
   return null;
@@ -15,7 +15,7 @@ function capitalizeFirstLetterOfEachWord(val: string): string {
 }
 
 export const metadata = async () => {
-  const params = getSegmentParams(route);
+  const params = getSegmentParams(SEGMENT_PATH);
   const artistSlug = params?.artistSlug as string | undefined;
   const year = params?.year as string | undefined;
   if (!artistSlug || !year) return {};
