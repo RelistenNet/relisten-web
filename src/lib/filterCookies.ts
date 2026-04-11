@@ -20,6 +20,7 @@ const filterCookieCache = new Map<string, CookieDefinition<FilterState>>();
 
 export function getFilterCookie(key: string): CookieDefinition<FilterState> {
   let cookie = filterCookieCache.get(key);
+
   if (!cookie) {
     const cookieName = `${COOKIE_PREFIX}${key.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
     cookie = defineCookie(cookieName, {

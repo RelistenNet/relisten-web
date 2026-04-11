@@ -1,9 +1,11 @@
 import YearsColumn from '@/components/YearsColumn';
 import { getSegmentParams } from '@timber-js/app/server';
+import { SEGMENT_PATH } from './$segment';
 
 export default async function YearsArtistSlot() {
-  const params = getSegmentParams();
-  const artistSlug = (params.artistSlug as string) ?? 'grateful-dead';
+  const { artistSlug } = getSegmentParams(SEGMENT_PATH);
 
-  return <YearsColumn artistSlug={artistSlug} />;
+  const slug = artistSlug?.[0] ?? 'grateful-dead';
+
+  return <YearsColumn artistSlug={slug} />;
 }

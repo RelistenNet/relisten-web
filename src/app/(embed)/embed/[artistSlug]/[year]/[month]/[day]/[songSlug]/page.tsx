@@ -2,19 +2,14 @@ import PlayerManager from '@/components/PlayerManager';
 import SongsColumn from '@/components/SongsColumn';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { isMobile } from '@/lib/isMobile';
-import { paramAsString } from '@/lib/paramHelpers';
 import { createShowDate } from '@/lib/utils';
-import { RawParams } from '@/types/params';
 import { deny, getSegmentParams } from '@timber-js/app/server';
 import { playImmediatelySearchParamsLoader } from '@/lib/searchParams/playImmediatelySearchParam';
+import { SEGMENT_PATH } from './$segment';
 
 export default async function EmbedSongPage() {
-  const raw = getSegmentParams();
-  const artistSlug = paramAsString(raw.artistSlug);
-  const year = paramAsString(raw.year);
-  const month = paramAsString(raw.month);
-  const day = paramAsString(raw.day);
-  const songSlug = paramAsString(raw.songSlug);
+  const { artistSlug, year, month, day, songSlug } = getSegmentParams(SEGMENT_PATH);
+
   const resolvedParams = { artistSlug, year, month, day, songSlug };
 
   if (!year || !month || !day) return deny(404);

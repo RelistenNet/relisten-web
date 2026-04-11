@@ -32,7 +32,7 @@ export function useFilterState(initialFilters?: FilterState, filterKey?: string)
   const key = useMemo(() => filterKey || getFilterKey(pathname), [pathname, filterKey]);
 
   const cookie = getFilterCookie(key);
-  const [cookieValue, setCookieValue, deleteCookie] = cookie.useCookie();
+  const [cookieValue, setCookieValue] = cookie.useCookie();
 
   const filters = useMemo(() => {
     if (cookieValue && Object.keys(cookieValue).length > 0) {
@@ -49,13 +49,6 @@ export function useFilterState(initialFilters?: FilterState, filterKey?: string)
       if (value === undefined || value === false) {
         delete newFilters[filterName];
       }
-      // For both date and alpha, default is desc (newest first for dates, A-Z for alpha)
-      if (
-        (filterName === 'date' && value === DEFAULT_FILTERS[filterName]) ||
-        (filterName === 'alpha' && value === DEFAULT_FILTERS[filterName])
-      ) {
-        delete newFilters[filterName];
-      }
 
       setCookieValue(newFilters);
     },
@@ -69,7 +62,7 @@ export function useFilterState(initialFilters?: FilterState, filterKey?: string)
       } else if (filterName === 'date' || filterName === 'alpha') {
         const currentValue = filters[filterName];
         const newValue = getInverse(filterName, currentValue);
-        console.log(filterName, newValue, currentValue);
+        console.log(filters, filterName, newValue, currentValue);
         setFilter(filterName, newValue);
       }
     },

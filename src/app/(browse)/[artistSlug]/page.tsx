@@ -1,17 +1,10 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { isMobile } from '@/lib/isMobile';
-import { paramAsString } from '@/lib/paramHelpers';
 import { deny, getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 
-type PageProps = {
-  params: Promise<{
-    artistSlug: string;
-  }>;
-};
-
 export default async function Page() {
-  const artistSlug = paramAsString(getSegmentParams(SEGMENT_PATH).artistSlug);
+  const { artistSlug } = getSegmentParams(SEGMENT_PATH);
 
   if (await isMobile()) return null;
 

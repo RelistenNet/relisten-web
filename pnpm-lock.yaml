@@ -62,8 +62,8 @@ importers:
         specifier: ^5.95.0
         version: 5.95.2(@tanstack/react-query@5.95.2(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)
       '@timber-js/app':
-        specifier: 0.2.0-alpha.116
-        version: 0.2.0-alpha.116(@vitejs/plugin-react@6.0.1(@rolldown/plugin-babel@0.2.2(@babel/core@7.29.0)(rolldown@1.0.0-rc.15)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3)))(babel-plugin-react-compiler@1.0.0)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3)))(@vitejs/plugin-rsc@0.5.21(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3)))(jiti@2.6.1)(nuqs@2.8.9(react@19.3.0-canary-ed69815c-20260323))(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3))(zod@4.3.6)
+        specifier: 0.2.0-alpha.117
+        version: 0.2.0-alpha.117(@vitejs/plugin-react@6.0.1(@rolldown/plugin-babel@0.2.2(@babel/core@7.29.0)(rolldown@1.0.0-rc.15)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3)))(babel-plugin-react-compiler@1.0.0)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3)))(@vitejs/plugin-rsc@0.5.21(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3)))(jiti@2.6.1)(nuqs@2.8.9(react@19.3.0-canary-ed69815c-20260323))(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3))(zod@4.3.6)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1311,8 +1311,8 @@ packages:
     peerDependencies:
       react: 19.3.0-canary-ed69815c-20260323
 
-  '@timber-js/app@0.2.0-alpha.116':
-    resolution: {integrity: sha512-Gh1zp/p5rPfD9bNDId7Ha2TuJngzJbG0yiBsGS2MNEiTsVO2PlX1zH/ly8eCvzCgkaNZV97QOjd5L4jNyevBHQ==}
+  '@timber-js/app@0.2.0-alpha.117':
+    resolution: {integrity: sha512-OdViscVn5ykcquIfTQT3EGT92sa9tASBJUTvNIenQXZ7fn0TDfpUQjajq9WVNnWxdT7QqrXv3aLLA3e6wh/zmA==}
     engines: {node: '>=22.12.0'}
     hasBin: true
     peerDependencies:
@@ -4793,7 +4793,7 @@ snapshots:
       '@tanstack/query-core': 5.95.2
       react: 19.3.0-canary-ed69815c-20260323
 
-  '@timber-js/app@0.2.0-alpha.116(@vitejs/plugin-react@6.0.1(@rolldown/plugin-babel@0.2.2(@babel/core@7.29.0)(rolldown@1.0.0-rc.15)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3)))(babel-plugin-react-compiler@1.0.0)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3)))(@vitejs/plugin-rsc@0.5.21(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3)))(jiti@2.6.1)(nuqs@2.8.9(react@19.3.0-canary-ed69815c-20260323))(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3))(zod@4.3.6)':
+  '@timber-js/app@0.2.0-alpha.117(@vitejs/plugin-react@6.0.1(@rolldown/plugin-babel@0.2.2(@babel/core@7.29.0)(rolldown@1.0.0-rc.15)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3)))(babel-plugin-react-compiler@1.0.0)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3)))(@vitejs/plugin-rsc@0.5.21(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3)))(jiti@2.6.1)(nuqs@2.8.9(react@19.3.0-canary-ed69815c-20260323))(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)(vite@8.0.3(@types/node@25.5.0)(jiti@2.6.1)(terser@5.46.1)(yaml@2.8.3))(zod@4.3.6)':
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/context-async-hooks': 2.6.1(@opentelemetry/api@1.9.1)
