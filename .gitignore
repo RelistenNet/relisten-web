@@ -8,3 +8,7 @@ db/
 .vscode
 
 *.tsbuildinfo
+
+.pi
+.timber
+.lb
