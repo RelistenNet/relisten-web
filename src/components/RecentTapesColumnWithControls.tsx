@@ -61,7 +61,7 @@ const RecentTapesColumnWithControls = ({
       onClearFilters={clearFilters}
     >
       {(!processedShows || processedShows.length === 0) && (
-        <div className="py-2 text-center text-sm text-gray-700">No recently added shows!</div>
+        <div className="py-2 text-center text-sm text-text-muted">No recently added shows!</div>
       )}
       {processedShows &&
         artistSlug &&

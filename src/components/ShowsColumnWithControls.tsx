@@ -87,7 +87,7 @@ const ShowsColumnWithControls = ({
       {backHref && (
         <Link
           href={backHref}
-          className="flex items-center gap-1 border-b border-gray-100 px-2 py-2 text-sm hover:bg-gray-50"
+          className="flex items-center gap-1 border-b border-hairline px-2 py-2 text-sm hover:bg-surface-hover"
         >
           <ChevronLeft className="h-4 w-4" />
           Back

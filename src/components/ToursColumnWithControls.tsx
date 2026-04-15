@@ -48,7 +48,7 @@ const ToursColumnWithControls = ({ artistSlug, tours }: ToursColumnWithControlsP
       totalCount={tours.length}
     >
       {sortedTours.length === 0 && (
-        <div className="py-2 text-center text-sm text-gray-700">No tours found.</div>
+        <div className="py-2 text-center text-sm text-text-muted">No tours found.</div>
       )}
       {artistSlug &&
         sortedTours.map((tour) => (

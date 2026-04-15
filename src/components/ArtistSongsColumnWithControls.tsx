@@ -45,7 +45,7 @@ const ArtistSongsColumnWithControls = ({
       totalCount={songs.length}
     >
       {sortedSongs.length === 0 && (
-        <div className="py-2 text-center text-sm text-gray-700">No songs found.</div>
+        <div className="py-2 text-center text-sm text-text-muted">No songs found.</div>
       )}
       {artistSlug &&
         sortedSongs.map((song) => (

@@ -42,7 +42,7 @@ const VenuesColumnWithControls = ({ artistSlug, venues }: VenuesColumnWithContro
       totalCount={venues.length}
     >
       {sortedVenues.length === 0 && (
-        <div className="py-2 text-center text-sm text-gray-700">No venues found.</div>
+        <div className="py-2 text-center text-sm text-text-muted">No venues found.</div>
       )}
       {artistSlug &&
         sortedVenues.map((venue) => (

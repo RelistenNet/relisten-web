@@ -80,12 +80,12 @@ const TodayInHistoryColumnWithControls = ({
       onClearFilters={clearFilters}
     >
       {artistSlug && (
-        <div className="border-b border-gray-200 px-2 py-2">
+        <div className="border-b border-hairline px-2 py-2">
           <TodayDateNav month={month} day={day} pathname={`/${artistSlug}/today-in-history`} />
         </div>
       )}
       {(!processedShows || processedShows.length === 0) && (
-        <div className="py-2 text-center text-sm text-gray-700">
+        <div className="py-2 text-center text-sm text-text-muted">
           No shows on this date, try another day!
         </div>
       )}

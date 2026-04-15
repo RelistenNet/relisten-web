@@ -41,9 +41,12 @@ function RowLinkContent({
 
   return (
     <Flex
-      className={cn('relative relisten-row min-h-[46px] items-stretch border-b border-gray-100', {
-        'opacity-70': isPending,
-      })}
+      className={cn(
+        'relative relisten-row min-h-[46px] items-stretch border-b border-hairline hover:bg-surface-hover',
+        {
+          'opacity-70': isPending,
+        }
+      )}
       {...props}
     >
       {loading && <RowLoading />}
@@ -54,7 +57,7 @@ function RowLinkContent({
       )}
       {isPending && <div className="w-2 animate-pulse bg-relisten-600/30" />}
 
-      {!isPending && isActive && <div className="w-2 min-w-2 bg-relisten-600" />}
+      {!isPending && isActive && <div className="w-2 min-w-2 bg-accent" />}
       <Flex className="w-full flex-1 items-center justify-between p-1 leading-tight tabular-nums">
         {children}
       </Flex>
@@ -84,7 +87,7 @@ const Row = ({
     return (
       <div className="relative content w-full flex-1 items-center justify-between py-1">
         {loading && <RowLoading />}
-        {isActive && <div className="h-full w-2 bg-foreground" />}
+        {isActive && <div className="h-full w-2 bg-accent" />}
 
         {children}
       </div>
