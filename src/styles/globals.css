@@ -23,13 +23,79 @@
   --color-relisten-900: #001D24;
   --color-relisten-950: #001114;
 
-  /* Basic foreground colors */
-  --color-foreground: #333;
-  --color-foreground-muted: var(--color-gray-500);
+  /* Semantic tokens — resolved by :root rules below. Reference via Tailwind
+     utilities like `bg-surface`, `text-text-primary`, `border-hairline`. */
+  --color-surface: var(--resolved-surface);
+  --color-surface-raised: var(--resolved-surface-raised);
+  --color-surface-recessed: var(--resolved-surface-recessed);
+  --color-surface-hover: var(--resolved-surface-hover);
+  --color-hairline: var(--resolved-hairline);
+  --color-text-primary: var(--resolved-text-primary);
+  --color-text-secondary: var(--resolved-text-secondary);
+  --color-text-muted: var(--resolved-text-muted);
+  --color-accent: var(--resolved-accent);
 
-  /* Basic background colors */
-  --color-background: #fefefe;
-  --color-background-muted: #f3f4f6;
+  /* Basic foreground colors (legacy — kept so existing callers don't break) */
+  --color-foreground: var(--resolved-text-primary);
+  --color-foreground-muted: var(--resolved-text-muted);
+
+  /* Basic background colors (legacy) */
+  --color-background: var(--resolved-surface);
+  --color-background-muted: var(--resolved-surface-recessed);
+}
+
+/* Light theme (default) */
+:root {
+  --resolved-surface: #fefefe;
+  --resolved-surface-raised: #ffffff;
+  --resolved-surface-recessed: #f3f4f6;
+  --resolved-surface-hover: #f3f4f6;
+  --resolved-hairline: #e5e7eb;
+  --resolved-text-primary: #333;
+  --resolved-text-secondary: #4b5563;
+  --resolved-text-muted: #6b7280;
+  --resolved-accent: #009DC1;
+}
+
+/* Auto dark via OS */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --resolved-surface: #001D24;
+    --resolved-surface-raised: #004251;
+    --resolved-surface-recessed: #001114;
+    --resolved-surface-hover: #004251;
+    --resolved-hairline: #004251;
+    --resolved-text-primary: #ffffff;
+    --resolved-text-secondary: #d1d5db;
+    --resolved-text-muted: #9ca3af;
+    --resolved-accent: #009DC1;
+  }
+}
+
+/* Explicit override — wins over prefers-color-scheme. Must come after
+   the @media block so the cascade resolves in its favor. */
+:root[data-theme='light'] {
+  --resolved-surface: #fefefe;
+  --resolved-surface-raised: #ffffff;
+  --resolved-surface-recessed: #f3f4f6;
+  --resolved-surface-hover: #f3f4f6;
+  --resolved-hairline: #e5e7eb;
+  --resolved-text-primary: #333;
+  --resolved-text-secondary: #4b5563;
+  --resolved-text-muted: #6b7280;
+  --resolved-accent: #009DC1;
+}
+
+:root[data-theme='dark'] {
+  --resolved-surface: #001D24;
+  --resolved-surface-raised: #004251;
+  --resolved-surface-recessed: #001114;
+  --resolved-surface-hover: #004251;
+  --resolved-hairline: #004251;
+  --resolved-text-primary: #ffffff;
+  --resolved-text-secondary: #d1d5db;
+  --resolved-text-muted: #9ca3af;
+  --resolved-accent: #009DC1;
 }
 
 /*
@@ -46,7 +112,7 @@
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
+    border-color: var(--color-hairline, currentColor);
   }
 
   p {
@@ -92,7 +158,7 @@
     @apply text-3xl font-semibold mb-8;
   }
 
-  body { margin: 0; -webkit-font-smoothing: antialiased; @apply text-foreground; }
+  body { margin: 0; -webkit-font-smoothing: antialiased; @apply bg-surface text-text-primary; }
   a { text-decoration: none; @apply text-foreground; }
 
   /* ── Blog Post Content ── */
