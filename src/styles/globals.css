@@ -207,7 +207,7 @@
   }
 
   .blog-content > hr {
-    @apply my-8 border-gray-200;
+    @apply my-8 border-hairline;
   }
 
   .blog-content a {

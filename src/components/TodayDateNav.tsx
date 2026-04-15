@@ -26,8 +26,8 @@ export default function TodayDateNav({ month, day, pathname }: TodayDateNavProps
       <Link
         href={buildDateUrl(pathname, prev)}
         className="
-          rounded-sm p-0.5 text-gray-500
-          hover:bg-gray-100 hover:text-gray-700
+          rounded-sm p-0.5 text-text-muted
+          hover:bg-surface-hover hover:text-text-primary
         "
         title="Previous day"
       >
@@ -35,15 +35,15 @@ export default function TodayDateNav({ month, day, pathname }: TodayDateNavProps
       </Link>
 
       <div className="flex items-center gap-1.5">
-        <span className="text-sm font-medium text-gray-700">{format(date, 'MMMM do')}</span>
+        <span className="text-sm font-medium text-text-secondary">{format(date, 'MMMM do')}</span>
         <DateJumper month={month} day={day} />
       </div>
 
       <Link
         href={buildDateUrl(pathname, next)}
         className="
-          rounded-sm p-0.5 text-gray-500
-          hover:bg-gray-100 hover:text-gray-700
+          rounded-sm p-0.5 text-text-muted
+          hover:bg-surface-hover hover:text-text-primary
         "
         title="Next day"
       >

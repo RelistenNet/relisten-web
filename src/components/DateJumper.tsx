@@ -21,8 +21,8 @@ export default function DateJumper({ month, day }: { month: string; day: string 
     <label className="relative cursor-pointer" title="Jump to date">
       <Calendar
         className="
-          size-4 text-gray-500
-          hover:text-gray-700
+          size-4 text-text-muted
+          hover:text-text-primary
         "
       />
       <input
