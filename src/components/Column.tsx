@@ -27,7 +27,10 @@ const Column = ({ className, heading, children }: ColumnProps) => {
     <Flex ref={ref} className={cn('relisten-column flex-1 break-words', className)} column>
       <Scroller containerRef={ref} key={heading} />
       {heading && (
-        <Flex center className="bg-relisten-700/80 min-h-[32px] w-full text-white capitalize">
+        <Flex
+          center
+          className="bg-relisten-800 min-h-[32px] w-full text-sm font-semibold text-white capitalize"
+        >
           {heading?.replaceAll('-', ' ')}
         </Flex>
       )}
