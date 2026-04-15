@@ -12,7 +12,7 @@ type QuickHitsNavProps = {
 };
 
 const QuickHitsNav = ({ artistSlug, features }: QuickHitsNavProps) => {
-  const params = useSegmentParams();
+  const params = useSegmentParams('/(browse)/[artistSlug]/[year]');
   const year = Array.isArray(params.year) ? params.year[0] : params.year;
 
   const links = [
@@ -28,7 +28,7 @@ const QuickHitsNav = ({ artistSlug, features }: QuickHitsNavProps) => {
   return (
     <div
       className="
-        flex flex-wrap justify-between gap-1.5 border-b border-background-muted px-2 py-1.5
+        flex flex-wrap justify-between gap-1.5 border-b border-hairline bg-surface-raised px-2 py-1.5
       "
     >
       {links.map(({ label, segment }) => (
@@ -69,15 +69,15 @@ const QuickHitsPill = ({
       className={cn(
         'rounded-sm px-2 py-0.5 text-sm transition-colors',
         isActive
-          ? 'bg-relisten-600 font-medium text-white'
+          ? 'bg-accent font-medium text-white'
           : `
-            text-foreground-muted
-            hover:bg-gray-100 hover:text-foreground
+            text-text-muted
+            hover:bg-surface-hover hover:text-text-primary
           `,
         isPending &&
           `
-            bg-relisten-600/60 text-white
-            hover:bg-relisten-600/60 hover:text-white
+            bg-accent/60 text-white
+            hover:bg-accent/60 hover:text-white
           `
       )}
     >

@@ -2,7 +2,7 @@ import getPosts from '@/lib/blog/getPosts';
 import { getAuthor } from '@/lib/blog/authors';
 import BlogSeenMarker from '@/components/blog/BlogSeenMarker';
 import { format, parseISO } from 'date-fns';
-import Link from 'next/link';
+import { Link } from '@timber-js/app/client';
 
 export const metadata = {
   title: 'Blog',

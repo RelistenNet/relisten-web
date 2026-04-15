@@ -10,9 +10,9 @@ export default defineSchema({
     '[songSlug]': z.string(),
     '[year]': z.string().regex(/[\d]{4}/),
 
-    '[...artistSlugs]': codec.stringArray,
-    '[...days]': codec.stringArray,
-    '[...years]': codec.stringArray,
+    '[...artistSlugs]': codec.catchAll(codec.string),
+    '[...days]': codec.catchAll(codec.string),
+    '[...years]': codec.catchAll(codec.string),
     '[slug]': codec.string,
   },
 });

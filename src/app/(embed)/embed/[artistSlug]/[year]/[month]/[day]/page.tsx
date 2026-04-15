@@ -37,7 +37,7 @@ export default async function EmbedShowPage() {
 }
 
 export async function metadata() {
-  const params = getSegmentParams();
+  const params = getSegmentParams(SEGMENT_PATH);
   const artistSlug = params?.artistSlug as string | undefined;
   const year = params?.year as string | undefined;
   const month = params?.month as string | undefined;

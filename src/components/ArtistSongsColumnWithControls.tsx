@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Song } from '@/types';
-import { simplePluralize } from '@/lib/utils';
+import Count from './Count';
 import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import Row from './Row';
@@ -54,9 +54,12 @@ const ArtistSongsColumnWithControls = ({
               <div>
                 <div>{song.name}</div>
               </div>
-              <div className="text-xxs text-foreground-muted min-w-[20%] text-right">
+              <div className="text-xxs min-w-[20%] text-right">
                 {song.shows_played_at != null && (
-                  <div>{simplePluralize('time', song.shows_played_at)} played</div>
+                  <div>
+                    <Count unit="time" value={song.shows_played_at} />{' '}
+                    <span className="text-text-muted">played</span>
+                  </div>
                 )}
               </div>
             </Row>

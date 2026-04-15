@@ -4,7 +4,8 @@ import { useFilterState } from '@/hooks/useFilterState';
 import { FilterState } from '@/lib/filterCookies';
 import { Show } from '@/types';
 import { useMemo } from 'react';
-import { durationToHHMMSS, removeLeadingZero, simplePluralize, splitShowDate } from '../lib/utils';
+import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
+import Count from './Count';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import Flex from './Flex';
 import Row from './Row';
@@ -103,7 +104,9 @@ const RecentTapesColumnWithControls = ({
                 </div>
                 <div className="text-xxs text-foreground-muted flex h-full min-w-[20%] flex-col justify-center gap-2 text-right">
                   <div>{durationToHHMMSS(avg_duration)}</div>
-                  <div>{simplePluralize('tape', show.source_count)}</div>
+                  <div>
+                    <Count unit="tape" value={show.source_count} />
+                  </div>
                 </div>
               </Row>
             </div>

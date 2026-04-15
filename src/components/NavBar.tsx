@@ -45,7 +45,7 @@ export default async function NavBar() {
       <div
         className="
           navigation relative grid h-[50px] max-h-[50px] min-h-[50px] grid-cols-[auto_1fr_auto]
-          border-b border-b-hairline bg-surface px-2 text-text-primary
+          border-b border-b-hairline bg-surface-raised px-2 text-text-primary
           lg:grid-cols-[1fr_auto_1fr] lg:px-4
         "
       >
@@ -97,47 +97,35 @@ export default async function NavBar() {
 
         <div
           className="
-            nav hidden h-full cursor-pointer items-center gap-4 justify-self-end text-center
-            font-medium
+            nav hidden h-full cursor-pointer items-center gap-0.5 justify-self-end text-center
+            text-[13px] font-medium text-text-secondary
             xl:flex
           "
         >
-          <div className="h-full">
-            <Link className="nav-btn" href="/today" prefetch={false}>
-              TIH
-            </Link>
-          </div>
-          <div>
-            <Link className="nav-btn whitespace-nowrap" href="/recently-played" prefetch={false}>
-              LIVE
-            </Link>
-          </div>
-          <div>
-            <Link className="nav-btn" href="/chat" prefetch={false}>
-              CHAT
-            </Link>
-          </div>
-          <div>
-            <Link className="nav-btn" href="/app" prefetch={false}>
-              APP
-            </Link>
-          </div>
-          <div>
-            <Link className="nav-btn" href="/sonos" prefetch={false}>
-              SONOS
-            </Link>
-          </div>
-          <div className="relative">
+          <Link className="nav-btn" href="/today" prefetch={false}>
+            Today
+          </Link>
+          <Link className="nav-btn whitespace-nowrap" href="/recently-played" prefetch={false}>
+            Live
+          </Link>
+          <Link className="nav-btn" href="/chat" prefetch={false}>
+            Chat
+          </Link>
+          <Link className="nav-btn" href="/app" prefetch={false}>
+            App
+          </Link>
+          <Link className="nav-btn" href="/sonos" prefetch={false}>
+            Sonos
+          </Link>
+          <div className="relative h-full">
             <Link className="nav-btn" href="/blog" prefetch={false}>
-              BLOG
+              Blog
             </Link>
             <BlogNavIndicator hasNewPost={blogHasNew} />
           </div>
-          <div>
-            <Link className="nav-btn" href="/about" prefetch={false}>
-              ABOUT
-            </Link>
-          </div>
+          <Link className="nav-btn" href="/about" prefetch={false}>
+            About
+          </Link>
         </div>
       </div>
       {isAndroid && <AndroidUpgradeNotification />}

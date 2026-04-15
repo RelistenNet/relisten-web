@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Venue } from '@/types';
-import { simplePluralize } from '@/lib/utils';
+import Count from './Count';
 import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import Row from './Row';
@@ -54,9 +54,11 @@ const VenuesColumnWithControls = ({ artistSlug, venues }: VenuesColumnWithContro
                   <div className="text-xxs text-foreground-muted">{venue.location}</div>
                 )}
               </div>
-              <div className="text-xxs text-foreground-muted min-w-[20%] text-right">
+              <div className="text-xxs min-w-[20%] text-right">
                 {venue.shows_at_venue != null && (
-                  <div>{simplePluralize('show', venue.shows_at_venue)}</div>
+                  <div>
+                    <Count unit="show" value={venue.shows_at_venue} />
+                  </div>
                 )}
               </div>
             </Row>

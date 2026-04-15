@@ -51,7 +51,7 @@ export default async function EmbedSongPage() {
 }
 
 export async function metadata() {
-  const params = getSegmentParams();
+  const params = getSegmentParams(SEGMENT_PATH);
   const artists = await RelistenAPI.fetchArtists();
   const artistSlug = params?.artistSlug as string | undefined;
   const year = params?.year as string | undefined;

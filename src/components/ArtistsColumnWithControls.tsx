@@ -1,7 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { groupBy, simplePluralize } from '../lib/utils';
+import { groupBy } from '../lib/utils';
+import Count from './Count';
 import { Artist } from '../types';
 import { useFilterState } from '@/hooks/useFilterState';
 import { FilterState } from '@/lib/filterCookies';
@@ -82,9 +83,13 @@ const ArtistsColumnWithControls = ({ artists, initialFilters }: ArtistsColumnWit
                 </div>
               )}
             </div>
-            <div className="text-foreground-muted min-w-[20%] text-right text-xs">
-              <div>{simplePluralize('show', artist.show_count)}</div>
-              <div>{simplePluralize('tape', artist.source_count)}</div>
+            <div className="min-w-[20%] text-right text-xs">
+              <div>
+                <Count unit="show" value={artist.show_count} />
+              </div>
+              <div>
+                <Count unit="tape" value={artist.source_count} />
+              </div>
             </div>
           </Row>
         )),

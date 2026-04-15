@@ -6,7 +6,7 @@ import { deny, getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 
 export async function metadata(): Promise<Metadata> {
-  const params = getSegmentParams();
+  const params = getSegmentParams(SEGMENT_PATH);
   const artistSlug = params?.artistSlug as string | undefined;
   const year = params?.year as string | undefined;
   const month = params?.month as string | undefined;

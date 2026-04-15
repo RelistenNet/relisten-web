@@ -124,8 +124,7 @@ const Player = ({ artistSlugsToName }: Props) => {
               </div>
 
               <Link
-                href="/"
-                as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
+                href={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
                 className="band-title text-text-muted justify-center text-center text-[0.8em]"
               >
                 {artistName} – {removeLeadingZero(month)}/{removeLeadingZero(day)}/{year.slice(2)}
@@ -189,8 +188,7 @@ const Player = ({ artistSlugsToName }: Props) => {
       )}
       {activeTrack && (
         <Link
-          href="/"
-          as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
+          href={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
           className="text-text-muted flex w-[40px] cursor-pointer items-center justify-center self-center active:text-text-primary max-lg:hidden"
         >
           <div>

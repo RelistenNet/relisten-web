@@ -46,7 +46,7 @@ const ColumnWithToggleControls = ({
     <Flex ref={ref} className={cn('relisten-column relative flex-1 break-words', className)} column>
       <Scroller containerRef={ref} key={heading} />
       {heading && (
-        <Flex className="bg-relisten-800 min-h-[32px] w-full items-center justify-between px-2 text-sm font-semibold text-white capitalize">
+        <Flex className="bg-surface-elevated min-h-[32px] w-full items-center justify-between border-b border-hairline px-2 text-sm font-medium text-text-secondary capitalize">
           <span className="flex-1 text-center">{heading?.replaceAll('-', ' ')}</span>
 
           <Flex className="absolute right-2 gap-1">

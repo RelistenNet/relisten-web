@@ -45,6 +45,7 @@ function RowLinkContent({
         'relative relisten-row min-h-[46px] items-stretch border-b border-hairline hover:bg-surface-hover',
         {
           'opacity-70': isPending,
+          'bg-accent/10 hover:bg-accent/15': isActive && !isPending,
         }
       )}
       {...props}

@@ -29,17 +29,17 @@ export default async function Page() {
   return (
     <div className="mx-auto w-full max-w-3xl flex-1">
       <div className="mb-8">
-        <h1 className="mb-2 text-3xl font-semibold text-gray-900">Today in History</h1>
+        <h1 className="mb-2 text-3xl font-semibold text-text-primary">Today in History</h1>
         <TodayDateNav month={month} day={day} pathname="/today" />
       </div>
 
       <div className="space-y-8">
         {Object.entries(groupedBy).map(([artistName, days]) => (
           <div key={artistName}>
-            <h2 className="mb-4 border-l-4 pl-4 text-xl font-semibold text-relisten-700">
+            <h2 className="mb-4 border-l-4 border-accent pl-4 text-xl font-semibold text-accent">
               {artistName}
             </h2>
-            <div className="ml-2 space-y-0 border-l border-gray-200">
+            <div className="ml-2 space-y-0 border-l border-hairline">
               {days.map((day: Day) => (
                 <TodayTrack day={day} key={day.id} />
               ))}

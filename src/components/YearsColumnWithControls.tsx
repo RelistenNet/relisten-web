@@ -5,7 +5,7 @@ import { PropsWithChildren, useMemo } from 'react';
 import { useFilterState } from '@/hooks/useFilterState';
 import { FilterState } from '@/lib/filterCookies';
 import sortActiveBands from '../lib/sortActiveBands';
-import { simplePluralize } from '../lib/utils';
+import Count from './Count';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import PopularityBadge from './PopularityBadge';
 import Row from './Row';
@@ -82,9 +82,13 @@ const YearsColumnWithControls = ({
               </div>
               <PopularityBadge popularity={yearObj.popularity} />
             </div>
-            <div className="text-xxs text-foreground-muted min-w-[20%] text-right">
-              <div>{simplePluralize('show', yearObj.show_count)}</div>
-              <div>{simplePluralize('tape', yearObj.source_count)}</div>
+            <div className="text-xxs min-w-[20%] text-right">
+              <div>
+                <Count unit="show" value={yearObj.show_count} />
+              </div>
+              <div>
+                <Count unit="tape" value={yearObj.source_count} />
+              </div>
             </div>
           </Row>
         ))}

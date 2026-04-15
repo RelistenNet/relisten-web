@@ -27,6 +27,7 @@
      utilities like `bg-surface`, `text-text-primary`, `border-hairline`. */
   --color-surface: var(--resolved-surface);
   --color-surface-raised: var(--resolved-surface-raised);
+  --color-surface-elevated: var(--resolved-surface-elevated);
   --color-surface-recessed: var(--resolved-surface-recessed);
   --color-surface-hover: var(--resolved-surface-hover);
   --color-hairline: var(--resolved-hairline);
@@ -44,58 +45,88 @@
   --color-background-muted: var(--resolved-surface-recessed);
 }
 
-/* Light theme (default) */
+/* Palette definitions — each color defined exactly once. The --resolved-*
+   tokens below switch between these palettes based on theme. */
 :root {
-  --resolved-surface: #fefefe;
-  --resolved-surface-raised: #ffffff;
-  --resolved-surface-recessed: #f3f4f6;
-  --resolved-surface-hover: #f3f4f6;
-  --resolved-hairline: #e5e7eb;
-  --resolved-text-primary: #333;
-  --resolved-text-secondary: #4b5563;
-  --resolved-text-muted: #6b7280;
-  --resolved-accent: #009DC1;
+  --light-surface: #fefefe;
+  --light-surface-raised: #ffffff;
+  --light-surface-elevated: #f9fafb;
+  --light-surface-recessed: #f3f4f6;
+  --light-surface-hover: #f3f4f6;
+  --light-hairline: #e5e7eb;
+  --light-text-primary: #333;
+  --light-text-secondary: #4b5563;
+  --light-text-muted: #6b7280;
+  --light-accent: #009DC1;
+
+  --dark-surface: #000B0E;
+  --dark-surface-raised: #001A20;
+  --dark-surface-elevated: #002A35;
+  --dark-surface-recessed: #000609;
+  --dark-surface-hover: #004251;
+  --dark-hairline: rgba(0, 157, 193, 0.18); /* relisten-600 @ 18% — reads on both surface + surface-raised */
+  /* Text colors derived from relisten-600 hue (~192°) with dropped saturation,
+     so they harmonize with the teal surfaces instead of reading as neutral gray. */
+  --dark-text-primary: hsl(192, 30%, 98%);
+  --dark-text-secondary: hsl(192, 18%, 78%);
+  --dark-text-muted: hsl(192, 12%, 58%);
+  --dark-accent: #009DC1;
+
+  /* Default: light */
+  --resolved-surface: var(--light-surface);
+  --resolved-surface-raised: var(--light-surface-raised);
+  --resolved-surface-elevated: var(--light-surface-elevated);
+  --resolved-surface-recessed: var(--light-surface-recessed);
+  --resolved-surface-hover: var(--light-surface-hover);
+  --resolved-hairline: var(--light-hairline);
+  --resolved-text-primary: var(--light-text-primary);
+  --resolved-text-secondary: var(--light-text-secondary);
+  --resolved-text-muted: var(--light-text-muted);
+  --resolved-accent: var(--light-accent);
 }
 
 /* Auto dark via OS */
 @media (prefers-color-scheme: dark) {
   :root {
-    --resolved-surface: #001D24;
-    --resolved-surface-raised: #004251;
-    --resolved-surface-recessed: #001114;
-    --resolved-surface-hover: #004251;
-    --resolved-hairline: #004251;
-    --resolved-text-primary: #ffffff;
-    --resolved-text-secondary: #d1d5db;
-    --resolved-text-muted: #9ca3af;
-    --resolved-accent: #009DC1;
+    --resolved-surface: var(--dark-surface);
+    --resolved-surface-raised: var(--dark-surface-raised);
+    --resolved-surface-elevated: var(--dark-surface-elevated);
+    --resolved-surface-recessed: var(--dark-surface-recessed);
+    --resolved-surface-hover: var(--dark-surface-hover);
+    --resolved-hairline: var(--dark-hairline);
+    --resolved-text-primary: var(--dark-text-primary);
+    --resolved-text-secondary: var(--dark-text-secondary);
+    --resolved-text-muted: var(--dark-text-muted);
+    --resolved-accent: var(--dark-accent);
   }
 }
 
 /* Explicit override — wins over prefers-color-scheme. Must come after
    the @media block so the cascade resolves in its favor. */
 :root[data-theme='light'] {
-  --resolved-surface: #fefefe;
-  --resolved-surface-raised: #ffffff;
-  --resolved-surface-recessed: #f3f4f6;
-  --resolved-surface-hover: #f3f4f6;
-  --resolved-hairline: #e5e7eb;
-  --resolved-text-primary: #333;
-  --resolved-text-secondary: #4b5563;
-  --resolved-text-muted: #6b7280;
-  --resolved-accent: #009DC1;
+  --resolved-surface: var(--light-surface);
+  --resolved-surface-raised: var(--light-surface-raised);
+  --resolved-surface-elevated: var(--light-surface-elevated);
+  --resolved-surface-recessed: var(--light-surface-recessed);
+  --resolved-surface-hover: var(--light-surface-hover);
+  --resolved-hairline: var(--light-hairline);
+  --resolved-text-primary: var(--light-text-primary);
+  --resolved-text-secondary: var(--light-text-secondary);
+  --resolved-text-muted: var(--light-text-muted);
+  --resolved-accent: var(--light-accent);
 }
 
 :root[data-theme='dark'] {
-  --resolved-surface: #001D24;
-  --resolved-surface-raised: #004251;
-  --resolved-surface-recessed: #001114;
-  --resolved-surface-hover: #004251;
-  --resolved-hairline: #004251;
-  --resolved-text-primary: #ffffff;
-  --resolved-text-secondary: #d1d5db;
-  --resolved-text-muted: #9ca3af;
-  --resolved-accent: #009DC1;
+  --resolved-surface: var(--dark-surface);
+  --resolved-surface-raised: var(--dark-surface-raised);
+  --resolved-surface-elevated: var(--dark-surface-elevated);
+  --resolved-surface-recessed: var(--dark-surface-recessed);
+  --resolved-surface-hover: var(--dark-surface-hover);
+  --resolved-hairline: var(--dark-hairline);
+  --resolved-text-primary: var(--dark-text-primary);
+  --resolved-text-secondary: var(--dark-text-secondary);
+  --resolved-text-muted: var(--dark-text-muted);
+  --resolved-accent: var(--dark-accent);
 }
 
 /*
@@ -134,7 +165,7 @@
 }
 
 @utility nav-btn {
-  @apply flex h-full items-center text-center active:relative active:top-[1px] active:text-foreground;
+  @apply flex h-full items-center rounded-sm px-2 text-center transition-colors hover:bg-surface-hover hover:text-text-primary active:relative active:top-[1px] active:text-text-primary;
 }
 
 @utility relisten-row {
@@ -150,7 +181,7 @@
 }
 
 @utility button {
-  @apply rounded-sm bg-green-400 p-4 py-2 border border-green-100 my-4 inline-block font-medium text-black/70 tracking-wide;
+  @apply rounded-sm bg-green-500 p-4 py-2 my-4 inline-block font-medium text-black tracking-wide transition-colors hover:bg-green-400;
 }
 
 @layer base {

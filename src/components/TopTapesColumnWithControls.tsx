@@ -1,7 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { durationToHHMMSS, removeLeadingZero, simplePluralize, splitShowDate } from '../lib/utils';
+import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
+import Count from './Count';
 import { Show } from '@/types';
 import { useFilterState } from '@/hooks/useFilterState';
 import { FilterState } from '@/lib/filterCookies';
@@ -89,7 +90,9 @@ const TopTapesColumnWithControls = ({
                 <div className="text-xxs text-foreground-muted flex h-full min-w-[20%] flex-col justify-center gap-2 text-right">
                   {avg_rating != null && <div>{avg_rating.toFixed(1)} ★</div>}
                   <div>{durationToHHMMSS(avg_duration)}</div>
-                  <div>{simplePluralize('tape', show.source_count)}</div>
+                  <div>
+                    <Count unit="tape" value={show.source_count} />
+                  </div>
                 </div>
               </Row>
             </div>

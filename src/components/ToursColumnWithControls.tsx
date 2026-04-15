@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Tour } from '@/types';
-import { simplePluralize } from '@/lib/utils';
+import Count from './Count';
 import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import Row from './Row';
@@ -63,9 +63,11 @@ const ToursColumnWithControls = ({ artistSlug, tours }: ToursColumnWithControlsP
                   </div>
                 )}
               </div>
-              <div className="text-xxs text-foreground-muted min-w-[20%] text-right">
+              <div className="text-xxs min-w-[20%] text-right">
                 {tour.shows_on_tour != null && (
-                  <div>{simplePluralize('show', tour.shows_on_tour)}</div>
+                  <div>
+                    <Count unit="show" value={tour.shows_on_tour} />
+                  </div>
                 )}
               </div>
             </Row>

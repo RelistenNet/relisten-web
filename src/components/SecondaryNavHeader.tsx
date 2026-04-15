@@ -56,7 +56,7 @@ const bandsWithThe = [
 export default function SecondaryNavBar({ artistSlugsToName }: Props) {
   const pathname = usePathname();
   const key = pathname.replace('/', '');
-  const { artistSlug } = useSegmentParams();
+  const { artistSlug } = useSegmentParams() as { artistSlug?: string };
 
   const pageMetadata = pages[key];
 
