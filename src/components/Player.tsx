@@ -83,18 +83,18 @@ const Player = ({ artistSlugsToName }: Props) => {
     <Flex className="content relative h-[50px] flex-1">
       {activeTrack && (
         <Flex
-          className="playpause text-foreground-muted cursor-pointer items-center justify-center active:text-gray-800 lg:w-[40px]"
+          className="playpause text-text-muted cursor-pointer items-center justify-center active:text-text-primary lg:w-[40px]"
           onClick={() => player.togglePlayPause()}
         >
           {playback.activeTrack.isPaused ? (
             <PlayIcon
               size={20}
-              className="fas fa fa-play fill-foreground-muted active:fill-gray-800"
+              className="fas fa fa-play fill-text-muted active:fill-text-primary"
             />
           ) : (
             <PauseIcon
               size={20}
-              className="fas fa fa-pause fill-foreground-muted active:fill-gray-800"
+              className="fas fa fa-pause fill-text-muted active:fill-text-primary"
             />
           )}
         </Flex>
@@ -102,10 +102,10 @@ const Player = ({ artistSlugsToName }: Props) => {
       {typeof window === 'undefined' || !activeTrack ? null : (
         <div className="relative h-full flex-1" ref={playerRef}>
           <Flex className="info h-full justify-center transition-all duration-[1s] ease-in-out">
-            <div className="timing text-foreground-muted absolute top-1/2 left-[8px] translate-x-0 translate-y-[-50%] text-left text-[0.8em]">
+            <div className="timing text-text-muted absolute top-1/2 left-[8px] translate-x-0 translate-y-[-50%] text-left text-[0.8em]">
               <div>
                 <RewindIcon
-                  className="fill-foreground-muted cursor-pointer"
+                  className="fill-text-muted cursor-pointer"
                   onClick={() => player.previous()}
                   size={16}
                 />
@@ -113,10 +113,10 @@ const Player = ({ artistSlugsToName }: Props) => {
               <div>{durationToHHMMSS(playback.activeTrack.currentTime)}</div>
             </div>
             <Flex column className="justify-center pb-1">
-              <div className="song-title relative top-1 text-center text-[1em] text-gray-900">
+              <div className="song-title relative top-1 text-center text-[1em] text-text-primary">
                 {activeTrack.title}
                 {false && (
-                  <Flex className="text-foreground-muted absolute top-[2px] left-full ml-2 w-full items-center text-[0.8em]">
+                  <Flex className="text-text-muted absolute top-[2px] left-full ml-2 w-full items-center text-[0.8em]">
                     <div>Next: {nextTrack?.title}&nbsp;</div>
                     <ChevronDown size={12} className="cursor-pointer" />
                   </Flex>
@@ -126,15 +126,15 @@ const Player = ({ artistSlugsToName }: Props) => {
               <Link
                 href="/"
                 as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
-                className="band-title text-foreground-muted justify-center text-center text-[0.8em]"
+                className="band-title text-text-muted justify-center text-center text-[0.8em]"
               >
                 {artistName} – {removeLeadingZero(month)}/{removeLeadingZero(day)}/{year.slice(2)}
               </Link>
             </Flex>
-            <div className="timing duration text-foreground-muted absolute top-1/2 right-[8px] translate-x-0 translate-y-[-50%] text-right text-[0.8em]">
+            <div className="timing duration text-text-muted absolute top-1/2 right-[8px] translate-x-0 translate-y-[-50%] text-right text-[0.8em]">
               <div>
                 <FastForwardIcon
-                  className="fill-foreground-muted ml-auto cursor-pointer"
+                  className="fill-text-muted ml-auto cursor-pointer"
                   onClick={() => player.next()}
                   size={16}
                 />
@@ -149,25 +149,25 @@ const Player = ({ artistSlugsToName }: Props) => {
             </div>
           </Flex>
           <div
-            className="group absolute bottom-0 left-0 z-1 h-1 w-full cursor-pointer bg-[#bcbcbc] before:absolute before:-top-2 before:left-0 before:h-3 before:w-full before:content-['']"
+            className="group absolute bottom-0 left-0 z-1 h-1 w-full cursor-pointer bg-hairline before:absolute before:-top-2 before:left-0 before:h-3 before:w-full before:content-['']"
             onClick={onProgressClick}
             onMouseMove={onProgressMouseMove}
             style={{ opacity: (playback.activeTrack.currentTime ?? 0) < 0.1 ? 0.8 : 1 }}
           >
             <div
-              className="absolute bottom-0 left-0 h-1 bg-[#707070]"
+              className="absolute bottom-0 left-0 h-1 bg-accent"
               style={{ width: notchPosition ? notchPosition + 2 : 'auto' }}
             />
             <div
-              className="absolute bottom-0 left-0 z-1 h-2 w-[3px] bg-black"
+              className="absolute bottom-0 left-0 z-1 h-2 w-[3px] bg-text-primary"
               style={{ transform: `translate(${notchPosition}px, 0)` }}
             />
             <div
-              className="pointer-events-none absolute bottom-full z-2 mb-2 hidden -translate-x-1/2 rounded-md bg-gray-900 px-2.5 py-1 text-xs text-gray-100 tabular-nums shadow-lg ring-1 ring-white/10 group-hover:block"
+              className="pointer-events-none absolute bottom-full z-2 mb-2 hidden -translate-x-1/2 rounded-md bg-surface-raised px-2.5 py-1 text-xs text-text-primary tabular-nums shadow-lg ring-1 ring-white/10 group-hover:block"
               style={{ left: 'var(--hover-x)' }}
             >
               <span ref={hoverTextRef} />
-              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-surface-raised" />
             </div>
           </div>
         </div>
@@ -175,11 +175,11 @@ const Player = ({ artistSlugsToName }: Props) => {
       {activeTrack && (
         <div className="volume-control">
           <div
-            className="relative h-full w-[6px] cursor-pointer bg-[#0000001a]"
+            className="relative h-full w-[6px] cursor-pointer bg-hairline"
             onClick={updateVolume}
           >
             <div
-              className="pointer-events-none absolute right-0 bottom-0 left-0 bg-[#707070]"
+              className="pointer-events-none absolute right-0 bottom-0 left-0 bg-text-muted"
               style={{
                 height: `${volume * 100}%`,
               }}
@@ -191,7 +191,7 @@ const Player = ({ artistSlugsToName }: Props) => {
         <Link
           href="/"
           as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
-          className="text-foreground-muted flex w-[40px] cursor-pointer items-center justify-center self-center active:text-gray-800 max-lg:hidden"
+          className="text-text-muted flex w-[40px] cursor-pointer items-center justify-center self-center active:text-text-primary max-lg:hidden"
         >
           <div>
             <ListMusicIcon size={22} />

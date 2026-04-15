@@ -45,7 +45,7 @@ export default async function NavBar() {
       <div
         className="
           navigation relative grid h-[50px] max-h-[50px] min-h-[50px] grid-cols-[auto_1fr_auto]
-          border-b border-b-[#aeaeae] bg-white px-2 text-foreground
+          border-b border-b-hairline bg-surface px-2 text-text-primary
           lg:grid-cols-[1fr_auto_1fr] lg:px-4
         "
       >
