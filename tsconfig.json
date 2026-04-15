@@ -22,14 +22,18 @@
     "baseUrl": ".",
     "paths": {
       "@/*": [
-        "src/*"
+        "./src/*"
+      ],
+      "content-collections": [
+        "./.content-collections/generated"
       ]
     },
     "target": "ES2017"
   },
   "include": [
     "**/*.ts",
-    "**/*.tsx"
+    "**/*.tsx",
+    ".content-collections/generated"
   ],
   "exclude": [
     "node_modules"

@@ -6,4 +6,9 @@ export default {
   adapter: nitro({ preset: 'node-server' }),
   serverTiming: 'detailed' as const,
   cacheHandler: new MemoryCacheHandler({ maxSize: 500 }),
+  pageExtensions: ['tsx', 'ts', 'jsx', 'js', 'mdx'],
+  mdx: {
+    remarkPlugins: [],
+    rehypePlugins: [],
+  },
 };

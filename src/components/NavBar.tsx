@@ -6,10 +6,12 @@ import * as Popover from '@/components/Popover';
 import RelistenAPI from '@/lib/RelistenAPI';
 import MainNavHeader from './MainNavHeader';
 import AndroidUpgradeNotification from './AndroidUpgradeNotification';
+import BlogNavIndicator from './blog/BlogNavLink';
 import { MenuIcon } from 'lucide-react';
 import { getHeaders } from '@timber-js/app/server';
 import { UAParser } from 'ua-parser-js';
 import { getIsInIframe } from '@/lib/isInIframe';
+import { hasRecentPost } from '@/lib/blog/getPosts';
 
 export const getUserAgent = async () => {
   const headersList = await getHeaders();
@@ -27,6 +29,7 @@ export default async function NavBar() {
     getIsInIframe(),
   ]);
   const isAndroid = /android/i.test(userAgent?.ua || '');
+  const blogHasNew = hasRecentPost();
 
   const artistSlugsToName = artists.reduce(
     (memo, next) => {
@@ -123,6 +126,12 @@ export default async function NavBar() {
             <Link className="nav-btn" href="/sonos" prefetch={false}>
               SONOS
             </Link>
+          </div>
+          <div className="relative">
+            <Link className="nav-btn" href="/blog" prefetch={false}>
+              BLOG
+            </Link>
+            <BlogNavIndicator hasNewPost={blogHasNew} />
           </div>
           <div>
             <Link className="nav-btn" href="/about" prefetch={false}>

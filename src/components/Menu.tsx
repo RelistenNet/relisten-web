@@ -6,6 +6,7 @@ import Row from './Row';
 const Menu = () => (
   <div className="mt-2 mr-2 w-[120px] rounded-sm border bg-white shadow-lg">
     <Row href="/">Home</Row>
+    <Row href="/blog">Blog</Row>
     <Row href="/about">About</Row>
     <Row href="/today">Today</Row>
     <Row href="/recently-played">Live</Row>

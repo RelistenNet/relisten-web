@@ -1,7 +1,6 @@
 'use client';
 
-import { Link } from '@timber-js/app/client';
-import { useSegmentParams, usePathname, useSelectedLayoutSegments } from '@timber-js/app/client';
+import { Link, usePathname, useSegmentParams } from '@timber-js/app/client';
 
 const pages = {
   'sonos': {
@@ -27,6 +26,10 @@ const pages = {
   'about': {
     prefix: 'TO',
     title: 'OUR LIFE STORY',
+  },
+  'blog': {
+    prefix: 'TO',
+    title: 'OUR BLOG',
   },
 };
 

@@ -94,4 +94,123 @@
 
   body { margin: 0; -webkit-font-smoothing: antialiased; @apply text-foreground; }
   a { text-decoration: none; @apply text-foreground; }
+
+  /* ── Blog Post Content ── */
+
+  .blog-content {
+    --blog-content-width: 640px;
+  }
+
+  .blog-content > * {
+    max-width: var(--blog-content-width);
+  }
+
+  .blog-content > p {
+    line-height: 1.7;
+    margin-top: 0;
+    margin-bottom: 1rem;
+  }
+
+  .blog-content > h2 {
+    @apply text-2xl font-semibold mt-10 mb-4;
+  }
+
+  .blog-content > h3 {
+    @apply text-xl font-semibold mt-8 mb-3;
+  }
+
+  .blog-content > blockquote {
+    border-left: 4px solid color-mix(in srgb, var(--color-relisten-DEFAULT) 40%, transparent);
+    padding-left: 1rem;
+    font-style: italic;
+    color: var(--color-foreground-muted);
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .blog-content > ul,
+  .blog-content > ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+  }
+
+  .blog-content > ul li,
+  .blog-content > ol li {
+    line-height: 1.7;
+    margin-bottom: 0.25rem;
+  }
+
+  .blog-content > hr {
+    @apply my-8 border-gray-200;
+  }
+
+  .blog-content a {
+    color: var(--color-relisten-DEFAULT);
+  }
+
+  .blog-content a:hover {
+    text-decoration: underline;
+  }
+
+  .blog-content .bleed {
+    max-width: none;
+    margin: 1.5rem -1rem;
+    border-radius: 0.5rem;
+    background-color: var(--color-background-muted);
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  /* ── Footnotes / Sidenotes ── */
+
+  .footnote-index {
+    color: var(--color-relisten-DEFAULT);
+  }
+
+  /* Float fallback for sidenotes */
+  .footnote-content {
+    float: right;
+    clear: right;
+    margin-right: -45%;
+    width: 40%;
+    word-wrap: break-word;
+    margin-top: 0;
+    margin-bottom: 0.1rem;
+    vertical-align: baseline;
+    position: relative;
+    box-sizing: border-box;
+    font-style: normal;
+    opacity: 0.9;
+  }
+
+  /* CSS Anchor Positioning enhancement */
+  @supports (anchor-name: --fn) {
+    .blog-post {
+      position: relative;
+    }
+
+    .footnote-content {
+      float: none;
+      clear: none;
+      position: absolute;
+      margin: 0;
+      width: 40%;
+      max-width: 280px;
+      left: calc(50% + var(--blog-content-width, 640px) / 2 + 2rem);
+    }
+  }
+
+  @media only screen and (max-width: 900px) {
+    .footnote-content.footnote-content {
+      display: none;
+    }
+  }
+
+  /* ── Print ── */
+
+  @media print {
+    .blog-post .draft-alert {
+      display: none !important;
+    }
+  }
 }
