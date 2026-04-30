@@ -8,7 +8,7 @@ export default defineSchema({
     '[day]': z.string().regex(/[\dx]{1,2}/i),
     '[month]': z.string().regex(/[\dx]{1,2}/i),
     '[songSlug]': z.string(),
-    '[year]': z.string().regex(/[\d]{4}/),
+    '[year]': z.string(),
 
     '[...artistSlugs]': codec.catchAll(codec.string),
     '[...days]': codec.catchAll(codec.string),
