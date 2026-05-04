@@ -17,3 +17,4 @@ dist/
 .timber
 .lb
 .content-collections
+.mcp.json

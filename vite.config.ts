@@ -14,5 +14,7 @@ export default defineConfig({
   ssr: {
     external: ['@takumi-rs/image-response', '@mdx-js/rollup', 'rollup'],
   },
-
+  server: {
+    strictPort: false,
+  }
 });

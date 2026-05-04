@@ -59,17 +59,17 @@
   --light-text-muted: #6b7280;
   --light-accent: #009DC1;
 
-  --dark-surface: #000B0E;
-  --dark-surface-raised: #001A20;
-  --dark-surface-elevated: #002A35;
+  --dark-surface: #00141A;
+  --dark-surface-raised: #002129;
+  --dark-surface-elevated: #003344;
   --dark-surface-recessed: #000609;
-  --dark-surface-hover: #004251;
-  --dark-hairline: rgba(0, 157, 193, 0.18); /* relisten-600 @ 18% — reads on both surface + surface-raised */
+  --dark-surface-hover: #00475A;
+  --dark-hairline: rgba(60, 219, 255, 0.22); /* relisten-300 @ 22% — brighter teal divider for stronger row separation */
   /* Text colors derived from relisten-600 hue (~192°) with dropped saturation,
      so they harmonize with the teal surfaces instead of reading as neutral gray. */
   --dark-text-primary: hsl(192, 30%, 98%);
-  --dark-text-secondary: hsl(192, 18%, 78%);
-  --dark-text-muted: hsl(192, 12%, 58%);
+  --dark-text-secondary: hsl(192, 28%, 88%);
+  --dark-text-muted: hsl(192, 32%, 72%);
   --dark-accent: #009DC1;
 
   /* Default: light */
