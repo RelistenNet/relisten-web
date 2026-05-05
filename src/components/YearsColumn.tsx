@@ -3,7 +3,7 @@ import { RawParams } from '@/types/params';
 import { deny } from '@timber-js/app/server';
 import { getServerFilters } from '@/lib/serverFilterCookies';
 import YearsColumnWithControls from './YearsColumnWithControls';
-import QuickHitsNav from './QuickHitsNav';
+import SubartistTabs from './SubartistTabs';
 import TodayInHistoryRow from './TodayInHistoryRow';
 import RowHeader from './RowHeader';
 
@@ -38,7 +38,7 @@ const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
       artistYears={slimYears}
       initialFilters={initialFilters}
     >
-      <QuickHitsNav artistSlug={artistSlug} features={features} />
+      <SubartistTabs artistSlug={artistSlug} features={features} />
       <TodayInHistoryRow artistSlug={artistSlug} />
       <RowHeader>Years</RowHeader>
     </YearsColumnWithControls>

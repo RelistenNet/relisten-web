@@ -6,12 +6,12 @@ import { Link } from '@timber-js/app/client';
 import { useSegmentParams, useRouter } from '@timber-js/app/client';
 import { MouseEvent, useTransition } from 'react';
 
-type QuickHitsNavProps = {
+type SubartistTabsProps = {
   artistSlug?: string;
   features?: Features;
 };
 
-const QuickHitsNav = ({ artistSlug, features }: QuickHitsNavProps) => {
+const SubartistTabs = ({ artistSlug, features }: SubartistTabsProps) => {
   const params = useSegmentParams('/(browse)/[artistSlug]/[year]');
   const year = Array.isArray(params.year) ? params.year[0] : params.year;
 
@@ -86,4 +86,4 @@ const QuickHitsPill = ({
   );
 };
 
-export default QuickHitsNav;
+export default SubartistTabs;

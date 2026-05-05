@@ -1,11 +1,12 @@
 'use client';
 
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { groupBy } from '../lib/utils';
 import Count from './Count';
 import { Artist } from '../types';
 import { useFilterState } from '@/hooks/useFilterState';
 import { FilterState } from '@/lib/filterCookies';
+import cn from '@/lib/cn';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import PopularityBadge from './PopularityBadge';
 import Row from './Row';
@@ -18,9 +19,16 @@ const byObject = {
 type ArtistsColumnWithControlsProps = {
   artists: Artist[];
   initialFilters?: FilterState;
+  subHeader?: React.ReactNode;
+  isPending?: boolean;
 };
 
-const ArtistsColumnWithControls = ({ artists, initialFilters }: ArtistsColumnWithControlsProps) => {
+const ArtistsColumnWithControls = ({
+  artists,
+  initialFilters,
+  subHeader,
+  isPending,
+}: ArtistsColumnWithControlsProps) => {
   const { alphaAsc, toggleFilter, clearFilters } = useFilterState(initialFilters, 'root');
 
   const toggles = [
@@ -65,35 +73,38 @@ const ArtistsColumnWithControls = ({ artists, initialFilters }: ArtistsColumnWit
       filteredCount={filteredArtistCount}
       totalCount={totalArtistCount}
       onClearFilters={clearFilters}
+      subHeader={subHeader}
     >
-      {processedArtists.map(([type, groupArtists]) => [
-        <RowHeader key={`header-${type}`}>{type === '1' ? 'Featured' : 'Bands'}</RowHeader>,
-        ...groupArtists.map((artist: Artist, idx: number) => (
-          <Row
-            key={[idx, artist.uuid].join(':')}
-            href={`/${artist.slug}`}
-            activeSegments={{ artistSlug: artist.slug }}
-          >
-            <div>
-              <div>{artist.name}</div>
-              <PopularityBadge popularity={artist.popularity} />
-              {byObject[String(artist.slug)] && (
-                <div className="text-foreground-muted text-xxs">
-                  Powered by {byObject[String(artist.slug)]}
+      <div className={cn('transition-opacity', { 'opacity-40': isPending })}>
+        {processedArtists.map(([type, groupArtists]) => [
+          <RowHeader key={`header-${type}`}>{type === '1' ? 'Featured' : 'Bands'}</RowHeader>,
+          ...groupArtists.map((artist: Artist, idx: number) => (
+            <Row
+              key={[idx, artist.uuid].join(':')}
+              href={`/${artist.slug}`}
+              activeSegments={{ artistSlug: artist.slug }}
+            >
+              <div>
+                <div>{artist.name}</div>
+                <PopularityBadge popularity={artist.popularity} />
+                {byObject[String(artist.slug)] && (
+                  <div className="text-foreground-muted text-xxs">
+                    Powered by {byObject[String(artist.slug)]}
+                  </div>
+                )}
+              </div>
+              <div className="min-w-[20%] text-right text-xs">
+                <div>
+                  <Count unit="show" value={artist.show_count} />
                 </div>
-              )}
-            </div>
-            <div className="min-w-[20%] text-right text-xs">
-              <div>
-                <Count unit="show" value={artist.show_count} />
+                <div>
+                  <Count unit="tape" value={artist.source_count} />
+                </div>
               </div>
-              <div>
-                <Count unit="tape" value={artist.source_count} />
-              </div>
-            </div>
-          </Row>
-        )),
-      ])}
+            </Row>
+          )),
+        ])}
+      </div>
     </ColumnWithToggleControls>
   );
 };

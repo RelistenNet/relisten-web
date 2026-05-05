@@ -59,6 +59,10 @@ export class RelistenAPI {
     return cachedApiFetch<Artist[]>('/api/v3/artists');
   });
 
+  static fetchAllArtists = cache(async (): Promise<Artist[]> => {
+    return cachedApiFetch<Artist[]>('/api/v3/artists?include_autocreated=true');
+  });
+
   // Shows API
   static fetchShow = cache(
     async (

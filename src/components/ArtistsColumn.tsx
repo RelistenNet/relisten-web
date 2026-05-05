@@ -1,20 +1,10 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { getServerFilters } from '@/lib/serverFilterCookies';
-import ArtistsColumnWithControls from './ArtistsColumnWithControls';
+import { Artist } from '@/types';
+import ArtistsSelectionTab from './ArtistsSelectionTab';
 
-const ArtistsColumn = async () => {
-  const [artists, initialFilters] = await Promise.all([
-    RelistenAPI.fetchArtists().then((artists) =>
-      artists.filter((artist) => Number(artist.featured) <= 1)
-    ),
-    getServerFilters('root', true),
-  ]);
-
-  // Trim to only the fields the UI needs. The full artist objects include
-  // upstream_sources, musicbrainz_id, timestamps, etc. — 357KB of data
-  // that the client component never reads. Trimming reduces the RSC
-  // payload from 357KB to ~32KB (91% smaller), cutting render time ~3x.
-  const slimArtists = artists.map((a) => ({
+const slim = (artists: Artist[]) =>
+  artists.map((a) => ({
     id: a.id,
     name: a.name,
     slug: a.slug,
@@ -25,7 +15,22 @@ const ArtistsColumn = async () => {
     popularity: a.popularity,
   }));
 
-  return <ArtistsColumnWithControls artists={slimArtists} initialFilters={initialFilters} />;
+const ArtistsColumn = async () => {
+  const [primaryArtists, allArtists, initialFilters] = await Promise.all([
+    RelistenAPI.fetchArtists().then((artists) =>
+      artists.filter((artist) => Number(artist.featured) <= 1)
+    ),
+    RelistenAPI.fetchAllArtists(),
+    getServerFilters('root', true),
+  ]);
+
+  return (
+    <ArtistsSelectionTab
+      artistsPrimary={slim(primaryArtists)}
+      artistsAll={slim(allArtists)}
+      initialFilters={initialFilters}
+    />
+  );
 };
 
 export default ArtistsColumn;
