@@ -52,7 +52,7 @@ const TapesColumn = (props: Props) => {
           <RowHeader>{author(sourceObj) || `Source ${idx + 1} of ${sourcesData.length}`}</RowHeader>
           <Row
             href={`/${artistSlug}/${year}/${month}/${day}?source=${sourceObj.id}`}
-            isActiveOverride={activeSourceId === sourceObj?.id}
+            active={activeSourceId === sourceObj?.id}
           >
             <div className="w-full">
               <Flex className="mb-1">

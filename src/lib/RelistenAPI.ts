@@ -96,16 +96,18 @@ export class RelistenAPI {
     return show;
   });
 
-  static fetchRandomShow = cache(async (artistSlug?: string): Promise<Partial<Tape> | undefined> => {
-    if (!artistSlug) return undefined;
+  static fetchRandomShow = cache(
+    async (artistSlug?: string): Promise<Partial<Tape> | undefined> => {
+      if (!artistSlug) return undefined;
 
-    if (!this.isValidArtistSlug(artistSlug)) {
-      console.error('Tried to load url that doesnt match artist slug format:', artistSlug);
-      return deny(404);
+      if (!this.isValidArtistSlug(artistSlug)) {
+        console.error('Tried to load url that doesnt match artist slug format:', artistSlug);
+        return deny(404);
+      }
+
+      return apiFetch<Partial<Tape>>(`/api/v2/artists/${artistSlug}/shows/random`);
     }
-
-    return apiFetch<Partial<Tape>>(`/api/v2/artists/${artistSlug}/shows/random`);
-  });
+  );
 
   // Years API (v3 — UUID-based, includes popularity)
   static fetchYears = cache(async (artistUuid?: string): Promise<Year[]> => {

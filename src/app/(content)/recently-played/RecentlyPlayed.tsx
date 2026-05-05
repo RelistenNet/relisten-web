@@ -29,7 +29,7 @@ const fetchRecentlyPlayed = async (queryClient: QueryClient) => {
 
   const params = lastSeenId ? `?lastSeenId=${lastSeenId}` : '';
   const res = await fetch(`${API_DOMAIN}/api/v2/live/history${params}`);
-  const parsed = await res.json() as LiveHistoryItem[];
+  const parsed = (await res.json()) as LiveHistoryItem[];
 
   if (Array.isArray(parsed)) {
     return parsed.concat(cache ?? []).slice(0, 500);
@@ -41,7 +41,10 @@ const fetchRecentlyPlayed = async (queryClient: QueryClient) => {
 const LoadingSkeleton = () => (
   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
     {Array.from({ length: 8 }).map((_, i) => (
-      <div key={i} className="animate-pulse space-y-3 rounded-xl border border-hairline bg-surface-raised p-4">
+      <div
+        key={i}
+        className="animate-pulse space-y-3 rounded-xl border border-hairline bg-surface-raised p-4"
+      >
         <div className="h-4 rounded bg-hairline"></div>
         <div className="h-3 w-3/4 rounded bg-hairline"></div>
         <div className="space-y-2">
@@ -92,7 +95,9 @@ export default function RecentlyPlayed() {
             <div className="rounded-full bg-accent/15 p-2">
               <Activity className="h-6 w-6 text-accent" />
             </div>
-            <h1 className="mb-0 text-3xl font-bold text-text-primary sm:text-4xl">Recently Played</h1>
+            <h1 className="mb-0 text-3xl font-bold text-text-primary sm:text-4xl">
+              Recently Played
+            </h1>
           </div>
           <p className="mx-auto mb-4 max-w-2xl text-text-muted">
             This is what people are listening to right now - join 'em.

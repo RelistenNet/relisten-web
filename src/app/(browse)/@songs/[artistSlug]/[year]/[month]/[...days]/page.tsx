@@ -11,5 +11,7 @@ export default async function SongsDaySlot() {
 
   if (!show) return null;
 
-  return <SongsColumn artistSlug={artistSlug} year={year} month={month} day={days[0]} show={show} />;
+  return (
+    <SongsColumn artistSlug={artistSlug} year={year} month={month} day={days[0]} show={show} />
+  );
 }

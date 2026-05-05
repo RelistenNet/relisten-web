@@ -111,7 +111,8 @@ const ClientFootnote = ({ index, content, children }: Props) => {
           }
         >
           <sup className="footnote-index mt-0.5 text-xs">{index}</sup>
-          &nbsp; <span className="text-left text-sm text-foreground-muted">{content || children}</span>
+          &nbsp;{' '}
+          <span className="text-left text-sm text-foreground-muted">{content || children}</span>
         </span>
       </span>
     </>

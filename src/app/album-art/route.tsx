@@ -60,15 +60,15 @@ export async function GET(request: Request) {
   const [artists, show, fontReg, fontBold, fontMegaBold] = await Promise.all([
     RelistenAPI.fetchArtists(),
     RelistenAPI.fetchShowByUUID(showUuid),
-    fetch(
-      'https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-400-normal.ttf'
-    ).then((res) => res.arrayBuffer()),
-    fetch(
-      'https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-700-normal.ttf'
-    ).then((res) => res.arrayBuffer()),
-    fetch(
-      'https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-900-normal.ttf'
-    ).then((res) => res.arrayBuffer()),
+    fetch('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-400-normal.ttf').then(
+      (res) => res.arrayBuffer()
+    ),
+    fetch('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-700-normal.ttf').then(
+      (res) => res.arrayBuffer()
+    ),
+    fetch('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-900-normal.ttf').then(
+      (res) => res.arrayBuffer()
+    ),
   ]);
 
   if (!show || !show.sources?.length) return deny(404);

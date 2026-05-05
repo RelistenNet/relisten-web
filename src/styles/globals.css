@@ -1,8 +1,12 @@
 @import 'tailwindcss';
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @theme {
@@ -10,17 +14,17 @@
   --text-xxs: 0.7rem;
   --text-xxs--line-height: 1rem;
 
-  --color-relisten-DEFAULT: #009DC1;
-  --color-relisten-50: #A2EEFF;
-  --color-relisten-100: #8EEAFF;
-  --color-relisten-200: #65E2FF;
-  --color-relisten-300: #3CDBFF;
-  --color-relisten-400: #14D3FF;
-  --color-relisten-500: #00BEEA;
-  --color-relisten-600: #009DC1;
-  --color-relisten-700: #006F89;
+  --color-relisten-DEFAULT: #009dc1;
+  --color-relisten-50: #a2eeff;
+  --color-relisten-100: #8eeaff;
+  --color-relisten-200: #65e2ff;
+  --color-relisten-300: #3cdbff;
+  --color-relisten-400: #14d3ff;
+  --color-relisten-500: #00beea;
+  --color-relisten-600: #009dc1;
+  --color-relisten-700: #006f89;
   --color-relisten-800: #004251;
-  --color-relisten-900: #001D24;
+  --color-relisten-900: #001d24;
   --color-relisten-950: #001114;
 
   /* Semantic tokens — resolved by :root rules below. Reference via Tailwind
@@ -61,20 +65,25 @@
   --light-text-primary: #333;
   --light-text-secondary: #4b5563;
   --light-text-muted: #6b7280;
-  --light-accent: #009DC1;
+  --light-accent: #009dc1;
 
-  --dark-surface: #00141A;
+  --dark-surface: #00141a;
   --dark-surface-raised: #002129;
   --dark-surface-elevated: #003344;
   --dark-surface-recessed: #000609;
-  --dark-surface-hover: #00475A;
-  --dark-hairline: rgba(60, 219, 255, 0.22); /* relisten-300 @ 22% — brighter teal divider for stronger row separation */
+  --dark-surface-hover: #00475a;
+  --dark-hairline: rgba(
+    60,
+    219,
+    255,
+    0.12
+  ); /* relisten-300 @ 22% — brighter teal divider for stronger row separation */
   /* Text colors derived from relisten-600 hue (~192°) with dropped saturation,
      so they harmonize with the teal surfaces instead of reading as neutral gray. */
   --dark-text-primary: hsl(192, 30%, 98%);
   --dark-text-secondary: hsl(192, 28%, 88%);
   --dark-text-muted: hsl(192, 32%, 72%);
-  --dark-accent: #009DC1;
+  --dark-accent: #009dc1;
 
   /* Default: light */
   --resolved-surface: var(--light-surface);
@@ -209,8 +218,15 @@
     @apply text-3xl font-semibold mb-8;
   }
 
-  body { margin: 0; -webkit-font-smoothing: antialiased; @apply bg-surface text-text-primary; }
-  a { text-decoration: none; @apply text-foreground; }
+  body {
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    @apply bg-surface text-text-primary;
+  }
+  a {
+    text-decoration: none;
+    @apply text-foreground;
+  }
 
   /* ── Blog Post Content ── */
 

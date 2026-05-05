@@ -25,6 +25,8 @@ type ColumnWithToggleControlsProps = {
   totalCount?: number;
   onClearFilters?: () => void;
   subHeader?: React.ReactNode;
+  scrollContainerRef?: React.Ref<HTMLDivElement>;
+  height?: number;
 };
 
 const ColumnWithToggleControls = ({
@@ -36,6 +38,8 @@ const ColumnWithToggleControls = ({
   totalCount,
   onClearFilters,
   subHeader,
+  scrollContainerRef,
+  height,
 }: ColumnWithToggleControlsProps) => {
   const ref = useRef<HTMLDivElement | null>(null);
 
@@ -85,7 +89,7 @@ const ColumnWithToggleControls = ({
         </Flex>
       )}
       {subHeader}
-      <Flex column className="flex-1 overflow-x-hidden overflow-y-auto">
+      <Flex ref={scrollContainerRef} column className="flex-1 overflow-x-hidden overflow-y-auto">
         {filteredCount !== undefined && totalCount !== undefined && filteredCount < totalCount && (
           <div className="m-2 rounded border border-amber-500/20 bg-amber-500/10 p-2 text-xs text-amber-700">
             {filteredCount === 0 ? (
@@ -100,7 +104,8 @@ const ColumnWithToggleControls = ({
               </>
             ) : (
               <>
-                {simplePluralize('row', hiddenRows)} {hiddenRows === 1 ? 'is' : 'are'} hidden by filters.{' '}
+                {simplePluralize('row', hiddenRows)} {hiddenRows === 1 ? 'is' : 'are'} hidden by
+                filters.{' '}
                 <button
                   onClick={onClearFilters}
                   className="font-medium underline hover:no-underline"
@@ -111,7 +116,7 @@ const ColumnWithToggleControls = ({
             )}
           </div>
         )}
-        {children}
+        <div style={{ minHeight: height }}>{children}</div>
       </Flex>
     </Flex>
   );

@@ -109,7 +109,7 @@ const SongsColumn = (props: Props) => {
                 <Row
                   key={track.id}
                   href={`${props.routePrefix || ''}/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${activeSourceObj.id}`}
-                  isActiveOverride={trackIsActive}
+                  active={trackIsActive}
                 >
                   <div>
                     <div>{track.title}</div>
@@ -120,15 +120,16 @@ const SongsColumn = (props: Props) => {
                     )}
                   </div>
                   <div className="shrink-0 text-right">
-                    {trackMetadata && (() => {
-                      if (trackMetadata.webAudioLoadingState === 'LOADED')
-                        return <Tag variant="success">{'\u2713'} GAPLESS</Tag>;
-                      if (trackMetadata.webAudioLoadingState === 'LOADING')
-                        return <Tag variant="warning">LOADING</Tag>;
-                      if (trackMetadata.webAudioLoadingState === 'ERROR')
-                        return <Tag variant="error">ERROR</Tag>;
-                      return null;
-                    })()}
+                    {trackMetadata &&
+                      (() => {
+                        if (trackMetadata.webAudioLoadingState === 'LOADED')
+                          return <Tag variant="success">{'\u2713'} GAPLESS</Tag>;
+                        if (trackMetadata.webAudioLoadingState === 'LOADING')
+                          return <Tag variant="warning">LOADING</Tag>;
+                        if (trackMetadata.webAudioLoadingState === 'ERROR')
+                          return <Tag variant="error">ERROR</Tag>;
+                        return null;
+                      })()}
                   </div>
                 </Row>
               </div>

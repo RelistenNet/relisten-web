@@ -13,5 +13,7 @@ export default async function SourcesDaySlot() {
 
   if (!show) return null;
 
-  return <TapesColumn artistSlug={artistSlug} year={year} month={month} day={days[0]} show={show} />;
+  return (
+    <TapesColumn artistSlug={artistSlug} year={year} month={month} day={days[0]} show={show} />
+  );
 }

@@ -21,12 +21,7 @@ const ArtistsColumn = async () => {
     getServerFilters('root', true),
   ]);
 
-  return (
-    <ArtistsSelectionTab
-      artistsAll={slim(allArtists)}
-      initialFilters={initialFilters}
-    />
-  );
+  return <ArtistsSelectionTab artistsAll={slim(allArtists)} initialFilters={initialFilters} />;
 };
 
 export default ArtistsColumn;

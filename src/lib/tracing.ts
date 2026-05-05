@@ -67,12 +67,14 @@ export function initTracing() {
       url: process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT ?? `${baseUrl}/v1/traces`,
       headers,
     }),
-    metricReaders: [new PeriodicExportingMetricReader({
-      exporter: new OTLPMetricExporter({
-        url: process.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT ?? `${baseUrl}/v1/metrics`,
-        headers,
+    metricReaders: [
+      new PeriodicExportingMetricReader({
+        exporter: new OTLPMetricExporter({
+          url: process.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT ?? `${baseUrl}/v1/metrics`,
+          headers,
+        }),
       }),
-    })],
+    ],
     sampler: new NoiseFilterSampler(
       new ParentBasedSampler({ root: new TraceIdRatioBasedSampler(0.05) })
     ),

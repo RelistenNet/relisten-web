@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useSegmentParams } from '@timber-js/app/client';
 import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
 import Count from './Count';
 import { Show } from '@/types';
@@ -8,7 +9,7 @@ import { useFilterState } from '@/hooks/useFilterState';
 import { FilterState } from '@/lib/filterCookies';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import Flex from './Flex';
-import Row from './Row';
+import Row, { unwrapSegment } from './Row';
 import Tag from './Tag';
 
 type TopTapesColumnWithControlsProps = {
@@ -28,6 +29,9 @@ const TopTapesColumnWithControls = ({
     initialFilters,
     `${artistSlug}:shows`
   );
+  const params = useSegmentParams() as Record<string, string | string[] | undefined>;
+  const currentMonth = unwrapSegment(params.month);
+  const currentDay = unwrapSegment(params.day);
 
   const toggles = [
     {
@@ -70,10 +74,7 @@ const TopTapesColumnWithControls = ({
             <div key={show.id}>
               <Row
                 href={`/${artistSlug}/${year}/${month}/${day}`}
-                activeSegments={{
-                  month,
-                  day,
-                }}
+                active={month === currentMonth && day === currentDay}
               >
                 <div>
                   <Flex>

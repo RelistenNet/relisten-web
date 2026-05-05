@@ -59,8 +59,8 @@ const ShowsColumn = async ({
     popularity: s.popularity,
     source_count: s.source_count,
     avg_duration: s.avg_duration,
-    venue: s.venue ? { name: s.venue.name, location: s.venue.location } as Venue : undefined,
-    tour: s.tour ? { id: s.tour.id, name: s.tour.name } as Tour : undefined,
+    venue: s.venue ? ({ name: s.venue.name, location: s.venue.location } as Venue) : undefined,
+    tour: s.tour ? ({ id: s.tour.id, name: s.tour.name } as Tour) : undefined,
   }));
 
   return (

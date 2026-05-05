@@ -2,6 +2,8 @@ import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
 import { timber } from '@timber-js/app';
 
+const serverExternals = ['@takumi-rs/image-response', '@mdx-js/rollup', 'rollup', 'fsevents'];
+
 export default defineConfig({
   plugins: [timber({ reactCompiler: true })],
   resolve: {
@@ -12,9 +14,16 @@ export default defineConfig({
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
   },
   ssr: {
-    external: ['@takumi-rs/image-response', '@mdx-js/rollup', 'rollup'],
+    external: serverExternals,
+  },
+  environments: {
+    rsc: {
+      resolve: {
+        external: serverExternals,
+      },
+    },
   },
   server: {
     strictPort: false,
-  }
+  },
 });

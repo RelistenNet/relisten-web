@@ -4,13 +4,16 @@ import { simplePluralize } from '@/lib/utils';
 import { RawParams } from '@/types/params';
 import { format } from 'date-fns';
 import { Suspense } from 'react';
-import Row from './Row';
+import RowSegmentMatch from './RowSegmentMatch';
 
 const TodayInHistoryRow = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
   const currentMonthDay = await getCurrentMonthDay();
 
   return (
-    <Row href={`/${artistSlug}/today-in-history`} activeSegments={{ year: 'today-in-history' }}>
+    <RowSegmentMatch
+      href={`/${artistSlug}/today-in-history`}
+      activeSegments={{ year: 'today-in-history' }}
+    >
       <div>
         <div>Today In History</div>
         <div className="text-xxs text-foreground-muted">
@@ -26,7 +29,7 @@ const TodayInHistoryRow = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) 
           />
         </Suspense>
       </div>
-    </Row>
+    </RowSegmentMatch>
   );
 };
 

@@ -1,7 +1,7 @@
 'use client';
 
 import cn from '@/lib/cn';
-import { Link, useLinkStatus, useSegmentParams } from '@timber-js/app/client';
+import { Link, useLinkStatus } from '@timber-js/app/client';
 import React from 'react';
 import Flex from './Flex';
 import RowLoading from './RowLoading';
@@ -12,21 +12,13 @@ type RowProps = {
   href?: string;
   active?: boolean;
   loading?: boolean;
-  activeSegments?: Record<string, string | undefined>;
-  fallbackParams?: Record<string, string>;
-  isActiveOverride?: boolean;
 };
 
-const unwrap = (val: Array<any> | any) => {
+export const unwrapSegment = (val: unknown): string | undefined => {
   if (Array.isArray(val)) return val[0];
-
-  return val;
+  return val as string | undefined;
 };
 
-/**
- * Inner content of a Row when it has an href.
- * Separated so useLinkStatus() can read from the parent <Link>'s context.
- */
 function RowLinkContent({
   children,
   isActive,
@@ -66,29 +58,12 @@ function RowLinkContent({
   );
 }
 
-const Row = ({
-  children,
-  href,
-  activeSegments,
-  isActiveOverride,
-  loading,
-  fallbackParams,
-  ...props
-}: RowProps) => {
-  const params = useSegmentParams();
-  let isActive = isActiveOverride ?? false;
-
-  if (isActiveOverride === undefined && activeSegments) {
-    isActive = Object.entries(activeSegments).every(
-      ([key, value]) => (unwrap(params[key]) ?? fallbackParams?.[key]) === value
-    );
-  }
-
+const Row = ({ children, href, active = false, loading, ...props }: RowProps) => {
   if (!href) {
     return (
       <div className="relative content w-full flex-1 items-center justify-between py-1">
         {loading && <RowLoading />}
-        {isActive && <div className="h-full w-2 bg-accent" />}
+        {active && <div className="h-full w-2 bg-accent" />}
 
         {children}
       </div>
@@ -96,12 +71,12 @@ const Row = ({
   }
 
   return (
-    <Link href={href} prefetch={false} data-is-active={isActive}>
-      <RowLinkContent isActive={isActive} loading={loading} {...props}>
+    <Link href={href} prefetch={false} data-is-active={active}>
+      <RowLinkContent isActive={active} loading={loading} {...props}>
         {children}
       </RowLinkContent>
     </Link>
   );
 };
 
-export default Row;
+export default React.memo(Row);

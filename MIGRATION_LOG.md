@@ -30,6 +30,7 @@ This document is both a log of the relisten-web migration and a step-by-step gui
 timber.js is a Vite-based React framework that follows the same App Router conventions as Next.js (file-based routing, layouts, parallel routes, route groups, metadata, etc.) but runs on Vite + Nitro instead of Webpack/Turbopack + Next.js server.
 
 **Key architectural differences:**
+
 - Build tool: **Vite 8** (not Webpack/Turbopack)
 - Server runtime: **Nitro** (not Next.js custom server), always Node.js (no Edge runtime)
 - Config: `vite.config.ts` + `timber.config.ts` (not `next.config.js`)
@@ -47,6 +48,7 @@ This is the foundational step. Do this first before touching any application cod
 Delete `next.config.js` and create two new files:
 
 **`vite.config.ts`**
+
 ```ts
 import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
@@ -70,6 +72,7 @@ export default defineConfig({
 ```
 
 **`timber.config.ts`**
+
 ```ts
 import { nitro } from '@timber-js/app/adapters/nitro';
 
@@ -144,6 +147,7 @@ pnpm add @timber-js/app
 If your `next.config.js` had `rewrites()` or `redirects()`, create a proxy middleware:
 
 **`src/proxy.ts`** (timber convention for middleware)
+
 ```ts
 export default async (req: Request, next: () => Promise<Response>) => {
   const url = new URL(req.url);
@@ -173,29 +177,29 @@ These are mechanical find-and-replace operations. Most can be done with a single
 
 These imports are shimmed by timber — they just work:
 
-| Import | Usage count in relisten-web |
-|---|---|
-| `next/link` | 14+ components |
-| `next/navigation` (`useRouter`, `usePathname`, `useParams`, `useSearchParams`, `notFound`, `redirect`, `useSelectedLayoutSegments`) | 38+ usages |
-| `next/headers` (`headers()`, `cookies()`) | NavBar, utils |
-| `next/font/google` | layout.tsx |
+| Import                                                                                                                              | Usage count in relisten-web |
+| ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| `next/link`                                                                                                                         | 14+ components              |
+| `next/navigation` (`useRouter`, `usePathname`, `useParams`, `useSearchParams`, `notFound`, `redirect`, `useSelectedLayoutSegments`) | 38+ usages                  |
+| `next/headers` (`headers()`, `cookies()`)                                                                                           | NavBar, utils               |
+| `next/font/google`                                                                                                                  | layout.tsx                  |
 
 **You do NOT need to change these imports.** timber's Vite plugin resolves them automatically.
 
 ### 2.2 Imports that MUST change
 
-| Old import | New import | Notes |
-|---|---|---|
-| `import { NextResponse } from 'next/server'` | Use `Response` (Web API) | `next/server` is NOT shimmed |
-| `import { ImageResponse } from 'next/og'` | `import ImageResponse from '@takumi-rs/image-response'` | Or any OG image library |
-| `import { notFound } from 'next/navigation'` | Works as-is (shimmed) OR `import { notFound } from '@timber-js/app/server'` | Both work |
-| `import type { Metadata } from 'next'` | `import type { Metadata } from '@timber-js/app/server'` | For explicit type imports |
+| Old import                                   | New import                                                                  | Notes                        |
+| -------------------------------------------- | --------------------------------------------------------------------------- | ---------------------------- |
+| `import { NextResponse } from 'next/server'` | Use `Response` (Web API)                                                    | `next/server` is NOT shimmed |
+| `import { ImageResponse } from 'next/og'`    | `import ImageResponse from '@takumi-rs/image-response'`                     | Or any OG image library      |
+| `import { notFound } from 'next/navigation'` | Works as-is (shimmed) OR `import { notFound } from '@timber-js/app/server'` | Both work                    |
+| `import type { Metadata } from 'next'`       | `import type { Metadata } from '@timber-js/app/server'`                     | For explicit type imports    |
 
 ### 2.3 File renames
 
-| Old path | New path |
-|---|---|
-| `src/app/not-found.tsx` | `src/app/404.tsx` |
+| Old path                        | New path                  |
+| ------------------------------- | ------------------------- |
+| `src/app/not-found.tsx`         | `src/app/404.tsx`         |
 | `src/app/(group)/not-found.tsx` | `src/app/(group)/404.tsx` |
 
 ---
@@ -204,17 +208,18 @@ These imports are shimmed by timber — they just work:
 
 These packages depend on Next.js internals and have no equivalent in timber:
 
-| Package | What to do |
-|---|---|
-| `next` | Replace with `@timber-js/app` |
-| `next-redux-wrapper` | Remove entirely. Use direct `configureStore()` — no SSR hydration wrapper needed |
-| `nextjs-toploader` | Remove. Add your own navigation progress indicator if desired |
-| `next-zod-route` | Remove. Replace with manual Zod parsing of `request.url` search params |
+| Package                                   | What to do                                                                            |
+| ----------------------------------------- | ------------------------------------------------------------------------------------- |
+| `next`                                    | Replace with `@timber-js/app`                                                         |
+| `next-redux-wrapper`                      | Remove entirely. Use direct `configureStore()` — no SSR hydration wrapper needed      |
+| `nextjs-toploader`                        | Remove. Add your own navigation progress indicator if desired                         |
+| `next-zod-route`                          | Remove. Replace with manual Zod parsing of `request.url` search params                |
 | `@tanstack/react-query-next-experimental` | Remove. `ReactQueryStreamedHydration` is not needed — TanStack Query works without it |
 
 ### 3.1 Redux store simplification
 
 **Before** (with `next-redux-wrapper`):
+
 ```ts
 import { createWrapper } from 'next-redux-wrapper';
 import { configureStore } from '@reduxjs/toolkit';
@@ -225,6 +230,7 @@ export const wrapper = createWrapper(initStore, { debug: false });
 ```
 
 **After** (direct store):
+
 ```ts
 import { configureStore } from '@reduxjs/toolkit';
 
@@ -236,6 +242,7 @@ if (typeof window !== 'undefined') {
 ```
 
 Also remove any `HYDRATE` cases from Redux reducers:
+
 ```diff
 - import { HYDRATE } from 'next-redux-wrapper';
 
@@ -291,6 +298,7 @@ Also remove any `HYDRATE` cases from Redux reducers:
 ### 4.2 Replace `next-zod-route` with manual parsing
 
 **Before:**
+
 ```ts
 import { createZodRoute } from 'next-zod-route';
 
@@ -303,6 +311,7 @@ export const GET = createZodRoute()
 ```
 
 **After:**
+
 ```ts
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -347,6 +356,7 @@ Next.js extends the `fetch` API with a `next` option. This doesn't exist outside
 ### 4.6 Simplify instrumentation
 
 **Before:**
+
 ```ts
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
@@ -357,6 +367,7 @@ export async function register() {
 ```
 
 **After:**
+
 ```ts
 export async function register() {
   const { initTracing } = await import('./lib/tracing');
@@ -385,11 +396,13 @@ If your app uses `nuqs` for search params, timber provides its own search params
 We chose Option B. The migration involved:
 
 1. Replace `createSearchParams` wrapper with timber's built-in:
+
 ```ts
 import { createSearchParams, fromSchema } from '@timber-js/app/search-params';
 ```
 
 2. Co-locate `search-params.ts` files next to pages that use them (timber convention):
+
 ```
 src/app/(browse)/@shows/[artistSlug]/[...year]/
   ├── page.tsx
@@ -495,6 +508,7 @@ Update any GitHub Actions or CI pipelines:
 These required absolutely no code changes:
 
 ### File conventions
+
 - `page.tsx`, `layout.tsx`, `error.tsx`, `global-error.tsx`, `default.tsx`
 - Dynamic routes: `[param]`, `[...slug]`, `[[...slug]]`
 - Route groups: `(browse)`, `(embed)`, etc.
@@ -503,6 +517,7 @@ These required absolutely no code changes:
 - `loading.tsx` (if used)
 
 ### Libraries (framework-agnostic)
+
 - `@tanstack/react-query` + devtools
 - `@reduxjs/toolkit` + `react-redux`
 - Tailwind CSS v4 + PostCSS
@@ -513,12 +528,14 @@ These required absolutely no code changes:
 - `zod`
 
 ### React APIs
+
 - `React.cache()` — works identically for request-scoped memoization
 - Server Components — same `async` component pattern
 - Client Components — same `'use client'` directive
 - `'use server'` — server actions work the same
 
 ### Data patterns
+
 - Static `export const metadata` — same convention
 - `generateMetadata()` — same convention
 - `export const dynamic`, `export const revalidate` — same conventions
@@ -528,65 +545,75 @@ These required absolutely no code changes:
 ## Complete Change Reference
 
 ### Files deleted
-| File | Reason |
-|---|---|
+
+| File             | Reason                                            |
+| ---------------- | ------------------------------------------------- |
 | `next.config.js` | Replaced by `vite.config.ts` + `timber.config.ts` |
-| `next-env.d.ts` | Next.js type reference file |
+| `next-env.d.ts`  | Next.js type reference file                       |
 
 ### Files created
-| File | Purpose |
-|---|---|
-| `vite.config.ts` | Vite + timber plugin configuration |
-| `timber.config.ts` | timber output mode + adapter config |
-| `timber-env.d.ts` | Route type references |
-| `src/proxy.ts` | Rewrites/redirects middleware |
-| `src/app/(browse)/middleware.ts` | Route group middleware (if needed) |
-| `search-params.ts` (co-located) | timber search params convention |
+
+| File                             | Purpose                             |
+| -------------------------------- | ----------------------------------- |
+| `vite.config.ts`                 | Vite + timber plugin configuration  |
+| `timber.config.ts`               | timber output mode + adapter config |
+| `timber-env.d.ts`                | Route type references               |
+| `src/proxy.ts`                   | Rewrites/redirects middleware       |
+| `src/app/(browse)/middleware.ts` | Route group middleware (if needed)  |
+| `search-params.ts` (co-located)  | timber search params convention     |
 
 ### Files renamed
-| Old | New |
-|---|---|
-| `src/app/not-found.tsx` | `src/app/404.tsx` |
+
+| Old                             | New                       |
+| ------------------------------- | ------------------------- |
+| `src/app/not-found.tsx`         | `src/app/404.tsx`         |
 | `src/app/(embed)/not-found.tsx` | `src/app/(embed)/404.tsx` |
 
 ### Files modified (summary)
-| File | Change |
-|---|---|
-| `package.json` | Scripts, deps swap |
-| `tsconfig.json` | Remove Next.js plugin, update moduleResolution |
-| `.gitignore` | `.next/` → `.timber/`, add `dist/` |
-| `src/app/layout.tsx` | Remove `NextTopLoader`, add `Metadata` type import |
-| `src/app/Providers.tsx` | Remove `ReactQueryStreamedHydration` |
-| `src/redux/index.ts` | Remove `next-redux-wrapper`, simplify store |
-| `src/redux/modules/playback.ts` | Remove `HYDRATE` case |
-| `src/redux/modules/live.ts` | Remove `HYDRATE` case |
-| `src/app/api/status/route.ts` | `NextResponse` → `Response` |
-| `src/app/api/og/route.tsx` | Remove `next-zod-route`, manual Zod parsing |
-| `src/app/album-art/route.tsx` | Remove edge runtime, `next/og`, `next-zod-route` |
-| `src/lib/RelistenAPI.ts` | Remove `next: { revalidate }`, add timber cache |
-| `src/instrumentation.ts` | Remove `NEXT_RUNTIME` guard |
-| `src/lib/tracing.ts` | Remove `/_next/` ignore paths |
-| `Dockerfile` | Update build output path |
-| Various page files | `Metadata` type import from `@timber-js/app/server` |
+
+| File                            | Change                                              |
+| ------------------------------- | --------------------------------------------------- |
+| `package.json`                  | Scripts, deps swap                                  |
+| `tsconfig.json`                 | Remove Next.js plugin, update moduleResolution      |
+| `.gitignore`                    | `.next/` → `.timber/`, add `dist/`                  |
+| `src/app/layout.tsx`            | Remove `NextTopLoader`, add `Metadata` type import  |
+| `src/app/Providers.tsx`         | Remove `ReactQueryStreamedHydration`                |
+| `src/redux/index.ts`            | Remove `next-redux-wrapper`, simplify store         |
+| `src/redux/modules/playback.ts` | Remove `HYDRATE` case                               |
+| `src/redux/modules/live.ts`     | Remove `HYDRATE` case                               |
+| `src/app/api/status/route.ts`   | `NextResponse` → `Response`                         |
+| `src/app/api/og/route.tsx`      | Remove `next-zod-route`, manual Zod parsing         |
+| `src/app/album-art/route.tsx`   | Remove edge runtime, `next/og`, `next-zod-route`    |
+| `src/lib/RelistenAPI.ts`        | Remove `next: { revalidate }`, add timber cache     |
+| `src/instrumentation.ts`        | Remove `NEXT_RUNTIME` guard                         |
+| `src/lib/tracing.ts`            | Remove `/_next/` ignore paths                       |
+| `Dockerfile`                    | Update build output path                            |
+| Various page files              | `Metadata` type import from `@timber-js/app/server` |
 
 ---
 
 ## Gotchas & Lessons Learned
 
 ### 1. `NextResponse` is not shimmed
+
 The most common API route pattern `return NextResponse.json(data)` must become `return Response.json(data)`. This is a Web API standard, so it's arguably better anyway.
 
 ### 2. `next: { revalidate }` on fetch is everywhere
+
 If your app uses Next.js's extended fetch, you need to strip all `next: {}` options. Search for `next:` in your codebase. Replace with timber's `createCache()` or your own caching layer.
 
 ### 3. Edge runtime doesn't exist
+
 Any `export const runtime = 'edge'` must be removed. If you relied on edge for latency, timber runs on Node.js everywhere. Performance was not noticeably different for our use case.
 
 ### 4. `not-found.tsx` → `404.tsx`
+
 Easy to miss. timber uses `404.tsx` as the convention for not-found pages.
 
 ### 5. `react` deduplication in Vite config is critical
+
 Without `resolve.dedupe`, you may get "Invalid hook call" errors from multiple React instances. Always include:
+
 ```ts
 resolve: {
   dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
@@ -594,18 +621,23 @@ resolve: {
 ```
 
 ### 6. `moduleResolution` must be `"bundler"`
+
 Vite requires `"bundler"` module resolution. If you leave it as `"node"`, imports may fail silently or resolve incorrectly.
 
 ### 7. Native addons need `ssr.external`
+
 Packages with native bindings (like `@takumi-rs/image-response`) must be listed in `vite.config.ts` → `ssr.external` to prevent Vite from trying to bundle them.
 
 ### 8. `nuqs` works via shim but has quirks
+
 The `nuqs/adapters/next/app` import works because timber shims it, but if you encounter issues, migrate to `@timber-js/app/search-params` instead.
 
 ### 9. Co-located `search-params.ts` is a timber convention
+
 Timber expects search param definitions to be co-located with the page that uses them, not in a shared directory.
 
 ### 10. Build output is `dist/nitro/.output`
+
 Not `.next/standalone`. Update any deploy scripts, Docker COPY commands, and CI artifacts.
 
 ---

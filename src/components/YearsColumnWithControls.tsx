@@ -2,13 +2,14 @@
 
 import { Year } from '@/types';
 import { PropsWithChildren, useMemo } from 'react';
+import { useSegmentParams } from '@timber-js/app/client';
 import { useFilterState } from '@/hooks/useFilterState';
 import { FilterState } from '@/lib/filterCookies';
 import sortActiveBands from '../lib/sortActiveBands';
 import Count from './Count';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import PopularityBadge from './PopularityBadge';
-import Row from './Row';
+import Row, { unwrapSegment } from './Row';
 
 type YearsColumnWithControlsProps = {
   artistSlug?: string;
@@ -28,6 +29,8 @@ const YearsColumnWithControls = ({
     initialFilters,
     artistSlug
   );
+  const params = useSegmentParams() as Record<string, string | string[] | undefined>;
+  const currentYear = unwrapSegment(params.year);
 
   const toggles = [
     {
@@ -69,7 +72,7 @@ const YearsColumnWithControls = ({
           <Row
             key={yearObj.uuid}
             href={`/${artistSlug}/${yearObj.year}`}
-            activeSegments={{ year: yearObj.year }}
+            active={yearObj.year === currentYear}
           >
             <div>
               <div className="flex items-center gap-1">

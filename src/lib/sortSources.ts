@@ -20,9 +20,7 @@ export const sortSources = (sources: Source[]) => {
 
     // 2. Charlie Miller (GD) / Pete Costello (JRAD) first
     const specialTaper = (t: Source) =>
-      /(charlie miller)|(peter costello)/i.test(
-        [t.taper, t.transferrer, t.source].join('')
-      );
+      /(charlie miller)|(peter costello)/i.test([t.taper, t.transferrer, t.source].join(''));
     const taper = Number(specialTaper(b)) - Number(specialTaper(a));
     if (taper !== 0) return taper;
 
