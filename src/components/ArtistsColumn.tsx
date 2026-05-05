@@ -16,17 +16,13 @@ const slim = (artists: Artist[]) =>
   }));
 
 const ArtistsColumn = async () => {
-  const [primaryArtists, allArtists, initialFilters] = await Promise.all([
-    RelistenAPI.fetchArtists().then((artists) =>
-      artists.filter((artist) => Number(artist.featured) <= 1)
-    ),
+  const [allArtists, initialFilters] = await Promise.all([
     RelistenAPI.fetchAllArtists(),
     getServerFilters('root', true),
   ]);
 
   return (
     <ArtistsSelectionTab
-      artistsPrimary={slim(primaryArtists)}
       artistsAll={slim(allArtists)}
       initialFilters={initialFilters}
     />

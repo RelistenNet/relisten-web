@@ -9,7 +9,7 @@ import RowHeader from './RowHeader';
 
 const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
   const [artists, initialFilters] = await Promise.all([
-    RelistenAPI.fetchArtists(),
+    RelistenAPI.fetchAllArtists(),
     getServerFilters(artistSlug || '', true),
   ]).catch(() => {
     deny(404);

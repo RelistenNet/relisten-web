@@ -29,7 +29,7 @@ const Column = ({ className, heading, children }: ColumnProps) => {
       {heading && (
         <Flex
           center
-          className="bg-surface-elevated min-h-[32px] w-full border-b border-hairline text-sm font-medium text-text-secondary capitalize"
+          className="bg-column-header min-h-[32px] w-full border-b border-hairline text-sm font-medium text-column-header-text capitalize"
         >
           {heading?.replaceAll('-', ' ')}
         </Flex>

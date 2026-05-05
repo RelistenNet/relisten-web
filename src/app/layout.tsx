@@ -3,6 +3,7 @@ import React from 'react';
 import type { Metadata } from '@timber-js/app/server';
 import Providers from './Providers';
 import { roboto } from '../fonts';
+import { themeCookie } from '../lib/themeCookie';
 
 // https://github.com/node-fetch/node-fetch/issues/1624#issuecomment-1407717012
 dns.setDefaultResultOrder('ipv4first');
@@ -10,8 +11,10 @@ dns.setDefaultResultOrder('ipv4first');
 import '../styles/globals.css';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const theme = themeCookie.get();
+  const dataTheme = theme === 'light' || theme === 'dark' ? theme : undefined;
   return (
-    <html lang="en" className={roboto.className}>
+    <html lang="en" className={roboto.className} data-theme={dataTheme}>
       <head>
         <link rel="icon" href="/favicon.ico" />
         <meta name="apple-itunes-app" content="app-id=715886886" />

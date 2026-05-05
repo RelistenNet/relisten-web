@@ -35,6 +35,10 @@
   --color-text-secondary: var(--resolved-text-secondary);
   --color-text-muted: var(--resolved-text-muted);
   --color-accent: var(--resolved-accent);
+  --color-column-header: var(--resolved-column-header);
+  --color-column-header-text: var(--resolved-column-header-text);
+  --color-column-subheader: var(--resolved-column-subheader);
+  --color-column-subheader-text: var(--resolved-column-subheader-text);
 
   /* Basic foreground colors (legacy — kept so existing callers don't break) */
   --color-foreground: var(--resolved-text-primary);
@@ -83,6 +87,10 @@
   --resolved-text-secondary: var(--light-text-secondary);
   --resolved-text-muted: var(--light-text-muted);
   --resolved-accent: var(--light-accent);
+  --resolved-column-header: var(--color-relisten-600);
+  --resolved-column-header-text: #ffffff;
+  --resolved-column-subheader: var(--light-surface-hover);
+  --resolved-column-subheader-text: var(--light-text-secondary);
 }
 
 /* Auto dark via OS */
@@ -98,6 +106,10 @@
     --resolved-text-secondary: var(--dark-text-secondary);
     --resolved-text-muted: var(--dark-text-muted);
     --resolved-accent: var(--dark-accent);
+    --resolved-column-header: var(--dark-surface-elevated);
+    --resolved-column-header-text: var(--dark-text-secondary);
+    --resolved-column-subheader: var(--dark-surface-hover);
+    --resolved-column-subheader-text: var(--dark-text-secondary);
   }
 }
 
@@ -114,6 +126,10 @@
   --resolved-text-secondary: var(--light-text-secondary);
   --resolved-text-muted: var(--light-text-muted);
   --resolved-accent: var(--light-accent);
+  --resolved-column-header: var(--color-relisten-600);
+  --resolved-column-header-text: #ffffff;
+  --resolved-column-subheader: var(--light-surface-hover);
+  --resolved-column-subheader-text: var(--light-text-secondary);
 }
 
 :root[data-theme='dark'] {
@@ -127,6 +143,10 @@
   --resolved-text-secondary: var(--dark-text-secondary);
   --resolved-text-muted: var(--dark-text-muted);
   --resolved-accent: var(--dark-accent);
+  --resolved-column-header: var(--dark-surface-elevated);
+  --resolved-column-header-text: var(--dark-text-secondary);
+  --resolved-column-subheader: var(--dark-surface-hover);
+  --resolved-column-subheader-text: var(--dark-text-secondary);
 }
 
 /*

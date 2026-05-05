@@ -36,7 +36,7 @@ const ShowsColumn = async ({
   if (year === 'tours') return <ToursColumn artistSlug={artistSlug} />;
 
   const [artists, initialFilters] = await Promise.all([
-    RelistenAPI.fetchArtists(),
+    RelistenAPI.fetchAllArtists(),
     getServerFilters(`${artistSlug}:shows`, true),
   ]).catch(() => {
     deny(404);

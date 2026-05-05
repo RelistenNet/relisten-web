@@ -1,8 +1,12 @@
 import { Link } from '@timber-js/app/client';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const About = () => (
   <div className="content">
-    <h1 className="mb-4">Welcome to Relisten.net</h1>
+    <div className="mb-4 flex items-center justify-between gap-4">
+      <h1 className="m-0">Welcome to Relisten.net</h1>
+      <ThemeToggle />
+    </div>
 
     <p>Peruse the various bands and enjoy their extensive live catalogues for free.</p>
 
