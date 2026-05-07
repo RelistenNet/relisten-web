@@ -221,6 +221,7 @@
   body {
     margin: 0;
     -webkit-font-smoothing: antialiased;
+    /* scrollbar-gutter: stable; */
     @apply bg-surface text-text-primary;
   }
   a {

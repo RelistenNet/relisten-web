@@ -36,6 +36,7 @@ const ArtistsSelectionTab = ({ artistsAll, initialFilters }: ArtistsSelectionTab
       {TABS.map(({ value, label }) => {
         const isActive = tab === value;
         const isButtonPending = isPending && !isActive;
+
         return (
           <button
             key={value}

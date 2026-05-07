@@ -12,7 +12,7 @@ export default function PopularityBadge({
   align?: 'left' | 'right';
 }) {
   const plays = popularity?.windows?.['30d']?.plays;
-  if (plays == null) return null;
+  if (!plays) return null;
 
   return (
     <Tooltip
