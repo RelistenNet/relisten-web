@@ -32,7 +32,7 @@
     "@tanstack/react-query": "^5.100.9",
     "@tanstack/react-query-devtools": "^5.100.9",
     "@tanstack/react-virtual": "^3.13.24",
-    "@timber-js/app": "0.2.0-alpha.129",
+    "@timber-js/app": "0.2.0-alpha.132",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
