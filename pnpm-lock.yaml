@@ -74,8 +74,8 @@ importers:
         specifier: ^3.13.24
         version: 3.13.24(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)
       '@timber-js/app':
-        specifier: 0.2.0-alpha.132
-        version: 0.2.0-alpha.132(6b461c2c496d86e574bd8df26b6fe42b)
+        specifier: 0.2.0-alpha.134
+        version: 0.2.0-alpha.134(6b461c2c496d86e574bd8df26b6fe42b)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -2237,8 +2237,8 @@ packages:
   '@tanstack/virtual-core@3.14.0':
     resolution: {integrity: sha512-JLANqGy/D6k4Ujmh8Tr25lGimuOXNiaVyXaCAZS0W+1390sADdGnyUdSWNIfd49gebtIxGMij4IktRVzrdr12Q==}
 
-  '@timber-js/app@0.2.0-alpha.132':
-    resolution: {integrity: sha512-uFGZ1/05i+2zpA09xHreb+qlnc4csnl9gJ0dk67qi8eX0RfgaOHFwINpFHRl701h/qQymV+BJUS1ONlGhnYTqg==}
+  '@timber-js/app@0.2.0-alpha.134':
+    resolution: {integrity: sha512-B+KH3x6b1Q5uFjKfSUt5yOxxmQlTU6IHYOCZbUWwQF2jZLDaGUJXkgGM9dXDPBj0JzOo7/AQQy2KIwhwn9yjdQ==}
     engines: {node: '>=22.12.0'}
     hasBin: true
     peerDependencies:
@@ -2251,7 +2251,7 @@ packages:
       nuqs: ^2.0.0
       react: 19.3.0-canary-ed69815c-20260323
       react-dom: 19.3.0-canary-ed69815c-20260323
-      vite: ^8.0.3
+      vite: ^8.0.8
       wrangler: ^4.0.0
       zod: ^3.22.0 || ^4.0.0
     peerDependenciesMeta:
@@ -4258,19 +4258,22 @@ packages:
   nf3@0.3.17:
     resolution: {integrity: sha512-N9zEWySuJFw+gR0lhS5863YsvNeudOdqRyFvNb+jMXbeTJOdrjDqkCpDginIZfUm0LzT1t1nCRiDeqQm/8kirQ==}
 
-  nitro@3.0.260311-beta:
-    resolution: {integrity: sha512-0o0fJ9LUh4WKUqJNX012jyieUOtMCnadkNDWr0mHzdraoHpJP/1CGNefjRyZyMXSpoJfwoWdNEZu2iGf35TUvQ==}
+  nitro@3.0.260429-beta:
+    resolution: {integrity: sha512-KweLVCUN5X9v9g+4yxAyRcz3FcOlnjmt9FyrAIWDxJETJmNT7I0JV0clgsONjo2nI0U5gwedXYA3RaNtF5XWzg==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
     peerDependencies:
+      '@vercel/queue': ^0.1.6
       dotenv: '*'
       giget: '*'
       jiti: ^2.6.1
-      rollup: ^4.59.0
-      vite: ^7 || ^8 || >=8.0.0-0
+      rollup: ^4.60.2
+      vite: ^7 || ^8
       xml2js: ^0.6.2
-      zephyr-agent: ^0.1.15
+      zephyr-agent: ^0.2.0
     peerDependenciesMeta:
+      '@vercel/queue':
+        optional: true
       dotenv:
         optional: true
       giget:
@@ -7404,7 +7407,7 @@ snapshots:
 
   '@tanstack/virtual-core@3.14.0': {}
 
-  '@timber-js/app@0.2.0-alpha.132(6b461c2c496d86e574bd8df26b6fe42b)':
+  '@timber-js/app@0.2.0-alpha.134(6b461c2c496d86e574bd8df26b6fe42b)':
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/context-async-hooks': 2.7.1(@opentelemetry/api@1.9.1)
@@ -7412,7 +7415,7 @@ snapshots:
       '@vitejs/plugin-react': 6.0.1(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.0)(@babel/runtime@7.29.2)(rolldown@1.0.0)(vite@8.0.12(@types/node@25.7.0)(jiti@2.7.0)(yaml@2.8.4)))(babel-plugin-react-compiler@1.0.0)(vite@8.0.12(@types/node@25.7.0)(jiti@2.7.0)(yaml@2.8.4))
       '@vitejs/plugin-rsc': 0.5.26(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)(vite@8.0.12(@types/node@25.7.0)(jiti@2.7.0)(yaml@2.8.4))
       magic-string: 0.30.21
-      nitro: 3.0.260311-beta(chokidar@4.0.3)(dotenv@17.4.2)(jiti@2.7.0)(rollup@4.60.1)(vite@8.0.12(@types/node@25.7.0)(jiti@2.7.0)(yaml@2.8.4))
+      nitro: 3.0.260429-beta(chokidar@4.0.3)(dotenv@17.4.2)(jiti@2.7.0)(rollup@4.60.1)(vite@8.0.12(@types/node@25.7.0)(jiti@2.7.0)(yaml@2.8.4))
       nuqs: 2.8.9(next@16.2.3(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)
       react: 19.3.0-canary-ed69815c-20260323
       react-dom: 19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323)
@@ -7440,6 +7443,7 @@ snapshots:
       - '@vercel/blob'
       - '@vercel/functions'
       - '@vercel/kv'
+      - '@vercel/queue'
       - aws4fetch
       - better-sqlite3
       - chokidar
@@ -9847,7 +9851,7 @@ snapshots:
 
   nf3@0.3.17: {}
 
-  nitro@3.0.260311-beta(chokidar@4.0.3)(dotenv@17.4.2)(jiti@2.7.0)(rollup@4.60.1)(vite@8.0.12(@types/node@25.7.0)(jiti@2.7.0)(yaml@2.8.4)):
+  nitro@3.0.260429-beta(chokidar@4.0.3)(dotenv@17.4.2)(jiti@2.7.0)(rollup@4.60.1)(vite@8.0.12(@types/node@25.7.0)(jiti@2.7.0)(yaml@2.8.4)):
     dependencies:
       consola: 3.4.2
       crossws: 0.4.5(srvx@0.11.15)
