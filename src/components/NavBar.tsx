@@ -7,6 +7,7 @@ import RelistenAPI from '@/lib/RelistenAPI';
 import MainNavHeader from './MainNavHeader';
 import AndroidUpgradeNotification from './AndroidUpgradeNotification';
 import BlogNavIndicator from './blog/BlogNavLink';
+import GlobalSearch from './GlobalSearch';
 import { MenuIcon } from 'lucide-react';
 import { getHeaders } from '@timber-js/app/server';
 import { UAParser } from 'ua-parser-js';
@@ -63,69 +64,73 @@ export default async function NavBar() {
           <Player artistSlugsToName={artistSlugsToName} />
         </div>
 
-        <Popover.Root>
-          <Popover.Trigger
-            className="
-              ml-2 ml-auto h-full w-min cursor-pointer content-end items-center justify-self-end
-              text-center font-medium
-              xl:hidden
-            "
-          >
-            <Flex
+        <div className="flex items-center justify-self-end">
+          <GlobalSearch />
+
+          <Popover.Root>
+            <Popover.Trigger
               className="
-                ml-2 h-full cursor-pointer content-end items-center text-center font-medium
+                ml-2 h-full w-min cursor-pointer content-end items-center
+                text-center font-medium
                 xl:hidden
               "
             >
-              <div
+              <Flex
                 className="
-                  ml-auto flex h-full items-center px-1
-                  active:relative active:top-px active:text-foreground
+                  ml-2 h-full cursor-pointer content-end items-center text-center font-medium
+                  xl:hidden
                 "
               >
-                <MenuIcon />
-              </div>
-            </Flex>
-          </Popover.Trigger>
-          {/* <Popover.Anchor /> */}
-          <Popover.Portal>
-            <Popover.Content>
-              <Menu />
-            </Popover.Content>
-          </Popover.Portal>
-        </Popover.Root>
+                <div
+                  className="
+                    ml-auto flex h-full items-center px-1
+                    active:relative active:top-px active:text-foreground
+                  "
+                >
+                  <MenuIcon />
+                </div>
+              </Flex>
+            </Popover.Trigger>
+            {/* <Popover.Anchor /> */}
+            <Popover.Portal>
+              <Popover.Content>
+                <Menu />
+              </Popover.Content>
+            </Popover.Portal>
+          </Popover.Root>
 
-        <div
-          className="
-            nav hidden h-full cursor-pointer items-center gap-0.5 justify-self-end text-center
-            text-[13px] font-medium text-text-secondary
-            xl:flex
-          "
-        >
-          <Link className="nav-btn" href="/today" prefetch={false}>
-            Today
-          </Link>
-          <Link className="nav-btn whitespace-nowrap" href="/recently-played" prefetch={false}>
-            Live
-          </Link>
-          <Link className="nav-btn" href="/chat" prefetch={false}>
-            Chat
-          </Link>
-          <Link className="nav-btn" href="/app" prefetch={false}>
-            App
-          </Link>
-          <Link className="nav-btn" href="/sonos" prefetch={false}>
-            Sonos
-          </Link>
-          <div className="relative h-full">
-            <Link className="nav-btn" href="/blog" prefetch={false}>
-              Blog
+          <div
+            className="
+              nav hidden h-full cursor-pointer items-center gap-0.5 text-center
+              text-[13px] font-medium text-text-secondary
+              xl:flex
+            "
+          >
+            <Link className="nav-btn" href="/today" prefetch={false}>
+              Today
             </Link>
-            <BlogNavIndicator hasNewPost={blogHasNew} />
+            <Link className="nav-btn whitespace-nowrap" href="/recently-played" prefetch={false}>
+              Live
+            </Link>
+            <Link className="nav-btn" href="/chat" prefetch={false}>
+              Chat
+            </Link>
+            <Link className="nav-btn" href="/app" prefetch={false}>
+              App
+            </Link>
+            <Link className="nav-btn" href="/sonos" prefetch={false}>
+              Sonos
+            </Link>
+            <div className="relative h-full">
+              <Link className="nav-btn" href="/blog" prefetch={false}>
+                Blog
+              </Link>
+              <BlogNavIndicator hasNewPost={blogHasNew} />
+            </div>
+            <Link className="nav-btn" href="/about" prefetch={false}>
+              About
+            </Link>
           </div>
-          <Link className="nav-btn" href="/about" prefetch={false}>
-            About
-          </Link>
         </div>
       </div>
       {isAndroid && <AndroidUpgradeNotification />}

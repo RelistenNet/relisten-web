@@ -25,6 +25,9 @@ export default function Providers({ children }: PropsWithChildren) {
       // initGaplessPlayer() hasn't been called yet (no track loaded).
       if (!player.togglePlayPause) return;
 
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return;
+
       if (e.code === 'Space') {
         player.togglePlayPause();
       }

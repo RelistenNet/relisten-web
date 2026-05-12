@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
 @keyframes fade-in {
   from {
@@ -100,6 +102,22 @@
   --resolved-column-header-text: #ffffff;
   --resolved-column-subheader: var(--light-surface-hover);
   --resolved-column-subheader-text: var(--light-text-secondary);
+
+  /* shadcn tokens — mapped to existing theme */
+  --background: var(--light-surface);
+  --foreground: var(--light-text-primary);
+  --popover: var(--light-surface-raised);
+  --popover-foreground: var(--light-text-primary);
+  --primary: #009dc1;
+  --primary-foreground: #ffffff;
+  --muted: var(--light-surface-recessed);
+  --muted-foreground: var(--light-text-muted);
+  --accent: var(--light-surface-recessed);
+  --accent-foreground: var(--light-text-primary);
+  --border: var(--light-hairline);
+  --input: var(--light-hairline);
+  --ring: #009dc1;
+  --radius: 0.5rem;
 }
 
 /* Auto dark via OS */
@@ -119,6 +137,16 @@
     --resolved-column-header-text: var(--dark-text-secondary);
     --resolved-column-subheader: var(--dark-surface-hover);
     --resolved-column-subheader-text: var(--dark-text-secondary);
+    --background: var(--dark-surface);
+    --foreground: var(--dark-text-primary);
+    --popover: var(--dark-surface-raised);
+    --popover-foreground: var(--dark-text-primary);
+    --muted: var(--dark-surface-hover);
+    --muted-foreground: var(--dark-text-muted);
+    --accent: var(--dark-surface-hover);
+    --accent-foreground: var(--dark-text-primary);
+    --border: var(--dark-hairline);
+    --input: var(--dark-hairline);
   }
 }
 
@@ -139,6 +167,16 @@
   --resolved-column-header-text: #ffffff;
   --resolved-column-subheader: var(--light-surface-hover);
   --resolved-column-subheader-text: var(--light-text-secondary);
+  --background: var(--light-surface);
+  --foreground: var(--light-text-primary);
+  --popover: var(--light-surface-raised);
+  --popover-foreground: var(--light-text-primary);
+  --muted: var(--light-surface-recessed);
+  --muted-foreground: var(--light-text-muted);
+  --accent: var(--light-surface-recessed);
+  --accent-foreground: var(--light-text-primary);
+  --border: var(--light-hairline);
+  --input: var(--light-hairline);
 }
 
 :root[data-theme='dark'] {
@@ -156,6 +194,16 @@
   --resolved-column-header-text: var(--dark-text-secondary);
   --resolved-column-subheader: var(--dark-surface-hover);
   --resolved-column-subheader-text: var(--dark-text-secondary);
+  --background: var(--dark-surface);
+  --foreground: var(--dark-text-primary);
+  --popover: var(--dark-surface-raised);
+  --popover-foreground: var(--dark-text-primary);
+  --muted: var(--dark-surface-hover);
+  --muted-foreground: var(--dark-text-muted);
+  --accent: var(--dark-surface-hover);
+  --accent-foreground: var(--dark-text-primary);
+  --border: var(--dark-hairline);
+  --input: var(--dark-hairline);
 }
 
 /*
@@ -347,4 +395,21 @@
       display: none !important;
     }
   }
+}
+
+@theme inline {
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
 }
