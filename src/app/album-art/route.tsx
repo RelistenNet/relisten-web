@@ -4,7 +4,7 @@ import 'server-only';
 import { getArtistGradient } from '@/lib/artistColors';
 import RelistenAPI from '@/lib/RelistenAPI';
 import ImageResponse from '@takumi-rs/image-response';
-import { deny } from '@timber-js/app/server';
+import { defineSearchParams } from '@timber-js/app/search-params';
 import { z } from 'zod/v4';
 
 // Create a pixelated pattern with large squares
@@ -40,22 +40,19 @@ const generatePixelatedSVG = (opacity = 0.4, size: number) => {
   return `url("data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}")`;
 };
 
-const querySchema = z.object({
+const searchParams = defineSearchParams({
   showUuid: z.uuid({ version: 'v4' }),
   size: z.coerce.number().gte(256).lte(1024).default(1024),
 });
 
-export async function GET(request: Request) {
-  const url = new URL(request.url);
-  const parsed = querySchema.safeParse({
-    showUuid: url.searchParams.get('showUuid'),
-    size: url.searchParams.get('size') ?? undefined,
-  });
-
-  if (!parsed.success) return deny(404);
-  const { showUuid, size } = parsed.data;
-
-  if (!showUuid) return deny(404);
+export async function GET() {
+  let showUuid: string;
+  let size: number;
+  try {
+    ({ showUuid, size } = searchParams.get());
+  } catch {
+    return new Response('Not Found', { status: 404 });
+  }
 
   const [artists, show, fontReg, fontBold, fontMegaBold] = await Promise.all([
     RelistenAPI.fetchArtists(),
@@ -71,7 +68,7 @@ export async function GET(request: Request) {
     ),
   ]);
 
-  if (!show || !show.sources?.length) return deny(404);
+  if (!show || !show.sources?.length) return new Response('Not Found', { status: 404 });
 
   // Get params
   const artist = artists.find((artist) => artist.uuid === show.artist_uuid);

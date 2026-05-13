@@ -74,8 +74,8 @@ importers:
         specifier: ^3.13.24
         version: 3.13.24(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)
       '@timber-js/app':
-        specifier: 0.2.0-alpha.134
-        version: 0.2.0-alpha.134(6b461c2c496d86e574bd8df26b6fe42b)
+        specifier: 0.2.0-alpha.136
+        version: 0.2.0-alpha.136(6b461c2c496d86e574bd8df26b6fe42b)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -2237,8 +2237,8 @@ packages:
   '@tanstack/virtual-core@3.14.0':
     resolution: {integrity: sha512-JLANqGy/D6k4Ujmh8Tr25lGimuOXNiaVyXaCAZS0W+1390sADdGnyUdSWNIfd49gebtIxGMij4IktRVzrdr12Q==}
 
-  '@timber-js/app@0.2.0-alpha.134':
-    resolution: {integrity: sha512-B+KH3x6b1Q5uFjKfSUt5yOxxmQlTU6IHYOCZbUWwQF2jZLDaGUJXkgGM9dXDPBj0JzOo7/AQQy2KIwhwn9yjdQ==}
+  '@timber-js/app@0.2.0-alpha.136':
+    resolution: {integrity: sha512-ZZdSbRFB12cotnRMYfUH20WjSThN6LfwijaB9E4i2FGhydY2ZKKRJwgxqGeZ/Qe7O/+5SKtGQi3gXUcDF5g0cQ==}
     engines: {node: '>=22.12.0'}
     hasBin: true
     peerDependencies:
@@ -4296,6 +4296,7 @@ packages:
   node-domexception@1.0.0:
     resolution: {integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==}
     engines: {node: '>=10.5.0'}
+    deprecated: Use your platform's native DOMException instead
 
   node-exports-info@1.6.0:
     resolution: {integrity: sha512-pyFS63ptit/P5WqUkt+UUfe+4oevH+bFeIiPPdfb0pFeYEu/1ELnJu5l+5EcTKYL5M7zaAa7S8ddywgXypqKCw==}
@@ -7407,7 +7408,7 @@ snapshots:
 
   '@tanstack/virtual-core@3.14.0': {}
 
-  '@timber-js/app@0.2.0-alpha.134(6b461c2c496d86e574bd8df26b6fe42b)':
+  '@timber-js/app@0.2.0-alpha.136(6b461c2c496d86e574bd8df26b6fe42b)':
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/context-async-hooks': 2.7.1(@opentelemetry/api@1.9.1)

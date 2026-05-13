@@ -2,205 +2,201 @@ import { getArtistGradient } from '@/lib/artistColors';
 import RelistenAPI from '@/lib/RelistenAPI';
 import ImageResponse from '@takumi-rs/image-response';
 import { format, parseISO } from 'date-fns';
-import { deny } from '@timber-js/app/server';
+import { defineSearchParams } from '@timber-js/app/search-params';
 import { z } from 'zod';
+import { deny } from '@timber-js/app/server';
 
-const querySchema = z.object({
+const searchParams = defineSearchParams({
   showUuid: z.uuid(),
   size: z.coerce.number().gte(256).lte(1024).default(550),
 });
 
-export async function GET(request: Request) {
-  const url = new URL(request.url);
-  const parsed = querySchema.safeParse({
-    showUuid: url.searchParams.get('showUuid'),
-    size: url.searchParams.get('size') ?? undefined,
-  });
-
-  if (!parsed.success) return deny(404);
-  const { showUuid, size } = parsed.data;
-
-  if (!showUuid) return deny(404);
-
-  const [artists, show] = await Promise.all([
-    RelistenAPI.fetchArtists(),
-    RelistenAPI.fetchShowByUUID(showUuid),
-  ]);
-
-  if (!show || !show.sources?.length) return deny(404);
-
-  const artist = artists.find((a) => a.uuid === show.artist_uuid);
-  const artistName = artist?.name ?? 'Unknown Artist';
-  const bgGradient = getArtistGradient(show.artist_uuid || '');
-
-  // Scale factor relative to default 550
-  const s = size / 550;
-
-  // Format display date nicely
-  let displayDate = show.display_date || '';
+export async function GET() {
   try {
-    if (show.date) {
-      displayDate = format(parseISO(show.date), 'MMMM d, yyyy');
+    const { showUuid, size } = searchParams.get();
+
+    const [artists, show] = await Promise.all([
+      RelistenAPI.fetchArtists(),
+      RelistenAPI.fetchShowByUUID(showUuid),
+    ]);
+
+    if (!show || !show.sources?.length) return new Response('Not Found', { status: 404 });
+
+    const artist = artists.find((a) => a.uuid === show.artist_uuid);
+    const artistName = artist?.name ?? 'Unknown Artist';
+    const bgGradient = getArtistGradient(show.artist_uuid || '');
+
+    // Scale factor relative to default 550
+    const s = size / 550;
+
+    // Format display date nicely
+    let displayDate = show.display_date || '';
+    try {
+      if (show.date) {
+        displayDate = format(parseISO(show.date), 'MMMM d, yyyy');
+      }
+    } catch {
+      // fall back to display_date
     }
-  } catch {
-    // fall back to display_date
-  }
 
-  // Build setlist from first source
-  const source = show.sources[0];
-  const tracks: string[] = [];
-  for (const set of source.sets || []) {
-    for (const track of set.tracks || []) {
-      if (track.title) tracks.push(track.title);
+    // Build setlist from first source
+    const source = show.sources[0];
+    const tracks: string[] = [];
+    for (const set of source.sets || []) {
+      for (const track of set.tracks || []) {
+        if (track.title) tracks.push(track.title);
+      }
     }
-  }
 
-  // Badges
-  const badges: string[] = [];
-  if (show.has_soundboard_source) badges.push('SBD');
-  if (show.has_streamable_flac_source) badges.push('FLAC');
-  if ((show.source_count || 0) > 1) badges.push(`${show.source_count} sources`);
+    // Badges
+    const badges: string[] = [];
+    if (show.has_soundboard_source) badges.push('SBD');
+    if (show.has_streamable_flac_source) badges.push('FLAC');
+    if ((show.source_count || 0) > 1) badges.push(`${show.source_count} sources`);
 
-  return new ImageResponse(
-    <div tw="flex h-full w-full" style={{ backgroundImage: bgGradient }}>
-      {/* Full layout on bright gradient — no dark overlay */}
-      <div tw="flex flex-col h-full w-full" style={{ padding: `${14 * s}px ${28 * s}px` }}>
-        {/* Show info card */}
-        <div
-          tw="flex flex-col"
-          style={{
-            borderRadius: 14 * s,
-            padding: `${18 * s}px ${22 * s}px`,
-          }}
-        >
-          {/* Artist name */}
+    return new ImageResponse(
+      <div tw="flex h-full w-full" style={{ backgroundImage: bgGradient }}>
+        {/* Full layout on bright gradient — no dark overlay */}
+        <div tw="flex flex-col h-full w-full" style={{ padding: `${14 * s}px ${28 * s}px` }}>
+          {/* Show info card */}
           <div
-            tw="text-white font-bold"
+            tw="flex flex-col"
             style={{
-              fontSize: 38 * s,
-              lineHeight: 1.05,
-              letterSpacing: '-0.02em',
+              borderRadius: 14 * s,
+              padding: `${18 * s}px ${22 * s}px`,
             }}
           >
-            {artistName}
-          </div>
-
-          {/* Date */}
-          <div
-            tw="text-white"
-            style={{
-              fontSize: 22 * s,
-              marginTop: 6 * s,
-            }}
-          >
-            {displayDate}
-          </div>
-
-          {/* Venue */}
-          {show.venue?.name && (
+            {/* Artist name */}
             <div
-              tw="text-gray-100 opacity-80"
+              tw="text-white font-bold"
               style={{
-                fontSize: 14 * s,
-                marginTop: 3 * s,
+                fontSize: 38 * s,
+                lineHeight: 1.05,
+                letterSpacing: '-0.02em',
               }}
             >
-              {show.venue.name}
-              {show.venue.location ? ` \u2014 ${show.venue.location}` : ''}
+              {artistName}
             </div>
-          )}
 
-          {/* Badges */}
-          {badges.length > 0 && (
-            <div tw="flex" style={{ gap: 6 * s, marginTop: 10 * s }}>
-              {badges.map((badge) => (
-                <div
-                  key={badge}
-                  tw="flex text-white font-bold"
-                  style={{
-                    fontSize: 11 * s,
-                    backgroundColor: 'rgba(255,255,255,0.2)',
-                    borderRadius: 999,
-                    padding: `${2 * s}px ${9 * s}px`,
-                  }}
-                >
-                  {badge}
-                </div>
-              ))}
+            {/* Date */}
+            <div
+              tw="text-white"
+              style={{
+                fontSize: 22 * s,
+                marginTop: 6 * s,
+              }}
+            >
+              {displayDate}
             </div>
-          )}
-        </div>
 
-        {/* Setlist — two columns */}
-        {tracks.length > 0 && (
-          <div
-            tw="flex flex-1"
-            style={{
-              marginTop: 10 * s,
-              gap: 10 * s,
-            }}
-          >
-            {(() => {
-              const mid = Math.ceil(tracks.length / 2);
-              const col1 = tracks.slice(0, mid);
-              const col2 = tracks.slice(mid);
+            {/* Venue */}
+            {show.venue?.name && (
+              <div
+                tw="text-gray-100 opacity-80"
+                style={{
+                  fontSize: 14 * s,
+                  marginTop: 3 * s,
+                }}
+              >
+                {show.venue.name}
+                {show.venue.location ? ` \u2014 ${show.venue.location}` : ''}
+              </div>
+            )}
 
-              const renderCol = (items: string[], startIndex: number) =>
-                items.map((title, i) => (
+            {/* Badges */}
+            {badges.length > 0 && (
+              <div tw="flex" style={{ gap: 6 * s, marginTop: 10 * s }}>
+                {badges.map((badge) => (
                   <div
-                    key={i}
-                    tw="flex text-white"
+                    key={badge}
+                    tw="flex text-white font-bold"
                     style={{
-                      fontSize: 13 * s,
-                      lineHeight: 1.5,
+                      fontSize: 11 * s,
+                      backgroundColor: 'rgba(255,255,255,0.2)',
+                      borderRadius: 999,
+                      padding: `${2 * s}px ${9 * s}px`,
                     }}
                   >
-                    <span
-                      style={{
-                        opacity: 0.55,
-                        width: 18 * s,
-                        flexShrink: 0,
-                      }}
-                    >
-                      {startIndex + i + 1}
-                    </span>
-                    <span
-                      style={{
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {title}
-                    </span>
+                    {badge}
                   </div>
-                ));
-
-              return (
-                <>
-                  <div tw="flex flex-col" style={{ flex: 1, minWidth: 0 }}>
-                    {renderCol(col1, 0)}
-                  </div>
-                  {col2.length > 0 && (
-                    <div tw="flex flex-col" style={{ flex: 1, minWidth: 0 }}>
-                      {renderCol(col2, mid)}
-                    </div>
-                  )}
-                </>
-              );
-            })()}
+                ))}
+              </div>
+            )}
           </div>
-        )}
 
-        {/* Branding */}
-        <div tw="flex justify-end" style={{ marginTop: 6 * s }}>
-          <div tw="text-white font-bold text-xl">Relisten.net</div>
+          {/* Setlist — two columns */}
+          {tracks.length > 0 && (
+            <div
+              tw="flex flex-1"
+              style={{
+                marginTop: 10 * s,
+                gap: 10 * s,
+              }}
+            >
+              {(() => {
+                const mid = Math.ceil(tracks.length / 2);
+                const col1 = tracks.slice(0, mid);
+                const col2 = tracks.slice(mid);
+
+                const renderCol = (items: string[], startIndex: number) =>
+                  items.map((title, i) => (
+                    <div
+                      key={i}
+                      tw="flex text-white"
+                      style={{
+                        fontSize: 13 * s,
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      <span
+                        style={{
+                          opacity: 0.55,
+                          width: 18 * s,
+                          flexShrink: 0,
+                        }}
+                      >
+                        {startIndex + i + 1}
+                      </span>
+                      <span
+                        style={{
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {title}
+                      </span>
+                    </div>
+                  ));
+
+                return (
+                  <>
+                    <div tw="flex flex-col" style={{ flex: 1, minWidth: 0 }}>
+                      {renderCol(col1, 0)}
+                    </div>
+                    {col2.length > 0 && (
+                      <div tw="flex flex-col" style={{ flex: 1, minWidth: 0 }}>
+                        {renderCol(col2, mid)}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* Branding */}
+          <div tw="flex justify-end" style={{ marginTop: 6 * s }}>
+            <div tw="text-white font-bold text-xl">Relisten.net</div>
+          </div>
         </div>
-      </div>
-    </div>,
-    {
-      width: size,
-      height: size,
-    }
-  );
+      </div>,
+      {
+        width: size,
+        height: size,
+      }
+    );
+  } catch {
+    return deny(500);
+  }
 }

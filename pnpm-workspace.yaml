@@ -1,0 +1,10 @@
+allowBuilds:
+  esbuild: true
+  msw: false
+  protobufjs: false
+  sharp: false
+
+overrides:
+  react: 19.3.0-canary-ed69815c-20260323
+  react-dom: 19.3.0-canary-ed69815c-20260323
+  scheduler: 0.28.0-canary-ed69815c-20260323
