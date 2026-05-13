@@ -32,6 +32,8 @@ I'm thinking a password protected page for v1, in which we can "add" new clips. 
 
 Clips can be either explicitly a length, or perhaps we can reduce the number of points won as you listen to more and more. Interesting to figure out which is the right solution here, probably a mix of the two?
 
+Actually, maybe its worth having three clips per day. One is just a song structure. One is a type 1 jam. And one is a type 2 jam.
+
 ---
 
 ## AI: Questions
