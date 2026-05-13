@@ -28,6 +28,9 @@ importers:
       '@fontsource-variable/geist':
         specifier: ^5.2.8
         version: 5.2.8
+      '@mediabunny/mp3-encoder':
+        specifier: ^1.44.2
+        version: 1.44.2(mediabunny@1.44.2)
       '@opentelemetry/api':
         specifier: ^1.9.1
         version: 1.9.1
@@ -74,8 +77,8 @@ importers:
         specifier: ^3.13.24
         version: 3.13.24(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)
       '@timber-js/app':
-        specifier: 0.2.0-alpha.136
-        version: 0.2.0-alpha.136(6b461c2c496d86e574bd8df26b6fe42b)
+        specifier: 0.2.0-alpha.138
+        version: 0.2.0-alpha.138(6b461c2c496d86e574bd8df26b6fe42b)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -106,6 +109,9 @@ importers:
       lucide-react:
         specifier: ^1.14.0
         version: 1.14.0(react@19.3.0-canary-ed69815c-20260323)
+      mediabunny:
+        specifier: ^1.44.2
+        version: 1.44.2
       node-device-detector:
         specifier: ^2.2.5
         version: 2.2.5
@@ -917,6 +923,11 @@ packages:
     resolution: {integrity: sha512-v8satFmBB+DqDzYohnm1u2JOvxx6Hl3pUvqzJvfs2Zk/ngZ1aRUhsWpXvwPkNeGN9c2NCm/38H29ZqXQUjf8dw==}
     peerDependencies:
       rollup: '>=2'
+
+  '@mediabunny/mp3-encoder@1.44.2':
+    resolution: {integrity: sha512-/k0YgytA7bj2+BVF7lcqpdVplgTpn2KhMChtrCujaKhzbf8rJsZYSMpelWxkv/AZly7/LNScrWSCNJuQm0zR1g==}
+    peerDependencies:
+      mediabunny: ^1.0.0
 
   '@modelcontextprotocol/sdk@1.29.0':
     resolution: {integrity: sha512-zo37mZA9hJWpULgkRpowewez1y6ML5GsXJPY8FI0tBBCd77HEvza4jDqRKOXgHNn867PVGCyTdzqpz0izu5ZjQ==}
@@ -2237,8 +2248,8 @@ packages:
   '@tanstack/virtual-core@3.14.0':
     resolution: {integrity: sha512-JLANqGy/D6k4Ujmh8Tr25lGimuOXNiaVyXaCAZS0W+1390sADdGnyUdSWNIfd49gebtIxGMij4IktRVzrdr12Q==}
 
-  '@timber-js/app@0.2.0-alpha.136':
-    resolution: {integrity: sha512-ZZdSbRFB12cotnRMYfUH20WjSThN6LfwijaB9E4i2FGhydY2ZKKRJwgxqGeZ/Qe7O/+5SKtGQi3gXUcDF5g0cQ==}
+  '@timber-js/app@0.2.0-alpha.138':
+    resolution: {integrity: sha512-hbjuIIKugpouNLSB/jius79CxcBm5QlsHr8TJxPaZLz19IE8zuL+guDBE5YYqqeghTS9aTuz2YSWv4MsRtuYsA==}
     engines: {node: '>=22.12.0'}
     hasBin: true
     peerDependencies:
@@ -2279,6 +2290,12 @@ packages:
 
   '@types/debug@4.1.13':
     resolution: {integrity: sha512-KSVgmQmzMwPlmtljOomayoR89W4FynCAi3E8PPs7vmDVPe84hT+vGPKkJfThkmXs0x0jAaa9U8uW8bbfyS2fWw==}
+
+  '@types/dom-mediacapture-transform@0.1.11':
+    resolution: {integrity: sha512-Y2p+nGf1bF2XMttBnsVPHUWzRRZzqUoJAKmiP10b5umnO6DDrWI0BrGDJy1pOHoOULVmGSfFNkQrAlC5dcj6nQ==}
+
+  '@types/dom-webcodecs@0.1.13':
+    resolution: {integrity: sha512-O5hkiFIcjjszPIYyUSyvScyvrBoV3NOEEZx/pMlsu44TKzWNkLVBBxnxJz42in5n3QIolYOcBYFCPZZ0h8SkwQ==}
 
   '@types/esrecurse@4.3.1':
     resolution: {integrity: sha512-xJBAbDifo5hpffDBuHl0Y8ywswbiAp/Wi7Y/GtAgSlZyIABppyurxVueOPE8LUQOxdlgi6Zqce7uoEpqNTeiUw==}
@@ -4038,6 +4055,9 @@ packages:
   media-typer@1.1.0:
     resolution: {integrity: sha512-aisnrDP4GNe06UcKFnV5bfMNPBUw4jsLGaWwWfnH3v02GnBuXX2MCVn5RbrWo0j3pczUilYblq7fQ7Nw2t5XKw==}
     engines: {node: '>= 0.8'}
+
+  mediabunny@1.44.2:
+    resolution: {integrity: sha512-3ou3LB3ln31TYn/YZnRhRIVqwfgNy85gFvD3j34mEDq59Bc5PiNSV5ECavshm/+F2etC8UsJ/XdOrSoW3rB6lg==}
 
   merge-descriptors@2.0.0:
     resolution: {integrity: sha512-Snk314V5ayFLhp3fkUREub6WtjBfPdCPY1Ln8/8munuLuiYhsABgBVWsozAG+MWMbVEvcdcpbi9R7ww22l9Q3g==}
@@ -6322,6 +6342,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@mediabunny/mp3-encoder@1.44.2(mediabunny@1.44.2)':
+    dependencies:
+      mediabunny: 1.44.2
+
   '@modelcontextprotocol/sdk@1.29.0(zod@3.25.76)':
     dependencies:
       '@hono/node-server': 1.19.14(hono@4.12.18)
@@ -7408,7 +7432,7 @@ snapshots:
 
   '@tanstack/virtual-core@3.14.0': {}
 
-  '@timber-js/app@0.2.0-alpha.136(6b461c2c496d86e574bd8df26b6fe42b)':
+  '@timber-js/app@0.2.0-alpha.138(6b461c2c496d86e574bd8df26b6fe42b)':
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/context-async-hooks': 2.7.1(@opentelemetry/api@1.9.1)
@@ -7482,6 +7506,12 @@ snapshots:
   '@types/debug@4.1.13':
     dependencies:
       '@types/ms': 2.1.0
+
+  '@types/dom-mediacapture-transform@0.1.11':
+    dependencies:
+      '@types/dom-webcodecs': 0.1.13
+
+  '@types/dom-webcodecs@0.1.13': {}
 
   '@types/esrecurse@4.3.1': {}
 
@@ -9472,6 +9502,11 @@ snapshots:
   mdn-data@2.28.0: {}
 
   media-typer@1.1.0: {}
+
+  mediabunny@1.44.2:
+    dependencies:
+      '@types/dom-mediacapture-transform': 0.1.11
+      '@types/dom-webcodecs': 0.1.13
 
   merge-descriptors@2.0.0: {}
 

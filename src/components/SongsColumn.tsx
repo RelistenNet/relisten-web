@@ -12,6 +12,8 @@ import Row from './Row';
 import RowHeader from './RowHeader';
 import Tag from './Tag';
 import { sortSources } from '@/lib/sortSources';
+import { useAdminTools } from '@/hooks/useAdminTools';
+import { Link } from '@timber-js/app/client';
 
 const getSetTime = (set: Set): string =>
   durationToHHMMSS(
@@ -76,6 +78,7 @@ const SongsColumn = (props: Props) => {
       ...props,
       source: sourceId,
     });
+  const adminTools = useAdminTools();
 
   return (
     <Column
@@ -100,11 +103,21 @@ const SongsColumn = (props: Props) => {
               : null;
 
             return (
-              <div key={track.id}>
+              <div key={track.id} className="relative">
                 {trackIdx === 0 && Number(activeSourceObj.sets?.length) > 1 && (
                   <RowHeader>
                     {set.name || `Set ${setIdx + 1}`} <div>{getSetTime(set)}</div>
                   </RowHeader>
+                )}
+                {adminTools && track.slug && (
+                  <Link
+                    href={`/admin/clip/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${activeSourceObj.id}`}
+                    prefetch={false}
+                    title="Create clip"
+                    className="absolute top-1/2 right-1 z-10 -translate-y-1/2 rounded bg-surface px-1.5 py-0.5 text-xs hover:bg-surface-hover"
+                  >
+                    {'✂'}
+                  </Link>
                 )}
                 <Row
                   key={track.id}

@@ -6,6 +6,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { PropsWithChildren, useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
 import { store } from '../redux';
+import AdminToolsInit from '@/components/AdminToolsInit';
 
 export default function Providers({ children }: PropsWithChildren) {
   const [queryClient] = useState(
@@ -46,6 +47,7 @@ export default function Providers({ children }: PropsWithChildren) {
   return (
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
+        <AdminToolsInit />
         {children}
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
