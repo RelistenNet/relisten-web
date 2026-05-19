@@ -9,7 +9,7 @@ const ArtistSongsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) 
     deny(404);
   });
 
-  return <ArtistSongsColumnWithControls artistSlug={artistSlug} songs={songs} />;
+  return <ArtistSongsColumnWithControls artistSlug={artistSlug} songs={songs ?? []} />;
 };
 
 export default ArtistSongsColumn;

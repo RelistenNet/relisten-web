@@ -1,11 +1,9 @@
-import { motion } from 'framer-motion';
 import { Link } from '@timber-js/app/client';
+import { motion } from 'framer-motion';
 import TimeAgo from 'react-timeago';
 
 import { ArrowRight } from 'lucide-react';
-import { splitShowDate } from '../lib/utils';
 import { LiveHistoryItem, Track, TrackSource, Venue } from '../types';
-import Flex from './Flex';
 
 const getVenueInfo = (track: TrackSource): Venue | undefined => {
   if (track.artist && track.artist.features) {
@@ -26,11 +24,9 @@ type VenueInfoProps = {
     track: Track;
     source: TrackSource;
   };
-  app_type_description: string;
-  created_at: string;
 };
 
-const VenueInfo = ({ track, app_type_description, created_at }: VenueInfoProps) => {
+const VenueInfo = ({ track }: VenueInfoProps) => {
   const info = getVenueInfo(track.source);
   return info ? (
     <div className="space-y-1">
@@ -48,7 +44,6 @@ const VenueInfo = ({ track, app_type_description, created_at }: VenueInfoProps) 
 const formatterFn = (value: number, unit: string) => value + unit.slice(0, 1);
 
 type LiveTrackProps = LiveHistoryItem & {
-  isFirstRender?: boolean;
   isLastSeen?: boolean;
 };
 
@@ -56,7 +51,6 @@ export default function LiveTrack({
   app_type_description = '',
   created_at,
   track,
-  isFirstRender,
   isLastSeen,
 }: LiveTrackProps) {
   if (!track?.track) return null;
@@ -115,11 +109,7 @@ export default function LiveTrack({
 
           {/* Venue and date info */}
           <div className="space-y-1 text-xs text-foreground-muted">
-            <VenueInfo
-              track={track}
-              app_type_description={app_type_description}
-              created_at={created_at}
-            />
+            <VenueInfo track={track} />
           </div>
 
           {/* Footer with app type and time */}

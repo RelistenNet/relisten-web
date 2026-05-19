@@ -1,8 +1,7 @@
 'use client';
 
-import NavBar from '@/components/NavBar';
-import { ArrowDown } from 'lucide-react';
 import { Link } from '@timber-js/app/client';
+import { ArrowDown } from 'lucide-react';
 
 export default function NotFound() {
   return (

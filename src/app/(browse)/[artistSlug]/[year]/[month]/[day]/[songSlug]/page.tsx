@@ -23,7 +23,7 @@ export default async function Page() {
 export const metadata = async () => {
   const { artistSlug, year, month, day, songSlug } = getSegmentParams(SEGMENT_PATH);
 
-  const [artists] = await Promise.all([RelistenAPI.fetchArtists()]);
+  const artists = await RelistenAPI.fetchArtists();
 
   const name = artists?.find((a) => a.slug === artistSlug)?.name;
 

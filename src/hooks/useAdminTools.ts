@@ -1,10 +1,7 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
-import {
-  ADMIN_TOOLS_CHANGE_EVENT,
-  isAdminToolsEnabled,
-} from '@/lib/adminTools';
+import { ADMIN_TOOLS_CHANGE_EVENT, isAdminToolsEnabled } from '@/lib/adminTools';
 
 function subscribe(onChange: () => void) {
   window.addEventListener(ADMIN_TOOLS_CHANGE_EVENT, onChange);

@@ -1,4 +1,3 @@
-import Column from './Column';
 import Row from './Row';
 
 // TODO: replace this with shadcn/radix

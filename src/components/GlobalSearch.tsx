@@ -11,11 +11,7 @@ import {
   CommandItem,
   CommandSeparator,
 } from '@/components/ui/command';
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from '@/components/ui/popover';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { SearchIcon, MicIcon, MapPinIcon, RouteIcon } from 'lucide-react';
 import { API_DOMAIN } from '@/lib/constants';
 import cn from '@/lib/cn';
@@ -117,9 +113,9 @@ function SearchResultsList({
       )}
 
       {results.Artists.length > 0 &&
-        (results.Songs.length > 0 ||
-          results.Venues.length > 0 ||
-          results.Tours.length > 0) && <CommandSeparator />}
+        (results.Songs.length > 0 || results.Venues.length > 0 || results.Tours.length > 0) && (
+          <CommandSeparator />
+        )}
 
       {results.Songs.length > 0 && (
         <CommandGroup heading="Songs">
@@ -127,9 +123,7 @@ function SearchResultsList({
             <CommandItem
               key={`song-${song.slim_artist.slug}-${song.slug}`}
               value={`song-${song.slim_artist.slug}-${song.slug}`}
-              onSelect={() =>
-                onNavigate(`/${song.slim_artist.slug}/songs?slug=${song.slug}`)
-              }
+              onSelect={() => onNavigate(`/${song.slim_artist.slug}/songs?slug=${song.slug}`)}
             >
               <SearchIcon className="size-4 text-text-muted" />
               <div className="flex flex-col">
@@ -143,10 +137,9 @@ function SearchResultsList({
         </CommandGroup>
       )}
 
-      {results.Songs.length > 0 &&
-        (results.Venues.length > 0 || results.Tours.length > 0) && (
-          <CommandSeparator />
-        )}
+      {results.Songs.length > 0 && (results.Venues.length > 0 || results.Tours.length > 0) && (
+        <CommandSeparator />
+      )}
 
       {results.Venues.length > 0 && (
         <CommandGroup heading="Venues">
@@ -154,9 +147,7 @@ function SearchResultsList({
             <CommandItem
               key={`venue-${venue.slim_artist.slug}-${venue.slug}`}
               value={`venue-${venue.slim_artist.slug}-${venue.slug}`}
-              onSelect={() =>
-                onNavigate(`/${venue.slim_artist.slug}/venues?slug=${venue.slug}`)
-              }
+              onSelect={() => onNavigate(`/${venue.slim_artist.slug}/venues?slug=${venue.slug}`)}
             >
               <MapPinIcon className="size-4 text-text-muted" />
               <div className="flex flex-col">
@@ -180,9 +171,7 @@ function SearchResultsList({
             <CommandItem
               key={`tour-${tour.slim_artist.slug}-${tour.slug}`}
               value={`tour-${tour.slim_artist.slug}-${tour.slug}`}
-              onSelect={() =>
-                onNavigate(`/${tour.slim_artist.slug}/tours?slug=${tour.slug}`)
-              }
+              onSelect={() => onNavigate(`/${tour.slim_artist.slug}/tours?slug=${tour.slug}`)}
             >
               <RouteIcon className="size-4 text-text-muted" />
               <div className="flex flex-col">
@@ -271,11 +260,7 @@ export default function GlobalSearch() {
         </kbd>
       </PopoverTrigger>
 
-      <PopoverContent
-        align="end"
-        sideOffset={8}
-        className="w-[min(420px,calc(100vw-1rem))] p-0"
-      >
+      <PopoverContent align="end" sideOffset={8} className="w-[min(420px,calc(100vw-1rem))] p-0">
         <Command shouldFilter={false}>
           <CommandInput
             placeholder="Search artists, songs, venues..."
@@ -295,16 +280,9 @@ export default function GlobalSearch() {
             )}
 
             {showResults && (
-              <div
-                className={cn(
-                  'transition-opacity duration-150',
-                  isStale && 'opacity-50'
-                )}
-              >
+              <div className={cn('transition-opacity duration-150', isStale && 'opacity-50')}>
                 <Suspense
-                  fallback={
-                    <CommandEmpty className="text-text-muted">Searching...</CommandEmpty>
-                  }
+                  fallback={<CommandEmpty className="text-text-muted">Searching...</CommandEmpty>}
                 >
                   <SearchResultsList query={deferredQuery} onNavigate={navigate} />
                 </Suspense>

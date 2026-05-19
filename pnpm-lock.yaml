@@ -103,9 +103,6 @@ importers:
       ky:
         specifier: ^2.0.2
         version: 2.0.2
-      ky-universal:
-        specifier: ^1.0.0
-        version: 1.0.0(ky@2.0.2)(web-streams-polyfill@3.3.3)
       lucide-react:
         specifier: ^1.14.0
         version: 1.14.0(react@19.3.0-canary-ed69815c-20260323)
@@ -136,6 +133,9 @@ importers:
       remark-gfm:
         specifier: ^4.0.1
         version: 4.0.1
+      server-only:
+        specifier: ^0.0.1
+        version: 0.0.1
       shadcn:
         specifier: ^4.7.0
         version: 4.7.0(@types/node@25.7.0)(typescript@6.0.3)
@@ -3849,17 +3849,6 @@ packages:
     resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
     engines: {node: '>=6'}
 
-  ky-universal@1.0.0:
-    resolution: {integrity: sha512-pWikiCD7CRRz3jopuLMRKThrSDDCYjUS5Z68g/qhdUDktL8JolN3rBwEwEwCuDPAK+1nuhXyqHBe2NGR6DMWqg==}
-    engines: {node: '>=16'}
-    deprecated: The package is deprecated. Just use Ky directly.
-    peerDependencies:
-      ky: '>=0.33.0'
-      web-streams-polyfill: '>=3.2.1'
-    peerDependenciesMeta:
-      web-streams-polyfill:
-        optional: true
-
   ky@2.0.2:
     resolution: {integrity: sha512-/GmXpo9F9W+f8n4Ivr2iH+7h7wL7jLbLKWkMlpflcCRb6kGjBfTlASEXaZ9qUgNTn4VgS0P2pwxxzQ4EM6Ulgg==}
     engines: {node: '>=22'}
@@ -4911,6 +4900,9 @@ packages:
   serve-static@2.2.1:
     resolution: {integrity: sha512-xRXBn0pPqQTVQiC8wyQrKs2MOlX24zQ0POGaj0kultvoOCstBQM5yvOhAVSUwOMjQtTvsPWoNCHfPGwaaQJhTw==}
     engines: {node: '>= 18'}
+
+  server-only@0.0.1:
+    resolution: {integrity: sha512-qepMx2JxAa5jjfzxG79yPPq+8BuFToHd1hm7kI+Z4zAq1ftQiP7HcxMhDDItrbtwVeLg/cY2JnKnrcFkmiswNA==}
 
   set-cookie-parser@3.1.0:
     resolution: {integrity: sha512-kjnC1DXBHcxaOaOXBHBeRtltsDG2nUiUni+jP92M9gYdW12rsmx92UsfpH7o5tDRs7I1ZZPSQJQGv3UaRfCiuw==}
@@ -9212,13 +9204,6 @@ snapshots:
 
   kleur@4.1.5: {}
 
-  ky-universal@1.0.0(ky@2.0.2)(web-streams-polyfill@3.3.3):
-    dependencies:
-      ky: 2.0.2
-      node-fetch: 3.3.2
-    optionalDependencies:
-      web-streams-polyfill: 3.3.3
-
   ky@2.0.2: {}
 
   levn@0.4.1:
@@ -10699,6 +10684,8 @@ snapshots:
       send: 1.2.1
     transitivePeerDependencies:
       - supports-color
+
+  server-only@0.0.1: {}
 
   set-cookie-parser@3.1.0: {}
 

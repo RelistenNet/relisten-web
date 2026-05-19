@@ -1,5 +1,5 @@
 import RelistenAPI from '@/lib/RelistenAPI';
-import { deny, getSegmentParams } from '@timber-js/app/server';
+import { getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 
 export default function Page() {

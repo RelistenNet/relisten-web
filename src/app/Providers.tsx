@@ -27,7 +27,8 @@ export default function Providers({ children }: PropsWithChildren) {
       if (!player.togglePlayPause) return;
 
       const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) return;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable)
+        return;
 
       if (e.code === 'Space') {
         player.togglePlayPause();

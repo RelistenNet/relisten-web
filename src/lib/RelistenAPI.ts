@@ -1,6 +1,6 @@
 import 'server-only';
 
-import ky, { HTTPError } from 'ky-universal';
+import ky, { HTTPError } from 'ky';
 import { deny } from '@timber-js/app/server';
 import { cache } from 'react';
 import { cache as timberCache } from '@timber-js/app/cache';

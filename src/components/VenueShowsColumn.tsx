@@ -14,8 +14,8 @@ const VenueShowsColumn = async ({ artistSlug, slug }: { artistSlug: string; slug
   return (
     <ShowsColumnWithControls
       artistSlug={artistSlug}
-      year={venue.name}
-      shows={venue.shows || []}
+      year={venue?.name}
+      shows={venue?.shows ?? []}
       initialFilters={initialFilters}
       backHref={`/${artistSlug}/venues`}
       fullDate
