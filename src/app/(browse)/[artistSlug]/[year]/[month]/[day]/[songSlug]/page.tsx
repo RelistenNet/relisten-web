@@ -1,4 +1,5 @@
 import PlayerManager from '@/components/PlayerManager';
+import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { isMobile } from '@/lib/isMobile';
 import { createShowDate } from '@/lib/utils';
@@ -43,7 +44,7 @@ export const metadata = async () => {
     openGraph: {
       audio: [
         {
-          url: song?.mp3_url, // Must be an absolute URL
+          url: proxyStreamUrl(song?.mp3_url),
         },
       ],
       images: show?.uuid ? [{ url: `/api/og?showUuid=${show.uuid}`, width: 550, height: 550 }] : [],

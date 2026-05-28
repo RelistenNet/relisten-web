@@ -1,3 +1,4 @@
+import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { createShowDate } from '@/lib/utils';
 import { getSegmentParams } from '@timber-js/app/server';
@@ -40,7 +41,7 @@ export default async function Page() {
         Clip: {track.title} — {artistSlug} {displayDate}
       </h1>
       <ClipEditor
-        url={track.mp3_url}
+        url={proxyStreamUrl(track.mp3_url)!}
         title={track.title ?? songSlug}
         duration={track.duration ?? 0}
       />

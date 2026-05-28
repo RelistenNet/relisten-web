@@ -9,6 +9,7 @@ import player, {
 } from '@/lib/player';
 import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { tSearchParamsLoader } from '@/lib/searchParams/tSearchParam';
+import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
 import { createShowDate } from '@/lib/utils';
 import { store } from '@/redux';
 import { updatePlayback } from '@/redux/modules/playback';
@@ -85,7 +86,7 @@ export default function PlayerManager(props: PlayerManagerProps) {
       }
 
       tracks.map((track) => {
-        const url = window.FLAC ? track?.flac_url || track?.mp3_url : track?.mp3_url;
+        const url = proxyStreamUrl(window.FLAC ? track?.flac_url || track?.mp3_url : track?.mp3_url);
 
         if (!url) return;
         player.addTrack(url, {

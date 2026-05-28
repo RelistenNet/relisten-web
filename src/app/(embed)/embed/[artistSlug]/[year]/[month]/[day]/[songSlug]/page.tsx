@@ -1,5 +1,6 @@
 import PlayerManager from '@/components/PlayerManager';
 import SongsColumn from '@/components/SongsColumn';
+import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { isMobile } from '@/lib/isMobile';
 import { createShowDate } from '@/lib/utils';
@@ -77,7 +78,7 @@ export async function metadata() {
     openGraph: {
       audio: [
         {
-          url: song?.mp3_url,
+          url: proxyStreamUrl(song?.mp3_url),
         },
       ],
     },
