@@ -4,6 +4,9 @@ allowBuilds:
   protobufjs: false
   sharp: false
 
+minimumReleaseAgeExclude:
+  - gapless@4.2.2
+
 overrides:
   react: 19.3.0-canary-ed69815c-20260323
   react-dom: 19.3.0-canary-ed69815c-20260323
