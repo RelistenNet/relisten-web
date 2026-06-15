@@ -77,8 +77,8 @@ importers:
         specifier: ^3.14.2
         version: 3.14.2(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)
       '@timber-js/app':
-        specifier: 0.2.0-alpha.145
-        version: 0.2.0-alpha.145(7483b1f5f875f2b240bf042df972c307)
+        specifier: 0.2.0-alpha.148
+        version: 0.2.0-alpha.148(7483b1f5f875f2b240bf042df972c307)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -2447,9 +2447,9 @@ packages:
   '@tanstack/virtual-core@3.17.0':
     resolution: {integrity: sha512-gOxY/hFkPh/XQYhnThBHzkbkX3Ed+z/iushyz+R+JAr213aXxUDgQoTgTdrDpBSRsjFM73P/KfUyWmaF9WHMkQ==}
 
-  '@timber-js/app@0.2.0-alpha.145':
-    resolution: {integrity: sha512-QWCIxYmkVhdk/2nDKjtDHBxS251R4H3HAG4ERJo218vKigOgp2CYlrOuaFczKSJWEha6R4l4mIbunt573oiGaA==}
-    engines: {node: '>=22.12.0'}
+  '@timber-js/app@0.2.0-alpha.148':
+    resolution: {integrity: sha512-bAkysoYardDYn5Imcy+4BNoV0vKCWPTzYkOOaQRhIKS8RFWSMDxg3pjc0FR2RpxIP07nsPmJFC8NnbdEdxuWlA==}
+    engines: {node: '>=22.18.0'}
     hasBin: true
     peerDependencies:
       '@content-collections/core': ^0.14.0
@@ -2461,7 +2461,7 @@ packages:
       nuqs: ^2.0.0
       react: 19.3.0-canary-ed69815c-20260323
       react-dom: 19.3.0-canary-ed69815c-20260323
-      vite: ^8.0.13
+      vite: ^8.0.16
       wrangler: ^4.0.0
       zod: ^3.22.0 || ^4.0.0
     peerDependenciesMeta:
@@ -4423,16 +4423,16 @@ packages:
   nf3@0.3.17:
     resolution: {integrity: sha512-N9zEWySuJFw+gR0lhS5863YsvNeudOdqRyFvNb+jMXbeTJOdrjDqkCpDginIZfUm0LzT1t1nCRiDeqQm/8kirQ==}
 
-  nitro@3.0.260522-beta:
-    resolution: {integrity: sha512-L/z2eOWgkiQHc65kv+SEMgau505afSRF7NJlbooaaZEZscFrNSD7rXZzeVubQlgIzPbhOG8o73bk9soIiGTHRA==}
+  nitro@3.0.260603-beta:
+    resolution: {integrity: sha512-ffaSHK00a7YDlDizoEHwcxPwpQpdBRRA8k42ymTsRnfl3ipGeKgv4gnPr6DgmCNTo4tYVPK3bHBEv1gNhWpo/A==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
     peerDependencies:
       '@vercel/queue': ^0.2.0
       dotenv: '*'
       giget: '*'
-      jiti: ^2.6.1
-      rollup: ^4.60.3
+      jiti: ^2.7.0
+      rollup: ^4.60.4
       vite: ^7 || ^8
       xml2js: ^0.6.2
       zephyr-agent: ^0.2.0
@@ -7652,7 +7652,7 @@ snapshots:
 
   '@tanstack/virtual-core@3.17.0': {}
 
-  '@timber-js/app@0.2.0-alpha.145(7483b1f5f875f2b240bf042df972c307)':
+  '@timber-js/app@0.2.0-alpha.148(7483b1f5f875f2b240bf042df972c307)':
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/context-async-hooks': 2.7.1(@opentelemetry/api@1.9.1)
@@ -7660,7 +7660,7 @@ snapshots:
       '@vitejs/plugin-react': 6.0.2(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.7)(rolldown@1.1.0)(vite@8.0.16(@types/node@25.9.2)(jiti@2.7.0)(yaml@2.9.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.0.16(@types/node@25.9.2)(jiti@2.7.0)(yaml@2.9.0))
       '@vitejs/plugin-rsc': 0.5.27(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)(vite@8.0.16(@types/node@25.9.2)(jiti@2.7.0)(yaml@2.9.0))
       magic-string: 0.30.21
-      nitro: 3.0.260522-beta(chokidar@4.0.3)(dotenv@17.4.2)(jiti@2.7.0)(rollup@4.60.1)(vite@8.0.16(@types/node@25.9.2)(jiti@2.7.0)(yaml@2.9.0))
+      nitro: 3.0.260603-beta(chokidar@4.0.3)(dotenv@17.4.2)(jiti@2.7.0)(rollup@4.60.1)(vite@8.0.16(@types/node@25.9.2)(jiti@2.7.0)(yaml@2.9.0))
       nuqs: 2.8.9(next@16.2.3(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)
       react: 19.3.0-canary-ed69815c-20260323
       react-dom: 19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323)
@@ -10040,7 +10040,7 @@ snapshots:
 
   nf3@0.3.17: {}
 
-  nitro@3.0.260522-beta(chokidar@4.0.3)(dotenv@17.4.2)(jiti@2.7.0)(rollup@4.60.1)(vite@8.0.16(@types/node@25.9.2)(jiti@2.7.0)(yaml@2.9.0)):
+  nitro@3.0.260603-beta(chokidar@4.0.3)(dotenv@17.4.2)(jiti@2.7.0)(rollup@4.60.1)(vite@8.0.16(@types/node@25.9.2)(jiti@2.7.0)(yaml@2.9.0)):
     dependencies:
       consola: 3.4.2
       crossws: 0.4.5(srvx@0.11.16)

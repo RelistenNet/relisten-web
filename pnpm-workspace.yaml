@@ -6,6 +6,7 @@ allowBuilds:
 
 minimumReleaseAgeExclude:
   - gapless@4.2.2
+  - '@timber-js/app@0.2.0-alpha.148'
 
 overrides:
   react: 19.3.0-canary-ed69815c-20260323
