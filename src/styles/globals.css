@@ -69,22 +69,17 @@
   --light-text-muted: #6b7280;
   --light-accent: #009dc1;
 
-  --dark-surface: #00141a;
-  --dark-surface-raised: #002129;
-  --dark-surface-elevated: #003344;
-  --dark-surface-recessed: #000609;
-  --dark-surface-hover: #00475a;
-  --dark-hairline: rgba(
-    60,
-    219,
-    255,
-    0.12
-  ); /* relisten-300 @ 22% — brighter teal divider for stronger row separation */
-  /* Text colors derived from relisten-600 hue (~192°) with dropped saturation,
-     so they harmonize with the teal surfaces instead of reading as neutral gray. */
-  --dark-text-primary: hsl(192, 30%, 98%);
-  --dark-text-secondary: hsl(192, 28%, 88%);
-  --dark-text-muted: hsl(192, 32%, 72%);
+  --dark-surface: #151820;
+  --dark-surface-raised: #1c2028;
+  --dark-surface-elevated: #242830;
+  --dark-surface-recessed: #101318;
+  --dark-surface-hover: #2b3039;
+  --dark-column-header: #272c35;
+  --dark-column-header-text: #bbc1ca;
+  --dark-hairline: rgba(160, 175, 195, 0.13);
+  --dark-text-primary: #d8dce3;
+  --dark-text-secondary: #8f99a6;
+  --dark-text-muted: #636d7c;
   --dark-accent: #009dc1;
 
   /* Default: light */
@@ -133,8 +128,8 @@
     --resolved-text-secondary: var(--dark-text-secondary);
     --resolved-text-muted: var(--dark-text-muted);
     --resolved-accent: var(--dark-accent);
-    --resolved-column-header: var(--dark-surface-elevated);
-    --resolved-column-header-text: var(--dark-text-secondary);
+    --resolved-column-header: var(--dark-column-header);
+    --resolved-column-header-text: var(--dark-column-header-text);
     --resolved-column-subheader: var(--dark-surface-hover);
     --resolved-column-subheader-text: var(--dark-text-secondary);
     --background: var(--dark-surface);
@@ -190,8 +185,8 @@
   --resolved-text-secondary: var(--dark-text-secondary);
   --resolved-text-muted: var(--dark-text-muted);
   --resolved-accent: var(--dark-accent);
-  --resolved-column-header: var(--dark-surface-elevated);
-  --resolved-column-header-text: var(--dark-text-secondary);
+  --resolved-column-header: var(--dark-column-header);
+  --resolved-column-header-text: var(--dark-column-header-text);
   --resolved-column-subheader: var(--dark-surface-hover);
   --resolved-column-subheader-text: var(--dark-text-secondary);
   --background: var(--dark-surface);
