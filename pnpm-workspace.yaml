@@ -1,13 +1,10 @@
+minimumReleaseAge: 0
+
 allowBuilds:
   esbuild: true
   msw: false
   protobufjs: false
   sharp: false
-
-minimumReleaseAgeExclude:
-  - gapless@4.2.2
-  - '@timber-js/app@0.2.0-alpha.148'
-  - '@timber-js/app@0.2.0-alpha.149'
 
 overrides:
   react: 19.3.0-canary-ed69815c-20260323

@@ -29,7 +29,7 @@ export default async function BrowseLayout({
       <div
         className={cn(
           `
-            overflow-y-auto px-4
+            overflow-y-auto bg-surface-recessed px-4
             lg:grid lg:grid-flow-col lg:grid-cols-5 lg:grid-rows-1 lg:gap-x-4
             lg:[&>*]:border-x lg:[&>*]:border-hairline
             max-md:[&>div]:hidden

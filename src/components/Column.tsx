@@ -24,7 +24,7 @@ const Column = ({ className, heading, children }: ColumnProps) => {
   // }, []);
 
   return (
-    <Flex ref={ref} className={cn('relisten-column flex-1 break-words', className)} column>
+    <Flex ref={ref} className={cn('relisten-column flex-1 break-words bg-surface', className)} column>
       <Scroller containerRef={ref} key={heading} />
       {heading && (
         <Flex

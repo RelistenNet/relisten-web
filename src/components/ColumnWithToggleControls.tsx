@@ -49,7 +49,7 @@ const ColumnWithToggleControls = ({
       : 0;
 
   return (
-    <Flex ref={ref} className={cn('relisten-column relative flex-1 break-words', className)} column>
+    <Flex ref={ref} className={cn('relisten-column relative flex-1 break-words bg-surface', className)} column>
       <Scroller containerRef={ref} key={heading} />
       {heading && (
         <Flex className="bg-column-header min-h-[32px] w-full items-center justify-between border-b border-hairline px-2 text-sm font-medium text-column-header-text capitalize">

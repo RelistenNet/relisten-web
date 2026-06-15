@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
-    "@content-collections/next": "^0.2.11",
     "@date-fns/tz": "^1.5.0",
     "@floating-ui/react": "^0.27.19",
     "@fontsource-variable/geist": "^5.2.9",
@@ -35,7 +34,7 @@
     "@tanstack/react-query": "^5.101.0",
     "@tanstack/react-query-devtools": "^5.101.0",
     "@tanstack/react-virtual": "^3.14.2",
-    "@timber-js/app": "0.2.0-alpha.149",
+    "@timber-js/app": "0.2.0-alpha.150",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
