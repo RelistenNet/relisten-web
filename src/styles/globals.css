@@ -374,7 +374,7 @@
 }
 
 @utility nav-btn {
-  @apply flex h-full items-center rounded-sm px-2 text-center transition-colors hover:bg-surface-hover hover:text-text-primary active:relative active:top-[1px] active:text-text-primary;
+  @apply flex h-full tracking-wider items-center rounded-sm px-2 text-center transition-colors hover:bg-surface-hover hover:text-text-primary active:relative active:top-[1px] active:text-text-primary;
 }
 
 @utility relisten-row {

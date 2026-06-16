@@ -7,7 +7,7 @@ import RelistenAPI from '@/lib/RelistenAPI';
 import MainNavHeader from './MainNavHeader';
 import AndroidUpgradeNotification from './AndroidUpgradeNotification';
 import BlogNavIndicator from './blog/BlogNavLink';
-import GlobalSearch from './GlobalSearch';
+// import GlobalSearch from './GlobalSearch';
 import { MenuIcon } from 'lucide-react';
 import { getHeaders } from '@timber-js/app/server';
 import { UAParser } from 'ua-parser-js';
@@ -65,7 +65,7 @@ export default async function NavBar() {
         </div>
 
         <div className="flex items-center justify-self-end">
-          <GlobalSearch />
+          {/* <GlobalSearch /> */}
 
           <Popover.Root>
             <Popover.Trigger
@@ -102,7 +102,7 @@ export default async function NavBar() {
           <div
             className="
               nav hidden h-full cursor-pointer items-center gap-0.5 text-center
-              text-[13px] font-medium text-text-secondary
+              text-sm font-medium text-text-secondary
               xl:flex
             "
           >
@@ -116,7 +116,7 @@ export default async function NavBar() {
               Chat
             </Link>
             <Link className="nav-btn" href="/app" prefetch={false}>
-              App
+              Apps
             </Link>
             <Link className="nav-btn" href="/sonos" prefetch={false}>
               Sonos
