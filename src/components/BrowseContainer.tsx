@@ -2,7 +2,8 @@
 
 import { usePathname } from '@timber-js/app/client';
 import cn from '@/lib/cn';
-import { ReactNode } from 'react';
+import { ReactNode, useLayoutEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 
 function getDepth(pathname: string): number {
   const segments = pathname.split('/').filter(Boolean);
@@ -23,6 +24,8 @@ function getActiveColumn(depth: number): number {
   return 3;
 }
 
+const MOBILE_MQ = '(max-width: 1023px)';
+
 export default function BrowseContainer({
   children,
   className,
@@ -36,12 +39,40 @@ export default function BrowseContainer({
   const depth = getDepth(pathname);
   const activeColumn = getActiveColumn(depth);
 
+  const [displayedColumn, setDisplayedColumn] = useState(activeColumn);
+  const prevColumn = useRef(activeColumn);
+
+  useLayoutEffect(() => {
+    if (activeColumn === prevColumn.current) return;
+
+    const direction = activeColumn > prevColumn.current ? 'forward' : 'back';
+    prevColumn.current = activeColumn;
+
+    const isMobile = window.matchMedia(MOBILE_MQ).matches;
+
+    if (!isMobile || !document.startViewTransition) {
+      setDisplayedColumn(activeColumn);
+      return;
+    }
+
+    document.documentElement.setAttribute('data-nav-direction', direction);
+
+    const transition = document.startViewTransition(() => {
+      flushSync(() => setDisplayedColumn(activeColumn));
+    });
+
+    transition.finished.then(() => {
+      document.documentElement.removeAttribute('data-nav-direction');
+    });
+  }, [activeColumn]);
+
   return (
     <div
-      data-browse-depth={activeColumn}
+      data-browse-depth={displayedColumn}
       className={cn(
         `
-          browse-grid overflow-y-auto bg-surface-recessed px-4
+          browse-grid flex min-h-0 flex-1 flex-col overflow-hidden bg-surface-recessed
+          lg:overflow-y-auto lg:px-4
           lg:grid lg:grid-flow-col lg:grid-cols-5 lg:grid-rows-1 lg:gap-x-4
           lg:[&_.relisten-column]:border-x lg:[&_.relisten-column]:border-hairline
         `,

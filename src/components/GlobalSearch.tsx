@@ -242,9 +242,9 @@ export default function GlobalSearch() {
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger
         className="
-          flex h-8 items-center gap-2 rounded-md border border-hairline bg-surface-elevated
+          hidden h-8 items-center gap-2 rounded-md border border-hairline bg-surface-elevated
           px-3 text-xs text-text-muted transition-colors hover:bg-surface-hover
-          cursor-pointer
+          cursor-pointer lg:flex
         "
       >
         <SearchIcon className="size-3.5" />

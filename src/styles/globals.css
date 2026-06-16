@@ -255,18 +255,117 @@
 }
 
 @media (max-width: 1023px) {
+  .browse-grid {
+    position: relative;
+  }
+
+  .browse-grid .relisten-column {
+    min-height: 0;
+  }
+
   .browse-grid > .browse-col {
-    display: none;
+    /* Hidden columns stay mounted with real dimensions so
+       virtualizers don't remeasure to zero during transitions */
+    position: absolute;
+    inset: 0;
+    visibility: hidden;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
   }
 
   .browse-grid[data-browse-depth='0'] > .browse-col:nth-child(1),
   .browse-grid[data-browse-depth='1'] > .browse-col:nth-child(2),
   .browse-grid[data-browse-depth='2'] > .browse-col:nth-child(3),
   .browse-grid[data-browse-depth='3'] > .browse-col:nth-child(4) {
-    display: flex;
-    flex-direction: column;
+    position: relative;
+    visibility: visible;
+    pointer-events: auto;
     flex: 1;
     min-height: 0;
+    overflow: hidden;
+    view-transition-name: browse-active-col;
+  }
+
+}
+
+/* ── View Transition: iOS-style push/pop ── */
+
+::view-transition-group(browse-active-col) {
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+::view-transition-old(browse-active-col),
+::view-transition-new(browse-active-col) {
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  /* fill both so the snapshot holds at start and end */
+  animation-fill-mode: both;
+}
+
+/* ── Forward push ── */
+:root[data-nav-direction='forward']::view-transition-new(browse-active-col) {
+  animation-name: ios-push-enter;
+  z-index: 1;
+}
+:root[data-nav-direction='forward']::view-transition-old(browse-active-col) {
+  animation-name: ios-push-exit;
+  z-index: 0;
+}
+
+/* ── Back pop ── */
+:root[data-nav-direction='back']::view-transition-new(browse-active-col) {
+  animation-name: ios-pop-enter;
+  z-index: 0;
+}
+:root[data-nav-direction='back']::view-transition-old(browse-active-col) {
+  animation-name: ios-pop-exit;
+  z-index: 1;
+}
+
+@keyframes ios-push-enter {
+  from {
+    transform: translateX(100%);
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.25);
+  }
+  to {
+    transform: translateX(0);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  }
+}
+
+@keyframes ios-push-exit {
+  from {
+    transform: translateX(0);
+    filter: brightness(1);
+  }
+  to {
+    transform: translateX(-33%);
+    filter: brightness(0.75);
+  }
+}
+
+@keyframes ios-pop-enter {
+  from {
+    transform: translateX(-33%);
+    filter: brightness(0.75);
+  }
+  to {
+    transform: translateX(0);
+    filter: brightness(1);
+  }
+}
+
+@keyframes ios-pop-exit {
+  from {
+    transform: translateX(0);
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.25);
+  }
+  to {
+    transform: translateX(100%);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
   }
 }
 

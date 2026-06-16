@@ -77,13 +77,13 @@ export default async function NavBar() {
             >
               <Flex
                 className="
-                  ml-2 h-full cursor-pointer content-end items-center text-center font-medium
+                  h-full cursor-pointer content-end items-center text-center font-medium
                   xl:hidden
                 "
               >
                 <div
                   className="
-                    ml-auto flex h-full items-center px-1
+                    ml-auto flex h-full items-center
                     active:relative active:top-px active:text-foreground
                   "
                 >
