@@ -44,8 +44,8 @@ function RowLinkContent({
     >
       {loading && <RowLoading />}
       {isPending && (
-        <div className="absolute top-1/2 left-1/2 -translate-1/2 text-accent opacity-70">
-          <Spinner />
+        <div className="absolute top-1/2 left-1/2 -translate-1/2 text-white/80 opacity-70">
+          {/* <Spinner /> */}
         </div>
       )}
       {isPending && <div className="w-2 animate-pulse bg-relisten-600/30" />}

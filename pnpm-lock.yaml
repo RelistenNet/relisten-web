@@ -74,8 +74,8 @@ importers:
         specifier: ^3.14.3
         version: 3.14.3(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)
       '@timber-js/app':
-        specifier: 0.2.0-alpha.150
-        version: 0.2.0-alpha.150(1041c0d90492b05d6a4e062e5c804620)
+        specifier: 0.2.0-alpha.151
+        version: 0.2.0-alpha.151(1041c0d90492b05d6a4e062e5c804620)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -2335,8 +2335,8 @@ packages:
   '@tanstack/virtual-core@3.17.1':
     resolution: {integrity: sha512-VZyW2Uiml5tmBZwPGrSD3Sz73OxzljQMCmzYHsUTPEuTsERf5xwa+uWb01xEzkz3ZSYTjj8NEb/mKHvgKxyZdA==}
 
-  '@timber-js/app@0.2.0-alpha.150':
-    resolution: {integrity: sha512-IRonGVsZvJrmZs7bpmdGlQ791MeroYqEGkucebRdZx4mqgVhZiNACSYDNLH+Y5XrGh2y4EVsgiWPzktLzQ82QA==}
+  '@timber-js/app@0.2.0-alpha.151':
+    resolution: {integrity: sha512-LH6ag2I5EoGbXoGFzD8Sx/upBiwqd7gtzMfpfzwz6n4l3aM3VYjLTwuw+cOx/D0yuHtUUGma9BnOoQWWHMX+Gg==}
     engines: {node: '>=22.18.0'}
     hasBin: true
     peerDependencies:
@@ -7481,7 +7481,7 @@ snapshots:
 
   '@tanstack/virtual-core@3.17.1': {}
 
-  '@timber-js/app@0.2.0-alpha.150(1041c0d90492b05d6a4e062e5c804620)':
+  '@timber-js/app@0.2.0-alpha.151(1041c0d90492b05d6a4e062e5c804620)':
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/context-async-hooks': 2.8.0(@opentelemetry/api@1.9.1)
