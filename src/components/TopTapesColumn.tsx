@@ -1,10 +1,11 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { getServerFilters } from '@/lib/serverFilterCookies';
 import { RawParams } from '@/types/params';
+import type { ReactNode } from 'react';
 import { deny } from '@timber-js/app/server';
 import TopTapesColumnWithControls from './TopTapesColumnWithControls';
 
-const TopTapesColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 'year'>) => {
+const TopTapesColumn = async ({ artistSlug, year, subHeader }: Pick<RawParams, 'artistSlug' | 'year'> & { subHeader?: ReactNode }) => {
   const [shows, initialFilters] = await Promise.all([
     RelistenAPI.fetchTopShows(artistSlug),
     getServerFilters(`${artistSlug}:shows`, true),
@@ -18,6 +19,7 @@ const TopTapesColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug'
       year={year}
       shows={shows}
       initialFilters={initialFilters}
+      subHeader={subHeader}
     />
   );
 };

@@ -17,7 +17,6 @@ const SongShowsColumn = async ({ artistSlug, slug }: { artistSlug: string; slug:
       year={song?.name}
       shows={song?.shows ?? []}
       initialFilters={initialFilters}
-      backHref={`/${artistSlug}/songs`}
       fullDate
     />
   );

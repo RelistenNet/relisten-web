@@ -1,30 +1,44 @@
 'use client';
 
 import { usePathname } from '@timber-js/app/client';
+import { isQuickHitSegment } from '@/lib/quickHitSegments';
 import cn from '@/lib/cn';
-import { ReactNode, useLayoutEffect, useRef, useState } from 'react';
+import { ReactNode, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { flushSync } from 'react-dom';
 
-function getDepth(pathname: string): number {
-  const segments = pathname.split('/').filter(Boolean);
-  return segments.length;
+function getSegments(pathname: string): string[] {
+  return pathname.split('/').filter(Boolean);
 }
 
-// Maps URL depth to which column index (0-based) to show on mobile.
-// 0 segments (/)                    → 0 (artists)
-// 1 segment  (/artist)              → 1 (years)
-// 2 segments (/artist/year)         → 2 (shows)
-// 3 segments (/artist/year/month)   → 2 (shows — month is part of date)
-// 4 segments (/artist/y/m/d)        → 3 (songs)
-// 5 segments (/artist/y/m/d/song)   → 3 (songs)
-function getActiveColumn(depth: number): number {
+function hasSlugParam(): boolean {
+  if (typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location.search).has('slug');
+}
+
+function getActiveColumn(segments: string[], hasSlug: boolean): number {
+  const depth = segments.length;
   if (depth <= 0) return 0;
   if (depth === 1) return 1;
+  if (depth === 2 && isQuickHitSegment(segments[1]) && !hasSlug) return 1;
   if (depth <= 3) return 2;
   return 3;
 }
 
+function getContentKey(segments: string[], hasSlug: boolean): string {
+  if (segments.length === 2 && isQuickHitSegment(segments[1]) && !hasSlug) {
+    return segments[1];
+  }
+  return '';
+}
+
 const MOBILE_MQ = '(max-width: 1023px)';
+
+const subscribe = (cb: () => void) => {
+  window.addEventListener('popstate', cb);
+  return () => window.removeEventListener('popstate', cb);
+};
+const getSnapshot = () => window.location.search;
+const getServerSnapshot = () => '';
 
 export default function BrowseContainer({
   children,
@@ -36,17 +50,25 @@ export default function BrowseContainer({
   isInIframe?: boolean;
 }) {
   const pathname = usePathname();
-  const depth = getDepth(pathname);
-  const activeColumn = getActiveColumn(depth);
+  const search = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const segments = getSegments(pathname);
+  const hasSlug = search.includes('slug=');
+  const activeColumn = getActiveColumn(segments, hasSlug);
+  const contentKey = getContentKey(segments, hasSlug);
 
   const [displayedColumn, setDisplayedColumn] = useState(activeColumn);
   const prevColumn = useRef(activeColumn);
+  const prevContentKey = useRef(contentKey);
 
   useLayoutEffect(() => {
-    if (activeColumn === prevColumn.current) return;
+    const columnChanged = activeColumn !== prevColumn.current;
+    const contentChanged = contentKey !== prevContentKey.current;
 
-    const direction = activeColumn > prevColumn.current ? 'forward' : 'back';
+    const prevCol = prevColumn.current;
     prevColumn.current = activeColumn;
+    prevContentKey.current = contentKey;
+
+    if (!columnChanged && !contentChanged) return;
 
     const isMobile = window.matchMedia(MOBILE_MQ).matches;
 
@@ -55,7 +77,12 @@ export default function BrowseContainer({
       return;
     }
 
-    document.documentElement.setAttribute('data-nav-direction', direction);
+    if (columnChanged) {
+      const direction = activeColumn > prevCol ? 'forward' : 'back';
+      document.documentElement.setAttribute('data-nav-direction', direction);
+    } else {
+      document.documentElement.setAttribute('data-nav-direction', 'swap');
+    }
 
     const transition = document.startViewTransition(() => {
       flushSync(() => setDisplayedColumn(activeColumn));
@@ -64,7 +91,7 @@ export default function BrowseContainer({
     transition.finished.then(() => {
       document.documentElement.removeAttribute('data-nav-direction');
     });
-  }, [activeColumn]);
+  }, [activeColumn, contentKey]);
 
   return (
     <div

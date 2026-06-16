@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
 import { Venue } from '@/types';
 import Count from './Count';
@@ -10,9 +11,10 @@ import Row from './Row';
 type VenuesColumnWithControlsProps = {
   artistSlug?: string;
   venues: Venue[];
+  subHeader?: ReactNode;
 };
 
-const VenuesColumnWithControls = ({ artistSlug, venues }: VenuesColumnWithControlsProps) => {
+const VenuesColumnWithControls = ({ artistSlug, venues, subHeader }: VenuesColumnWithControlsProps) => {
   const [sortAlpha, setSortAlpha] = useState(false);
 
   const toggles = [
@@ -40,6 +42,7 @@ const VenuesColumnWithControls = ({ artistSlug, venues }: VenuesColumnWithContro
       toggles={toggles}
       filteredCount={sortedVenues.length}
       totalCount={venues.length}
+      subHeader={subHeader}
     >
       {sortedVenues.length === 0 && (
         <div className="py-2 text-center text-sm text-text-muted">No venues found.</div>

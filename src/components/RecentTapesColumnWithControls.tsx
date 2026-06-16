@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { useFilterState } from '@/hooks/useFilterState';
 import { FilterState } from '@/lib/filterCookies';
 import { Show } from '@/types';
@@ -18,6 +19,7 @@ type RecentTapesColumnWithControlsProps = {
   year?: string;
   shows: Show[];
   initialFilters?: FilterState;
+  subHeader?: ReactNode;
 };
 
 const RecentTapesColumnWithControls = ({
@@ -25,6 +27,7 @@ const RecentTapesColumnWithControls = ({
   year,
   shows,
   initialFilters,
+  subHeader,
 }: RecentTapesColumnWithControlsProps) => {
   const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(
     initialFilters,
@@ -64,6 +67,7 @@ const RecentTapesColumnWithControls = ({
       filteredCount={processedShows.length}
       totalCount={shows.length}
       onClearFilters={clearFilters}
+      subHeader={subHeader}
     >
       {(!processedShows || processedShows.length === 0) && (
         <div className="py-2 text-center text-sm text-text-muted">No recently added shows!</div>

@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
 import { Song } from '@/types';
 import Count from './Count';
@@ -10,11 +11,13 @@ import Row from './Row';
 type ArtistSongsColumnWithControlsProps = {
   artistSlug?: string;
   songs: Song[];
+  subHeader?: ReactNode;
 };
 
 const ArtistSongsColumnWithControls = ({
   artistSlug,
   songs,
+  subHeader,
 }: ArtistSongsColumnWithControlsProps) => {
   const [sortAlpha, setSortAlpha] = useState(false);
 
@@ -43,6 +46,7 @@ const ArtistSongsColumnWithControls = ({
       toggles={toggles}
       filteredCount={sortedSongs.length}
       totalCount={songs.length}
+      subHeader={subHeader}
     >
       {sortedSongs.length === 0 && (
         <div className="py-2 text-center text-sm text-text-muted">No songs found.</div>

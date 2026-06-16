@@ -15,7 +15,10 @@ const SubartistTabs = ({ artistSlug, features }: SubartistTabsProps) => {
   const params = useSegmentParams('/(browse)/[artistSlug]/[year]');
   const year = Array.isArray(params.year) ? params.year[0] : params.year;
 
+  const isOnQuickHit = ['recently-added', 'top', 'venues', 'songs', 'tours'].includes(year ?? '');
+
   const links = [
+    { label: 'Years', segment: null },
     { label: 'Recent', segment: 'recently-added' },
     { label: 'Top', segment: 'top' },
     ...(features?.per_show_venues || features?.per_source_venues
@@ -28,15 +31,15 @@ const SubartistTabs = ({ artistSlug, features }: SubartistTabsProps) => {
   return (
     <div
       className="
-        flex flex-wrap justify-between gap-1.5 border-b border-hairline bg-surface-raised px-2 py-1.5
+        grid grid-cols-3 gap-1.5 border-b border-hairline bg-surface-raised px-2 py-1.5
       "
     >
       {links.map(({ label, segment }) => (
         <QuickHitsPill
-          key={segment}
+          key={segment ?? '_years'}
           label={label}
-          href={`/${artistSlug}/${segment}`}
-          isActive={year === segment}
+          href={segment ? `/${artistSlug}/${segment}` : `/${artistSlug}`}
+          isActive={segment ? year === segment : !isOnQuickHit}
         />
       ))}
     </div>
@@ -56,7 +59,7 @@ const QuickHitsPill = ({
   const router = useRouter();
 
   const onClick = (e: MouseEvent<HTMLAnchorElement>) => {
-    if (e.metaKey) return;
+    if (e.metaKey || isActive) return;
     e.preventDefault();
     startTransition(() => router.push(href));
   };
@@ -67,7 +70,7 @@ const QuickHitsPill = ({
       prefetch={false}
       onClick={onClick}
       className={cn(
-        'rounded-sm px-2 py-0.5 text-sm transition-colors',
+        'rounded-sm px-2 py-0.5 text-center text-sm transition-colors',
         isActive
           ? 'bg-accent font-medium text-white'
           : `

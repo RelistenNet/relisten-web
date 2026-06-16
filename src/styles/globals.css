@@ -373,6 +373,25 @@
   }
 }
 
+/* ── In-column content swap (crossfade) ── */
+:root[data-nav-direction='swap']::view-transition-new(browse-active-col) {
+  animation: swap-in 200ms ease-out both;
+  z-index: 1;
+}
+:root[data-nav-direction='swap']::view-transition-old(browse-active-col) {
+  animation: swap-out 200ms ease-in both;
+  z-index: 0;
+}
+
+@keyframes swap-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes swap-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
 @utility nav-btn {
   @apply flex h-full tracking-wider items-center rounded-sm px-2 text-center transition-colors hover:bg-surface-hover hover:text-text-primary active:relative active:top-[1px] active:text-text-primary;
 }

@@ -88,15 +88,6 @@ const ShowsColumnWithControls = ({
       totalCount={shows.length}
       onClearFilters={clearFilters}
     >
-      {backHref && (
-        <Link
-          href={backHref}
-          className="flex items-center gap-1 border-b border-hairline px-2 py-2 text-sm hover:bg-surface-hover"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Back
-        </Link>
-      )}
       {processedShows &&
         artistSlug &&
         processedShows.map((show) => {

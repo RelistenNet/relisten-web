@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
 import { Tour } from '@/types';
 import Count from './Count';
@@ -10,6 +11,7 @@ import Row from './Row';
 type ToursColumnWithControlsProps = {
   artistSlug?: string;
   tours: Tour[];
+  subHeader?: ReactNode;
 };
 
 const formatTourDate = (dateStr?: string) => {
@@ -18,7 +20,7 @@ const formatTourDate = (dateStr?: string) => {
   return `${date.getUTCMonth() + 1}/${date.getUTCDate()}/${date.getUTCFullYear()}`;
 };
 
-const ToursColumnWithControls = ({ artistSlug, tours }: ToursColumnWithControlsProps) => {
+const ToursColumnWithControls = ({ artistSlug, tours, subHeader }: ToursColumnWithControlsProps) => {
   const [sortOldest, setSortOldest] = useState(false);
 
   const toggles = [
@@ -46,6 +48,7 @@ const ToursColumnWithControls = ({ artistSlug, tours }: ToursColumnWithControlsP
       toggles={toggles}
       filteredCount={sortedTours.length}
       totalCount={tours.length}
+      subHeader={subHeader}
     >
       {sortedTours.length === 0 && (
         <div className="py-2 text-center text-sm text-text-muted">No tours found.</div>
