@@ -10,7 +10,7 @@ const posts = defineCollection({
   include: '**/*.mdx',
   schema: z.object({
     title: z.string(),
-    subtitle: z.string(),
+    subtitle: z.string().optional(),
     date: z.string(),
     description: z.string().optional(),
     slug: z.string().optional(),
