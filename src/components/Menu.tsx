@@ -9,9 +9,16 @@ const Menu = () => (
     <Row href="/about">About</Row>
     <Row href="/today">Today</Row>
     <Row href="/recently-played">Live</Row>
-    <Row href="/sonos">Sonos</Row>
-    <Row href="/app">App</Row>
+    <Row href="/app">Apps</Row>
     <Row href="/chat">Chat</Row>
+    <a
+      href="https://github.com/relistennet/relisten-web"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex min-h-[56px] items-center border-b border-hairline p-2 hover:bg-surface-hover lg:min-h-[46px] lg:p-1"
+    >
+      GitHub
+    </a>
   </div>
 );
 
