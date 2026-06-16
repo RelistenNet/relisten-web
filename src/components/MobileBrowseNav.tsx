@@ -1,9 +1,9 @@
 'use client';
 
-import { Link, usePathname } from '@timber-js/app/client';
+import { Link, useSelectedLayoutSegments } from '@timber-js/app/client';
+import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
 import { isQuickHitSegment } from '@/lib/quickHitSegments';
 import { ChevronLeft } from 'lucide-react';
-import { useSyncExternalStore } from 'react';
 
 const COLUMN_SEGMENT_COUNTS = [0, 1, 2, 4];
 
@@ -35,18 +35,10 @@ function getBackLabel(segments: string[], activeColumn: number, isQuickHitDrillD
   return label?.replaceAll('-', ' ') ?? 'Back';
 }
 
-const subscribe = (cb: () => void) => {
-  window.addEventListener('popstate', cb);
-  return () => window.removeEventListener('popstate', cb);
-};
-const getSnapshot = () => window.location.search;
-const getServerSnapshot = () => '';
-
 export default function MobileBrowseNav() {
-  const pathname = usePathname();
-  const search = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  const segments = pathname.split('/').filter(Boolean);
-  const hasSlug = search.includes('slug=');
+  const segments = useSelectedLayoutSegments();
+  const [{ slug }] = slugSearchParams.useQueryStates();
+  const hasSlug = !!slug;
   const activeColumn = getActiveColumn(segments, hasSlug);
   const isQuickHitDrillDown = segments.length === 2 && isQuickHitSegment(segments[1]) && hasSlug;
 

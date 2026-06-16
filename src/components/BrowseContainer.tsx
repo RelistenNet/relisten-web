@@ -1,19 +1,11 @@
 'use client';
 
-import { usePathname } from '@timber-js/app/client';
+import { useSelectedLayoutSegments } from '@timber-js/app/client';
+import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
 import { isQuickHitSegment } from '@/lib/quickHitSegments';
 import cn from '@/lib/cn';
-import { ReactNode, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { ReactNode, useLayoutEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-
-function getSegments(pathname: string): string[] {
-  return pathname.split('/').filter(Boolean);
-}
-
-function hasSlugParam(): boolean {
-  if (typeof window === 'undefined') return false;
-  return new URLSearchParams(window.location.search).has('slug');
-}
 
 function getActiveColumn(segments: string[], hasSlug: boolean): number {
   const depth = segments.length;
@@ -33,13 +25,6 @@ function getContentKey(segments: string[], hasSlug: boolean): string {
 
 const MOBILE_MQ = '(max-width: 1023px)';
 
-const subscribe = (cb: () => void) => {
-  window.addEventListener('popstate', cb);
-  return () => window.removeEventListener('popstate', cb);
-};
-const getSnapshot = () => window.location.search;
-const getServerSnapshot = () => '';
-
 export default function BrowseContainer({
   children,
   className,
@@ -49,10 +34,9 @@ export default function BrowseContainer({
   className?: string;
   isInIframe?: boolean;
 }) {
-  const pathname = usePathname();
-  const search = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  const segments = getSegments(pathname);
-  const hasSlug = search.includes('slug=');
+  const segments = useSelectedLayoutSegments();
+  const [{ slug }] = slugSearchParams.useQueryStates();
+  const hasSlug = !!slug;
   const activeColumn = getActiveColumn(segments, hasSlug);
   const contentKey = getContentKey(segments, hasSlug);
 

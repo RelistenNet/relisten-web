@@ -1,6 +1,7 @@
 'use client';
 
 import cn from '@/lib/cn';
+import { isQuickHitSegment } from '@/lib/quickHitSegments';
 import { Features } from '@/types';
 import { Link } from '@timber-js/app/client';
 import { useSegmentParams, useRouter } from '@timber-js/app/client';
@@ -15,7 +16,7 @@ const SubartistTabs = ({ artistSlug, features }: SubartistTabsProps) => {
   const params = useSegmentParams('/(browse)/[artistSlug]/[year]');
   const year = Array.isArray(params.year) ? params.year[0] : params.year;
 
-  const isOnQuickHit = ['recently-added', 'top', 'venues', 'songs', 'tours'].includes(year ?? '');
+  const isOnQuickHit = isQuickHitSegment(year);
 
   const links = [
     { label: 'Years', segment: null },
