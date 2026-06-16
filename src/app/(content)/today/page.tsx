@@ -64,7 +64,7 @@ export default async function Page() {
             <p className="mb-4 text-sm text-text-muted">
               {days.length} {days.length === 1 ? 'show' : 'shows'}
             </p>
-            <div className="divide-y divide-hairline rounded-lg border border-hairline bg-surface">
+            <div className="divide-y divide-hairline overflow-hidden rounded-lg border border-hairline bg-surface">
               {days.map((day: Day) => (
                 <TodayTrack day={day} key={day.id} />
               ))}
