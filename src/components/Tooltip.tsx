@@ -1,5 +1,8 @@
+'use client';
+
 import cn from '@/lib/cn';
-import { ReactNode } from 'react';
+import { ReactNode, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 
 type TooltipProps = {
   children: ReactNode;
@@ -16,29 +19,46 @@ export default function Tooltip({
   className,
   align = 'left',
 }: TooltipProps) {
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number; right: number } | null>(null);
+
+  const show = useCallback(() => {
+    const el = triggerRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    setPos({ top: r.bottom + 4, left: r.left, right: window.innerWidth - r.right });
+  }, []);
+
+  const hide = useCallback(() => setPos(null), []);
+
   return (
     <div
-      className={`
-        group/tooltip relative
-        ${className ?? ''}
-      `}
+      ref={triggerRef}
+      className={className ?? ''}
+      onMouseEnter={show}
+      onMouseLeave={hide}
     >
       {children}
-      <div
-        className={cn(
-          contentClassName,
-          `
-            pointer-events-none absolute top-full z-50 mt-1 -translate-y-1 scale-95 rounded-sm
-            border border-foreground-muted/20 bg-background p-2 opacity-0 shadow-lg transition-all
-            duration-150
-            group-hover/tooltip:translate-y-0 group-hover/tooltip:scale-100
-            group-hover/tooltip:opacity-100
-            ${align === 'right' ? `right-0` : `left-0`}
-          `
+      {pos &&
+        createPortal(
+          <div
+            className={cn(
+              contentClassName,
+              `
+                pointer-events-none fixed z-50 rounded-sm
+                border border-foreground-muted/20 bg-background p-2 shadow-lg
+                animate-in fade-in duration-150
+              `
+            )}
+            style={{
+              top: pos.top,
+              ...(align === 'right' ? { right: pos.right } : { left: pos.left }),
+            }}
+          >
+            {content}
+          </div>,
+          document.body
         )}
-      >
-        {content}
-      </div>
     </div>
   );
 }
