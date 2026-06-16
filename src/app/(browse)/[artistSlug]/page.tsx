@@ -1,37 +1,8 @@
 import RelistenAPI from '@/lib/RelistenAPI';
-import { isMobile } from '@/lib/isMobile';
-import { deny, getSegmentParams } from '@timber-js/app/server';
+import { getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 
-export default async function Page() {
-  const { artistSlug } = getSegmentParams(SEGMENT_PATH);
-
-  if (await isMobile()) return null;
-
-  const randomShow = await RelistenAPI.fetchRandomShow(artistSlug).catch((err) => {
-    const statusCode = err?.response?.status;
-
-    if (statusCode !== 404) {
-      console.log('failed random show', artistSlug, statusCode);
-    }
-
-    deny(404);
-
-    return null;
-  });
-
-  if (!randomShow) return deny(404);
-
-  const { display_date } = randomShow ?? {};
-  const [year, month, day] = display_date?.split('-') ?? [];
-
-  if (!year || !month || !day) return deny(404);
-
-  // On mobile, redirect to random show for better UX
-  if (await isMobile()) {
-    return null;
-  }
-
+export default function Page() {
   return null;
 }
 

@@ -243,6 +243,33 @@
   }
 }
 
+/* ── Browse column wrappers ──
+   On desktop (lg+), .browse-col uses display:contents so the inner
+   Column component is a direct grid item — preserving the original
+   scroll behavior. On narrow screens, the wrapper becomes visible
+   and controls which column is shown based on URL depth. */
+@media (min-width: 1024px) {
+  .browse-grid > .browse-col {
+    display: contents;
+  }
+}
+
+@media (max-width: 1023px) {
+  .browse-grid > .browse-col {
+    display: none;
+  }
+
+  .browse-grid[data-browse-depth='0'] > .browse-col:nth-child(1),
+  .browse-grid[data-browse-depth='1'] > .browse-col:nth-child(2),
+  .browse-grid[data-browse-depth='2'] > .browse-col:nth-child(3),
+  .browse-grid[data-browse-depth='3'] > .browse-col:nth-child(4) {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+}
+
 @utility nav-btn {
   @apply flex h-full items-center rounded-sm px-2 text-center transition-colors hover:bg-surface-hover hover:text-text-primary active:relative active:top-[1px] active:text-text-primary;
 }

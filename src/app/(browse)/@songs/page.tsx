@@ -1,13 +1,9 @@
 import SongsColumn from '@/components/SongsColumn';
 import { DEFAULT_ARTIST_SLUG } from '@/lib/defaultArtist';
-import { isMobile } from '@/lib/isMobile';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { splitShowDate } from '@/lib/utils';
 
 export default async function SongsDaySlot() {
-  if (await isMobile()) return null;
-
-  // Fetch show data
   const show = await RelistenAPI.fetchRandomShow(DEFAULT_ARTIST_SLUG);
 
   if (!show) return null;

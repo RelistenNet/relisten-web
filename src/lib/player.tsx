@@ -254,13 +254,13 @@ function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Qu
 }
 
 export function initGaplessPlayer(
-  nextStore: { dispatch: AppDispatch; getState: () => RootState },
-  { isMobile }: { isMobile?: boolean } = {}
+  nextStore: { dispatch: AppDispatch; getState: () => RootState }
 ) {
   if (typeof window === 'undefined') return;
   store = nextStore;
 
-  currentPlaybackMethod = isMobile ? 'HTML5_ONLY' : 'HYBRID';
+  const supportsWebAudio = window.AudioContext || (window as any).webkitAudioContext;
+  currentPlaybackMethod = supportsWebAudio ? 'HYBRID' : 'HTML5_ONLY';
   player = createQueue({ playbackMethod: currentPlaybackMethod });
 
   // just for debugging purposes

@@ -2,7 +2,6 @@ import PlayerManager from '@/components/PlayerManager';
 import SongsColumn from '@/components/SongsColumn';
 import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
 import RelistenAPI from '@/lib/RelistenAPI';
-import { isMobile } from '@/lib/isMobile';
 import { createShowDate } from '@/lib/utils';
 import { deny, getSegmentParams } from '@timber-js/app/server';
 import { playImmediatelySearchParamsLoader } from '@/lib/searchParams/playImmediatelySearchParam';
@@ -15,10 +14,7 @@ export default async function EmbedSongPage() {
 
   if (!year || !month || !day) return deny(404);
 
-  const [show, mobile] = await Promise.all([
-    RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day)),
-    isMobile(),
-  ]);
+  const show = await RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day));
 
   if (!show) {
     deny(404);
@@ -45,7 +41,6 @@ export default async function EmbedSongPage() {
         show={show}
         routePrefix="/embed"
         playImmediately={playImmediately}
-        isMobile={mobile}
       />
     </div>
   );

@@ -45,17 +45,17 @@ const Player = ({ artistSlugsToName }: Props) => {
       : ((playback.activeTrack.currentTime ?? 0) / (playback.activeTrack.duration ?? 1)) *
         (Number(playerRef.current?.clientWidth) - 3);
 
-  const onProgressClick = (e: React.MouseEvent) => {
+  const onProgressClick = (e: React.PointerEvent) => {
     const rect = playerRef.current?.getBoundingClientRect();
 
     if (!rect) return;
 
-    const percentage = (e.pageX - rect?.left) / rect?.width;
+    const percentage = (e.clientX - rect.left) / rect.width;
 
     player.seek(percentage * (playback?.activeTrack?.duration ?? 0));
   };
 
-  const onProgressMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const onProgressPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const time = (x / rect.width) * (playback.activeTrack.duration ?? 0);
@@ -67,10 +67,10 @@ const Player = ({ artistSlugsToName }: Props) => {
     setShowRemainingDuration((t) => !t);
   };
 
-  const updateVolume = (e: React.MouseEvent<HTMLElement>) => {
+  const updateVolume = (e: React.PointerEvent<HTMLElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const height = rect.height;
-    const nextVolume = (height - (e.pageY - rect.top)) / height;
+    const nextVolume = (height - (e.clientY - rect.top)) / height;
 
     setVolume(Math.max(0, Math.min(1, nextVolume)));
 
@@ -148,9 +148,9 @@ const Player = ({ artistSlugsToName }: Props) => {
             </div>
           </Flex>
           <div
-            className="group absolute bottom-0 left-0 z-1 h-1 w-full cursor-pointer bg-hairline before:absolute before:-top-2 before:left-0 before:h-3 before:w-full before:content-['']"
-            onClick={onProgressClick}
-            onMouseMove={onProgressMouseMove}
+            className="group absolute bottom-0 left-0 z-1 h-1 w-full touch-none cursor-pointer bg-hairline before:absolute before:-top-2 before:left-0 before:h-3 before:w-full before:content-['']"
+            onPointerDown={onProgressClick}
+            onPointerMove={onProgressPointerMove}
             style={{ opacity: (playback.activeTrack.currentTime ?? 0) < 0.1 ? 0.8 : 1 }}
           >
             <div
@@ -174,8 +174,8 @@ const Player = ({ artistSlugsToName }: Props) => {
       {activeTrack && (
         <div className="volume-control">
           <div
-            className="relative h-full w-[6px] cursor-pointer bg-hairline"
-            onClick={updateVolume}
+            className="relative h-full w-[6px] touch-none cursor-pointer bg-hairline"
+            onPointerDown={updateVolume}
           >
             <div
               className="pointer-events-none absolute right-0 bottom-0 left-0 bg-text-muted"

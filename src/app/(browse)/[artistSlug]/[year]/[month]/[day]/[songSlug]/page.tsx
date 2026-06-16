@@ -1,7 +1,6 @@
 import PlayerManager from '@/components/PlayerManager';
 import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
 import RelistenAPI from '@/lib/RelistenAPI';
-import { isMobile } from '@/lib/isMobile';
 import { createShowDate } from '@/lib/utils';
 import { deny, getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
@@ -13,12 +12,9 @@ export default async function Page() {
 
   const params = { artistSlug, year, month, day };
 
-  const [show, mobile] = await Promise.all([
-    RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day)),
-    isMobile(),
-  ]);
+  const show = await RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day));
 
-  return <PlayerManager {...params} show={show} isMobile={mobile} />;
+  return <PlayerManager {...params} show={show} />;
 }
 
 export const metadata = async () => {

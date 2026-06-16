@@ -1,13 +1,10 @@
 import SongsColumn from '@/components/SongsColumn';
-import { isMobile } from '@/lib/isMobile';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { splitShowDate } from '@/lib/utils';
 import { getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 
 export default async function SongsDaySlot() {
-  if (await isMobile()) return null;
-
   const { artistSlug } = getSegmentParams(SEGMENT_PATH);
 
   // Fetch show data
