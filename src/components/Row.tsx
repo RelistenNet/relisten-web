@@ -34,7 +34,7 @@ function RowLinkContent({
   return (
     <Flex
       className={cn(
-        'relative relisten-row min-h-[46px] items-stretch border-b border-hairline hover:bg-surface-hover',
+        'relative relisten-row min-h-[56px] items-stretch border-b border-hairline hover:bg-surface-hover lg:min-h-[46px]',
         {
           'opacity-70': isPending,
           'bg-accent/10 hover:bg-accent/15': isActive && !isPending,
@@ -51,7 +51,7 @@ function RowLinkContent({
       {isPending && <div className="w-2 animate-pulse bg-relisten-600/30" />}
 
       {!isPending && isActive && <div className="w-2 min-w-2 bg-accent" />}
-      <Flex className="w-full flex-1 items-center justify-between p-1 leading-tight tabular-nums">
+      <Flex className="w-full flex-1 items-center justify-between p-2 leading-tight tabular-nums lg:p-1">
         {children}
       </Flex>
     </Flex>
