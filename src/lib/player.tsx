@@ -8,6 +8,13 @@ import type { GaplessMetadata } from '../types';
 import { toast } from 'sonner';
 import type { RootState, AppDispatch } from '../redux';
 
+function detectMobileDevice(): boolean {
+  if (window.matchMedia?.('(pointer: coarse)')?.matches) return true;
+  if (navigator.maxTouchPoints > 0 && window.matchMedia?.('(hover: none)')?.matches) return true;
+  if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) return true;
+  return false;
+}
+
 declare global {
   interface Window {
     player: any;
@@ -259,8 +266,7 @@ export function initGaplessPlayer(
   if (typeof window === 'undefined') return;
   store = nextStore;
 
-  const supportsWebAudio = window.AudioContext || (window as any).webkitAudioContext;
-  currentPlaybackMethod = supportsWebAudio ? 'HYBRID' : 'HTML5_ONLY';
+  currentPlaybackMethod = detectMobileDevice() ? 'HTML5_ONLY' : 'HYBRID';
   player = createQueue({ playbackMethod: currentPlaybackMethod });
 
   // just for debugging purposes
