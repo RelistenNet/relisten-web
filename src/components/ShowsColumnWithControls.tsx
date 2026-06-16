@@ -113,8 +113,8 @@ const ShowsColumnWithControls = ({
 
           return (
             <div key={show.uuid}>
-              {!fullDate && tourName && (
-                <RowHeader>{tourName === 'Not Part of a Tour' ? '' : tourName}</RowHeader>
+              {!fullDate && tourName && tourName !== 'Not Part of a Tour' && (
+                <RowHeader>{tourName}</RowHeader>
               )}
               <Row
                 href={`/${artistSlug}/${year}/${month}/${day}`}

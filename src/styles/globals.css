@@ -59,17 +59,21 @@
 /* Palette definitions — each color defined exactly once. The --resolved-*
    tokens below switch between these palettes based on theme. */
 :root {
-  --light-surface: #fefefe;
-  --light-surface-raised: #ffffff;
-  --light-surface-elevated: #f9fafb;
-  --light-surface-recessed: #f3f4f6;
-  --light-surface-hover: #f3f4f6;
-  --light-hairline: #e5e7eb;
-  --light-text-primary: #333;
-  --light-text-secondary: #4b5563;
-  --light-text-muted: #6b7280;
+  --light-surface: #ffffff;
+  --light-surface-raised: #f4f5f7;
+  --light-surface-elevated: #eef0f3;
+  --light-surface-recessed: #e8eaef;
+  --light-surface-hover: #eceff3;
+  --light-hairline: #d5d8e0;
+  --light-text-primary: #1a1e26;
+  --light-text-secondary: #454d5e;
+  --light-text-muted: #727b8c;
   --light-accent: #009dc1;
   --light-nav-border: var(--light-hairline);
+  --light-column-header: #2c3e4a;
+  --light-column-header-text: #f0f2f4;
+  --light-column-subheader: #f2f3f6;
+  --light-column-subheader-text: var(--light-text-secondary);
 
   --dark-surface: #151820;
   --dark-surface-raised: #1f2530;
@@ -97,10 +101,10 @@
   --resolved-text-muted: var(--light-text-muted);
   --resolved-accent: var(--light-accent);
   --resolved-nav-border: var(--light-nav-border);
-  --resolved-column-header: var(--color-relisten-600);
-  --resolved-column-header-text: #ffffff;
-  --resolved-column-subheader: var(--light-surface-hover);
-  --resolved-column-subheader-text: var(--light-text-secondary);
+  --resolved-column-header: var(--light-column-header);
+  --resolved-column-header-text: var(--light-column-header-text);
+  --resolved-column-subheader: var(--light-column-subheader);
+  --resolved-column-subheader-text: var(--light-column-subheader-text);
 
   /* shadcn tokens — mapped to existing theme */
   --background: var(--light-surface);
@@ -164,10 +168,10 @@
   --resolved-text-muted: var(--light-text-muted);
   --resolved-accent: var(--light-accent);
   --resolved-nav-border: var(--light-nav-border);
-  --resolved-column-header: var(--color-relisten-600);
-  --resolved-column-header-text: #ffffff;
-  --resolved-column-subheader: var(--light-surface-hover);
-  --resolved-column-subheader-text: var(--light-text-secondary);
+  --resolved-column-header: var(--light-column-header);
+  --resolved-column-header-text: var(--light-column-header-text);
+  --resolved-column-subheader: var(--light-column-subheader);
+  --resolved-column-subheader-text: var(--light-column-subheader-text);
   --background: var(--light-surface);
   --foreground: var(--light-text-primary);
   --popover: var(--light-surface-raised);

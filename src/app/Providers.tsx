@@ -31,6 +31,7 @@ export default function Providers({ children }: PropsWithChildren) {
         return;
 
       if (e.code === 'Space') {
+        e.preventDefault();
         player.togglePlayPause();
       }
       if (e.code === 'ArrowRight') {

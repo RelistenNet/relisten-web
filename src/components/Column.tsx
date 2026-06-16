@@ -24,9 +24,13 @@ const Column = ({ className, heading, children }: ColumnProps) => {
   // }, []);
 
   return (
-    <Flex ref={ref} className={cn('relisten-column flex-1 break-words bg-surface', className)} column>
+    <Flex
+      ref={ref}
+      className={cn('relisten-column flex-1 break-words bg-surface', className)}
+      column
+    >
       <Scroller containerRef={ref} key={heading} />
-      {heading && (
+      {heading?.trim() && (
         <Flex
           center
           className="bg-column-header min-h-[32px] w-full border-b border-hairline text-sm font-medium text-column-header-text capitalize"
