@@ -26,8 +26,8 @@ importers:
         specifier: ^5.2.9
         version: 5.2.9
       '@mediabunny/mp3-encoder':
-        specifier: ^1.46.0
-        version: 1.46.0(mediabunny@1.46.0)
+        specifier: ^1.48.0
+        version: 1.48.0(mediabunny@1.48.0)
       '@opentelemetry/api':
         specifier: ^1.9.1
         version: 1.9.1
@@ -74,8 +74,8 @@ importers:
         specifier: ^3.14.3
         version: 3.14.3(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)
       '@timber-js/app':
-        specifier: 0.2.0-alpha.151
-        version: 0.2.0-alpha.151(1041c0d90492b05d6a4e062e5c804620)
+        specifier: 0.2.0-alpha.152
+        version: 0.2.0-alpha.152(7ac53a2b8666144be9c636aa0cec48a0)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -101,11 +101,11 @@ importers:
         specifier: ^2.0.2
         version: 2.0.2
       lucide-react:
-        specifier: ^1.17.0
-        version: 1.18.0(react@19.3.0-canary-ed69815c-20260323)
+        specifier: ^1.20.0
+        version: 1.20.0(react@19.3.0-canary-ed69815c-20260323)
       mediabunny:
-        specifier: ^1.46.0
-        version: 1.46.0
+        specifier: ^1.48.0
+        version: 1.48.0
       node-device-detector:
         specifier: ^2.2.5
         version: 2.2.5
@@ -156,11 +156,11 @@ importers:
         version: 4.4.3
     devDependencies:
       '@content-collections/core':
-        specifier: ^0.15.1
-        version: 0.15.1(typescript@6.0.3)
+        specifier: ^0.15.2
+        version: 0.15.2(typescript@6.0.3)
       '@content-collections/vite':
         specifier: ^0.3.0
-        version: 0.3.0(@content-collections/core@0.15.1(typescript@6.0.3))(vite@8.0.16(@types/node@25.9.3)(jiti@2.7.0)(yaml@2.9.0))
+        version: 0.3.0(@content-collections/core@0.15.2(typescript@6.0.3))(vite@8.0.16(@types/node@25.9.3)(jiti@2.7.0)(yaml@2.9.0))
       '@mdx-js/rollup':
         specifier: ^3.1.1
         version: 3.1.1(rollup@4.62.0)
@@ -385,10 +385,10 @@ packages:
       '@types/react':
         optional: true
 
-  '@content-collections/core@0.15.1':
-    resolution: {integrity: sha512-uQmhvvsSgNJs7QOi4+IgvDhv7v1yueCr6n7WgMahUDFeVchML/WFl9D2vrklxUnXY+YaBGTkc2+q8PcEVM19WA==}
+  '@content-collections/core@0.15.2':
+    resolution: {integrity: sha512-Oaz3J3lw/8NXxmV/YSsTl8tTmxscTiotNp1wUNDHvRqW0MtNU8a0h843XYCFWSrlW5q6dcVoM0rGb2UF8kX5Ig==}
     peerDependencies:
-      typescript: ^5.0.2 || ^6.0.0
+      typescript: ^5.0.2 || ^6.0.0 || ^7.0.0
 
   '@content-collections/integrations@0.5.0':
     resolution: {integrity: sha512-1en7r518sct0Y8CQ5IsuuBN4uAmtNLaWuxmseW43OxeXyj43Uu2aPBfbopjL4b5xH8WZBdDrrPmikgOl42U46A==}
@@ -877,8 +877,8 @@ packages:
     peerDependencies:
       rollup: '>=2'
 
-  '@mediabunny/mp3-encoder@1.46.0':
-    resolution: {integrity: sha512-SG69nm0ntRR4yc5TP9LG1/oxrh5PcoIEZwFm8BXecj3xNF0V+PlnpyJ1IQVS/JEXRIOvBJQ09YFknVGnJNAJrQ==}
+  '@mediabunny/mp3-encoder@1.48.0':
+    resolution: {integrity: sha512-o4Z9xfB0ZXGfWrvZWRnZaxBcBCx1hNljYvqtr+heoaYkFHhTMuSw0PQF884Ja1dGmSC5VeEEWIe+MJRn4v8SAw==}
     peerDependencies:
       mediabunny: ^1.0.0
 
@@ -2335,8 +2335,8 @@ packages:
   '@tanstack/virtual-core@3.17.1':
     resolution: {integrity: sha512-VZyW2Uiml5tmBZwPGrSD3Sz73OxzljQMCmzYHsUTPEuTsERf5xwa+uWb01xEzkz3ZSYTjj8NEb/mKHvgKxyZdA==}
 
-  '@timber-js/app@0.2.0-alpha.151':
-    resolution: {integrity: sha512-LH6ag2I5EoGbXoGFzD8Sx/upBiwqd7gtzMfpfzwz6n4l3aM3VYjLTwuw+cOx/D0yuHtUUGma9BnOoQWWHMX+Gg==}
+  '@timber-js/app@0.2.0-alpha.152':
+    resolution: {integrity: sha512-Cx0a4PvriuFYORI9bhKPmS/mBPRBrOh4cttbolW4QrJp3GacMt1neO6hqrKZGnakb9RMs6Wj97h8YUtWQoYu2A==}
     engines: {node: '>=22.18.0'}
     hasBin: true
     peerDependencies:
@@ -2742,9 +2742,9 @@ packages:
   character-reference-invalid@2.0.1:
     resolution: {integrity: sha512-iBZ4F4wRbyORVsu0jPV7gXkOsGYjGHPmAyv+HiHG8gi5PtC9KI2j1+v8/tlibRvjoWX027ypmG/n0HtO5t7unw==}
 
-  chokidar@4.0.3:
-    resolution: {integrity: sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==}
-    engines: {node: '>= 14.16.0'}
+  chokidar@5.0.0:
+    resolution: {integrity: sha512-TQMmc3w+5AxjpL8iIiwebF73dRDF4fBIieAqGn9RGCWaEVwQ6Fb2cGe31Yns0RRIzii5goJ1Y7xbMwo1TxMplw==}
+    engines: {node: '>= 20.19.0'}
 
   ci-info@4.4.0:
     resolution: {integrity: sha512-77PSwercCZU2Fc4sX94eF8k8Pxte6JAwL4/ICZLFjJLqegs7kCuAsqqj/70NQF6TvDpgFjkubQB2FW2ZZddvQg==}
@@ -4033,8 +4033,8 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
-  lucide-react@1.18.0:
-    resolution: {integrity: sha512-LZDb7H/0YfM+RJncD0hDQRCAu+vSGODqpe35TuVI8EuXaRjkczbsx7p8dY4J87F/MUSj6bpYqeI8nw8qXaAdmA==}
+  lucide-react@1.20.0:
+    resolution: {integrity: sha512-jhXLeC/7m0/tjL1nzMdKk6x256zWA6AtbhTVreHOiKPoeX2d6MK4FbyIQPpVq0E6iPWBisyy1TW+pEge/uMEuQ==}
     peerDependencies:
       react: 19.3.0-canary-ed69815c-20260323
 
@@ -4110,8 +4110,8 @@ packages:
     resolution: {integrity: sha512-aisnrDP4GNe06UcKFnV5bfMNPBUw4jsLGaWwWfnH3v02GnBuXX2MCVn5RbrWo0j3pczUilYblq7fQ7Nw2t5XKw==}
     engines: {node: '>= 0.8'}
 
-  mediabunny@1.46.0:
-    resolution: {integrity: sha512-HIaMQ6PVMndrFb9sNCh9/uAsLFBfLzyAgbk3kN7ZqlRRq//9RPYqIOQtXYpkbWBZU8ZJkaAUNLDtwTcdKo7yQw==}
+  mediabunny@1.48.0:
+    resolution: {integrity: sha512-YYkq1nhauBdgBcrXRkD6hHwi4TNvPGyzR/PxToKplIR7Glcy6OkXy9swR8gpNXYHsx8rrO8hdrQxK+lBSP+auw==}
 
   merge-descriptors@2.0.0:
     resolution: {integrity: sha512-Snk314V5ayFLhp3fkUREub6WtjBfPdCPY1Ln8/8munuLuiYhsABgBVWsozAG+MWMbVEvcdcpbi9R7ww22l9Q3g==}
@@ -4773,9 +4773,9 @@ packages:
     resolution: {integrity: sha512-9u/sniCrY3D5WdsERHzHE4G2YCXqoG5FTHUiCC4SIbr6XcLZBY05ya9EKjYek9O5xOAwjGq+1JdGBAS7Q9ScoA==}
     engines: {node: '>= 6'}
 
-  readdirp@4.1.2:
-    resolution: {integrity: sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==}
-    engines: {node: '>= 14.18.0'}
+  readdirp@5.0.0:
+    resolution: {integrity: sha512-9u/XQ1pvrQtYyMpZe7DXKv2p5CNvyVwzUB6uhLAnQwHMSgKMBR62lc7AHljaeteeHXn11XTAaLLUVZYVZyuRBQ==}
+    engines: {node: '>= 20.19.0'}
 
   recast@0.23.11:
     resolution: {integrity: sha512-YTUo+Flmw4ZXiWfQKGcwwc11KnoRAYgzAE2E7mXKCjSviTKShtxBsN6YUUBB2gtaBzKzeKunxhUwNHQuRryhWA==}
@@ -5888,11 +5888,11 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.17
 
-  '@content-collections/core@0.15.1(typescript@6.0.3)':
+  '@content-collections/core@0.15.2(typescript@6.0.3)':
     dependencies:
       '@standard-schema/spec': 1.1.0
       camelcase: 8.0.0
-      chokidar: 4.0.3
+      chokidar: 5.0.0
       esbuild: 0.25.12
       gray-matter: 4.0.3
       p-limit: 6.2.0
@@ -5903,14 +5903,14 @@ snapshots:
       typescript: 6.0.3
       yaml: 2.9.0
 
-  '@content-collections/integrations@0.5.0(@content-collections/core@0.15.1(typescript@6.0.3))':
+  '@content-collections/integrations@0.5.0(@content-collections/core@0.15.2(typescript@6.0.3))':
     dependencies:
-      '@content-collections/core': 0.15.1(typescript@6.0.3)
+      '@content-collections/core': 0.15.2(typescript@6.0.3)
 
-  '@content-collections/vite@0.3.0(@content-collections/core@0.15.1(typescript@6.0.3))(vite@8.0.16(@types/node@25.9.3)(jiti@2.7.0)(yaml@2.9.0))':
+  '@content-collections/vite@0.3.0(@content-collections/core@0.15.2(typescript@6.0.3))(vite@8.0.16(@types/node@25.9.3)(jiti@2.7.0)(yaml@2.9.0))':
     dependencies:
-      '@content-collections/core': 0.15.1(typescript@6.0.3)
-      '@content-collections/integrations': 0.5.0(@content-collections/core@0.15.1(typescript@6.0.3))
+      '@content-collections/core': 0.15.2(typescript@6.0.3)
+      '@content-collections/integrations': 0.5.0(@content-collections/core@0.15.2(typescript@6.0.3))
       vite: 8.0.16(@types/node@25.9.3)(jiti@2.7.0)(yaml@2.9.0)
 
   '@date-fns/tz@1.5.0': {}
@@ -6313,9 +6313,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@mediabunny/mp3-encoder@1.46.0(mediabunny@1.46.0)':
+  '@mediabunny/mp3-encoder@1.48.0(mediabunny@1.48.0)':
     dependencies:
-      mediabunny: 1.46.0
+      mediabunny: 1.48.0
 
   '@modelcontextprotocol/sdk@1.29.0(zod@3.25.76)':
     dependencies:
@@ -7481,7 +7481,7 @@ snapshots:
 
   '@tanstack/virtual-core@3.17.1': {}
 
-  '@timber-js/app@0.2.0-alpha.151(1041c0d90492b05d6a4e062e5c804620)':
+  '@timber-js/app@0.2.0-alpha.152(7ac53a2b8666144be9c636aa0cec48a0)':
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/context-async-hooks': 2.8.0(@opentelemetry/api@1.9.1)
@@ -7489,14 +7489,14 @@ snapshots:
       '@vitejs/plugin-react': 6.0.2(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.7)(rolldown@1.1.1)(vite@8.0.16(@types/node@25.9.3)(jiti@2.7.0)(yaml@2.9.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.0.16(@types/node@25.9.3)(jiti@2.7.0)(yaml@2.9.0))
       '@vitejs/plugin-rsc': 0.5.27(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)(vite@8.0.16(@types/node@25.9.3)(jiti@2.7.0)(yaml@2.9.0))
       magic-string: 0.30.21
-      nitro: 3.0.260603-beta(chokidar@4.0.3)(dotenv@17.4.2)(jiti@2.7.0)(rollup@4.62.0)(vite@8.0.16(@types/node@25.9.3)(jiti@2.7.0)(yaml@2.9.0))
+      nitro: 3.0.260603-beta(chokidar@5.0.0)(dotenv@17.4.2)(jiti@2.7.0)(rollup@4.62.0)(vite@8.0.16(@types/node@25.9.3)(jiti@2.7.0)(yaml@2.9.0))
       nuqs: 2.8.9(next@16.2.9(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)
       react: 19.3.0-canary-ed69815c-20260323
       react-dom: 19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323)
       vite: 8.0.16(@types/node@25.9.3)(jiti@2.7.0)(yaml@2.9.0)
     optionalDependencies:
-      '@content-collections/core': 0.15.1(typescript@6.0.3)
-      '@content-collections/vite': 0.3.0(@content-collections/core@0.15.1(typescript@6.0.3))(vite@8.0.16(@types/node@25.9.3)(jiti@2.7.0)(yaml@2.9.0))
+      '@content-collections/core': 0.15.2(typescript@6.0.3)
+      '@content-collections/vite': 0.3.0(@content-collections/core@0.15.2(typescript@6.0.3))(vite@8.0.16(@types/node@25.9.3)(jiti@2.7.0)(yaml@2.9.0))
       '@mdx-js/rollup': 3.1.1(rollup@4.62.0)
       zod: 4.4.3
     transitivePeerDependencies:
@@ -7956,9 +7956,9 @@ snapshots:
 
   character-reference-invalid@2.0.1: {}
 
-  chokidar@4.0.3:
+  chokidar@5.0.0:
     dependencies:
-      readdirp: 4.1.2
+      readdirp: 5.0.0
 
   ci-info@4.4.0: {}
 
@@ -9331,7 +9331,7 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  lucide-react@1.18.0(react@19.3.0-canary-ed69815c-20260323):
+  lucide-react@1.20.0(react@19.3.0-canary-ed69815c-20260323):
     dependencies:
       react: 19.3.0-canary-ed69815c-20260323
 
@@ -9523,7 +9523,7 @@ snapshots:
 
   media-typer@1.1.0: {}
 
-  mediabunny@1.46.0:
+  mediabunny@1.48.0:
     dependencies:
       '@types/dom-mediacapture-transform': 0.1.11
       '@types/dom-webcodecs': 0.1.13
@@ -9881,7 +9881,7 @@ snapshots:
 
   nf3@0.3.17: {}
 
-  nitro@3.0.260603-beta(chokidar@4.0.3)(dotenv@17.4.2)(jiti@2.7.0)(rollup@4.62.0)(vite@8.0.16(@types/node@25.9.3)(jiti@2.7.0)(yaml@2.9.0)):
+  nitro@3.0.260603-beta(chokidar@5.0.0)(dotenv@17.4.2)(jiti@2.7.0)(rollup@4.62.0)(vite@8.0.16(@types/node@25.9.3)(jiti@2.7.0)(yaml@2.9.0)):
     dependencies:
       consola: 3.4.2
       crossws: 0.4.6(srvx@0.11.16)
@@ -9896,7 +9896,7 @@ snapshots:
       rolldown: 1.1.1
       srvx: 0.11.16
       unenv: 2.0.0-rc.24
-      unstorage: 2.0.0-alpha.7(chokidar@4.0.3)(db0@0.3.4)(ofetch@2.0.0-alpha.3)
+      unstorage: 2.0.0-alpha.7(chokidar@5.0.0)(db0@0.3.4)(ofetch@2.0.0-alpha.3)
     optionalDependencies:
       dotenv: 17.4.2
       jiti: 2.7.0
@@ -10375,7 +10375,7 @@ snapshots:
       string_decoder: 1.3.0
       util-deprecate: 1.0.2
 
-  readdirp@4.1.2: {}
+  readdirp@5.0.0: {}
 
   recast@0.23.11:
     dependencies:
@@ -11242,9 +11242,9 @@ snapshots:
 
   unpipe@1.0.0: {}
 
-  unstorage@2.0.0-alpha.7(chokidar@4.0.3)(db0@0.3.4)(ofetch@2.0.0-alpha.3):
+  unstorage@2.0.0-alpha.7(chokidar@5.0.0)(db0@0.3.4)(ofetch@2.0.0-alpha.3):
     optionalDependencies:
-      chokidar: 4.0.3
+      chokidar: 5.0.0
       db0: 0.3.4
       ofetch: 2.0.0-alpha.3
 
