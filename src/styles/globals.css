@@ -82,6 +82,7 @@
   --dark-surface-hover: #2c323c;
   --dark-column-header: #2a303b;
   --dark-column-header-text: #cdd2da;
+  --dark-column-subheader-text: #b8bfc9;
   --dark-hairline: rgba(160, 175, 195, 0.18);
   --dark-text-primary: #e8ecf0;
   --dark-text-secondary: #9ba5b4;
@@ -121,11 +122,13 @@
   --input: var(--light-hairline);
   --ring: #009dc1;
   --radius: 0.5rem;
+  color-scheme: light;
 }
 
 /* Auto dark via OS */
 @media (prefers-color-scheme: dark) {
   :root {
+    color-scheme: dark;
     --resolved-surface: var(--dark-surface);
     --resolved-surface-raised: var(--dark-surface-raised);
     --resolved-surface-elevated: var(--dark-surface-elevated);
@@ -140,7 +143,7 @@
     --resolved-column-header: var(--dark-column-header);
     --resolved-column-header-text: var(--dark-column-header-text);
     --resolved-column-subheader: var(--dark-surface-hover);
-    --resolved-column-subheader-text: var(--dark-text-secondary);
+    --resolved-column-subheader-text: var(--dark-column-subheader-text);
     --background: var(--dark-surface);
     --foreground: var(--dark-text-primary);
     --popover: var(--dark-surface-raised);
@@ -157,6 +160,7 @@
 /* Explicit override — wins over prefers-color-scheme. Must come after
    the @media block so the cascade resolves in its favor. */
 :root[data-theme='light'] {
+  color-scheme: light;
   --resolved-surface: var(--light-surface);
   --resolved-surface-raised: var(--light-surface-raised);
   --resolved-surface-elevated: var(--light-surface-elevated);
@@ -185,6 +189,7 @@
 }
 
 :root[data-theme='dark'] {
+  color-scheme: dark;
   --resolved-surface: var(--dark-surface);
   --resolved-surface-raised: var(--dark-surface-raised);
   --resolved-surface-elevated: var(--dark-surface-elevated);
