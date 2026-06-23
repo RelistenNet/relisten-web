@@ -83,7 +83,7 @@ const Player = ({ artistSlugsToName }: Props) => {
     <Flex className="content relative h-[50px] flex-1">
       {activeTrack && (
         <Flex
-          className="playpause min-w-[44px] text-text-muted cursor-pointer items-center justify-center active:text-text-primary lg:w-[40px]"
+          className="playpause text-text-muted cursor-pointer items-center justify-center active:text-text-primary min-w-[44px] lg:min-w-0 lg:w-[40px]"
           onClick={() => player.togglePlayPause()}
         >
           {playback.activeTrack.isPaused ? (
@@ -104,7 +104,7 @@ const Player = ({ artistSlugsToName }: Props) => {
           <Flex className="info h-full justify-center transition-all duration-[1s] ease-in-out">
             <div className="timing text-text-muted absolute top-1/2 left-[8px] translate-x-0 translate-y-[-50%] text-left text-[0.8em]">
               <div
-                className="flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center"
+                className="-m-2 cursor-pointer p-2"
                 onClick={() => player.previous()}
               >
                 <RewindIcon
@@ -134,7 +134,7 @@ const Player = ({ artistSlugsToName }: Props) => {
             </Flex>
             <div className="timing duration text-text-muted absolute top-1/2 right-[8px] translate-x-0 translate-y-[-50%] text-right text-[0.8em]">
               <div
-                className="flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center"
+                className="-m-2 cursor-pointer p-2"
                 onClick={() => player.next()}
               >
                 <FastForwardIcon
