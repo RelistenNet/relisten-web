@@ -61,12 +61,18 @@ function RowLinkContent({
 const Row = ({ children, href, active = false, loading, ...props }: RowProps) => {
   if (!href) {
     return (
-      <div className="relative content w-full flex-1 items-center justify-between py-1">
+      <Flex
+        className={cn(
+          'relisten-row relative min-h-[56px] items-stretch border-b border-hairline hover:bg-surface-hover lg:min-h-[46px]',
+          { 'bg-accent/10 hover:bg-accent/15': active }
+        )}
+      >
         {loading && <RowLoading />}
-        {active && <div className="h-full w-2 bg-accent" />}
-
-        {children}
-      </div>
+        {active && <div className="w-2 min-w-2 bg-accent" />}
+        <Flex className="w-full flex-1 items-center justify-between p-2 leading-tight tabular-nums lg:p-1">
+          {children}
+        </Flex>
+      </Flex>
     );
   }
 

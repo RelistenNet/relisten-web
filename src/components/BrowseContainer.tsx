@@ -4,7 +4,7 @@ import { useSelectedLayoutSegments } from '@timber-js/app/client';
 import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
 import { isQuickHitSegment } from '@/lib/quickHitSegments';
 import cn from '@/lib/cn';
-import { ReactNode, useLayoutEffect, useRef, useState } from 'react';
+import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
 function getActiveColumn(segments: string[], hasSlug: boolean): number {
@@ -43,6 +43,25 @@ export default function BrowseContainer({
   const [displayedColumn, setDisplayedColumn] = useState(activeColumn);
   const prevColumn = useRef(activeColumn);
   const prevContentKey = useRef(contentKey);
+  const isTraversalNav = useRef(false);
+
+  useEffect(() => {
+    const onPopState = () => {
+      isTraversalNav.current = true;
+    };
+    window.addEventListener('popstate', onPopState);
+
+    const nav = 'navigation' in window ? (window as any).navigation : null;
+    const onNavigate = (e: any) => {
+      if (e.navigationType === 'traverse') isTraversalNav.current = true;
+    };
+    nav?.addEventListener('navigate', onNavigate);
+
+    return () => {
+      window.removeEventListener('popstate', onPopState);
+      nav?.removeEventListener('navigate', onNavigate);
+    };
+  }, []);
 
   useLayoutEffect(() => {
     const columnChanged = activeColumn !== prevColumn.current;
@@ -56,7 +75,8 @@ export default function BrowseContainer({
 
     const isMobile = window.matchMedia(MOBILE_MQ).matches;
 
-    if (!isMobile || !document.startViewTransition) {
+    if (!isMobile || !document.startViewTransition || isTraversalNav.current) {
+      isTraversalNav.current = false;
       setDisplayedColumn(activeColumn);
       return;
     }

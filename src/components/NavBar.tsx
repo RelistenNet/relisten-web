@@ -129,7 +129,7 @@ export default async function NavBar() {
             </Link>
             <a
               className="nav-btn"
-              href="https://github.com/relistennet/relisten-web"
+              href="https://github.com/RelistenNet/relisten-web"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="GitHub"
