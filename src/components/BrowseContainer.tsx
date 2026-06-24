@@ -102,8 +102,9 @@ export default function BrowseContainer({
       data-browse-depth={displayedColumn}
       className={cn(
         `
-          browse-grid flex min-h-0 flex-1 flex-col overflow-hidden bg-surface-recessed
-          lg:overflow-y-auto lg:px-4
+          browse-grid flex min-h-0 flex-1 flex-col bg-surface-recessed
+          max-lg:overflow-visible
+          lg:overflow-y-auto lg:overflow-hidden lg:px-4
           lg:grid lg:grid-flow-col lg:grid-cols-5 lg:grid-rows-1 lg:gap-x-4
           lg:[&_.relisten-column]:border-x lg:[&_.relisten-column]:border-hairline
         `,

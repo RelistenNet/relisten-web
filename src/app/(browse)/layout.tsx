@@ -24,7 +24,7 @@ export default async function BrowseLayout({
   const isInIframe = await getIsInIframe();
 
   return (
-    <Flex column className="h-screen">
+    <Flex column className="lg:h-dvh">
       <Toaster id="audio-error" position="top-center" offset="54px" richColors closeButton />
       <NavBar />
       <MobileBrowseNav />

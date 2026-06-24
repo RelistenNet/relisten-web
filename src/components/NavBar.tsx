@@ -47,6 +47,7 @@ export default async function NavBar() {
         className="
           navigation relative grid h-[50px] max-h-[50px] min-h-[50px] grid-cols-[auto_1fr_auto]
           border-b border-b-hairline bg-surface-raised px-2 text-text-primary
+          max-lg:sticky max-lg:top-0 max-lg:z-20
           lg:grid-cols-[1fr_auto_1fr] lg:px-4
         "
       >

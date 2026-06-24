@@ -287,12 +287,11 @@
   .browse-grid[data-browse-depth='1'] > .browse-col:nth-child(2),
   .browse-grid[data-browse-depth='2'] > .browse-col:nth-child(3),
   .browse-grid[data-browse-depth='3'] > .browse-col:nth-child(4) {
-    position: relative;
+    position: static;
     visibility: visible;
     pointer-events: auto;
     flex: 1;
     min-height: 0;
-    overflow: hidden;
     view-transition-name: browse-active-col;
   }
 
@@ -426,6 +425,7 @@
     margin: 0;
     -webkit-font-smoothing: antialiased;
     /* scrollbar-gutter: stable; */
+    padding-bottom: env(safe-area-inset-bottom);
     @apply bg-surface text-text-primary;
   }
   a {

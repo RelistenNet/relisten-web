@@ -38,7 +38,7 @@ const Column = ({ className, heading, children }: ColumnProps) => {
           {heading?.replaceAll('-', ' ')}
         </Flex>
       )}
-      <Flex column className="flex-1 overflow-x-hidden overflow-y-auto">
+      <Flex column className="flex-1 overflow-x-hidden lg:overflow-y-auto">
         {children}
       </Flex>
     </Flex>
