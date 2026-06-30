@@ -4,6 +4,7 @@ on: workflow_dispatch
 
 permissions:
   contents: read
+  id-token: write
   packages: write
 
 env:
@@ -14,6 +15,7 @@ env:
 jobs:
   build_and_publish:
     runs-on: ubuntu-latest
+    environment: relisten3
 
     steps:
       - uses: actions/checkout@v4
@@ -97,10 +99,11 @@ jobs:
           done <<< "$ids"
 
       - name: Connect to Tailscale
-        uses: tailscale/github-action@v3
+        uses: tailscale/github-action@v4
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          audience: ${{ secrets.TS_AUDIENCE }}
+          ping: 100.99.27.11
           use-cache: 'true'
           tags: tag:ci
           version: latest
