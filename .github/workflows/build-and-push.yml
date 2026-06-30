@@ -67,6 +67,7 @@ jobs:
           fi
 
       - name: Prune old GHCR image versions
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GHCR_CLEANUP_TOKEN || github.token }}
           ORG: relistennet
@@ -94,3 +95,33 @@ jobs:
             echo "Deleting old GHCR package version $id for $ORG/$PACKAGE"
             gh api -X DELETE "/orgs/$ORG/packages/container/$PACKAGE/versions/$id"
           done <<< "$ids"
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          use-cache: 'true'
+          tags: tag:ci
+          version: latest
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: v1.36.2
+
+      - name: Configure relisten3 kubeconfig
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.kube"
+          printf '%s' "$KUBE_CONFIG" > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
+          kubectl config use-context relisten3-k3s
+
+      - name: Restart relisten3 deployment
+        run: |
+          set -euo pipefail
+          kubectl -n default rollout restart deployment/relisten-web
+          kubectl -n default rollout status deployment/relisten-web --timeout=10m
