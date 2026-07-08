@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect } from 'react';
-import { setBlogSeenCookie } from './BlogNavLink';
+import { blogSeenCookie } from '@/lib/blogSeenCookie';
 
 export default function BlogSeenMarker() {
+  const [, setSeen] = blogSeenCookie.useCookie();
+
   useEffect(() => {
-    setBlogSeenCookie();
-  }, []);
+    setSeen(new Date().toISOString());
+  }, [setSeen]);
 
   return null;
 }

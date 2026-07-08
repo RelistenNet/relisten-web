@@ -2,3 +2,5 @@ node_modules/
 dist/
 .git/
 .timber/
+.content-collections
+.next/

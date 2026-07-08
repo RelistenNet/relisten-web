@@ -1,40 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { blogSeenCookie } from '@/lib/blogSeenCookie';
+import { Link } from '@timber-js/app/client';
+import { parseISO, subDays, isBefore } from 'date-fns';
 
-const COOKIE_NAME = 'relisten_blog_seen';
+export default function BlogNavLink({ hasNewPost }: { hasNewPost: boolean }) {
+  const [seen] = blogSeenCookie.useCookie();
 
-function getCookie(name: string): string | null {
-  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : null;
-}
+  const highlight = hasNewPost && (!seen || isBefore(parseISO(seen), subDays(new Date(), 30)));
 
-export function setBlogSeenCookie() {
-  const expires = new Date();
-  expires.setDate(expires.getDate() + 90);
-  document.cookie = `${COOKIE_NAME}=${new Date().toISOString()};path=/;expires=${expires.toUTCString()}`;
-}
-
-export default function BlogNavIndicator({ hasNewPost }: { hasNewPost: boolean }) {
-  const [showDot, setShowDot] = useState(false);
-
-  useEffect(() => {
-    if (!hasNewPost) return;
-    const seen = getCookie(COOKIE_NAME);
-    if (!seen) {
-      setShowDot(true);
-      return;
-    }
-    // If the cookie is older than 30 days, show the dot
-    const seenDate = new Date(seen);
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    if (seenDate < thirtyDaysAgo) {
-      setShowDot(true);
-    }
-  }, [hasNewPost]);
-
-  if (!showDot) return null;
-
-  return <span className="absolute -top-0.5 -right-1.5 size-2 rounded-full bg-relisten-400" />;
+  return (
+    <Link className="nav-btn" href="/blog">
+      {highlight && <span className="size-1 mr-1 bg-relisten-500 rounded-full" />}
+      Blog
+    </Link>
+  );
 }

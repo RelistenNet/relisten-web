@@ -17,9 +17,9 @@ echo "Pushing..."
 # docker push "$REGISTRY/$IMAGE"
 
 echo "Restarting pods..."
-# kubectl --context relisten -n default rollout restart deployment/relisten-web-timber
+kubectl --context relisten3 -n default rollout restart deployment/relisten-web-timber
 
 echo "Waiting for rollout..."
-# kubectl --context relisten -n default rollout status deployment/relisten-web-timber --timeout=180s
+kubectl --context relisten3 -n default rollout status deployment/relisten-web-timber --timeout=180s
 
 echo "Done."

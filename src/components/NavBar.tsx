@@ -6,7 +6,7 @@ import * as Popover from '@/components/Popover';
 import RelistenAPI from '@/lib/RelistenAPI';
 import MainNavHeader from './MainNavHeader';
 import AndroidUpgradeNotification from './AndroidUpgradeNotification';
-import BlogNavIndicator from './blog/BlogNavLink';
+import BlogNavLink from './blog/BlogNavLink';
 // import GlobalSearch from './GlobalSearch';
 import { MenuIcon } from 'lucide-react';
 import { getHeaders } from '@timber-js/app/server';
@@ -119,12 +119,7 @@ export default async function NavBar() {
             <Link className="nav-btn" href="/app" prefetch={false}>
               Apps
             </Link>
-            <div className="relative h-full">
-              <Link className="nav-btn" href="/blog" prefetch={false}>
-                Blog
-              </Link>
-              <BlogNavIndicator hasNewPost={blogHasNew} />
-            </div>
+            <BlogNavLink hasNewPost={blogHasNew} />
             <Link className="nav-btn" href="/about" prefetch={false}>
               About
             </Link>
