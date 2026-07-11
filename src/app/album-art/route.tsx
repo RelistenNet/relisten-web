@@ -2,7 +2,7 @@
 import 'server-only';
 
 import RelistenAPI from '@/lib/RelistenAPI';
-import ImageResponse from '@takumi-rs/image-response';
+import { ImageResponse } from 'takumi-js/response';
 import { defineSearchParams } from '@timber-js/app/search-params';
 import { z } from 'zod/v4';
 import { deny } from '@timber-js/app/server';

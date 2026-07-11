@@ -1,4 +1,4 @@
-import ImageResponse from '@takumi-rs/image-response';
+import { ImageResponse } from 'takumi-js/response';
 import { getPost } from '@/lib/blog/getPosts';
 import { getAuthor } from '@/lib/blog/authors';
 import { format, parseISO } from 'date-fns';
