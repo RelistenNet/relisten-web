@@ -3,17 +3,18 @@ import RelistenAPI from '@/lib/RelistenAPI';
 import ImageResponse from '@takumi-rs/image-response';
 import { format, parseISO } from 'date-fns';
 import { defineSearchParams } from '@timber-js/app/search-params';
-import { z } from 'zod';
-import { deny } from '@timber-js/app/server';
+import { z } from 'zod/v4';
 
 const searchParams = defineSearchParams({
-  showUuid: z.uuid(),
+  showUuid: z.uuid().optional(),
   size: z.coerce.number().gte(256).lte(1024).default(550),
 });
 
 export async function GET() {
   try {
     const { showUuid, size } = searchParams.get();
+
+    if (!showUuid) return new Response('Missing showUuid', { status: 400 });
 
     const [artists, show] = await Promise.all([
       RelistenAPI.fetchArtists(),
@@ -197,6 +198,6 @@ export async function GET() {
       }
     );
   } catch {
-    return deny(500);
+    return new Response('Internal Server Error', { status: 500 });
   }
 }
