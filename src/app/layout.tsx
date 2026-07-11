@@ -1,6 +1,7 @@
 import dns from 'node:dns';
 import React from 'react';
 import type { Metadata } from '@timber-js/app/server';
+import { METADATA_BASE } from '@/lib/constants';
 import Providers from './Providers';
 import { roboto } from '../fonts';
 import { themeCookie } from '../lib/themeCookie';
@@ -29,7 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://relisten.net'),
+  metadataBase: METADATA_BASE,
   title: {
     template: '%s | Relisten',
     default: 'Relisten',

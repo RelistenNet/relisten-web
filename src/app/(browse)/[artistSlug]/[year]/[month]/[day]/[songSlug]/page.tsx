@@ -1,3 +1,4 @@
+import { METADATA_BASE } from '@/lib/constants';
 import PlayerManager from '@/components/PlayerManager';
 import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
 import RelistenAPI from '@/lib/RelistenAPI';
@@ -43,7 +44,7 @@ export const metadata = async () => {
           url: proxyStreamUrl(song?.mp3_url),
         },
       ],
-      images: show?.uuid ? [{ url: `/api/og?showUuid=${show.uuid}`, width: 550, height: 550 }] : [],
+      images: show?.uuid ? [{ url: `${METADATA_BASE.origin}/api/og?showUuid=${show.uuid}`, width: 550, height: 550 }] : [],
     },
   };
 };

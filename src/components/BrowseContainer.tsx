@@ -28,12 +28,11 @@ const MOBILE_MQ = '(max-width: 1023px)';
 export default function BrowseContainer({
   children,
   className,
-  isInIframe,
 }: {
   children: ReactNode;
   className?: string;
-  isInIframe?: boolean;
 }) {
+  const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
   const segments = useSelectedLayoutSegments();
   const [{ slug }] = slugSearchParams.useQueryStates();
   const hasSlug = !!slug;

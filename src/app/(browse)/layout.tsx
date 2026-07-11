@@ -1,12 +1,11 @@
 import BrowseContainer from '@/components/BrowseContainer';
 import Flex from '@/components/Flex';
 import NavBar from '@/components/NavBar';
-import { getIsInIframe } from '@/lib/isInIframe';
 import { ReactNode } from 'react';
 import { Toaster } from 'sonner';
 import MobileBrowseNav from '@/components/MobileBrowseNav';
 
-export default async function BrowseLayout({
+export default function BrowseLayout({
   children,
   artists,
   years,
@@ -21,14 +20,12 @@ export default async function BrowseLayout({
   songs: ReactNode;
   sources: ReactNode;
 }) {
-  const isInIframe = await getIsInIframe();
-
   return (
     <Flex column className="lg:h-dvh">
       <Toaster id="audio-error" position="top-center" offset="54px" richColors closeButton />
       <NavBar />
       <MobileBrowseNav />
-      <BrowseContainer isInIframe={isInIframe}>
+      <BrowseContainer>
         <div className="browse-col">{artists}</div>
         <div className="browse-col">{years}</div>
         <div className="browse-col">{shows}</div>

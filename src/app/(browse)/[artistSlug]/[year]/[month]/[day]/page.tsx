@@ -1,3 +1,4 @@
+import { METADATA_BASE } from '@/lib/constants';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { createShowDate } from '@/lib/utils';
 import { getSegmentParams } from '@timber-js/app/server';
@@ -23,7 +24,7 @@ export const metadata = async () => {
     title: [createShowDate(year, month, day), name].join(' | '),
     description: [show?.venue?.name, show?.venue?.location].filter((x) => x).join(' '),
     openGraph: {
-      images: show?.uuid ? [{ url: `/api/og?showUuid=${show.uuid}`, width: 550, height: 550 }] : [],
+      images: show?.uuid ? [{ url: `${METADATA_BASE.origin}/api/og?showUuid=${show.uuid}`, width: 550, height: 550 }] : [],
     },
   };
 };

@@ -74,8 +74,8 @@ importers:
         specifier: ^3.14.3
         version: 3.14.3(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)
       '@timber-js/app':
-        specifier: 0.2.0-alpha.161
-        version: 0.2.0-alpha.161(3c26add368a5c5f7a2e2448c66a8eeb7)
+        specifier: 0.2.0-alpha.165
+        version: 0.2.0-alpha.165(3c26add368a5c5f7a2e2448c66a8eeb7)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -2225,8 +2225,8 @@ packages:
   '@tanstack/virtual-core@3.17.1':
     resolution: {integrity: sha512-VZyW2Uiml5tmBZwPGrSD3Sz73OxzljQMCmzYHsUTPEuTsERf5xwa+uWb01xEzkz3ZSYTjj8NEb/mKHvgKxyZdA==}
 
-  '@timber-js/app@0.2.0-alpha.161':
-    resolution: {integrity: sha512-i/GPi2GmX4CCVx0Y9v47DUrZ5YtkysH3vOZo47FMaB+YEmkiSGqqppZTfvWiBvK/OUVA+bubJqZxt3nDVSVl8g==}
+  '@timber-js/app@0.2.0-alpha.165':
+    resolution: {integrity: sha512-6+UFtF5pL+nia65H6r1dgYZ4IjmjMn0YuuT9KmTzLlj+FV0yxwJbb56IWyFGM9waCQ1hk1kBpcf+HY5Hiyv2Tw==}
     engines: {node: '>=22.18.0'}
     hasBin: true
     peerDependencies:
@@ -4967,6 +4967,11 @@ packages:
     engines: {node: '>=20.16.0'}
     hasBin: true
 
+  srvx@0.11.22:
+    resolution: {integrity: sha512-LqZxxBDMKuMAZzFzJnDCkFOrs9MZQZr0LvHiO/SuSZVdQaXD7xQ5UWTUxheJrQPve1qk9MG2B/yttUvJxw8egQ==}
+    engines: {node: '>=20.16.0'}
+    hasBin: true
+
   statuses@2.0.2:
     resolution: {integrity: sha512-DvEy55V3DB7uknRo+4iOGT5fP1slR8wQohVdknigZPMpMstaKJQWhwiYBACJE3Ul2pTnATihhBYnRhZQHGBiRw==}
     engines: {node: '>= 0.8'}
@@ -7318,7 +7323,7 @@ snapshots:
 
   '@tanstack/virtual-core@3.17.1': {}
 
-  '@timber-js/app@0.2.0-alpha.161(3c26add368a5c5f7a2e2448c66a8eeb7)':
+  '@timber-js/app@0.2.0-alpha.165(3c26add368a5c5f7a2e2448c66a8eeb7)':
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/context-async-hooks': 2.8.0(@opentelemetry/api@1.9.1)
@@ -7331,6 +7336,7 @@ snapshots:
       nuqs: 2.8.9(next@16.2.9(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)
       react: 19.3.0-canary-ed69815c-20260323
       react-dom: 19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323)
+      srvx: 0.11.22
       vite: 8.1.0(@types/node@26.0.0)(jiti@2.7.0)(yaml@2.9.0)
     optionalDependencies:
       '@content-collections/core': 0.15.2(typescript@6.0.3)
@@ -10702,6 +10708,8 @@ snapshots:
   sprintf-js@1.0.3: {}
 
   srvx@0.11.16: {}
+
+  srvx@0.11.22: {}
 
   statuses@2.0.2: {}
 
