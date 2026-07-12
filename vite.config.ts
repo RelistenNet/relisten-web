@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
 import { timber } from '@timber-js/app';
 
-const serverExternals = ['@takumi-rs/image-response', '@mdx-js/rollup', 'rollup', 'fsevents'];
+const serverExternals = ['takumi-js', '@takumi-rs/core', '@mdx-js/rollup', 'rollup', 'fsevents'];
 
 export default defineConfig({
   plugins: [timber({ reactCompiler: true })],
