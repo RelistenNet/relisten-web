@@ -81,6 +81,25 @@ export function initTracing() {
     instrumentations: [
       new HttpInstrumentation({
         ignoreIncomingRequestHook: (req) => shouldIgnorePath(req.url ?? ''),
+        applyCustomAttributesOnSpan: (span, req) => {
+          if ('headers' in req && typeof req.headers === 'object') {
+            const headers = req.headers as Record<string, string | string[] | undefined>;
+            const cfIp = headers['cf-connecting-ip'];
+            const realIp = headers['x-real-ip'];
+            const forwarded = headers['x-forwarded-for'];
+            const ip = (typeof cfIp === 'string' ? cfIp : undefined)
+              ?? (typeof realIp === 'string' ? realIp : undefined)
+              ?? (typeof forwarded === 'string'
+                ? forwarded.split(',')[0]?.trim()
+                : Array.isArray(forwarded)
+                  ? forwarded[0]?.split(',')[0]?.trim()
+                  : undefined);
+            if (ip) {
+              span.setAttribute('net.peer.ip', ip);
+              span.setAttribute('client.address', ip);
+            }
+          }
+        },
       }),
     ],
   });
