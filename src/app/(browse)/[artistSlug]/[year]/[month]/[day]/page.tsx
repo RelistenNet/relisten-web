@@ -27,7 +27,7 @@ export const metadata = async () => {
       images: show?.uuid
         ? [
             {
-              url: `${METADATA_BASE.origin}/album-art?showUuid=${show.uuid}`,
+              url: `${METADATA_BASE.origin}/album-art/${show.uuid}.png`,
               width: 550,
               height: 550,
             },

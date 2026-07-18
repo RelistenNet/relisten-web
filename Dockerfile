@@ -1,24 +1,24 @@
 # Stage 1: Install dependencies
-FROM node:24-alpine AS deps
-RUN corepack enable && corepack prepare pnpm@10 --activate
+FROM node:26-alpine AS deps
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN npm install -g corepack && corepack enable && corepack install
 RUN pnpm install --frozen-lockfile
 
 # Stage 2: Build the application
-FROM node:24-alpine AS builder
-RUN corepack enable && corepack prepare pnpm@10 --activate
+FROM node:26-alpine AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN npm install -g corepack && corepack enable && corepack install
 
 ENV NODE_ENV=production
 RUN pnpm run build
 
 # Stage 3: Production runner
-FROM node:24-alpine AS runner
+FROM node:26-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production

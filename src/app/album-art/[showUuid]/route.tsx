@@ -1,11 +1,12 @@
 /* eslint-disable react/no-unknown-property */
-import 'server-only';
+import "server-only";
 
-import RelistenAPI from '@/lib/RelistenAPI';
-import { ImageResponse } from 'takumi-js/response';
-import { defineSearchParams } from '@timber-js/app/search-params';
-import { z } from 'zod/v4';
-import { deny } from '@timber-js/app/server';
+import RelistenAPI from "@/lib/RelistenAPI";
+import { ImageResponse } from "takumi-js/response";
+import { defineSearchParams } from "@timber-js/app/search-params";
+import { z } from "zod/v4";
+import { getSegmentParams } from "@timber-js/app/server";
+import { SEGMENT_PATH } from "./$segment";
 
 function SpacedText({
   children,
@@ -19,9 +20,9 @@ function SpacedText({
   return (
     <div tw="flex items-center justify-center" style={{ gap }}>
       {children
-        .split('')
+        .split("")
         .map((char, i) =>
-          char === ' ' ? <div key={i} style={{ width: wordGap }} /> : <span key={i}>{char}</span>
+          char === " " ? <div key={i} style={{ width: wordGap }} /> : <span key={i}>{char}</span>,
         )}
     </div>
   );
@@ -29,21 +30,21 @@ function SpacedText({
 
 function parseDisplayDate(displayDate: string) {
   const months = [
-    'JAN',
-    'FEB',
-    'MAR',
-    'APR',
-    'MAY',
-    'JUN',
-    'JUL',
-    'AUG',
-    'SEP',
-    'OCT',
-    'NOV',
-    'DEC',
+    "JAN",
+    "FEB",
+    "MAR",
+    "APR",
+    "MAY",
+    "JUN",
+    "JUL",
+    "AUG",
+    "SEP",
+    "OCT",
+    "NOV",
+    "DEC",
   ];
 
-  const parts = displayDate.split('-');
+  const parts = displayDate.split("-");
   if (parts.length === 3) {
     const monthIndex = parseInt(parts[1], 10) - 1;
     return {
@@ -52,46 +53,44 @@ function parseDisplayDate(displayDate: string) {
       year: parts[0],
     };
   }
-  return { month: '', day: '', year: displayDate };
+  return { month: "", day: "", year: displayDate };
 }
 
 const searchParams = defineSearchParams({
-  showUuid: z.uuid().optional(),
   size: z.coerce.number().gte(256).lte(1024).default(1024),
   debug: z.coerce.boolean().default(false),
 });
 
 export async function GET() {
-  let showUuid: string | undefined;
+  const { showUuid } = getSegmentParams(SEGMENT_PATH);
+
   let size: number;
   let debug: boolean;
   try {
-    ({ showUuid, size, debug } = searchParams.get());
+    ({ size, debug } = searchParams.get());
   } catch {
-    return new Response('Not Found', { status: 404 });
+    return new Response("Not Found", { status: 404 });
   }
-
-  if (!showUuid) return deny(404);
 
   const [artists, show, fontReg, fontBold, fontMegaBold] = await Promise.all([
     RelistenAPI.fetchArtists(),
-    RelistenAPI.fetchShowByUUID(showUuid),
-    fetch('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-400-normal.ttf').then(
-      (res) => res.arrayBuffer()
+    RelistenAPI.fetchShowByUUID(showUuid.replace(".png", "")),
+    fetch("https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-400-normal.ttf").then(
+      (res) => res.arrayBuffer(),
     ),
-    fetch('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-700-normal.ttf').then(
-      (res) => res.arrayBuffer()
+    fetch("https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-700-normal.ttf").then(
+      (res) => res.arrayBuffer(),
     ),
-    fetch('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-900-normal.ttf').then(
-      (res) => res.arrayBuffer()
+    fetch("https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-900-normal.ttf").then(
+      (res) => res.arrayBuffer(),
     ),
   ]);
 
-  if (!show || !show.sources?.length) return new Response('Not Found', { status: 404 });
+  if (!show || !show.sources?.length) return new Response("Not Found", { status: 404 });
 
   const artist = artists.find((artist) => artist.uuid === show.artist_uuid);
-  const artistName = artist?.name ?? 'Unknown Artist';
-  const { month, day, year } = parseDisplayDate(show.display_date || '');
+  const artistName = artist?.name ?? "Unknown Artist";
+  const { month, day, year } = parseDisplayDate(show.display_date || "");
 
   const s = (base: number) => Math.round((size / 1024) * base);
 
@@ -102,13 +101,13 @@ export async function GET() {
     >
       {/* Artist name with horizontal rules */}
       <div tw="flex items-center w-full justify-center" style={{ gap: s(12), marginBottom: s(24) }}>
-        <div tw="flex-1" style={{ height: s(1), backgroundColor: '#5a8a9e', opacity: 0.5 }} />
+        <div tw="flex-1" style={{ height: s(1), backgroundColor: "#5a8a9e", opacity: 0.5 }} />
         <div tw="font-bold text-center text-[#8cb4c9]" style={{ fontSize: s(32) }}>
           <SpacedText gap={s(7)} wordGap={s(8)}>
             {artistName.toUpperCase()}
           </SpacedText>
         </div>
-        <div tw="flex-1" style={{ height: s(1), backgroundColor: '#5a8a9e', opacity: 0.5 }} />
+        <div tw="flex-1" style={{ height: s(1), backgroundColor: "#5a8a9e", opacity: 0.5 }} />
       </div>
 
       {/* Date: MONTH | DAY | YEAR */}
@@ -180,7 +179,7 @@ export async function GET() {
               top: 0,
               width: 1,
               height: size,
-              backgroundColor: 'rgba(255,0,0,0.5)',
+              backgroundColor: "rgba(255,0,0,0.5)",
             }}
           />
           {/* Horizontal center line */}
@@ -191,7 +190,7 @@ export async function GET() {
               left: 0,
               width: size,
               height: 1,
-              backgroundColor: 'rgba(255,0,0,0.5)',
+              backgroundColor: "rgba(255,0,0,0.5)",
             }}
           />
           {/* Grid lines */}
@@ -204,7 +203,7 @@ export async function GET() {
                   top: 0,
                   width: 1,
                   height: size,
-                  backgroundColor: 'rgba(255,255,0,0.3)',
+                  backgroundColor: "rgba(255,255,0,0.3)",
                 }}
               />
               <div
@@ -214,7 +213,7 @@ export async function GET() {
                   left: 0,
                   width: size,
                   height: 1,
-                  backgroundColor: 'rgba(255,255,0,0.3)',
+                  backgroundColor: "rgba(255,255,0,0.3)",
                 }}
               />
             </>
@@ -227,7 +226,7 @@ export async function GET() {
               left: s(60),
               right: s(60),
               bottom: s(60),
-              borderColor: 'rgba(0,255,0,0.4)',
+              borderColor: "rgba(0,255,0,0.4)",
             }}
           />
         </>
@@ -238,28 +237,28 @@ export async function GET() {
       height: size,
       fonts: [
         {
-          name: 'Roboto',
+          name: "Roboto",
           data: fontReg,
           weight: 400,
-          style: 'normal',
+          style: "normal",
         },
         {
-          name: 'Roboto',
+          name: "Roboto",
           data: fontBold,
           weight: 700,
-          style: 'normal',
+          style: "normal",
         },
         {
-          name: 'Roboto',
+          name: "Roboto",
           data: fontMegaBold,
           weight: 900,
-          style: 'normal',
+          style: "normal",
         },
       ],
-    }
+    },
   );
 
-  response.headers.set('Cache-Control', 'public, max-age=86400, s-maxage=604800');
+  response.headers.set("Cache-Control", "public, max-age=86400, s-maxage=604800");
 
   return response;
 }
