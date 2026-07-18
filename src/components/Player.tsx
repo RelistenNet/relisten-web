@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { Link } from '@timber-js/app/client';
-import React, { useRef, useState } from 'react';
+import { Link } from "@timber-js/app/client";
+import React, { useRef, useState } from "react";
 
-import type { RootState } from '@/redux';
+import type { RootState } from "@/redux";
 import {
   ChevronDown,
   FastForwardIcon,
@@ -11,11 +11,11 @@ import {
   PauseIcon,
   PlayIcon,
   RewindIcon,
-} from 'lucide-react';
-import { useSelector } from 'react-redux';
-import player from '../lib/player';
-import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
-import Flex from './Flex';
+} from "lucide-react";
+import { useSelector } from "react-redux";
+import player from "../lib/player";
+import { durationToHHMMSS, removeLeadingZero, splitShowDate } from "../lib/utils";
+import Flex from "./Flex";
 
 interface Props {
   artistSlugsToName: Record<string, string | undefined>;
@@ -27,20 +27,20 @@ const Player = ({ artistSlugsToName }: Props) => {
   const [showRemainingDuration, setShowRemainingDuration] = useState(false);
   const hoverTextRef = useRef<HTMLSpanElement>(null);
   const [volume, setVolume] = useState(
-    (typeof localStorage !== 'undefined' && localStorage.volume) || 1
+    (typeof localStorage !== "undefined" && localStorage.volume) || 1,
   );
 
   const { year, month, day } = splitShowDate(playback.showDate);
   const { artistSlug, source } = playback;
   const artistName = artistSlug ? artistSlugsToName[artistSlug] : undefined;
   const activeTrack = playback.tracks.find(
-    (_track, idx: number) => idx === playback.activeTrack.index
+    (_track, idx: number) => idx === playback.activeTrack.index,
   );
   const nextTrack = playback.tracks.find(
-    (_track, idx: number) => idx === (playback.activeTrack.index ?? -1) + 1
+    (_track, idx: number) => idx === (playback.activeTrack.index ?? -1) + 1,
   );
   const notchPosition =
-    typeof window === 'undefined' || !playerRef
+    typeof window === "undefined" || !playerRef
       ? 0
       : ((playback.activeTrack.currentTime ?? 0) / (playback.activeTrack.duration ?? 1)) *
         (Number(playerRef.current?.clientWidth) - 3);
@@ -59,7 +59,7 @@ const Player = ({ artistSlugsToName }: Props) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const time = (x / rect.width) * (playback.activeTrack.duration ?? 0);
-    e.currentTarget.style.setProperty('--hover-x', `${x}px`);
+    e.currentTarget.style.setProperty("--hover-x", `${x}px`);
     if (hoverTextRef.current) hoverTextRef.current.textContent = durationToHHMMSS(time);
   };
 
@@ -99,18 +99,12 @@ const Player = ({ artistSlugsToName }: Props) => {
           )}
         </Flex>
       )}
-      {typeof window === 'undefined' || !activeTrack ? null : (
+      {typeof window === "undefined" || !activeTrack ? null : (
         <div className="relative h-full flex-1" ref={playerRef}>
           <Flex className="info h-full justify-center transition-all duration-[1s] ease-in-out">
             <div className="timing text-text-muted absolute top-1/2 left-[8px] translate-x-0 translate-y-[-50%] text-left text-[0.8em]">
-              <div
-                className="-m-2 cursor-pointer p-2"
-                onClick={() => player.previous()}
-              >
-                <RewindIcon
-                  className="fill-text-muted"
-                  size={16}
-                />
+              <div className="-m-2 cursor-pointer p-2" onClick={() => player.previous()}>
+                <RewindIcon className="fill-text-muted" size={16} />
               </div>
               <div>{durationToHHMMSS(playback.activeTrack.currentTime)}</div>
             </div>
@@ -133,20 +127,14 @@ const Player = ({ artistSlugsToName }: Props) => {
               </Link>
             </Flex>
             <div className="timing duration text-text-muted absolute top-1/2 right-[8px] translate-x-0 translate-y-[-50%] text-right text-[0.8em]">
-              <div
-                className="-m-2 cursor-pointer p-2"
-                onClick={() => player.next()}
-              >
-                <FastForwardIcon
-                  className="fill-text-muted"
-                  size={16}
-                />
+              <div className="-m-2 cursor-pointer p-2" onClick={() => player.next()}>
+                <FastForwardIcon className="fill-text-muted" size={16} />
               </div>
               <div onClick={toggleRemainingDuration} className="cursor-pointer">
                 {durationToHHMMSS(
                   showRemainingDuration
                     ? (playback.activeTrack.currentTime ?? 0) - (playback.activeTrack.duration ?? 0)
-                    : (playback.activeTrack.duration ?? 0)
+                    : (playback.activeTrack.duration ?? 0),
                 )}
               </div>
             </div>
@@ -159,7 +147,7 @@ const Player = ({ artistSlugsToName }: Props) => {
           >
             <div
               className="absolute bottom-0 left-0 h-1 bg-accent"
-              style={{ width: notchPosition ? notchPosition + 2 : 'auto' }}
+              style={{ width: notchPosition ? notchPosition + 2 : "auto" }}
             />
             <div
               className="absolute bottom-0 left-0 z-1 h-2 w-[3px] bg-text-primary"
@@ -167,7 +155,7 @@ const Player = ({ artistSlugsToName }: Props) => {
             />
             <div
               className="pointer-events-none absolute bottom-full z-2 mb-2 hidden -translate-x-1/2 rounded-md bg-surface-raised px-2.5 py-1 text-xs text-text-primary tabular-nums shadow-lg ring-1 ring-white/10 group-hover:block"
-              style={{ left: 'var(--hover-x)' }}
+              style={{ left: "var(--hover-x)" }}
             >
               <span ref={hoverTextRef} />
               <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-surface-raised" />

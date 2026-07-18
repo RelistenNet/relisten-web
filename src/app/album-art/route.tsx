@@ -95,7 +95,7 @@ export async function GET() {
 
   const s = (base: number) => Math.round((size / 1024) * base);
 
-  return new ImageResponse(
+  const response = new ImageResponse(
     <div
       tw="flex h-full w-full flex-col items-center justify-center text-white relative bg-[#0d1b2a]"
       style={{ padding: s(60), paddingTop: s(90) }}
@@ -258,4 +258,8 @@ export async function GET() {
       ],
     }
   );
+
+  response.headers.set('Cache-Control', 'public, max-age=86400, s-maxage=604800');
+
+  return response;
 }
