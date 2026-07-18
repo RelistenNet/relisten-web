@@ -70,6 +70,9 @@ export async function metadata() {
   return {
     title: [song?.title, createShowDate(year, month, day), name].filter((x) => x).join(' | '),
     description: [show?.venue?.name, show?.venue?.location].filter((x) => x).join(' '),
+    alternates: {
+      canonical: `/${artistSlug}/${year}/${month}/${day}/${songSlug}`,
+    },
     openGraph: {
       audio: [
         {

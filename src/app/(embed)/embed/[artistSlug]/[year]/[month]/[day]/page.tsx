@@ -47,5 +47,8 @@ export async function metadata() {
   return {
     title: `${artistSlug} - ${year}/${month}/${day}`,
     description: `Embedded view of ${artistSlug} show from ${year}/${month}/${day}`,
+    alternates: {
+      canonical: `/${artistSlug}/${year}/${month}/${day}`,
+    },
   };
 }
