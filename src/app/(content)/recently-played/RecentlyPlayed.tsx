@@ -1,11 +1,12 @@
-'use client';
+"use client";
 
-import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Activity, Clock } from 'lucide-react';
-import LiveTrack from '@/components/LiveTrack';
-import { API_DOMAIN } from '@/lib/constants';
-import type { LiveHistoryItem } from '@/types';
+import { QueryClient, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AnimatePresence, motion } from "framer-motion";
+import { Activity, Clock } from "lucide-react";
+import LiveTrack from "@/components/LiveTrack";
+import { API_DOMAIN } from "@/lib/constants";
+import type { LiveHistoryItem } from "@/types";
+import Spinner from "@/components/Spinner";
 
 function uniqBy(a: LiveHistoryItem[], key: (item: LiveHistoryItem) => number | undefined) {
   const seen = new Set();
@@ -21,13 +22,13 @@ const keyFn = (item: LiveHistoryItem): number | undefined => {
   return item.track?.track?.id;
 };
 
-const QUERY_KEY = ['recentlyPlayed'];
+const QUERY_KEY = ["recentlyPlayed"];
 
 const fetchRecentlyPlayed = async (queryClient: QueryClient) => {
   const cache = queryClient.getQueryData(QUERY_KEY) as LiveHistoryItem[] | undefined;
-  const lastSeenId = cache ? Math.max(...cache.map((t) => t.id)) : '';
+  const lastSeenId = cache ? Math.max(...cache.map((t) => t.id)) : "";
 
-  const params = lastSeenId ? `?lastSeenId=${lastSeenId}` : '';
+  const params = lastSeenId ? `?lastSeenId=${lastSeenId}` : "";
   const res = await fetch(`${API_DOMAIN}/api/v2/live/history${params}`);
   const parsed = (await res.json()) as LiveHistoryItem[];
 
@@ -37,24 +38,6 @@ const fetchRecentlyPlayed = async (queryClient: QueryClient) => {
 
   return cache ?? [];
 };
-
-const LoadingSkeleton = () => (
-  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
-    {Array.from({ length: 8 }).map((_, i) => (
-      <div
-        key={i}
-        className="animate-pulse space-y-3 rounded-xl border border-hairline bg-surface-raised p-4"
-      >
-        <div className="h-4 rounded bg-hairline"></div>
-        <div className="h-3 w-3/4 rounded bg-hairline"></div>
-        <div className="space-y-2">
-          <div className="h-2 w-1/2 rounded bg-hairline"></div>
-          <div className="h-2 w-2/3 rounded bg-hairline"></div>
-        </div>
-      </div>
-    ))}
-  </div>
-);
 
 const EmptyState = () => (
   <motion.div
@@ -86,11 +69,7 @@ export default function RecentlyPlayed() {
     <div className="min-h-screen">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center"
-        >
+        <div className="text-center">
           <div className="mb-2 flex items-center justify-center gap-3">
             <div className="rounded-full bg-accent/15 p-2">
               <Activity className="h-6 w-6 text-accent" />
@@ -102,10 +81,14 @@ export default function RecentlyPlayed() {
           <p className="mx-auto mb-4 max-w-2xl text-text-muted">
             This is what people are listening to right now - join 'em.
           </p>
-        </motion.div>
+        </div>
 
         {/* Content */}
-        {query.isLoading && <LoadingSkeleton />}
+        {query.isLoading && (
+          <div className="flex items-center justify-center opacity-60 py-12">
+            <Spinner />
+          </div>
+        )}
 
         {query.data && tracks.length === 0 && <EmptyState />}
 
@@ -126,7 +109,7 @@ export default function RecentlyPlayed() {
                   transition={{
                     delay: index * 0.05,
                     duration: 0.3,
-                    ease: 'easeOut',
+                    ease: "easeOut",
                   }}
                   layout
                 >

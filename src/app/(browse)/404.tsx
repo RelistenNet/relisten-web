@@ -5,16 +5,16 @@ import { ArrowDown } from 'lucide-react';
 
 export default function NotFound() {
   return (
-    <div className="flex flex-1 items-center justify-center bg-gray-50 px-4">
+    <div className="flex flex-1 items-center justify-center px-4 col-span-full">
       <div className="mx-auto w-full max-w-lg text-center">
         <div className="mb-8">
           <div
             className="
-              mx-auto mb-4 flex size-20 items-center justify-center rounded-full bg-gray-100
+              mx-auto mb-4 flex size-20 items-center justify-center rounded-full bg-surface-raised
             "
           >
             <svg
-              className="size-10 text-gray-600"
+              className="size-10 text-text-secondary"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -28,9 +28,9 @@ export default function NotFound() {
             </svg>
           </div>
 
-          <h1 className="mb-3 text-3xl font-semibold text-gray-900">404 - Page Not Found</h1>
+          <h1 className="mb-3 text-3xl font-semibold text-text-primary">404 - Page Not Found</h1>
 
-          <p className="mb-8 text-lg text-foreground-muted">
+          <p className="mb-8 text-lg text-text-secondary">
             Looks like this keyboardist got lost on the way to the show. The Page you're looking for
             doesn't exist yet - maybe it's 1983.
           </p>

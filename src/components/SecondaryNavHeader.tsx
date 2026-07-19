@@ -71,6 +71,7 @@ export default function SecondaryNavBar({ artistSlugsToName }: Props) {
 
   if (typeof artistSlug === 'string') {
     const artistName = artistSlugsToName[artistSlug];
+    if (!artistName) return null;
     return (
       <>
         <span>TO</span>

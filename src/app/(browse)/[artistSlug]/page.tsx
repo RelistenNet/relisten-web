@@ -1,6 +1,6 @@
-import RelistenAPI from '@/lib/RelistenAPI';
-import { getSegmentParams } from '@timber-js/app/server';
-import { SEGMENT_PATH } from './$segment';
+import RelistenAPI from "@/lib/RelistenAPI";
+import { getSegmentParams } from "@timber-js/app/server";
+import { SEGMENT_PATH } from "./$segment";
 
 export default function Page() {
   return null;
