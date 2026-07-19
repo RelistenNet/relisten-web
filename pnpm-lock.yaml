@@ -71,8 +71,8 @@ importers:
         specifier: ^3.14.6
         version: 3.14.6(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)
       '@timber-js/app':
-        specifier: 0.2.0-alpha.166
-        version: 0.2.0-alpha.166(9d1695c775129bd4f0f4e57fd95d30a4)
+        specifier: 0.2.0-alpha.170
+        version: 0.2.0-alpha.170(9d1695c775129bd4f0f4e57fd95d30a4)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -2268,8 +2268,8 @@ packages:
   '@tanstack/virtual-core@3.17.4':
     resolution: {integrity: sha512-nGm5KteqxasUdThLc2izl6dHUqLv0LQj7Nuyo5gYalTPf/U8a9ermvsl7reT+6ioBW1l8WfpP/mcU338nLXpqw==}
 
-  '@timber-js/app@0.2.0-alpha.166':
-    resolution: {integrity: sha512-p7EKkK2clluM2ezHD0zj6jaTgR14kwAOeZrW3J73aD0E5GSGXJBXQUa03reaUZCdqIN/DsqN6A3byzMEQ0+B1w==}
+  '@timber-js/app@0.2.0-alpha.170':
+    resolution: {integrity: sha512-P4PGHR9Pw9eD2zq1g3JlR1S3n5c6xwAj50g6qh32HdK4k7kVxOPY8ptWGisZB9m4GHOYdkSo350/4ZObTtjVNQ==}
     engines: {node: '>=22.18.0'}
     hasBin: true
     peerDependencies:
@@ -2282,7 +2282,7 @@ packages:
       nuqs: ^2.0.0
       react: 19.3.0-canary-ed69815c-20260323
       react-dom: 19.3.0-canary-ed69815c-20260323
-      vite: ^8.1.0
+      vite: 8.1.0
       wrangler: ^4.0.0
       zod: ^3.22.0 || ^4.0.0
     peerDependenciesMeta:
@@ -3967,6 +3967,9 @@ packages:
     resolution: {integrity: sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==}
     engines: {node: '>=6'}
     hasBin: true
+
+  jsonc-parser@3.3.1:
+    resolution: {integrity: sha512-HUgH65KyejrUFPvHFPbqOY0rsFip3Bo5wb4ngvdi1EpCYWUQDC5V+Y7mZws+DLkr4M//zQJoanu1SP+87Dv1oQ==}
 
   jsonfile@6.2.1:
     resolution: {integrity: sha512-zwOTdL3rFQ/lRdBnntKVOX6k5cKJwEc1HdilT71BWEu7J41gXIB2MRp+vxduPSwZJPWBxEzv4yH1wYLJGUHX4Q==}
@@ -7544,7 +7547,7 @@ snapshots:
 
   '@tanstack/virtual-core@3.17.4': {}
 
-  '@timber-js/app@0.2.0-alpha.166(9d1695c775129bd4f0f4e57fd95d30a4)':
+  '@timber-js/app@0.2.0-alpha.170(9d1695c775129bd4f0f4e57fd95d30a4)':
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/context-async-hooks': 2.9.0(@opentelemetry/api@1.9.1)
@@ -7552,6 +7555,7 @@ snapshots:
       '@vitejs/plugin-react': 6.0.3(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.7)(rolldown@1.1.5)(vite@8.1.5(@types/node@26.1.1)(jiti@2.7.0)(yaml@2.9.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.1.5(@types/node@26.1.1)(jiti@2.7.0)(yaml@2.9.0))
       '@vitejs/plugin-rsc': 0.5.28(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)(vite@8.1.5(@types/node@26.1.1)(jiti@2.7.0)(yaml@2.9.0))
       cookie: 1.1.1
+      jsonc-parser: 3.3.1
       magic-string: 0.30.21
       nitro: 3.0.260610-beta(chokidar@5.0.0)(dotenv@17.4.2)(jiti@2.7.0)(rollup@4.62.0)(vite@8.1.5(@types/node@26.1.1)(jiti@2.7.0)(yaml@2.9.0))
       nuqs: 2.9.0(next@16.2.9(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)
@@ -9360,6 +9364,8 @@ snapshots:
   json-stable-stringify-without-jsonify@1.0.1: {}
 
   json5@2.2.3: {}
+
+  jsonc-parser@3.3.1: {}
 
   jsonfile@6.2.1:
     dependencies:

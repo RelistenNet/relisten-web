@@ -9,7 +9,7 @@ export default defineSchema({
     "[month]": z.string().regex(/[\dx]{1,2}/i),
     "[songSlug]": z.string(),
     "[year]": z.string(),
-    // "[showUuid]": z.string(),
+    "[showUuid]": z.string(),
 
     "[...artistSlugs]": codec.catchAll(codec.string),
     "[...days]": codec.catchAll(codec.string),

@@ -1,11 +1,11 @@
-import 'server-only';
+import "server-only";
 
-import ky, { HTTPError } from 'ky';
-import { deny } from '@timber-js/app/server';
-import { cache } from 'react';
-import { cache as timberCache } from '@timber-js/app/cache';
-import { SERVER_API_DOMAIN } from './constants';
-import { sortSources } from './sortSources';
+import ky, { HTTPError } from "ky";
+import { deny } from "@timber-js/app/server";
+import { cache } from "react";
+import { cache as timberCache } from "@timber-js/app/cache";
+import { SERVER_API_DOMAIN } from "./constants";
+import { sortSources } from "./sortSources";
 import type {
   Artist,
   Tape,
@@ -20,7 +20,7 @@ import type {
   SongWithShows,
   TourWithShows,
   LiveHistoryItem,
-} from '@/types';
+} from "@/types";
 
 // Cross-request cached fetch — caches API responses in memory with TTL.
 // React cache() still deduplicates within a single render pass on top of this.
@@ -40,7 +40,7 @@ async function apiFetch<T>(endpoint: string): Promise<T> {
   }
 }
 
-const cachedApiFetch = timberCache(apiFetch, {
+const cachedApiFetch = timberCache.data(apiFetch, {
   ttl: 60 * 5, // 5 minutes
   key: (endpoint: string) => `api:${endpoint}`,
   staleWhileRevalidate: true,
@@ -56,11 +56,11 @@ export class RelistenAPI {
 
   // Artists API
   static fetchArtists = cache(async (): Promise<Artist[]> => {
-    return cachedApiFetch<Artist[]>('/api/v3/artists');
+    return cachedApiFetch<Artist[]>("/api/v3/artists");
   });
 
   static fetchAllArtists = cache(async (): Promise<Artist[]> => {
-    return cachedApiFetch<Artist[]>('/api/v3/artists?include_autocreated=true');
+    return cachedApiFetch<Artist[]>("/api/v3/artists?include_autocreated=true");
   });
 
   // Shows API
@@ -68,12 +68,12 @@ export class RelistenAPI {
     async (
       slug?: string,
       year?: string,
-      displayDate?: string
+      displayDate?: string,
     ): Promise<Partial<Tape> | undefined> => {
       if (!slug || !year || !displayDate) return { sources: [] };
 
       const show = await cachedApiFetch<Tape>(
-        `/api/v2/artists/${slug}/years/${year}/${displayDate}`
+        `/api/v2/artists/${slug}/years/${year}/${displayDate}`,
       );
 
       if (show?.sources?.length) {
@@ -81,7 +81,7 @@ export class RelistenAPI {
       }
 
       return show;
-    }
+    },
   );
 
   static fetchShowByUUID = cache(async (showUuid: string): Promise<Partial<Tape> | undefined> => {
@@ -101,12 +101,12 @@ export class RelistenAPI {
       if (!artistSlug) return undefined;
 
       if (!this.isValidArtistSlug(artistSlug)) {
-        console.error('Tried to load url that doesnt match artist slug format:', artistSlug);
+        console.error("Tried to load url that doesnt match artist slug format:", artistSlug);
         return deny(404);
       }
 
       return apiFetch<Partial<Tape>>(`/api/v2/artists/${artistSlug}/shows/random`);
-    }
+    },
   );
 
   // Years API (v3 — UUID-based, includes popularity)
@@ -122,7 +122,7 @@ export class RelistenAPI {
       if (!artistUuid || !yearUuid) return undefined;
 
       return cachedApiFetch<ArtistShows>(`/api/v3/artists/${artistUuid}/years/${yearUuid}`);
-    }
+    },
   );
 
   // Today in History API
@@ -130,20 +130,20 @@ export class RelistenAPI {
     async (
       artistSlug: string | undefined,
       month: number | string,
-      day: number | string
+      day: number | string,
     ): Promise<Show[]> => {
       if (!artistSlug) return [];
 
       return cachedApiFetch<Show[]>(
-        `/api/v2/artists/${artistSlug}/shows/on-date?month=${month}&day=${day}`
+        `/api/v2/artists/${artistSlug}/shows/on-date?month=${month}&day=${day}`,
       );
-    }
+    },
   );
 
   static fetchTodayShows = cache(
     async (month: number | string, day: number | string): Promise<Day[]> => {
       return cachedApiFetch<Day[]>(`/api/v2/shows/today?month=${month}&day=${day}`);
-    }
+    },
   );
 
   // Top Shows API (sorted by rating)
@@ -196,11 +196,11 @@ export class RelistenAPI {
 
   // Live API
   static fetchRecentlyPlayed = cache(async (): Promise<any[]> => {
-    return apiFetch<any[]>('/api/v2/live/recently_played');
+    return apiFetch<any[]>("/api/v2/live/recently_played");
   });
 
   static fetchLiveHistory = cache(async (lastSeenId?: string): Promise<LiveHistoryItem[]> => {
-    const params = lastSeenId ? `?lastSeenId=${lastSeenId}` : '';
+    const params = lastSeenId ? `?lastSeenId=${lastSeenId}` : "";
     return apiFetch<LiveHistoryItem[]>(`/api/v2/live/history${params}`);
   });
 }
