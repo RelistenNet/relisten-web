@@ -29,7 +29,7 @@ export default async function middleware(ctx: MiddlewareContext): Promise<Respon
 
   const artistSlug = segments[0];
   if (artistSlug) {
-    const artists = await RelistenAPI.fetchArtists();
+    const artists = await RelistenAPI.fetchAllArtists();
     if (!artists.some((a) => a.slug === artistSlug)) {
       deny(404);
     }
