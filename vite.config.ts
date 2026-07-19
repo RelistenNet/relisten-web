@@ -5,6 +5,9 @@ import { timber } from '@timber-js/app';
 const serverExternals = ['takumi-js', '@takumi-rs/core', '@mdx-js/rollup', 'rollup', 'fsevents'];
 
 export default defineConfig({
+  legacy: {
+    inconsistentCjsInterop: true,
+  },
   plugins: [timber({ reactCompiler: true })],
   resolve: {
     alias: { '@': resolve(import.meta.dirname, 'src') },
