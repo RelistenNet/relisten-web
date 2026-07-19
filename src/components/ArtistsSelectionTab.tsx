@@ -26,6 +26,11 @@ const ArtistsSelectionTab = ({ artistsAll, initialFilters }: ArtistsSelectionTab
     [artistsAll],
   );
 
+  const archiveArtists = useMemo(
+    () => artistsAll.filter((artist) => Number(artist.featured) > 1),
+    [artistsAll],
+  );
+
   const { artists, highlightRanges } = useMemo(() => {
     const query = searchQuery.trim();
     if (query) {
@@ -44,16 +49,16 @@ const ArtistsSelectionTab = ({ artistsAll, initialFilters }: ArtistsSelectionTab
       scored.sort((a, b) => a.score - b.score);
       return { artists: scored.map((s) => s.artist), highlightRanges: ranges };
     }
-    const list = tab === "primary" ? primaryArtists : artistsAll;
+    const list = tab === "primary" ? primaryArtists : archiveArtists;
     return { artists: list, highlightRanges: new Map<string, HighlightRanges>() };
-  }, [tab, artistsAll, primaryArtists, searchQuery]);
+  }, [tab, artistsAll, primaryArtists, archiveArtists, searchQuery]);
 
   const TABS: { value: Tab; label: string }[] = useMemo(
     () => [
       { value: "primary", label: `Primary Artists (${primaryArtists.length})` },
-      { value: "all", label: `All Artists (${artistsAll.length})` },
+      { value: "all", label: `Archive Artists (${archiveArtists.length})` },
     ],
-    [primaryArtists.length, artistsAll.length],
+    [primaryArtists.length, archiveArtists.length],
   );
 
   const subHeader = (

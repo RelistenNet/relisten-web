@@ -12,7 +12,6 @@ import cn from "@/lib/cn";
 import ColumnWithToggleControls from "./ColumnWithToggleControls";
 import PopularityBadge from "./PopularityBadge";
 import type { HighlightRanges } from "@nozbe/microfuzz";
-import { Highlight } from "@nozbe/microfuzz/react";
 import Row, { unwrapSegment } from "./Row";
 import RowHeader from "./RowHeader";
 
@@ -27,6 +26,19 @@ type Item =
 const HEADER_ESTIMATE = 28;
 const ROW_ESTIMATE = 45;
 const GROUP_ORDER: Record<string, number> = { "1": 0, "0": 1 };
+
+function HighlightText({ text, ranges }: { text: string; ranges: HighlightRanges }) {
+  if (!ranges.length) return <>{text}</>;
+  const parts: React.ReactNode[] = [];
+  let last = 0;
+  for (const [start, end] of ranges) {
+    if (start > last) parts.push(text.slice(last, start));
+    parts.push(<mark key={start} className="bg-accent/30 text-inherit">{text.slice(start, end + 1)}</mark>);
+    last = end + 1;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return <>{parts}</>;
+}
 
 type ArtistsColumnWithControlsProps = {
   artists: Artist[];
@@ -82,7 +94,7 @@ const ArtistsColumnWithControls = ({
       case "0":
         return "Primary Artists";
       default:
-        return "All Artists";
+        return "Archive Artists";
     }
   };
 
@@ -132,7 +144,10 @@ const ArtistsColumnWithControls = ({
         <div>
           <div>
             {item.artist.uuid && highlightRanges?.has(item.artist.uuid) ? (
-              <Highlight text={item.artist.name || ""} ranges={highlightRanges.get(item.artist.uuid)!} />
+              <HighlightText
+                text={item.artist.name || ""}
+                ranges={highlightRanges.get(item.artist.uuid)!}
+              />
             ) : (
               item.artist.name
             )}
