@@ -1,10 +1,10 @@
-import { METADATA_BASE } from '@/lib/constants';
-import PlayerManager from '@/components/PlayerManager';
-import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
-import RelistenAPI from '@/lib/RelistenAPI';
-import { createShowDate } from '@/lib/utils';
-import { deny, getSegmentParams } from '@timber-js/app/server';
-import { SEGMENT_PATH } from './$segment';
+import { METADATA_BASE } from "@/lib/constants";
+import PlayerManager from "@/components/PlayerManager";
+import { proxyStreamUrl } from "@/lib/proxyStreamUrl";
+import RelistenAPI from "@/lib/RelistenAPI";
+import { createShowDate } from "@/lib/utils";
+import { deny, getSegmentParams } from "@timber-js/app/server";
+import { SEGMENT_PATH } from "./$segment";
 
 export default async function Page() {
   const { artistSlug, year, month, day } = getSegmentParams(SEGMENT_PATH);
@@ -13,15 +13,20 @@ export default async function Page() {
 
   const params = { artistSlug, year, month, day };
 
-  const show = await RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day));
+  const [show, artists] = await Promise.all([
+    RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day)),
+    RelistenAPI.fetchAllArtists(),
+  ]);
 
-  return <PlayerManager {...params} show={show} />;
+  const artistName = artists?.find((a) => a.slug === artistSlug)?.name;
+
+  return <PlayerManager {...params} show={show} artistName={artistName} />;
 }
 
 export const metadata = async () => {
   const { artistSlug, year, month, day, songSlug } = getSegmentParams(SEGMENT_PATH);
 
-  const artists = await RelistenAPI.fetchArtists();
+  const artists = await RelistenAPI.fetchAllArtists();
 
   const name = artists?.find((a) => a.slug === artistSlug)?.name;
 
@@ -36,8 +41,8 @@ export const metadata = async () => {
   const song = songs?.find((song) => song?.slug === songSlug);
 
   return {
-    title: [song?.title, createShowDate(year, month, day), name].filter((x) => x).join(' | '),
-    description: [show?.venue?.name, show?.venue?.location].filter((x) => x).join(' '),
+    title: [song?.title, createShowDate(year, month, day), name].filter((x) => x).join(" | "),
+    description: [show?.venue?.name, show?.venue?.location].filter((x) => x).join(" "),
     openGraph: {
       audio: [
         {

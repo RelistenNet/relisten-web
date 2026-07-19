@@ -11,7 +11,7 @@ export const metadata = async () => {
   const artistSlug = params?.artistSlug as string | undefined;
   if (!artistSlug) return {};
 
-  const artists = await RelistenAPI.fetchArtists();
+  const artists = await RelistenAPI.fetchAllArtists();
   const name = artists.find((a) => a.slug === artistSlug)?.name;
 
   if (!name) return {};

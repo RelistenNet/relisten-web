@@ -17,11 +17,7 @@ import player from "../lib/player";
 import { durationToHHMMSS, removeLeadingZero, splitShowDate } from "../lib/utils";
 import Flex from "./Flex";
 
-interface Props {
-  artistSlugsToName: Record<string, string | undefined>;
-}
-
-const Player = ({ artistSlugsToName }: Props) => {
+const Player = () => {
   const playerRef = useRef<HTMLDivElement>(null);
   const playback = useSelector((state: RootState) => state.playback);
   const [showRemainingDuration, setShowRemainingDuration] = useState(false);
@@ -32,7 +28,7 @@ const Player = ({ artistSlugsToName }: Props) => {
 
   const { year, month, day } = splitShowDate(playback.showDate);
   const { artistSlug, source } = playback;
-  const artistName = artistSlug ? artistSlugsToName[artistSlug] : undefined;
+  const artistName = playback.artistName;
   const activeTrack = playback.tracks.find(
     (_track, idx: number) => idx === playback.activeTrack.index,
   );

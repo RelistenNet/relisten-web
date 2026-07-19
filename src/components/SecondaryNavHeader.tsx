@@ -34,7 +34,7 @@ const pages = {
 };
 
 interface Props {
-  artistSlugsToName: Record<string, string | undefined>;
+  artistName?: string;
 }
 
 const bandsWithThe = [
@@ -53,7 +53,7 @@ const bandsWithThe = [
   'tedeschi-trucks',
 ];
 
-export default function SecondaryNavBar({ artistSlugsToName }: Props) {
+export default function SecondaryNavBar({ artistName }: Props) {
   const pathname = usePathname();
   const key = pathname.replace('/', '');
   const { artistSlug } = useSegmentParams() as { artistSlug?: string };
@@ -70,7 +70,6 @@ export default function SecondaryNavBar({ artistSlugsToName }: Props) {
   }
 
   if (typeof artistSlug === 'string') {
-    const artistName = artistSlugsToName[artistSlug];
     if (!artistName) return null;
     return (
       <>

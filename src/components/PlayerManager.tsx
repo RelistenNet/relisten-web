@@ -17,6 +17,7 @@ import { usePathname } from "@timber-js/app/client";
 import { useEffect } from "react";
 
 interface PlayerManagerProps extends Props {
+  artistName?: string;
   playImmediately?: boolean;
 }
 
@@ -47,6 +48,7 @@ export default function PlayerManager(props: PlayerManagerProps) {
       store.dispatch(
         updatePlayback({
           artistSlug,
+          artistName: props.artistName,
           year,
           showDate: createShowDate(year, month, day),
           songSlug,

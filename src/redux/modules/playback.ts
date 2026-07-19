@@ -14,6 +14,7 @@ export interface ActiveTrack {
 
 export interface PlaybackState {
   artistSlug?: string;
+  artistName?: string;
   showDate?: string;
   month?: string;
   day?: string;
@@ -29,6 +30,7 @@ export interface PlaybackState {
 
 const defaultState: PlaybackState = {
   artistSlug: undefined,
+  artistName: undefined,
   month: undefined,
   day: undefined,
   year: undefined,

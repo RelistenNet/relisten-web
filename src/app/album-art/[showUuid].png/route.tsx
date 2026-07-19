@@ -73,7 +73,7 @@ export async function GET() {
   }
 
   const [artists, show, fontReg, fontBold, fontMegaBold] = await Promise.all([
-    RelistenAPI.fetchArtists(),
+    RelistenAPI.fetchAllArtists(),
     RelistenAPI.fetchShowByUUID(showUuid),
     fetch("https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-400-normal.ttf").then(
       (res) => res.arrayBuffer(),

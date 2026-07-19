@@ -1,22 +1,22 @@
-import { Link } from '@timber-js/app/client';
-import Flex from './Flex';
-import Menu from './Menu';
-import Player from './Player';
-import * as Popover from '@/components/Popover';
-import RelistenAPI from '@/lib/RelistenAPI';
-import MainNavHeader from './MainNavHeader';
-import AndroidUpgradeNotification from './AndroidUpgradeNotification';
-import BlogNavLink from './blog/BlogNavLink';
+import { Link } from "@timber-js/app/client";
+import Flex from "./Flex";
+import Menu from "./Menu";
+import Player from "./Player";
+import * as Popover from "@/components/Popover";
+import RelistenAPI from "@/lib/RelistenAPI";
+import MainNavHeader from "./MainNavHeader";
+import AndroidUpgradeNotification from "./AndroidUpgradeNotification";
+import BlogNavLink from "./blog/BlogNavLink";
 // import GlobalSearch from './GlobalSearch';
-import { MenuIcon } from 'lucide-react';
-import { getHeaders } from '@timber-js/app/server';
-import { UAParser } from 'ua-parser-js';
-import { getIsInIframe } from '@/lib/isInIframe';
-import { hasRecentPost } from '@/lib/blog/getPosts';
+import { MenuIcon } from "lucide-react";
+import { getHeaders, getSegmentParams } from "@timber-js/app/server";
+import { UAParser } from "ua-parser-js";
+import { getIsInIframe } from "@/lib/isInIframe";
+import { hasRecentPost } from "@/lib/blog/getPosts";
 
 export const getUserAgent = async () => {
   const headersList = await getHeaders();
-  const userAgent = headersList.get('user-agent');
+  const userAgent = headersList.get("user-agent");
 
   if (!userAgent) return null;
 
@@ -25,21 +25,15 @@ export const getUserAgent = async () => {
 
 export default async function NavBar() {
   const [artists, userAgent, isInIframe] = await Promise.all([
-    RelistenAPI.fetchArtists(),
+    RelistenAPI.fetchAllArtists(),
     getUserAgent(),
     getIsInIframe(),
   ]);
-  const isAndroid = /android/i.test(userAgent?.ua || '');
+  const isAndroid = /android/i.test(userAgent?.ua || "");
   const blogHasNew = hasRecentPost();
 
-  const artistSlugsToName = artists.reduce(
-    (memo, next) => {
-      memo[String(next.slug)] = next.name;
-
-      return memo;
-    },
-    {} as Record<string, string | undefined>
-  );
+  const { artistSlug } = getSegmentParams() as { artistSlug?: string };
+  const artistName = artistSlug ? artists.find((a) => a.slug === artistSlug)?.name : undefined;
 
   return (
     <>
@@ -51,10 +45,7 @@ export default async function NavBar() {
           lg:grid-cols-[1fr_auto_1fr] lg:px-4
         "
       >
-        <MainNavHeader
-          artistSlugsToName={artistSlugsToName}
-          indexOverride={isInIframe ? '/wsp' : undefined}
-        />
+        <MainNavHeader artistName={artistName} indexOverride={isInIframe ? "/wsp" : undefined} />
         <div
           className="
             player overflow-hidden text-center
@@ -62,7 +53,7 @@ export default async function NavBar() {
             xl:max-w-[38vw] xl:min-w-[38vw]
           "
         >
-          <Player artistSlugsToName={artistSlugsToName} />
+          <Player />
         </div>
 
         <div className="flex items-center justify-self-end">

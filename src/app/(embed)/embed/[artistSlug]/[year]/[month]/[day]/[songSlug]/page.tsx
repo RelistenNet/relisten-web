@@ -1,11 +1,11 @@
-import PlayerManager from '@/components/PlayerManager';
-import SongsColumn from '@/components/SongsColumn';
-import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
-import RelistenAPI from '@/lib/RelistenAPI';
-import { createShowDate } from '@/lib/utils';
-import { deny, getSegmentParams } from '@timber-js/app/server';
-import { playImmediatelySearchParamsLoader } from '@/lib/searchParams/playImmediatelySearchParam';
-import { SEGMENT_PATH } from './$segment';
+import PlayerManager from "@/components/PlayerManager";
+import SongsColumn from "@/components/SongsColumn";
+import { proxyStreamUrl } from "@/lib/proxyStreamUrl";
+import RelistenAPI from "@/lib/RelistenAPI";
+import { createShowDate } from "@/lib/utils";
+import { deny, getSegmentParams } from "@timber-js/app/server";
+import { playImmediatelySearchParamsLoader } from "@/lib/searchParams/playImmediatelySearchParam";
+import { SEGMENT_PATH } from "./$segment";
 
 export default async function EmbedSongPage() {
   const { artistSlug, year, month, day, songSlug } = getSegmentParams(SEGMENT_PATH);
@@ -14,11 +14,16 @@ export default async function EmbedSongPage() {
 
   if (!year || !month || !day) return deny(404);
 
-  const show = await RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day));
+  const [show, artists] = await Promise.all([
+    RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day)),
+    RelistenAPI.fetchAllArtists(),
+  ]);
 
   if (!show) {
     deny(404);
   }
+
+  const artistName = artists?.find((a) => a.slug === artistSlug)?.name;
 
   // Parse search params on server
   const parsedSearchParams = await playImmediatelySearchParamsLoader.get();
@@ -39,6 +44,7 @@ export default async function EmbedSongPage() {
       <PlayerManager
         {...resolvedParams}
         show={show}
+        artistName={artistName}
         routePrefix="/embed"
         playImmediately={playImmediately}
       />
@@ -48,7 +54,7 @@ export default async function EmbedSongPage() {
 
 export async function metadata() {
   const params = getSegmentParams(SEGMENT_PATH);
-  const artists = await RelistenAPI.fetchArtists();
+  const artists = await RelistenAPI.fetchAllArtists();
   const artistSlug = params?.artistSlug as string | undefined;
   const year = params?.year as string | undefined;
   const month = params?.month as string | undefined;
@@ -68,8 +74,8 @@ export async function metadata() {
   const song = songs?.find((song) => song?.slug === songSlug);
 
   return {
-    title: [song?.title, createShowDate(year, month, day), name].filter((x) => x).join(' | '),
-    description: [show?.venue?.name, show?.venue?.location].filter((x) => x).join(' '),
+    title: [song?.title, createShowDate(year, month, day), name].filter((x) => x).join(" | "),
+    description: [show?.venue?.name, show?.venue?.location].filter((x) => x).join(" "),
     alternates: {
       canonical: `/${artistSlug}/${year}/${month}/${day}/${songSlug}`,
     },
