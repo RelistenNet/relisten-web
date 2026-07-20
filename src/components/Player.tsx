@@ -150,7 +150,7 @@ const Player = () => {
               style={{ transform: `translate(${notchPosition}px, 0)` }}
             />
             <div
-              className="pointer-events-none absolute bottom-full z-2 mb-2 hidden -translate-x-1/2 rounded-md bg-surface-raised px-2.5 py-1 text-xs text-text-primary tabular-nums shadow-lg ring-1 ring-white/10 group-hover:block"
+              className="pointer-events-none absolute bottom-full z-2 mb-2 hidden -translate-x-1/2 rounded-md bg-surface-raised px-2.5 py-1 text-xs text-text-primary tabular-nums shadow-lg ring-1 ring-hairline group-hover:block"
               style={{ left: "var(--hover-x)" }}
             >
               <span ref={hoverTextRef} />

@@ -60,20 +60,20 @@
    tokens below switch between these palettes based on theme. */
 :root {
   --light-surface: #ffffff;
-  --light-surface-raised: #f4f5f7;
-  --light-surface-elevated: #eef0f3;
-  --light-surface-recessed: #e8eaef;
-  --light-surface-hover: #eceff3;
-  --light-hairline: #d5d8e0;
-  --light-text-primary: #1a1e26;
-  --light-text-secondary: #454d5e;
-  --light-text-muted: #656e7e;
+  --light-surface-raised: #fafafa;
+  --light-surface-elevated: #f4f4f5;
+  --light-surface-recessed: #f4f4f5;
+  --light-surface-hover: #f4f4f5;
+  --light-hairline: rgba(24, 24, 27, 0.08);
+  --light-text-primary: #18181b;
+  --light-text-secondary: #3f3f46;
+  --light-text-muted: #71717a;
   --light-accent: #007a96;
-  --light-nav-border: var(--light-hairline);
-  --light-column-header: #2c3e4a;
-  --light-column-header-text: #f0f2f4;
-  --light-column-subheader: #f2f3f6;
-  --light-column-subheader-text: var(--light-text-secondary);
+  --light-nav-border: rgba(24, 24, 27, 0.08);
+  --light-column-header: #e4e4e7;
+  --light-column-header-text: #27272a;
+  --light-column-subheader: #fafafa;
+  --light-column-subheader-text: #52525b;
 
   --dark-surface: #151820;
   --dark-surface-raised: #1f2530;
@@ -107,19 +107,19 @@
   --resolved-column-subheader: var(--light-column-subheader);
   --resolved-column-subheader-text: var(--light-column-subheader-text);
 
-  /* shadcn tokens — mapped to existing theme */
+  /* shadcn tokens */
   --background: var(--light-surface);
   --foreground: var(--light-text-primary);
-  --popover: var(--light-surface-raised);
+  --popover: #ffffff;
   --popover-foreground: var(--light-text-primary);
   --primary: #009dc1;
   --primary-foreground: #ffffff;
-  --muted: var(--light-surface-recessed);
+  --muted: var(--light-surface-elevated);
   --muted-foreground: var(--light-text-muted);
-  --accent: var(--light-surface-recessed);
+  --accent: var(--light-surface-elevated);
   --accent-foreground: var(--light-text-primary);
   --border: var(--light-hairline);
-  --input: var(--light-hairline);
+  --input: rgba(24, 24, 27, 0.15);
   --ring: #009dc1;
   --radius: 0.5rem;
   color-scheme: light;
@@ -178,14 +178,14 @@
   --resolved-column-subheader-text: var(--light-column-subheader-text);
   --background: var(--light-surface);
   --foreground: var(--light-text-primary);
-  --popover: var(--light-surface-raised);
+  --popover: #ffffff;
   --popover-foreground: var(--light-text-primary);
-  --muted: var(--light-surface-recessed);
+  --muted: var(--light-surface-elevated);
   --muted-foreground: var(--light-text-muted);
-  --accent: var(--light-surface-recessed);
+  --accent: var(--light-surface-elevated);
   --accent-foreground: var(--light-text-primary);
   --border: var(--light-hairline);
-  --input: var(--light-hairline);
+  --input: rgba(24, 24, 27, 0.15);
 }
 
 :root[data-theme='dark'] {
