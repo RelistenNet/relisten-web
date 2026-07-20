@@ -12,10 +12,9 @@ type Tab = "primary" | "all";
 
 type ArtistsSelectionTabProps = {
   artistsAll: Artist[];
-  initialFilters?: FilterState;
 };
 
-const ArtistsSelectionTab = ({ artistsAll, initialFilters }: ArtistsSelectionTabProps) => {
+const ArtistsSelectionTab = ({ artistsAll }: ArtistsSelectionTabProps) => {
   const [tab, setTab] = useState<Tab>("primary");
   const [isPending, startTransition] = useTransition();
   const [searchQuery, setSearchQuery] = useState("");
@@ -116,7 +115,6 @@ const ArtistsSelectionTab = ({ artistsAll, initialFilters }: ArtistsSelectionTab
     <ArtistsColumnWithControls
       artists={artists}
       highlightRanges={highlightRanges}
-      initialFilters={initialFilters}
       subHeader={subHeader}
       isPending={isPending}
       onClearSearch={() => setSearchQuery("")}

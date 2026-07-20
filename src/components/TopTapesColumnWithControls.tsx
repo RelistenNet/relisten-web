@@ -2,7 +2,6 @@
 
 import type { ReactNode } from 'react';
 import { useFilterState } from '@/hooks/useFilterState';
-import { FilterState } from '@/lib/filterCookies';
 import { Show } from '@/types';
 import { useSegmentParams } from '@timber-js/app/client';
 import { useMemo } from 'react';
@@ -17,7 +16,6 @@ type TopTapesColumnWithControlsProps = {
   artistSlug?: string;
   year?: string;
   shows: Show[];
-  initialFilters?: FilterState;
   subHeader?: ReactNode;
 };
 
@@ -25,11 +23,9 @@ const TopTapesColumnWithControls = ({
   artistSlug,
   year,
   shows,
-  initialFilters,
   subHeader,
 }: TopTapesColumnWithControlsProps) => {
   const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(
-    initialFilters,
     `${artistSlug}:shows`
   );
   const params = useSegmentParams() as Record<string, string | string[] | undefined>;

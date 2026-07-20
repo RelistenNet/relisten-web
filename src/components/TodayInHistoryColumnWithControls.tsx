@@ -1,7 +1,6 @@
 'use client';
 
 import { useFilterState } from '@/hooks/useFilterState';
-import { FilterState } from '@/lib/filterCookies';
 import { Show } from '@/types';
 import { useMemo } from 'react';
 import { useSegmentParams } from '@timber-js/app/client';
@@ -18,7 +17,6 @@ type TodayInHistoryColumnWithControlsProps = {
   artistSlug?: string;
   year?: string;
   shows: Show[];
-  initialFilters?: FilterState;
   month: string;
   day: string;
 };
@@ -27,12 +25,10 @@ const TodayInHistoryColumnWithControls = ({
   artistSlug,
   year,
   shows,
-  initialFilters,
   month,
   day,
 }: TodayInHistoryColumnWithControlsProps) => {
   const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(
-    initialFilters,
     `${artistSlug}:shows`
   );
   const params = useSegmentParams() as Record<string, string | string[] | undefined>;

@@ -1,5 +1,4 @@
 import RelistenAPI from '@/lib/RelistenAPI';
-import { getServerFilters } from '@/lib/serverFilterCookies';
 import { isQuickHitSegment } from '@/lib/quickHitSegments';
 import { RawParams } from '@/types/params';
 import type { Venue, Tour } from '@/types';
@@ -32,10 +31,7 @@ const ShowsColumn = async ({
   // in the @years column. Return null so this slot stays empty.
   if (isQuickHitSegment(year)) return null;
 
-  const [artists, initialFilters] = await Promise.all([
-    RelistenAPI.fetchAllArtists(),
-    getServerFilters(`${artistSlug}:shows`, true),
-  ]).catch(() => {
+  const artists = await RelistenAPI.fetchAllArtists().catch(() => {
     deny(404);
   });
 
@@ -65,7 +61,6 @@ const ShowsColumn = async ({
       artistSlug={artistSlug}
       year={year}
       shows={slimShows}
-      initialFilters={initialFilters}
     />
   );
 };

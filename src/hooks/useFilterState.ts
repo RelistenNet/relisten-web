@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { usePathname } from '@timber-js/app/client';
-import { useCallback, useMemo } from 'react';
+import { usePathname } from "@timber-js/app/client";
+import { useCallback, useMemo } from "react";
 import {
   SORT_DIRECTION,
   type FilterState,
   getFilterKey,
   getFilterCookie,
-} from '@/lib/filterCookies';
+} from "@/lib/filterCookies";
 
-export { SORT_DIRECTION } from '@/lib/filterCookies';
+export { SORT_DIRECTION } from "@/lib/filterCookies";
 
 export const DEFAULT_FILTERS = {
   date: SORT_DIRECTION.desc,
@@ -26,7 +26,7 @@ const getInverse = (key: string, sort?: SORT_DIRECTION) => {
   return undefined;
 };
 
-export function useFilterState(initialFilters?: FilterState, filterKey?: string) {
+export function useFilterState(filterKey?: string) {
   const pathname = usePathname();
 
   const key = useMemo(() => filterKey || getFilterKey(pathname), [pathname, filterKey]);
@@ -38,8 +38,8 @@ export function useFilterState(initialFilters?: FilterState, filterKey?: string)
     if (cookieValue && Object.keys(cookieValue).length > 0) {
       return cookieValue;
     }
-    return initialFilters ?? ({} as FilterState);
-  }, [cookieValue, initialFilters]);
+    return {} as FilterState;
+  }, [cookieValue]);
 
   const setFilter = useCallback(
     <K extends keyof FilterState>(filterName: K, value: FilterState[K]) => {
@@ -52,21 +52,21 @@ export function useFilterState(initialFilters?: FilterState, filterKey?: string)
 
       setCookieValue(newFilters);
     },
-    [filters, setCookieValue]
+    [filters, setCookieValue],
   );
 
   const toggleFilter = useCallback(
     (filterName: keyof FilterState) => {
-      if (filterName === 'sbd') {
-        setFilter('sbd', !filters.sbd);
-      } else if (filterName === 'date' || filterName === 'alpha') {
+      if (filterName === "sbd") {
+        setFilter("sbd", !filters.sbd);
+      } else if (filterName === "date" || filterName === "alpha") {
         const currentValue = filters[filterName];
         const newValue = getInverse(filterName, currentValue);
         console.log(filters, filterName, newValue, currentValue);
         setFilter(filterName, newValue);
       }
     },
-    [filters, setFilter]
+    [filters, setFilter],
   );
 
   const clearFilters = useCallback(() => {

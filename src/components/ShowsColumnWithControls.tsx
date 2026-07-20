@@ -1,27 +1,23 @@
-'use client';
+"use client";
 
-import { useMemo } from 'react';
-import { Link, useSegmentParams } from '@timber-js/app/client';
-import { ChevronLeft } from 'lucide-react';
-import sortActiveBands from '../lib/sortActiveBands';
-import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
-import Count from './Count';
-import { Show } from '@/types';
-import { useFilterState } from '@/hooks/useFilterState';
-import { FilterState } from '@/lib/filterCookies';
-import ColumnWithToggleControls from './ColumnWithToggleControls';
-import Flex from './Flex';
-import PopularityBadge from './PopularityBadge';
-import Row, { unwrapSegment } from './Row';
-import RowHeader from './RowHeader';
-import Tag from './Tag';
+import { useFilterState } from "@/hooks/useFilterState";
+import { Show } from "@/types";
+import { useSegmentParams } from "@timber-js/app/client";
+import { useMemo } from "react";
+import sortActiveBands from "../lib/sortActiveBands";
+import { durationToHHMMSS, removeLeadingZero, splitShowDate } from "../lib/utils";
+import ColumnWithToggleControls from "./ColumnWithToggleControls";
+import Count from "./Count";
+import Flex from "./Flex";
+import PopularityBadge from "./PopularityBadge";
+import Row, { unwrapSegment } from "./Row";
+import RowHeader from "./RowHeader";
+import Tag from "./Tag";
 
 type ShowsColumnWithControlsProps = {
   artistSlug?: string;
   year?: string;
   shows: Show[];
-  initialFilters?: FilterState;
-  backHref?: string;
   fullDate?: boolean;
 };
 
@@ -29,31 +25,26 @@ const ShowsColumnWithControls = ({
   artistSlug,
   year,
   shows,
-  initialFilters,
-  backHref,
   fullDate,
 }: ShowsColumnWithControlsProps) => {
-  const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(
-    initialFilters,
-    `${artistSlug}:shows`
-  );
+  const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(`${artistSlug}:shows`);
   const params = useSegmentParams() as Record<string, string | string[] | undefined>;
   const currentMonth = unwrapSegment(params.month);
   const currentDay = unwrapSegment(params.day);
 
   const toggles = [
     {
-      type: 'sort' as const,
+      type: "sort" as const,
       isActive: dateAsc, // Show as active when oldest first (ascending)
-      onToggle: () => toggleFilter('date'),
-      title: !dateAsc ? 'Newest First' : 'Oldest First',
+      onToggle: () => toggleFilter("date"),
+      title: !dateAsc ? "Newest First" : "Oldest First",
     },
     {
-      type: 'filter' as const,
+      type: "filter" as const,
       isActive: !!sbdOnly,
-      onToggle: () => toggleFilter('sbd'),
-      title: sbdOnly ? 'All Shows' : 'SBD Only',
-      label: 'SBD',
+      onToggle: () => toggleFilter("sbd"),
+      title: sbdOnly ? "All Shows" : "SBD Only",
+      label: "SBD",
     },
   ];
 
@@ -82,7 +73,7 @@ const ShowsColumnWithControls = ({
 
   return (
     <ColumnWithToggleControls
-      heading={year ? year : 'Shows'}
+      heading={year ? year : "Shows"}
       toggles={toggles}
       filteredCount={processedShows.length}
       totalCount={shows.length}
@@ -93,18 +84,18 @@ const ShowsColumnWithControls = ({
         processedShows.map((show) => {
           const { year, month, day } = splitShowDate(show.display_date);
           const { venue, avg_duration, tour } = show;
-          let tourName = '';
+          let tourName = "";
 
           // keep track of which tours we've displayed
           if (tour) {
-            if (!tours[tour.id]) tourName = tour.name ?? '';
+            if (!tours[tour.id]) tourName = tour.name ?? "";
 
             tours[tour.id] = true;
           }
 
           return (
             <div key={show.uuid}>
-              {!fullDate && tourName && tourName !== 'Not Part of a Tour' && (
+              {!fullDate && tourName && tourName !== "Not Part of a Tour" && (
                 <RowHeader>{tourName}</RowHeader>
               )}
               <Row

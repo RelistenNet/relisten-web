@@ -1,17 +1,13 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { RawParams } from '@/types/params';
 import { deny } from '@timber-js/app/server';
-import { getServerFilters } from '@/lib/serverFilterCookies';
 import YearsColumnWithControls from './YearsColumnWithControls';
 import SubartistTabs from './SubartistTabs';
 import TodayInHistoryRow from './TodayInHistoryRow';
 import RowHeader from './RowHeader';
 
 const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
-  const [artists, initialFilters] = await Promise.all([
-    RelistenAPI.fetchAllArtists(),
-    getServerFilters(artistSlug || '', true),
-  ]).catch(() => {
+  const artists = await RelistenAPI.fetchAllArtists().catch(() => {
     deny(404);
   });
 
@@ -36,7 +32,6 @@ const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
       artistSlug={artistSlug}
       artistName={artist?.name}
       artistYears={slimYears}
-      initialFilters={initialFilters}
     >
       <SubartistTabs artistSlug={artistSlug} features={features} />
       <TodayInHistoryRow artistSlug={artistSlug} />

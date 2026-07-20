@@ -33,7 +33,11 @@ function HighlightText({ text, ranges }: { text: string; ranges: HighlightRanges
   let last = 0;
   for (const [start, end] of ranges) {
     if (start > last) parts.push(text.slice(last, start));
-    parts.push(<mark key={start} className="bg-accent/30 text-inherit">{text.slice(start, end + 1)}</mark>);
+    parts.push(
+      <mark key={start} className="bg-accent/30 text-inherit">
+        {text.slice(start, end + 1)}
+      </mark>,
+    );
     last = end + 1;
   }
   if (last < text.length) parts.push(text.slice(last));
@@ -43,7 +47,6 @@ function HighlightText({ text, ranges }: { text: string; ranges: HighlightRanges
 type ArtistsColumnWithControlsProps = {
   artists: Artist[];
   highlightRanges?: Map<string, HighlightRanges>;
-  initialFilters?: FilterState;
   subHeader?: React.ReactNode;
   isPending?: boolean;
   onClearSearch?: () => void;
@@ -52,12 +55,11 @@ type ArtistsColumnWithControlsProps = {
 const ArtistsColumnWithControls = ({
   artists,
   highlightRanges,
-  initialFilters,
   subHeader,
   isPending,
   onClearSearch,
 }: ArtistsColumnWithControlsProps) => {
-  const { alphaAsc, toggleFilter, clearFilters } = useFilterState(initialFilters, "root");
+  const { alphaAsc, toggleFilter, clearFilters } = useFilterState("root");
   const params = useSegmentParams() as Record<string, string | string[] | undefined>;
   const currentArtistSlug = unwrapSegment(params.artistSlug);
 

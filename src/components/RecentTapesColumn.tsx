@@ -1,15 +1,11 @@
 import RelistenAPI from '@/lib/RelistenAPI';
-import { getServerFilters } from '@/lib/serverFilterCookies';
 import { RawParams } from '@/types/params';
 import type { ReactNode } from 'react';
 import { deny } from '@timber-js/app/server';
 import RecentTapesColumnWithControls from './RecentTapesColumnWithControls';
 
 const RecentTapesColumn = async ({ artistSlug, year, subHeader }: Pick<RawParams, 'artistSlug' | 'year'> & { subHeader?: ReactNode }) => {
-  const [shows, initialFilters] = await Promise.all([
-    RelistenAPI.fetchRecentlyAdded(artistSlug),
-    getServerFilters(`${artistSlug}:shows`, true),
-  ]).catch(() => {
+  const shows = await RelistenAPI.fetchRecentlyAdded(artistSlug).catch(() => {
     deny(404);
   });
 
@@ -18,7 +14,6 @@ const RecentTapesColumn = async ({ artistSlug, year, subHeader }: Pick<RawParams
       artistSlug={artistSlug}
       year={year}
       shows={shows}
-      initialFilters={initialFilters}
       subHeader={subHeader}
     />
   );

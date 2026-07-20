@@ -4,7 +4,6 @@ import { Year } from '@/types';
 import { PropsWithChildren, useMemo } from 'react';
 import { useSegmentParams } from '@timber-js/app/client';
 import { useFilterState } from '@/hooks/useFilterState';
-import { FilterState } from '@/lib/filterCookies';
 import sortActiveBands from '../lib/sortActiveBands';
 import Count from './Count';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
@@ -15,7 +14,6 @@ type YearsColumnWithControlsProps = {
   artistSlug?: string;
   artistName?: string;
   artistYears: Year[];
-  initialFilters?: FilterState;
 } & PropsWithChildren;
 
 const YearsColumnWithControls = ({
@@ -23,12 +21,8 @@ const YearsColumnWithControls = ({
   artistName,
   artistYears,
   children,
-  initialFilters,
 }: YearsColumnWithControlsProps) => {
-  const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(
-    initialFilters,
-    artistSlug
-  );
+  const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(artistSlug);
   const params = useSegmentParams() as Record<string, string | string[] | undefined>;
   const currentYear = unwrapSegment(params.year);
 

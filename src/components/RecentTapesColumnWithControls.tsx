@@ -1,24 +1,22 @@
-'use client';
+"use client";
 
-import type { ReactNode } from 'react';
-import { useFilterState } from '@/hooks/useFilterState';
-import { FilterState } from '@/lib/filterCookies';
-import { Show } from '@/types';
-import { useSegmentParams } from '@timber-js/app/client';
-import { useMemo } from 'react';
-import { durationToHHMMSS, splitShowDate } from '../lib/utils';
-import ColumnWithToggleControls from './ColumnWithToggleControls';
-import Count from './Count';
-import Flex from './Flex';
-import Row, { unwrapSegment } from './Row';
-import RowHeader from './RowHeader';
-import Tag from './Tag';
+import type { ReactNode } from "react";
+import { useFilterState } from "@/hooks/useFilterState";
+import { Show } from "@/types";
+import { useSegmentParams } from "@timber-js/app/client";
+import { useMemo } from "react";
+import { durationToHHMMSS, splitShowDate } from "../lib/utils";
+import ColumnWithToggleControls from "./ColumnWithToggleControls";
+import Count from "./Count";
+import Flex from "./Flex";
+import Row, { unwrapSegment } from "./Row";
+import RowHeader from "./RowHeader";
+import Tag from "./Tag";
 
 type RecentTapesColumnWithControlsProps = {
   artistSlug?: string;
   year?: string;
   shows: Show[];
-  initialFilters?: FilterState;
   subHeader?: ReactNode;
 };
 
@@ -26,24 +24,20 @@ const RecentTapesColumnWithControls = ({
   artistSlug,
   year,
   shows,
-  initialFilters,
   subHeader,
 }: RecentTapesColumnWithControlsProps) => {
-  const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(
-    initialFilters,
-    `${artistSlug}:shows`
-  );
+  const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(`${artistSlug}:shows`);
   const params = useSegmentParams() as Record<string, string | string[] | undefined>;
   const currentMonth = unwrapSegment(params.month);
   const currentDay = unwrapSegment(params.day);
 
   const toggles = [
     {
-      type: 'filter' as const,
+      type: "filter" as const,
       isActive: !!sbdOnly,
-      onToggle: () => toggleFilter('sbd'),
-      title: sbdOnly ? 'All Shows' : 'SBD Only',
-      label: 'SBD',
+      onToggle: () => toggleFilter("sbd"),
+      title: sbdOnly ? "All Shows" : "SBD Only",
+      label: "SBD",
     },
   ];
 
@@ -62,7 +56,7 @@ const RecentTapesColumnWithControls = ({
 
   return (
     <ColumnWithToggleControls
-      heading={year ? year : 'Recently Added'}
+      heading={year ? year : "Recently Added"}
       toggles={toggles}
       filteredCount={processedShows.length}
       totalCount={shows.length}
@@ -77,11 +71,11 @@ const RecentTapesColumnWithControls = ({
         processedShows.map((show) => {
           const { year, month, day } = splitShowDate(show.display_date);
           const { venue, avg_duration, tour } = show;
-          let tourName = '';
+          let tourName = "";
 
           // keep track of which tours we've displayed
           if (tour) {
-            if (!tours[tour.id]) tourName = tour.name ?? '';
+            if (!tours[tour.id]) tourName = tour.name ?? "";
 
             tours[tour.id] = true;
           }
@@ -89,7 +83,7 @@ const RecentTapesColumnWithControls = ({
           return (
             <div key={show.id}>
               {tourName && (
-                <RowHeader>{tourName === 'Not Part of a Tour' ? '' : tourName}</RowHeader>
+                <RowHeader>{tourName === "Not Part of a Tour" ? "" : tourName}</RowHeader>
               )}
               <Row
                 href={`/${artistSlug}/${year}/${month}/${day}`}

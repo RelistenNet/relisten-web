@@ -1,5 +1,4 @@
 import RelistenAPI from '@/lib/RelistenAPI';
-import { getServerFilters } from '@/lib/serverFilterCookies';
 import { RawParams } from '@/types/params';
 import { deny } from '@timber-js/app/server';
 import TodayInHistoryColumnWithControls from './TodayInHistoryColumnWithControls';
@@ -10,10 +9,7 @@ const TodayInHistoryColumn = async ({
   month,
   day,
 }: Pick<RawParams, 'artistSlug' | 'year'> & { month: string; day: string }) => {
-  const [shows, initialFilters] = await Promise.all([
-    RelistenAPI.fetchTodayInHistory(artistSlug, month, day),
-    getServerFilters(`${artistSlug}:shows`, true),
-  ]).catch(() => {
+  const shows = await RelistenAPI.fetchTodayInHistory(artistSlug, month, day).catch(() => {
     deny(404);
   });
 
@@ -22,7 +18,6 @@ const TodayInHistoryColumn = async ({
       artistSlug={artistSlug}
       year={year}
       shows={shows}
-      initialFilters={initialFilters}
       month={month}
       day={day}
     />
