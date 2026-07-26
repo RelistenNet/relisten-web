@@ -74,8 +74,8 @@ importers:
         specifier: ^3.14.6
         version: 3.14.6(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)
       '@timber-js/app':
-        specifier: 0.2.0-alpha.180
-        version: 0.2.0-alpha.180(9d1695c775129bd4f0f4e57fd95d30a4)
+        specifier: 0.2.0-alpha.182
+        version: 0.2.0-alpha.182(9d1695c775129bd4f0f4e57fd95d30a4)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -2274,8 +2274,8 @@ packages:
   '@tanstack/virtual-core@3.17.4':
     resolution: {integrity: sha512-nGm5KteqxasUdThLc2izl6dHUqLv0LQj7Nuyo5gYalTPf/U8a9ermvsl7reT+6ioBW1l8WfpP/mcU338nLXpqw==}
 
-  '@timber-js/app@0.2.0-alpha.180':
-    resolution: {integrity: sha512-VYWV1DLdEPnnhOX3wTQIuKdvE9ADQSzkTiAmGtpEff74RIxZKGz/df7V77oxl61YcbQCcvfQSMjD3aUFUfjAXQ==}
+  '@timber-js/app@0.2.0-alpha.182':
+    resolution: {integrity: sha512-lVSxgTI95CbYluMsZwPbtUvo2fPO/JdpN5r4BcG6vTdzVt5sDxtNEJBfaG2L62aQ5zU+A2/5ASU1DnUvrPpMCg==}
     engines: {node: '>=22.18.0'}
     hasBin: true
     peerDependencies:
@@ -2284,7 +2284,7 @@ packages:
       '@content-collections/vite': ^0.2.0 || ^0.3.0
       '@mdx-js/rollup': ^3.0.0
       '@vitejs/plugin-react': ^6.0.0
-      '@vitejs/plugin-rsc': '>=0.5.27'
+      '@vitejs/plugin-rsc': '>=0.5.28'
       nuqs: ^2.0.0
       react: 19.3.0-canary-ed69815c-20260323
       react-dom: 19.3.0-canary-ed69815c-20260323
@@ -5164,6 +5164,11 @@ packages:
     engines: {node: '>=20.16.0'}
     hasBin: true
 
+  srvx@0.12.1:
+    resolution: {integrity: sha512-3+8b3A/32m5fmUncipelbvubkXfg5m6eaOGAKMbOA5ZaNFcCWjGEcrzsLW3Cwgik1e2L9ImSuQiJ5AQthH27ag==}
+    engines: {node: '>=20.16.0'}
+    hasBin: true
+
   statuses@2.0.2:
     resolution: {integrity: sha512-DvEy55V3DB7uknRo+4iOGT5fP1slR8wQohVdknigZPMpMstaKJQWhwiYBACJE3Ul2pTnATihhBYnRhZQHGBiRw==}
     engines: {node: '>= 0.8'}
@@ -7555,7 +7560,7 @@ snapshots:
 
   '@tanstack/virtual-core@3.17.4': {}
 
-  '@timber-js/app@0.2.0-alpha.180(9d1695c775129bd4f0f4e57fd95d30a4)':
+  '@timber-js/app@0.2.0-alpha.182(9d1695c775129bd4f0f4e57fd95d30a4)':
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/context-async-hooks': 2.9.0(@opentelemetry/api@1.9.1)
@@ -7569,7 +7574,7 @@ snapshots:
       nuqs: 2.9.0(next@16.2.9(@babel/core@7.29.7)(@opentelemetry/api@1.9.1)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)
       react: 19.3.0-canary-ed69815c-20260323
       react-dom: 19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323)
-      srvx: 0.11.22
+      srvx: 0.12.1
       vite: 8.1.5(@types/node@26.1.1)(jiti@2.7.0)(yaml@2.9.0)
     optionalDependencies:
       '@content-collections/core': 0.15.2(typescript@7.0.2)
@@ -11026,6 +11031,8 @@ snapshots:
   sprintf-js@1.0.3: {}
 
   srvx@0.11.22: {}
+
+  srvx@0.12.1: {}
 
   statuses@2.0.2: {}
 
