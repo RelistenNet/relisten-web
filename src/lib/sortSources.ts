@@ -1,4 +1,4 @@
-import { Source } from '@/types';
+import { Source, Set } from '@/types';
 
 const getEtreeId = (s = '') =>
   Number(
@@ -31,4 +31,19 @@ export const sortSources = (sources: Source[]) => {
     // 4. Higher weighted rating first
     return (b.avg_rating_weighted ?? 0) - (a.avg_rating_weighted ?? 0);
   });
+};
+
+const minTrackPosition = (set: Set): number => {
+  if (!set.tracks?.length) return 0;
+  return Math.min(...set.tracks.map((t) => t.track_position ?? Infinity));
+};
+
+export const sortTracksInSources = (sources: Source[]) => {
+  for (const source of sources) {
+    if (!source.sets) continue;
+    source.sets.sort((a, b) => minTrackPosition(a) - minTrackPosition(b));
+    for (const set of source.sets) {
+      set.tracks?.sort((a, b) => (a.track_position ?? 0) - (b.track_position ?? 0));
+    }
+  }
 };

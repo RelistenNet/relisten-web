@@ -5,7 +5,7 @@ import { deny } from "@timber-js/app/server";
 import { cache } from "react";
 import { cache as timberCache } from "@timber-js/app/cache";
 import { SERVER_API_DOMAIN } from "./constants";
-import { sortSources } from "./sortSources";
+import { sortSources, sortTracksInSources } from "./sortSources";
 import type {
   Artist,
   Tape,
@@ -78,6 +78,7 @@ export class RelistenAPI {
 
       if (show?.sources?.length) {
         show.sources = sortSources(show.sources);
+        sortTracksInSources(show.sources);
       }
 
       return show;
@@ -91,6 +92,7 @@ export class RelistenAPI {
 
     if (show?.sources?.length) {
       show.sources = sortSources(show.sources);
+      sortTracksInSources(show.sources);
     }
 
     return show;
