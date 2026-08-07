@@ -74,8 +74,8 @@ importers:
         specifier: ^3.14.8
         version: 3.14.8(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)
       '@timber-js/app':
-        specifier: 0.2.0-alpha.186
-        version: 0.2.0-alpha.186(52b995208206b724851a1643d19ebfea)
+        specifier: 0.2.0-alpha.188
+        version: 0.2.0-alpha.188(52b995208206b724851a1643d19ebfea)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -2334,8 +2334,8 @@ packages:
   '@tanstack/virtual-core@3.17.6':
     resolution: {integrity: sha512-h0/Ebo18CkOrChlQIhNtQkM5ySUnh/GumQ/D1st3hG2HWUPEF+ILUc2k29UtivCi/9G7w7G3/f7Xyd5cCFbKBw==}
 
-  '@timber-js/app@0.2.0-alpha.186':
-    resolution: {integrity: sha512-2rt9SYDuKg/wGtoZtIK+wxgXnzVH1SBt6DzytMaqZ4g96BiuMGHIZim7maAvL4GX/rz6gjfkP3dWCX+uq9ewHQ==}
+  '@timber-js/app@0.2.0-alpha.188':
+    resolution: {integrity: sha512-JdDaZR1H+DgL+4LaNwqEjwOcL7mkYzLjbI/9OIyH6a7sDsbY5jMPyHDkS5s23+ZPGZ9VyOMCPLd9U1S1jA3oCw==}
     engines: {node: '>=22.18.0'}
     hasBin: true
     peerDependencies:
@@ -2343,6 +2343,7 @@ packages:
       '@content-collections/mdx': ^0.2.0
       '@content-collections/vite': ^0.2.0 || ^0.3.0
       '@mdx-js/rollup': ^3.0.0
+      '@typescript/native-preview': ^7.0.0-dev.0
       '@vitejs/plugin-react': ^6.0.0
       '@vitejs/plugin-rsc': '>=0.5.28'
       nuqs: ^2.0.0
@@ -2359,6 +2360,8 @@ packages:
       '@content-collections/vite':
         optional: true
       '@mdx-js/rollup':
+        optional: true
+      '@typescript/native-preview':
         optional: true
       wrangler:
         optional: true
@@ -7659,7 +7662,7 @@ snapshots:
 
   '@tanstack/virtual-core@3.17.6': {}
 
-  '@timber-js/app@0.2.0-alpha.186(52b995208206b724851a1643d19ebfea)':
+  '@timber-js/app@0.2.0-alpha.188(52b995208206b724851a1643d19ebfea)':
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/context-async-hooks': 2.10.0(@opentelemetry/api@1.9.1)

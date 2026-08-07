@@ -1,4 +1,4 @@
-import { Source, Set } from '@/types';
+import { Source } from '@/types';
 
 const getEtreeId = (s = '') =>
   Number(
@@ -33,15 +33,10 @@ export const sortSources = (sources: Source[]) => {
   });
 };
 
-const minTrackPosition = (set: Set): number => {
-  if (!set.tracks?.length) return 0;
-  return Math.min(...set.tracks.map((t) => t.track_position ?? Infinity));
-};
-
 export const sortTracksInSources = (sources: Source[]) => {
   for (const source of sources) {
     if (!source.sets) continue;
-    source.sets.sort((a, b) => minTrackPosition(a) - minTrackPosition(b));
+    source.sets.sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
     for (const set of source.sets) {
       set.tracks?.sort((a, b) => (a.track_position ?? 0) - (b.track_position ?? 0));
     }
