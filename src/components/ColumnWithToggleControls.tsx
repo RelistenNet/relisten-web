@@ -1,7 +1,7 @@
 'use client';
 
 import cn from '@/lib/cn';
-import { ChevronUp, ChevronDown } from 'lucide-react';
+import { ArrowUp, ArrowDown } from 'lucide-react';
 import React, { useRef } from 'react';
 import Flex from './Flex';
 import Scroller from './Scroller';
@@ -77,10 +77,10 @@ const ColumnWithToggleControls = ({
                   toggle.icon
                 ) : toggle.type === 'sort' ? (
                   toggle.isActive ? (
-                    <ChevronUp className="h-3 w-3" />
-                  ) : (
-                    <ChevronDown className="h-3 w-3" />
-                  )
+                    <ArrowUp className="h-3 w-3" />
+                  ) : !toggle.label ? (
+                    <ArrowDown className="h-3 w-3" />
+                  ) : null
                 ) : null}
                 {toggle.label && <span>{toggle.label}</span>}
               </button>

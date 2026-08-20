@@ -5,6 +5,7 @@ import { useCallback, useMemo } from "react";
 import {
   SORT_DIRECTION,
   type FilterState,
+  type SortByMode,
   getFilterKey,
   getFilterCookie,
 } from "@/lib/filterCookies";
@@ -73,14 +74,28 @@ export function useFilterState(filterKey?: string) {
     setCookieValue({});
   }, [setCookieValue]);
 
+  const setSortBy = useCallback(
+    (mode: SortByMode) => {
+      const currentMode = filters.sortBy ?? "alpha";
+      if (currentMode === mode) {
+        toggleFilter("alpha");
+      } else {
+        setFilter("sortBy", mode);
+      }
+    },
+    [filters.sortBy, toggleFilter, setFilter],
+  );
+
   return {
     filters,
     setFilter,
     toggleFilter,
     clearFilters,
+    setSortBy,
     // Computed values for easier use
     alphaAsc: filters.alpha === SORT_DIRECTION.asc,
     dateAsc: filters.date === SORT_DIRECTION.asc,
     sbdOnly: filters.sbd === true,
+    sortBy: (filters.sortBy ?? "popularity") as SortByMode,
   };
 }

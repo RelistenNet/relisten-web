@@ -6,10 +6,13 @@ export enum SORT_DIRECTION {
   asc = 'asc',
 }
 
+export type SortByMode = 'alpha' | 'popularity' | 'tapes';
+
 export type FilterState = {
   date?: SORT_DIRECTION;
   sbd?: boolean;
   alpha?: SORT_DIRECTION;
+  sortBy?: SortByMode;
 };
 
 export type FilterKey = string; // e.g., "/grateful-dead:filters" or "/grateful-dead/1977:filters"

@@ -3,11 +3,11 @@
 import React, { useMemo, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useSegmentParams } from "@timber-js/app/client";
+import { ArrowUp, ArrowDown } from "lucide-react";
 import { groupBy } from "../lib/utils";
 import Count from "./Count";
 import { Artist } from "../types";
 import { useFilterState } from "@/hooks/useFilterState";
-import { FilterState } from "@/lib/filterCookies";
 import cn from "@/lib/cn";
 import ColumnWithToggleControls from "./ColumnWithToggleControls";
 import PopularityBadge from "./PopularityBadge";
@@ -59,16 +59,36 @@ const ArtistsColumnWithControls = ({
   isPending,
   onClearSearch,
 }: ArtistsColumnWithControlsProps) => {
-  const { alphaAsc, toggleFilter, clearFilters } = useFilterState("root");
+  const { alphaAsc, sortBy, setSortBy, clearFilters } = useFilterState("root");
   const params = useSegmentParams() as Record<string, string | string[] | undefined>;
   const currentArtistSlug = unwrapSegment(params.artistSlug);
+
+  const dirIcon = alphaAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
 
   const toggles = [
     {
       type: "sort" as const,
-      isActive: alphaAsc,
-      onToggle: () => toggleFilter("alpha"),
-      title: alphaAsc ? "Z-A" : "A-Z",
+      isActive: sortBy === "popularity",
+      onToggle: () => setSortBy("popularity"),
+      title: sortBy === "popularity" ? (alphaAsc ? "Least popular" : "Most popular") : "Sort by popularity",
+      label: "Pop",
+      icon: sortBy === "popularity" ? dirIcon : undefined,
+    },
+    {
+      type: "sort" as const,
+      isActive: sortBy === "alpha",
+      onToggle: () => setSortBy("alpha"),
+      title: sortBy === "alpha" ? (alphaAsc ? "Z-A" : "A-Z") : "Sort A-Z",
+      label: "A-Z",
+      icon: sortBy === "alpha" ? dirIcon : undefined,
+    },
+    {
+      type: "sort" as const,
+      isActive: sortBy === "tapes",
+      onToggle: () => setSortBy("tapes"),
+      title: sortBy === "tapes" ? (alphaAsc ? "Fewest tapes" : "Most tapes") : "Sort by tapes",
+      label: "Tapes",
+      icon: sortBy === "tapes" ? dirIcon : undefined,
     },
   ];
 
@@ -78,16 +98,27 @@ const ArtistsColumnWithControls = ({
       ([a], [b]) => (GROUP_ORDER[a] ?? 2) - (GROUP_ORDER[b] ?? 2),
     );
 
+    const dir = alphaAsc ? -1 : 1;
+
     return sortedGroups.map(([type, groupArtists]) => {
       const sorted = [...groupArtists];
-      if (alphaAsc) {
-        sorted.sort((a, b) => (b.name || "").localeCompare(a.name || ""));
-      } else {
-        sorted.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+      switch (sortBy) {
+        case "popularity":
+          sorted.sort((a, b) => {
+            const ap = a.popularity?.windows?.["30d"]?.plays ?? 0;
+            const bp = b.popularity?.windows?.["30d"]?.plays ?? 0;
+            return dir * (bp - ap);
+          });
+          break;
+        case "tapes":
+          sorted.sort((a, b) => dir * ((b.source_count ?? 0) - (a.source_count ?? 0)));
+          break;
+        default:
+          sorted.sort((a, b) => dir * (a.name || "").localeCompare(b.name || ""));
       }
       return [type, sorted] as [string, Artist[]];
     });
-  }, [artists, alphaAsc]);
+  }, [artists, alphaAsc, sortBy]);
 
   const groupLabel = (type: string) => {
     switch (type) {

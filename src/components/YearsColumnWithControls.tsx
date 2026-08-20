@@ -29,9 +29,10 @@ const YearsColumnWithControls = ({
   const toggles = [
     {
       type: 'sort' as const,
-      isActive: dateAsc, // Show as active when oldest first (ascending)
+      isActive: dateAsc,
       onToggle: () => toggleFilter('date'),
       title: !dateAsc ? 'Newest First' : 'Oldest First',
+      label: 'Date',
     },
   ];
 

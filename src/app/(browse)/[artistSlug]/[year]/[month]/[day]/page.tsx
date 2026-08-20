@@ -2,11 +2,12 @@ import { METADATA_BASE } from "@/lib/constants";
 import RelistenAPI from "@/lib/RelistenAPI";
 import { createShowDate } from "@/lib/utils";
 import { getSegmentParams } from "@timber-js/app/server";
+import { SEGMENT_PATH } from "./$segment";
 
 export default () => null;
 
 export const metadata = async () => {
-  const params = getSegmentParams("/(browse)/[artistSlug]/[year]/[month]/[day]");
+  const params = getSegmentParams(SEGMENT_PATH);
   const artistSlug = params?.artistSlug as string | undefined;
   const year = params?.year as string | undefined;
   const month = params?.month as string | undefined;
