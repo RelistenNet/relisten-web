@@ -1,11 +1,11 @@
-import PlayerManager from "@/components/PlayerManager";
-import SongsColumn from "@/components/SongsColumn";
-import { proxyStreamUrl } from "@/lib/proxyStreamUrl";
-import RelistenAPI from "@/lib/RelistenAPI";
-import { createShowDate } from "@/lib/utils";
-import { deny, getSegmentParams } from "@timber-js/app/server";
-import { playImmediatelySearchParamsLoader } from "@/lib/searchParams/playImmediatelySearchParam";
-import { SEGMENT_PATH } from "./$segment";
+import PlayerManager from '@/components/PlayerManager';
+import SongsColumn from '@/components/SongsColumn';
+import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
+import RelistenAPI from '@/lib/RelistenAPI';
+import { createShowDate } from '@/lib/utils';
+import { deny, getSegmentParams } from '@timber-js/app/server';
+import { playImmediatelySearchParamsLoader } from '@/lib/searchParams/playImmediatelySearchParam';
+import { SEGMENT_PATH } from './$segment';
 
 export default async function EmbedSongPage() {
   const { artistSlug, year, month, day, songSlug } = getSegmentParams(SEGMENT_PATH);
@@ -74,8 +74,8 @@ export async function metadata() {
   const song = songs?.find((song) => song?.slug === songSlug);
 
   return {
-    title: [song?.title, createShowDate(year, month, day), name].filter((x) => x).join(" | "),
-    description: [show?.venue?.name, show?.venue?.location].filter((x) => x).join(" "),
+    title: [song?.title, createShowDate(year, month, day), name].filter((x) => x).join(' | '),
+    description: [show?.venue?.name, show?.venue?.location].filter((x) => x).join(' '),
     alternates: {
       canonical: `/${artistSlug}/${year}/${month}/${day}/${songSlug}`,
     },

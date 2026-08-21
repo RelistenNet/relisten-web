@@ -1,40 +1,40 @@
-"use client";
+'use client';
 
 import {
   Link,
   usePathname,
   useSegmentParams,
   useSelectedLayoutSegments,
-} from "@timber-js/app/client";
+} from '@timber-js/app/client';
 
 const pages = {
-  sonos: {
-    prefix: "ON",
-    title: "SONOS",
+  'sonos': {
+    prefix: 'ON',
+    title: 'SONOS',
   },
-  app: {
-    prefix: "ON THE",
-    title: "GO",
+  'app': {
+    prefix: 'ON THE',
+    title: 'GO',
   },
-  today: {
-    prefix: "TO",
-    title: "TODAY IN HISTORY",
+  'today': {
+    prefix: 'TO',
+    title: 'TODAY IN HISTORY',
   },
-  "recently-played": {
-    prefix: "WITH",
-    title: "OTHERS",
+  'recently-played': {
+    prefix: 'WITH',
+    title: 'OTHERS',
   },
-  chat: {
-    prefix: "WITH",
-    title: "US",
+  'chat': {
+    prefix: 'WITH',
+    title: 'US',
   },
-  about: {
-    prefix: "TO",
-    title: "OUR LIFE STORY",
+  'about': {
+    prefix: 'TO',
+    title: 'OUR LIFE STORY',
   },
-  blog: {
-    prefix: "TO",
-    title: "OUR BLOG",
+  'blog': {
+    prefix: 'TO',
+    title: 'OUR BLOG',
   },
 };
 
@@ -43,19 +43,19 @@ interface Props {
 }
 
 const bandsWithThe = [
-  "duo",
-  "bernie-worrell",
-  "disco-biscuits",
-  "drive-by-truckers",
-  "g-nome",
-  "grateful-dead",
-  "jazz-mandolin-project",
-  "phish",
-  "sci",
-  "smashing-pumpkins",
-  "steve-kimock-band",
-  "stringdusters",
-  "tedeschi-trucks",
+  'duo',
+  'bernie-worrell',
+  'disco-biscuits',
+  'drive-by-truckers',
+  'g-nome',
+  'grateful-dead',
+  'jazz-mandolin-project',
+  'phish',
+  'sci',
+  'smashing-pumpkins',
+  'steve-kimock-band',
+  'stringdusters',
+  'tedeschi-trucks',
 ];
 
 export default function SecondaryNavBar({ artistName }: Props) {
@@ -74,13 +74,13 @@ export default function SecondaryNavBar({ artistName }: Props) {
     );
   }
 
-  if (typeof artistSlug === "string") {
+  if (typeof artistSlug === 'string') {
     if (!artistName) return null;
     return (
       <>
         <span>TO</span>
         <Link href={`/${artistSlug}`} className="uppercase">
-          {bandsWithThe.includes(artistSlug) ? "THE " : ""}
+          {bandsWithThe.includes(artistSlug) ? 'THE ' : ''}
           {artistName}
         </Link>
       </>

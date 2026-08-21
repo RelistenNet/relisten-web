@@ -1,1 +1,7 @@
-node_modules/@switz/eslint-config/.oxfmtrc.json
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "singleQuote": true,
+  "trailingComma": "es5",
+  "printWidth": 100,
+  "quoteProps": "consistent"
+}

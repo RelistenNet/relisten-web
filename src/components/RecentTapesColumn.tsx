@@ -4,7 +4,11 @@ import type { ReactNode } from 'react';
 import { deny } from '@timber-js/app/server';
 import RecentTapesColumnWithControls from './RecentTapesColumnWithControls';
 
-const RecentTapesColumn = async ({ artistSlug, year, subHeader }: Pick<RawParams, 'artistSlug' | 'year'> & { subHeader?: ReactNode }) => {
+const RecentTapesColumn = async ({
+  artistSlug,
+  year,
+  subHeader,
+}: Pick<RawParams, 'artistSlug' | 'year'> & { subHeader?: ReactNode }) => {
   const shows = await RelistenAPI.fetchRecentlyAdded(artistSlug).catch(() => {
     deny(404);
   });

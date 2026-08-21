@@ -1,21 +1,21 @@
-import RelistenAPI from "@/lib/RelistenAPI";
-import { format } from "date-fns";
-import type { Metadata } from "@timber-js/app/server";
-import { Link } from "@timber-js/app/client";
-import { deny, getSegmentParams } from "@timber-js/app/server";
-import { SEGMENT_PATH } from "./$segment";
+import RelistenAPI from '@/lib/RelistenAPI';
+import { format } from 'date-fns';
+import type { Metadata } from '@timber-js/app/server';
+import { Link } from '@timber-js/app/client';
+import { deny, getSegmentParams } from '@timber-js/app/server';
+import { SEGMENT_PATH } from './$segment';
 
 export async function metadata(): Promise<Metadata> {
   const params = getSegmentParams(SEGMENT_PATH);
   const artistSlug = params?.artistSlug as string | undefined;
   const year = params?.year as string | undefined;
   const month = params?.month as string | undefined;
-  if (!artistSlug) return { title: "Not Found" };
+  if (!artistSlug) return { title: 'Not Found' };
   const artists = await RelistenAPI.fetchAllArtists();
   const artist = artists?.find((a) => a.slug === artistSlug);
 
   if (!artist) {
-    return { title: "Not Found" };
+    return { title: 'Not Found' };
   }
 
   return {
@@ -34,7 +34,7 @@ function formatFileSize(seconds: number): string {
 }
 
 function formatDate(date: string): string {
-  return format(new Date(date), "dd-MMM-yyyy HH:mm");
+  return format(new Date(date), 'dd-MMM-yyyy HH:mm');
 }
 
 export default async function MonthPage() {
@@ -54,13 +54,13 @@ export default async function MonthPage() {
 
   // Filter shows for the specific month
   const monthShows = shows.filter((show) => {
-    const showMonth = new Date(show.display_date || "").getMonth() + 1;
-    return showMonth === parseInt(month || "", 10);
+    const showMonth = new Date(show.display_date || '').getMonth() + 1;
+    return showMonth === parseInt(month || '', 10);
   });
 
   // Sort shows by date
   monthShows.sort(
-    (a, b) => new Date(a.display_date || "").getTime() - new Date(b.display_date || "").getTime(),
+    (a, b) => new Date(a.display_date || '').getTime() - new Date(b.display_date || '').getTime()
   );
 
   return (
@@ -190,8 +190,8 @@ export default async function MonthPage() {
           </tr>
 
           {monthShows.map((show) => {
-            const showDate = new Date(show.display_date || "");
-            const dayStr = showDate.getDate().toString().padStart(2, "0");
+            const showDate = new Date(show.display_date || '');
+            const dayStr = showDate.getDate().toString().padStart(2, '0');
             const showPath = `${dayStr}/`;
 
             return (
@@ -239,14 +239,14 @@ export default async function MonthPage() {
                     {showPath}
                   </Link>
                 </td>
-                <td className="py-1 pr-8 text-center">{formatDate(show.display_date || "")}</td>
+                <td className="py-1 pr-8 text-center">{formatDate(show.display_date || '')}</td>
                 <td className="py-1 pr-8 text-right">
                   {show.avg_duration && show.avg_duration > 0
                     ? formatFileSize(show.avg_duration)
-                    : "-"}
+                    : '-'}
                 </td>
                 <td className="py-1">
-                  {show.venue?.name || ""} {show.venue?.location ? `- ${show.venue.location}` : ""}
+                  {show.venue?.name || ''} {show.venue?.location ? `- ${show.venue.location}` : ''}
                 </td>
               </tr>
             );

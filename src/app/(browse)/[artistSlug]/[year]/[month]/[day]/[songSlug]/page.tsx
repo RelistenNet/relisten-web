@@ -1,10 +1,10 @@
-import { METADATA_BASE } from "@/lib/constants";
-import PlayerManager from "@/components/PlayerManager";
-import { proxyStreamUrl } from "@/lib/proxyStreamUrl";
-import RelistenAPI from "@/lib/RelistenAPI";
-import { createShowDate } from "@/lib/utils";
-import { deny, getSegmentParams } from "@timber-js/app/server";
-import { SEGMENT_PATH } from "./$segment";
+import { METADATA_BASE } from '@/lib/constants';
+import PlayerManager from '@/components/PlayerManager';
+import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
+import RelistenAPI from '@/lib/RelistenAPI';
+import { createShowDate } from '@/lib/utils';
+import { deny, getSegmentParams } from '@timber-js/app/server';
+import { SEGMENT_PATH } from './$segment';
 
 export default async function Page() {
   const { artistSlug, year, month, day } = getSegmentParams(SEGMENT_PATH);
@@ -41,8 +41,8 @@ export const metadata = async () => {
   const song = songs?.find((song) => song?.slug === songSlug);
 
   return {
-    title: [song?.title, createShowDate(year, month, day), name].filter((x) => x).join(" | "),
-    description: [show?.venue?.name, show?.venue?.location].filter((x) => x).join(" "),
+    title: [song?.title, createShowDate(year, month, day), name].filter((x) => x).join(' | '),
+    description: [show?.venue?.name, show?.venue?.location].filter((x) => x).join(' '),
     openGraph: {
       audio: [
         {

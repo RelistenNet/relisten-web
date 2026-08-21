@@ -14,7 +14,11 @@ type VenuesColumnWithControlsProps = {
   subHeader?: ReactNode;
 };
 
-const VenuesColumnWithControls = ({ artistSlug, venues, subHeader }: VenuesColumnWithControlsProps) => {
+const VenuesColumnWithControls = ({
+  artistSlug,
+  venues,
+  subHeader,
+}: VenuesColumnWithControlsProps) => {
   const [sortAlpha, setSortAlpha] = useState(false);
 
   const toggles = [

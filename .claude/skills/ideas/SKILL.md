@@ -76,7 +76,7 @@ Suggested phase updates:
    - For Next.js, use `next/script` (plain `<script>` in JSX can fail to execute until a full refresh in dev):
 
    ```tsx
-   import Script from 'next/script'
+   import Script from 'next/script';
 
    export default function RootLayout({ children }: { children: React.ReactNode }) {
      return (
@@ -86,7 +86,7 @@ Suggested phase updates:
            <Script src="https://ui.sh/ui-picker.js" />
          </body>
        </html>
-     )
+     );
    }
    ```
 

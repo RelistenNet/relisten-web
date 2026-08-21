@@ -87,9 +87,10 @@ export function initTracing() {
             const cfIp = headers['cf-connecting-ip'];
             const realIp = headers['x-real-ip'];
             const forwarded = headers['x-forwarded-for'];
-            const ip = (typeof cfIp === 'string' ? cfIp : undefined)
-              ?? (typeof realIp === 'string' ? realIp : undefined)
-              ?? (typeof forwarded === 'string'
+            const ip =
+              (typeof cfIp === 'string' ? cfIp : undefined) ??
+              (typeof realIp === 'string' ? realIp : undefined) ??
+              (typeof forwarded === 'string'
                 ? forwarded.split(',')[0]?.trim()
                 : Array.isArray(forwarded)
                   ? forwarded[0]?.split(',')[0]?.trim()

@@ -1,31 +1,31 @@
-"use client";
+'use client';
 
-import React, { useMemo, useState } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
-import { useSegmentParams } from "@timber-js/app/client";
-import { ArrowUp, ArrowDown } from "lucide-react";
-import { groupBy } from "../lib/utils";
-import Count from "./Count";
-import { Artist } from "../types";
-import { useFilterState } from "@/hooks/useFilterState";
-import cn from "@/lib/cn";
-import ColumnWithToggleControls from "./ColumnWithToggleControls";
-import PopularityBadge from "./PopularityBadge";
-import type { HighlightRanges } from "@nozbe/microfuzz";
-import Row, { unwrapSegment } from "./Row";
-import RowHeader from "./RowHeader";
+import React, { useMemo, useState } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { useSegmentParams } from '@timber-js/app/client';
+import { ArrowUp, ArrowDown } from 'lucide-react';
+import { groupBy } from '../lib/utils';
+import Count from './Count';
+import { Artist } from '../types';
+import { useFilterState } from '@/hooks/useFilterState';
+import cn from '@/lib/cn';
+import ColumnWithToggleControls from './ColumnWithToggleControls';
+import PopularityBadge from './PopularityBadge';
+import type { HighlightRanges } from '@nozbe/microfuzz';
+import Row, { unwrapSegment } from './Row';
+import RowHeader from './RowHeader';
 
 const byObject = {
-  phish: "Phish.in",
+  phish: 'Phish.in',
 };
 
 type Item =
-  | { kind: "header"; key: string; label: string }
-  | { kind: "artist"; key: string; artist: Artist };
+  | { kind: 'header'; key: string; label: string }
+  | { kind: 'artist'; key: string; artist: Artist };
 
 const HEADER_ESTIMATE = 28;
 const ROW_ESTIMATE = 45;
-const GROUP_ORDER: Record<string, number> = { "1": 0, "0": 1 };
+const GROUP_ORDER: Record<string, number> = { '1': 0, '0': 1 };
 
 function HighlightText({ text, ranges }: { text: string; ranges: HighlightRanges }) {
   if (!ranges.length) return <>{text}</>;
@@ -36,7 +36,7 @@ function HighlightText({ text, ranges }: { text: string; ranges: HighlightRanges
     parts.push(
       <mark key={start} className="bg-accent/30 text-inherit">
         {text.slice(start, end + 1)}
-      </mark>,
+      </mark>
     );
     last = end + 1;
   }
@@ -59,7 +59,7 @@ const ArtistsColumnWithControls = ({
   isPending,
   onClearSearch,
 }: ArtistsColumnWithControlsProps) => {
-  const { alphaAsc, sortBy, setSortBy, clearFilters } = useFilterState("root");
+  const { alphaAsc, sortBy, setSortBy, clearFilters } = useFilterState('root');
   const params = useSegmentParams() as Record<string, string | string[] | undefined>;
   const currentArtistSlug = unwrapSegment(params.artistSlug);
 
@@ -67,35 +67,40 @@ const ArtistsColumnWithControls = ({
 
   const toggles = [
     {
-      type: "sort" as const,
-      isActive: sortBy === "popularity",
-      onToggle: () => setSortBy("popularity"),
-      title: sortBy === "popularity" ? (alphaAsc ? "Least popular" : "Most popular") : "Sort by popularity",
-      label: "Pop",
-      icon: sortBy === "popularity" ? dirIcon : undefined,
+      type: 'sort' as const,
+      isActive: sortBy === 'popularity',
+      onToggle: () => setSortBy('popularity'),
+      title:
+        sortBy === 'popularity'
+          ? alphaAsc
+            ? 'Least popular'
+            : 'Most popular'
+          : 'Sort by popularity',
+      label: 'Pop',
+      icon: sortBy === 'popularity' ? dirIcon : undefined,
     },
     {
-      type: "sort" as const,
-      isActive: sortBy === "alpha",
-      onToggle: () => setSortBy("alpha"),
-      title: sortBy === "alpha" ? (alphaAsc ? "Z-A" : "A-Z") : "Sort A-Z",
-      label: "A-Z",
-      icon: sortBy === "alpha" ? dirIcon : undefined,
+      type: 'sort' as const,
+      isActive: sortBy === 'alpha',
+      onToggle: () => setSortBy('alpha'),
+      title: sortBy === 'alpha' ? (alphaAsc ? 'Z-A' : 'A-Z') : 'Sort A-Z',
+      label: 'A-Z',
+      icon: sortBy === 'alpha' ? dirIcon : undefined,
     },
     {
-      type: "sort" as const,
-      isActive: sortBy === "tapes",
-      onToggle: () => setSortBy("tapes"),
-      title: sortBy === "tapes" ? (alphaAsc ? "Fewest tapes" : "Most tapes") : "Sort by tapes",
-      label: "Tapes",
-      icon: sortBy === "tapes" ? dirIcon : undefined,
+      type: 'sort' as const,
+      isActive: sortBy === 'tapes',
+      onToggle: () => setSortBy('tapes'),
+      title: sortBy === 'tapes' ? (alphaAsc ? 'Fewest tapes' : 'Most tapes') : 'Sort by tapes',
+      label: 'Tapes',
+      icon: sortBy === 'tapes' ? dirIcon : undefined,
     },
   ];
 
   const processedArtists = useMemo(() => {
-    const grouped = groupBy(artists, "featured");
+    const grouped = groupBy(artists, 'featured');
     const sortedGroups = Object.entries(grouped).sort(
-      ([a], [b]) => (GROUP_ORDER[a] ?? 2) - (GROUP_ORDER[b] ?? 2),
+      ([a], [b]) => (GROUP_ORDER[a] ?? 2) - (GROUP_ORDER[b] ?? 2)
     );
 
     const dir = alphaAsc ? -1 : 1;
@@ -103,18 +108,18 @@ const ArtistsColumnWithControls = ({
     return sortedGroups.map(([type, groupArtists]) => {
       const sorted = [...groupArtists];
       switch (sortBy) {
-        case "popularity":
+        case 'popularity':
           sorted.sort((a, b) => {
-            const ap = a.popularity?.windows?.["30d"]?.plays ?? 0;
-            const bp = b.popularity?.windows?.["30d"]?.plays ?? 0;
+            const ap = a.popularity?.windows?.['30d']?.plays ?? 0;
+            const bp = b.popularity?.windows?.['30d']?.plays ?? 0;
             return dir * (bp - ap);
           });
           break;
-        case "tapes":
+        case 'tapes':
           sorted.sort((a, b) => dir * ((b.source_count ?? 0) - (a.source_count ?? 0)));
           break;
         default:
-          sorted.sort((a, b) => dir * (a.name || "").localeCompare(b.name || ""));
+          sorted.sort((a, b) => dir * (a.name || '').localeCompare(b.name || ''));
       }
       return [type, sorted] as [string, Artist[]];
     });
@@ -122,12 +127,12 @@ const ArtistsColumnWithControls = ({
 
   const groupLabel = (type: string) => {
     switch (type) {
-      case "1":
-        return "Featured Artists";
-      case "0":
-        return "Primary Artists";
+      case '1':
+        return 'Featured Artists';
+      case '0':
+        return 'Primary Artists';
       default:
-        return "Archive Artists";
+        return 'Archive Artists';
     }
   };
 
@@ -136,12 +141,12 @@ const ArtistsColumnWithControls = ({
     for (const [type, groupArtists] of processedArtists) {
       if (groupArtists.length === 0) continue;
       out.push({
-        kind: "header",
+        kind: 'header',
         key: `header-${type}`,
         label: groupLabel(type),
       });
       for (const artist of groupArtists) {
-        out.push({ kind: "artist", key: `artist-${artist.uuid}`, artist });
+        out.push({ kind: 'artist', key: `artist-${artist.uuid}`, artist });
       }
     }
     return out;
@@ -150,7 +155,7 @@ const ArtistsColumnWithControls = ({
   const totalArtistCount = artists.length;
   const filteredArtistCount = processedArtists.reduce(
     (acc, [, groupArtists]) => acc + groupArtists.length,
-    0,
+    0
   );
 
   const handleClearFilters = () => {
@@ -163,13 +168,13 @@ const ArtistsColumnWithControls = ({
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => scrollEl,
-    estimateSize: (i) => (items[i].kind === "header" ? HEADER_ESTIMATE : ROW_ESTIMATE),
+    estimateSize: (i) => (items[i].kind === 'header' ? HEADER_ESTIMATE : ROW_ESTIMATE),
     getItemKey: (i) => items[i].key,
     overscan: 8,
   });
 
   const renderItem = (item: Item) => {
-    if (item.kind === "header") {
+    if (item.kind === 'header') {
       return <RowHeader>{item.label}</RowHeader>;
     }
     return (
@@ -178,7 +183,7 @@ const ArtistsColumnWithControls = ({
           <div>
             {item.artist.uuid && highlightRanges?.has(item.artist.uuid) ? (
               <HighlightText
-                text={item.artist.name || ""}
+                text={item.artist.name || ''}
                 ranges={highlightRanges.get(item.artist.uuid)!}
               />
             ) : (
@@ -215,7 +220,7 @@ const ArtistsColumnWithControls = ({
       scrollContainerRef={setScrollEl}
       height={virtualizer.getTotalSize()}
     >
-      <div className={cn("relative transition-opacity", { "opacity-40": isPending })}>
+      <div className={cn('relative transition-opacity', { 'opacity-40': isPending })}>
         {scrollEl
           ? virtualizer.getVirtualItems().map((vi) => {
               const item = items[vi.index];
@@ -225,7 +230,7 @@ const ArtistsColumnWithControls = ({
                   data-index={vi.index}
                   ref={virtualizer.measureElement}
                   style={{
-                    position: "absolute",
+                    position: 'absolute',
                     top: 0,
                     left: 0,
                     right: 0,

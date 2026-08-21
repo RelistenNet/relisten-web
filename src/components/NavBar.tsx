@@ -1,22 +1,22 @@
-import { Link } from "@timber-js/app/client";
-import Flex from "./Flex";
-import Menu from "./Menu";
-import Player from "./Player";
-import * as Popover from "@/components/Popover";
-import RelistenAPI from "@/lib/RelistenAPI";
-import MainNavHeader from "./MainNavHeader";
-import AndroidUpgradeNotification from "./AndroidUpgradeNotification";
-import BlogNavLink from "./blog/BlogNavLink";
+import { Link } from '@timber-js/app/client';
+import Flex from './Flex';
+import Menu from './Menu';
+import Player from './Player';
+import * as Popover from '@/components/Popover';
+import RelistenAPI from '@/lib/RelistenAPI';
+import MainNavHeader from './MainNavHeader';
+import AndroidUpgradeNotification from './AndroidUpgradeNotification';
+import BlogNavLink from './blog/BlogNavLink';
 // import GlobalSearch from './GlobalSearch';
-import { MenuIcon } from "lucide-react";
-import { getHeaders, getSegmentParams } from "@timber-js/app/server";
-import { UAParser } from "ua-parser-js";
-import { getIsInIframe } from "@/lib/isInIframe";
-import { hasRecentPost } from "@/lib/blog/getPosts";
+import { MenuIcon } from 'lucide-react';
+import { getHeaders, getSegmentParams } from '@timber-js/app/server';
+import { UAParser } from 'ua-parser-js';
+import { getIsInIframe } from '@/lib/isInIframe';
+import { hasRecentPost } from '@/lib/blog/getPosts';
 
 export const getUserAgent = async () => {
   const headersList = await getHeaders();
-  const userAgent = headersList.get("user-agent");
+  const userAgent = headersList.get('user-agent');
 
   if (!userAgent) return null;
 
@@ -29,7 +29,7 @@ export default async function NavBar() {
     getUserAgent(),
     getIsInIframe(),
   ]);
-  const isAndroid = /android/i.test(userAgent?.ua || "");
+  const isAndroid = /android/i.test(userAgent?.ua || '');
   const blogHasNew = hasRecentPost();
 
   const { artistSlug } = getSegmentParams() as { artistSlug?: string };
@@ -45,7 +45,7 @@ export default async function NavBar() {
           lg:grid-cols-[1fr_auto_1fr] lg:px-4
         "
       >
-        <MainNavHeader artistName={artistName} indexOverride={isInIframe ? "/wsp" : undefined} />
+        <MainNavHeader artistName={artistName} indexOverride={isInIframe ? '/wsp' : undefined} />
         <div
           className="
             player overflow-hidden text-center

@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { usePathname } from "@timber-js/app/client";
-import { useCallback, useMemo } from "react";
+import { usePathname } from '@timber-js/app/client';
+import { useCallback, useMemo } from 'react';
 import {
   SORT_DIRECTION,
   type FilterState,
   type SortByMode,
   getFilterKey,
   getFilterCookie,
-} from "@/lib/filterCookies";
+} from '@/lib/filterCookies';
 
-export { SORT_DIRECTION } from "@/lib/filterCookies";
+export { SORT_DIRECTION } from '@/lib/filterCookies';
 
 export const DEFAULT_FILTERS = {
   date: SORT_DIRECTION.desc,
@@ -53,21 +53,21 @@ export function useFilterState(filterKey?: string) {
 
       setCookieValue(newFilters);
     },
-    [filters, setCookieValue],
+    [filters, setCookieValue]
   );
 
   const toggleFilter = useCallback(
     (filterName: keyof FilterState) => {
-      if (filterName === "sbd") {
-        setFilter("sbd", !filters.sbd);
-      } else if (filterName === "date" || filterName === "alpha") {
+      if (filterName === 'sbd') {
+        setFilter('sbd', !filters.sbd);
+      } else if (filterName === 'date' || filterName === 'alpha') {
         const currentValue = filters[filterName];
         const newValue = getInverse(filterName, currentValue);
         console.log(filters, filterName, newValue, currentValue);
         setFilter(filterName, newValue);
       }
     },
-    [filters, setFilter],
+    [filters, setFilter]
   );
 
   const clearFilters = useCallback(() => {
@@ -76,14 +76,14 @@ export function useFilterState(filterKey?: string) {
 
   const setSortBy = useCallback(
     (mode: SortByMode) => {
-      const currentMode = filters.sortBy ?? "alpha";
+      const currentMode = filters.sortBy ?? 'alpha';
       if (currentMode === mode) {
-        toggleFilter("alpha");
+        toggleFilter('alpha');
       } else {
-        setFilter("sortBy", mode);
+        setFilter('sortBy', mode);
       }
     },
-    [filters.sortBy, toggleFilter, setFilter],
+    [filters.sortBy, toggleFilter, setFilter]
   );
 
   return {
@@ -96,6 +96,6 @@ export function useFilterState(filterKey?: string) {
     alphaAsc: filters.alpha === SORT_DIRECTION.asc,
     dateAsc: filters.date === SORT_DIRECTION.asc,
     sbdOnly: filters.sbd === true,
-    sortBy: (filters.sortBy ?? "popularity") as SortByMode,
+    sortBy: (filters.sortBy ?? 'popularity') as SortByMode,
   };
 }

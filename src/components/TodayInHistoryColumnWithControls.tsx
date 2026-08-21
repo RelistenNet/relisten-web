@@ -28,9 +28,7 @@ const TodayInHistoryColumnWithControls = ({
   month,
   day,
 }: TodayInHistoryColumnWithControlsProps) => {
-  const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(
-    `${artistSlug}:shows`
-  );
+  const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(`${artistSlug}:shows`);
   const params = useSegmentParams() as Record<string, string | string[] | undefined>;
   const currentMonth = unwrapSegment(params.month);
   const currentDay = unwrapSegment(params.day);

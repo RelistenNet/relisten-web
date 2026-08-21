@@ -20,7 +20,11 @@ const formatTourDate = (dateStr?: string) => {
   return `${date.getUTCMonth() + 1}/${date.getUTCDate()}/${date.getUTCFullYear()}`;
 };
 
-const ToursColumnWithControls = ({ artistSlug, tours, subHeader }: ToursColumnWithControlsProps) => {
+const ToursColumnWithControls = ({
+  artistSlug,
+  tours,
+  subHeader,
+}: ToursColumnWithControlsProps) => {
   const [sortOldest, setSortOldest] = useState(false);
 
   const toggles = [

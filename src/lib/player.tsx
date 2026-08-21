@@ -260,9 +260,7 @@ function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Qu
   });
 }
 
-export function initGaplessPlayer(
-  nextStore: { dispatch: AppDispatch; getState: () => RootState }
-) {
+export function initGaplessPlayer(nextStore: { dispatch: AppDispatch; getState: () => RootState }) {
   if (typeof window === 'undefined') return;
   store = nextStore;
 

@@ -32,12 +32,7 @@ export default function Tooltip({
   const hide = useCallback(() => setPos(null), []);
 
   return (
-    <div
-      ref={triggerRef}
-      className={className ?? ''}
-      onMouseEnter={show}
-      onMouseLeave={hide}
-    >
+    <div ref={triggerRef} className={className ?? ''} onMouseEnter={show} onMouseLeave={hide}>
       {children}
       {pos &&
         createPortal(

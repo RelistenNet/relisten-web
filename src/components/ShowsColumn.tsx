@@ -56,13 +56,7 @@ const ShowsColumn = async ({
     tour: s.tour ? ({ id: s.tour.id, name: s.tour.name } as Tour) : undefined,
   }));
 
-  return (
-    <ShowsColumnWithControls
-      artistSlug={artistSlug}
-      year={year}
-      shows={slimShows}
-    />
-  );
+  return <ShowsColumnWithControls artistSlug={artistSlug} year={year} shows={slimShows} />;
 };
 
 export default ShowsColumn;

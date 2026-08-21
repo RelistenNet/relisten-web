@@ -10,7 +10,7 @@ permissions:
 env:
   IMAGE_NAME: relistennet/relisten-web-timber
   REGISTRY: ghcr.io
-  KEEP_GHCR_SHA_VERSIONS: "5"
+  KEEP_GHCR_SHA_VERSIONS: '5'
 
 jobs:
   build_and_publish:

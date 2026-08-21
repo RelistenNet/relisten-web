@@ -16,7 +16,11 @@ function getActiveColumn(segments: string[], hasSlug: boolean): number {
   return 3;
 }
 
-function getBackPath(segments: string[], activeColumn: number, isQuickHitDrillDown: boolean): string {
+function getBackPath(
+  segments: string[],
+  activeColumn: number,
+  isQuickHitDrillDown: boolean
+): string {
   if (isQuickHitDrillDown) {
     return '/' + segments.slice(0, 2).join('/');
   }
@@ -25,7 +29,11 @@ function getBackPath(segments: string[], activeColumn: number, isQuickHitDrillDo
   return '/' + segments.slice(0, prevSegmentCount).join('/') || '/';
 }
 
-function getBackLabel(segments: string[], activeColumn: number, isQuickHitDrillDown: boolean): string {
+function getBackLabel(
+  segments: string[],
+  activeColumn: number,
+  isQuickHitDrillDown: boolean
+): string {
   if (isQuickHitDrillDown) {
     return segments[1]?.replaceAll('-', ' ') ?? 'Back';
   }
@@ -35,7 +43,11 @@ function getBackLabel(segments: string[], activeColumn: number, isQuickHitDrillD
   return label?.replaceAll('-', ' ') ?? 'Back';
 }
 
-function getCurrentHeading(segments: string[], activeColumn: number, isQuickHitDrillDown: boolean): string {
+function getCurrentHeading(
+  segments: string[],
+  activeColumn: number,
+  isQuickHitDrillDown: boolean
+): string {
   if (isQuickHitDrillDown) {
     return segments[1]?.replaceAll('-', ' ') ?? '';
   }
@@ -69,9 +81,7 @@ export default function MobileBrowseNav() {
         <span className="capitalize">{backLabel}</span>
       </Link>
       {heading && (
-        <span className="truncate text-sm font-medium text-text-primary capitalize">
-          {heading}
-        </span>
+        <span className="truncate text-sm font-medium text-text-primary capitalize">{heading}</span>
       )}
     </div>
   );

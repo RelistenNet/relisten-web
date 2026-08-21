@@ -4,7 +4,10 @@ import type { ReactNode } from 'react';
 import { deny } from '@timber-js/app/server';
 import ToursColumnWithControls from './ToursColumnWithControls';
 
-const ToursColumn = async ({ artistSlug, subHeader }: Pick<RawParams, 'artistSlug'> & { subHeader?: ReactNode }) => {
+const ToursColumn = async ({
+  artistSlug,
+  subHeader,
+}: Pick<RawParams, 'artistSlug'> & { subHeader?: ReactNode }) => {
   const tours = await RelistenAPI.fetchTours(artistSlug).catch(() => {
     deny(404);
   });

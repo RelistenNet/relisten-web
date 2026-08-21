@@ -1,6 +1,5 @@
 {
   "name": "relisten-web",
-  "packageManager": "pnpm@11.22.0",
   "version": "1.0.0",
   "description": "",
   "license": "MIT",
@@ -85,5 +84,6 @@
     "typescript": "^7.0.2",
     "vite": "^8.2.2",
     "vite-plugin-satteri": "^0.3.5"
-  }
+  },
+  "packageManager": "pnpm@11.22.0"
 }

@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { Props, useSourceData } from "@/components/SongsColumn";
+import { Props, useSourceData } from '@/components/SongsColumn';
 import player, {
   initGaplessPlayer,
   isPlayerMounted,
   resetPlayer,
   setPendingSeekTime,
-} from "@/lib/player";
-import { sourceSearchParamsLoader } from "@/lib/searchParams/sourceSearchParam";
-import { tSearchParamsLoader } from "@/lib/searchParams/tSearchParam";
-import { proxyStreamUrl } from "@/lib/proxyStreamUrl";
-import { createShowDate } from "@/lib/utils";
-import { store } from "@/redux";
-import { updatePlayback } from "@/redux/modules/playback";
-import { usePathname } from "@timber-js/app/client";
-import { useEffect } from "react";
+} from '@/lib/player';
+import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
+import { tSearchParamsLoader } from '@/lib/searchParams/tSearchParam';
+import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
+import { createShowDate } from '@/lib/utils';
+import { store } from '@/redux';
+import { updatePlayback } from '@/redux/modules/playback';
+import { usePathname } from '@timber-js/app/client';
+import { useEffect } from 'react';
 
 interface PlayerManagerProps extends Props {
   artistName?: string;
@@ -28,9 +28,9 @@ export default function PlayerManager(props: PlayerManagerProps) {
 
   // Remove leading slash and handle embed routes
   const pathParts = String(pathname)
-    .replace(/^\/embed/, "")
-    .replace(/^\//, "")
-    .split("/");
+    .replace(/^\/embed/, '')
+    .replace(/^\//, '')
+    .split('/');
 
   const [artistSlug, year, month, day, songSlug] = pathParts;
 
@@ -39,7 +39,7 @@ export default function PlayerManager(props: PlayerManagerProps) {
   useEffect(() => {
     if (activeSourceObj) {
       const tracks = (activeSourceObj.sets?.map((set) => set.tracks).flat() ?? []).filter(
-        (t): t is NonNullable<typeof t> => t != null,
+        (t): t is NonNullable<typeof t> => t != null
       );
       const activeTrackIndex = tracks.findIndex((track) => track?.slug === songSlug);
       const activeTrack = tracks[activeTrackIndex];
@@ -54,11 +54,11 @@ export default function PlayerManager(props: PlayerManagerProps) {
           songSlug,
           source: sourceId,
           paused: false,
-        }),
+        })
       );
 
-      if (tracks.length && typeof window.Notification !== "undefined") {
-        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+      if (tracks.length && typeof window.Notification !== 'undefined') {
+        if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
           Notification.requestPermission();
         }
       }
@@ -88,7 +88,7 @@ export default function PlayerManager(props: PlayerManagerProps) {
 
       tracks.map((track) => {
         const url = proxyStreamUrl(
-          window.FLAC ? track?.flac_url || track?.mp3_url : track?.mp3_url,
+          window.FLAC ? track?.flac_url || track?.mp3_url : track?.mp3_url
         );
 
         if (!url) return;

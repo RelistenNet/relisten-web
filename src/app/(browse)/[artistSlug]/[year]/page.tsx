@@ -1,17 +1,17 @@
-import RelistenAPI from "@/lib/RelistenAPI";
-import { getSegmentParams } from "@timber-js/app/server";
-import { SEGMENT_PATH } from "./$segment";
+import RelistenAPI from '@/lib/RelistenAPI';
+import { getSegmentParams } from '@timber-js/app/server';
+import { SEGMENT_PATH } from './$segment';
 
 export default function Page() {
   return null;
 }
 
 function capitalizeFirstLetterOfEachWord(val: string): string {
-  if (!val) return "";
+  if (!val) return '';
   return String(val)
-    .split(" ")
+    .split(' ')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+    .join(' ');
 }
 
 export const metadata = async () => {
@@ -26,6 +26,6 @@ export const metadata = async () => {
   if (!name) return {};
 
   return {
-    title: [capitalizeFirstLetterOfEachWord(year?.replaceAll("-", " ")), name].join(" | "),
+    title: [capitalizeFirstLetterOfEachWord(year?.replaceAll('-', ' ')), name].join(' | '),
   };
 };

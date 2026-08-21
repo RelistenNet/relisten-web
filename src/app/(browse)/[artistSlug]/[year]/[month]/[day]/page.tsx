@@ -1,8 +1,8 @@
-import { METADATA_BASE } from "@/lib/constants";
-import RelistenAPI from "@/lib/RelistenAPI";
-import { createShowDate } from "@/lib/utils";
-import { getSegmentParams } from "@timber-js/app/server";
-import { SEGMENT_PATH } from "./$segment";
+import { METADATA_BASE } from '@/lib/constants';
+import RelistenAPI from '@/lib/RelistenAPI';
+import { createShowDate } from '@/lib/utils';
+import { getSegmentParams } from '@timber-js/app/server';
+import { SEGMENT_PATH } from './$segment';
 
 export default () => null;
 
@@ -19,11 +19,11 @@ export const metadata = async () => {
 
   if (!name) return {};
 
-  const show = await RelistenAPI.fetchShow(artistSlug, year, [year, month, day].join("-"));
+  const show = await RelistenAPI.fetchShow(artistSlug, year, [year, month, day].join('-'));
 
   return {
-    title: [createShowDate(year, month, day), name].join(" | "),
-    description: [show?.venue?.name, show?.venue?.location].filter((x) => x).join(" "),
+    title: [createShowDate(year, month, day), name].join(' | '),
+    description: [show?.venue?.name, show?.venue?.location].filter((x) => x).join(' '),
     openGraph: {
       images: show?.uuid
         ? [
