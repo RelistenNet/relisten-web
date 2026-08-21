@@ -76,14 +76,16 @@ export function useFilterState(filterKey?: string) {
 
   const setSortBy = useCallback(
     (mode: SortByMode) => {
-      const currentMode = filters.sortBy ?? 'alpha';
+      const currentMode = filters.sortBy ?? 'popularity';
       if (currentMode === mode) {
-        toggleFilter('alpha');
+        const currentAlpha = filters.alpha;
+        const newAlpha = getInverse('alpha', currentAlpha);
+        setCookieValue({ ...filters, sortBy: mode, alpha: newAlpha });
       } else {
-        setFilter('sortBy', mode);
+        setCookieValue({ ...filters, sortBy: mode });
       }
     },
-    [filters.sortBy, toggleFilter, setFilter]
+    [filters, setCookieValue]
   );
 
   return {

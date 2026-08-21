@@ -10,6 +10,7 @@ import { simplePluralize } from '@/lib/utils';
 type ToggleConfig = {
   type: 'sort' | 'filter';
   isActive: boolean;
+  isDefault?: boolean;
   onToggle: () => void;
   title: string;
   icon?: React.ReactNode;
@@ -66,13 +67,12 @@ const ColumnWithToggleControls = ({
                 onClick={toggle.onToggle}
                 className={cn(
                   'flex cursor-pointer items-center gap-1 rounded p-1 transition-all duration-200',
-                  'hover:scale-105 hover:bg-column-header-text/10 active:scale-95',
-                  toggle.isActive
-                    ? 'ring-accent/40 bg-column-header-text/20 font-medium text-column-header-text ring-1'
-                    : 'bg-column-header-text/5 text-column-header-text/70 hover:text-column-header-text',
-                  toggle.isActive && toggle.label
-                    ? 'bg-emerald-500 text-white ring-emerald-300 hover:bg-emerald-500'
-                    : '',
+                  'hover:scale-105 active:scale-95',
+                  toggle.isActive && !toggle.isDefault
+                    ? toggle.type === 'filter'
+                      ? 'ring-1 ring-emerald-400/40 bg-emerald-500/10 font-medium text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/15'
+                      : 'ring-1 ring-accent/40 bg-accent/10 font-medium text-accent hover:bg-accent/15'
+                    : 'bg-column-header-text/5 text-column-header-text/70 hover:bg-column-header-text/10 hover:text-column-header-text',
                   toggle.label && 'text-[10px]'
                 )}
                 title={toggle.title}
@@ -95,29 +95,18 @@ const ColumnWithToggleControls = ({
       {subHeader}
       <Flex ref={scrollContainerRef} column className="flex-1 overflow-x-hidden overflow-y-auto">
         {filteredCount !== undefined && totalCount !== undefined && filteredCount < totalCount && (
-          <div className="m-2 rounded border border-amber-500/20 bg-amber-500/10 p-2 text-xs text-amber-700">
-            {filteredCount === 0 ? (
-              <>
-                All {simplePluralize('row', hiddenRows)} are hidden by filters.{' '}
-                <button
-                  onClick={onClearFilters}
-                  className="font-medium underline hover:no-underline"
-                >
-                  Clear Filters
-                </button>
-              </>
-            ) : (
-              <>
-                {simplePluralize('row', hiddenRows)} {hiddenRows === 1 ? 'is' : 'are'} hidden by
-                filters.{' '}
-                <button
-                  onClick={onClearFilters}
-                  className="font-medium underline hover:no-underline"
-                >
-                  Clear Filters
-                </button>
-              </>
-            )}
+          <div className="mx-2 my-2 flex items-center justify-between rounded bg-accent/10 px-3 py-1.5 text-xs text-accent">
+            <span>
+              {filteredCount === 0
+                ? `All ${simplePluralize('row', hiddenRows)} hidden`
+                : `${simplePluralize('row', hiddenRows)} hidden`}
+            </span>
+            <button
+              onClick={onClearFilters}
+              className="cursor-pointer rounded px-1.5 py-0.5 font-medium hover:bg-accent/15"
+            >
+              Clear
+            </button>
           </div>
         )}
         <div style={{ minHeight: height }}>{children}</div>

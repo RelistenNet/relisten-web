@@ -68,19 +68,6 @@ const ArtistsColumnWithControls = ({
   const toggles = [
     {
       type: 'sort' as const,
-      isActive: sortBy === 'popularity',
-      onToggle: () => setSortBy('popularity'),
-      title:
-        sortBy === 'popularity'
-          ? alphaAsc
-            ? 'Least popular'
-            : 'Most popular'
-          : 'Sort by popularity',
-      label: 'Pop',
-      icon: sortBy === 'popularity' ? dirIcon : undefined,
-    },
-    {
-      type: 'sort' as const,
       isActive: sortBy === 'alpha',
       onToggle: () => setSortBy('alpha'),
       title: sortBy === 'alpha' ? (alphaAsc ? 'Z-A' : 'A-Z') : 'Sort A-Z',
@@ -94,6 +81,20 @@ const ArtistsColumnWithControls = ({
       title: sortBy === 'tapes' ? (alphaAsc ? 'Fewest tapes' : 'Most tapes') : 'Sort by tapes',
       label: 'Tapes',
       icon: sortBy === 'tapes' ? dirIcon : undefined,
+    },
+    {
+      type: 'sort' as const,
+      isActive: sortBy === 'popularity',
+      isDefault: sortBy === 'popularity' && !alphaAsc,
+      onToggle: () => setSortBy('popularity'),
+      title:
+        sortBy === 'popularity'
+          ? alphaAsc
+            ? 'Least popular'
+            : 'Most popular'
+          : 'Sort by popularity',
+      label: 'Pop',
+      icon: sortBy === 'popularity' ? dirIcon : undefined,
     },
   ];
 

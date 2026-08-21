@@ -4,6 +4,7 @@ import { Year } from '@/types';
 import { PropsWithChildren, useMemo } from 'react';
 import { useSegmentParams } from '@timber-js/app/client';
 import { useFilterState } from '@/hooks/useFilterState';
+import { ArrowUp, ArrowDown } from 'lucide-react';
 import sortActiveBands from '../lib/sortActiveBands';
 import Count from './Count';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
@@ -33,6 +34,7 @@ const YearsColumnWithControls = ({
       onToggle: () => toggleFilter('date'),
       title: !dateAsc ? 'Newest First' : 'Oldest First',
       label: 'Date',
+      icon: dateAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />,
     },
   ];
 

@@ -5,6 +5,7 @@ import { Show } from '@/types';
 import { useSegmentParams } from '@timber-js/app/client';
 import { useMemo } from 'react';
 import sortActiveBands from '../lib/sortActiveBands';
+import { ArrowUp, ArrowDown } from 'lucide-react';
 import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import Count from './Count';
@@ -39,6 +40,7 @@ const ShowsColumnWithControls = ({
       onToggle: () => toggleFilter('date'),
       title: !dateAsc ? 'Newest First' : 'Oldest First',
       label: 'Date',
+      icon: dateAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />,
     },
     {
       type: 'filter' as const,
