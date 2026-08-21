@@ -212,7 +212,7 @@ const ArtistsColumnWithControls = ({
 
   return (
     <ColumnWithToggleControls
-      heading="Bands"
+      heading="Artists"
       toggles={toggles}
       filteredCount={filteredArtistCount}
       totalCount={totalArtistCount}

@@ -1,11 +1,11 @@
 'use client';
 
 import cn from '@/lib/cn';
-import { FilterState } from '@/lib/filterCookies';
 import { Artist } from '@/types';
 import { fuzzyMatch, type HighlightRanges } from '@nozbe/microfuzz';
+import { useSegmentParams } from '@timber-js/app/client';
 import { X } from 'lucide-react';
-import { useMemo, useRef, useState, useTransition } from 'react';
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import ArtistsColumnWithControls from './ArtistsColumnWithControls';
 
 type Tab = 'primary' | 'all';
@@ -15,10 +15,7 @@ type ArtistsSelectionTabProps = {
 };
 
 const ArtistsSelectionTab = ({ artistsAll }: ArtistsSelectionTabProps) => {
-  const [tab, setTab] = useState<Tab>('primary');
-  const [isPending, startTransition] = useTransition();
-  const [searchQuery, setSearchQuery] = useState('');
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const { artistSlug } = useSegmentParams('/(browse)/[artistSlug]');
 
   const primaryArtists = useMemo(
     () => artistsAll.filter((artist) => Number(artist.featured) <= 1),
@@ -29,6 +26,23 @@ const ArtistsSelectionTab = ({ artistsAll }: ArtistsSelectionTabProps) => {
     () => artistsAll.filter((artist) => Number(artist.featured) > 1),
     [artistsAll]
   );
+
+  const initialTab = useMemo<Tab>(() => {
+    if (!artistSlug) return 'primary';
+    const isArchive = archiveArtists.some((a) => a.slug === artistSlug);
+    return isArchive ? 'all' : 'primary';
+  }, [artistSlug, archiveArtists]);
+
+  const [tab, setTab] = useState<Tab>(initialTab);
+  const [isPending, startTransition] = useTransition();
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!artistSlug) return;
+    const isArchive = archiveArtists.some((a) => a.slug === artistSlug);
+    if (isArchive) setTab('all');
+  }, [artistSlug, archiveArtists]);
 
   const { artists, highlightRanges } = useMemo(() => {
     const query = searchQuery.trim();

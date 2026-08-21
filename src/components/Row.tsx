@@ -5,7 +5,6 @@ import { Link, useLinkStatus } from '@timber-js/app/client';
 import React from 'react';
 import Flex from './Flex';
 import RowLoading from './RowLoading';
-import Spinner from './Spinner';
 
 type RowProps = {
   children?: React.ReactNode;
