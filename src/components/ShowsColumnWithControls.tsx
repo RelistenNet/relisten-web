@@ -28,19 +28,38 @@ const ShowsColumnWithControls = ({
   shows,
   fullDate,
 }: ShowsColumnWithControlsProps) => {
-  const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(`${artistSlug}:shows`);
+  const { alphaAsc, sortBy, setSortBy, sbdOnly, toggleFilter, clearFilters } = useFilterState(
+    `${artistSlug}:shows`,
+    'alpha'
+  );
   const params = useSegmentParams() as Record<string, string | string[] | undefined>;
   const currentMonth = unwrapSegment(params.month);
   const currentDay = unwrapSegment(params.day);
 
+  const dirIcon = alphaAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
+
   const toggles = [
     {
       type: 'sort' as const,
-      isActive: dateAsc,
-      onToggle: () => toggleFilter('date'),
-      title: !dateAsc ? 'Newest First' : 'Oldest First',
+      isActive: sortBy === 'alpha',
+      onToggle: () => setSortBy('alpha'),
+      title: sortBy === 'alpha' ? (alphaAsc ? 'Oldest First' : 'Newest First') : 'Sort by date',
       label: 'Date',
-      icon: dateAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />,
+      icon: sortBy === 'alpha' ? dirIcon : undefined,
+    },
+    {
+      type: 'sort' as const,
+      isActive: sortBy === 'popularity',
+      isDefault: sortBy === 'popularity' && !alphaAsc,
+      onToggle: () => setSortBy('popularity'),
+      title:
+        sortBy === 'popularity'
+          ? alphaAsc
+            ? 'Least popular'
+            : 'Most popular'
+          : 'Sort by popularity',
+      label: 'Pop',
+      icon: sortBy === 'popularity' ? dirIcon : undefined,
     },
     {
       type: 'filter' as const,
@@ -54,23 +73,28 @@ const ShowsColumnWithControls = ({
   const processedShows = useMemo(() => {
     let processedShows = [...shows];
 
-    // Apply filter
     if (sbdOnly) {
       processedShows = processedShows.filter((show) => show.has_soundboard_source);
     }
 
-    // Apply sorting
-    if (artistSlug) {
-      processedShows = sortActiveBands(artistSlug, processedShows);
-    }
-
-    // Reverse if needed (default is desc/newest first when no filter set)
-    if (!dateAsc) {
-      processedShows.reverse(); // Change to oldest first
+    if (sortBy === 'popularity') {
+      const dir = alphaAsc ? -1 : 1;
+      processedShows.sort((a, b) => {
+        const ap = a.popularity?.windows?.['30d']?.plays ?? 0;
+        const bp = b.popularity?.windows?.['30d']?.plays ?? 0;
+        return dir * (bp - ap);
+      });
+    } else {
+      if (artistSlug) {
+        processedShows = sortActiveBands(artistSlug, processedShows);
+      }
+      if (!alphaAsc) {
+        processedShows.reverse();
+      }
     }
 
     return processedShows;
-  }, [shows, artistSlug, dateAsc, sbdOnly]);
+  }, [shows, artistSlug, alphaAsc, sortBy, sbdOnly]);
 
   const tours = {};
 

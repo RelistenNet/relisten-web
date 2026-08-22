@@ -27,7 +27,7 @@ const getInverse = (key: string, sort?: SORT_DIRECTION) => {
   return undefined;
 };
 
-export function useFilterState(filterKey?: string) {
+export function useFilterState(filterKey?: string, defaultSortBy: SortByMode = 'popularity') {
   const pathname = usePathname();
 
   const key = useMemo(() => filterKey || getFilterKey(pathname), [pathname, filterKey]);
@@ -76,7 +76,7 @@ export function useFilterState(filterKey?: string) {
 
   const setSortBy = useCallback(
     (mode: SortByMode) => {
-      const currentMode = filters.sortBy ?? 'popularity';
+      const currentMode = filters.sortBy ?? defaultSortBy;
       if (currentMode === mode) {
         const currentAlpha = filters.alpha;
         const newAlpha = getInverse('alpha', currentAlpha);
@@ -98,6 +98,6 @@ export function useFilterState(filterKey?: string) {
     alphaAsc: filters.alpha === SORT_DIRECTION.asc,
     dateAsc: filters.date === SORT_DIRECTION.asc,
     sbdOnly: filters.sbd === true,
-    sortBy: (filters.sortBy ?? 'popularity') as SortByMode,
+    sortBy: (filters.sortBy ?? defaultSortBy) as SortByMode,
   };
 }

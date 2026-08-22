@@ -6,9 +6,5 @@ export default defineConfig({
   adapter: nitro({ preset: 'node-server' }),
   serverTiming: 'detailed',
   pageExtensions: ['tsx', 'ts', 'jsx', 'js', 'mdx'],
-  mdx: {
-    remarkPlugins: [],
-    rehypePlugins: [],
-  },
   clientSegmentCache: true,
 });
