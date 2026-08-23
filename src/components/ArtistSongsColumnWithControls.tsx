@@ -7,6 +7,8 @@ import Count from './Count';
 import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import Row from './Row';
+import { ArrowUp, ArrowDown } from 'lucide-react';
+import { useFilterState } from '@/hooks/useFilterState';
 
 type ArtistSongsColumnWithControlsProps = {
   artistSlug?: string;
@@ -19,26 +21,39 @@ const ArtistSongsColumnWithControls = ({
   songs,
   subHeader,
 }: ArtistSongsColumnWithControlsProps) => {
-  const [sortAlpha, setSortAlpha] = useState(false);
+  const { alphaAsc, sortBy, setSortBy } = useFilterState(`${artistSlug}:songs`, 'alpha')
+
+  const dirIcon = alphaAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
 
   const toggles = [
     {
       type: 'sort' as const,
-      isActive: sortAlpha,
-      onToggle: () => setSortAlpha((v) => !v),
-      title: sortAlpha ? 'Most Played' : 'A-Z',
+      isActive: sortBy === 'tapes',
+      onToggle: () => setSortBy('tapes'),
+      label: 'Played',
+      title: sortBy === 'tapes' ? 'Most Played' : 'Least Played',
+      icon: sortBy === 'tapes' ? dirIcon : undefined
+    },
+    {
+      type: 'sort' as const,
+      isActive: sortBy === 'alpha',
+      onToggle: () => setSortBy('alpha'),
+      title: sortBy === 'alpha' ? 'A-Z' : 'Z-A',
+      label: 'A-Z',
+      icon: sortBy === 'alpha' ? dirIcon : undefined
     },
   ];
 
   const sortedSongs = useMemo(() => {
     const sorted = [...songs];
-    if (sortAlpha) {
+    if (sortBy === 'alpha') {
       sorted.sort((a, b) => (a.sortName || a.name || '').localeCompare(b.sortName || b.name || ''));
     } else {
       sorted.sort((a, b) => (b.shows_played_at ?? 0) - (a.shows_played_at ?? 0));
     }
+    if (!alphaAsc) sorted.reverse();
     return sorted;
-  }, [songs, sortAlpha]);
+  }, [songs, sortBy, alphaAsc]);
 
   return (
     <ColumnWithToggleControls
