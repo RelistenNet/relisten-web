@@ -1,9 +1,13 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { deny, type MiddlewareContext } from '@timber-js/app/server';
+import { refreshSessionIfNeeded } from '@/lib/refreshSession';
+import { ACCOUNTS_FEATURE_ENABLED } from '@/lib/constants';
 
 const VALID_SEGMENT = /^[a-zA-Z0-9-]+$/;
 
 export default async function middleware(ctx: MiddlewareContext): Promise<Response | void> {
+  if (ACCOUNTS_FEATURE_ENABLED) await refreshSessionIfNeeded();
+
   ctx.headers.set('Cache-Control', 'private, no-cache, no-store');
 
   // Reject requests with path segments that don't look like valid slugs.
