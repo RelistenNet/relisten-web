@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
 import { timber } from '@timber-js/app';
+import { sessionDevServer } from './dev/sessionDevServer';
 
 const serverExternals = ['takumi-js', '@takumi-rs/core', '@mdx-js/rollup', 'rollup', 'fsevents'];
 
@@ -26,7 +27,6 @@ export default defineConfig({
       },
     },
   },
-  server: {
-    strictPort: false,
-  },
+  // Opt-in HTTPS origin + same-origin session proxy (pnpm dev:session).
+  server: sessionDevServer() ?? { strictPort: false },
 });

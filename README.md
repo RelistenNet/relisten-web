@@ -25,6 +25,8 @@ Our Sonos app is on the Sonos store and also open source @ https://github.com/Re
   $ npm start
 ```
 
+For sign-in / favorites development see [docs/dev-session.md](docs/dev-session.md).
+
 ## License
 
 AGPL3

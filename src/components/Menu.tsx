@@ -7,6 +7,7 @@ const Menu = () => (
     <Row href="/">Home</Row>
     <Row href="/blog">Blog</Row>
     <Row href="/about">About</Row>
+    <Row href="/account">Account</Row>
     <Row href="/today">Today</Row>
     <Row href="/recently-played">Live</Row>
     <Row href="/app">Apps</Row>
