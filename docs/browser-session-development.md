@@ -79,6 +79,12 @@ Run the client and proxy regression tests without starting the services:
 pnpm test:browser-session
 ```
 
+Install Chromium once for the current Playwright version when it is not already available:
+
+```sh
+pnpm exec playwright install chromium
+```
+
 The browser smoke expects PostgreSQL, Redis, the User Service, and Timber to be running already:
 
 ```sh
