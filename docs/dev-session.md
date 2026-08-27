@@ -10,9 +10,13 @@ Proxied paths: `/auth/session/*`, `/api/user/v1/csrf`, `/v1/me`, `/v1/library/*`
 ## One-time setup
 
 ```sh
-brew install mkcert
+brew install mkcert nss     # nss (certutil) is only needed so Firefox trusts the CA too
 pnpm setup:dev-session      # trusts a local CA, issues the cert, configures the User Service
 ```
+
+Firefox keeps its own trust store: without `nss` installed before `mkcert -install`
+it shows "Something doesn't look right". Install `nss`, rerun `mkcert -install`,
+and restart Firefox.
 
 The cert lives in `~/Library/Application Support/Relisten/dev-tls` (override with
 `RELISTEN_LOCAL_TLS_DIR`). The script also writes the cert paths and a stable

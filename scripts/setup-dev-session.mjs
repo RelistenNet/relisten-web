@@ -47,6 +47,12 @@ if (spawnSync('mkcert', ['-version'], { stdio: 'ignore' }).error) {
   fail('mkcert is required: brew install mkcert');
 }
 
+if (spawnSync('certutil', ['-H'], { stdio: 'ignore' }).error) {
+  console.warn(
+    'certutil not found: Firefox will not trust the local CA. brew install nss, then rerun.'
+  );
+}
+
 mkdirSync(tlsDir, { recursive: true, mode: 0o700 });
 run('mkcert', ['-install']);
 run('mkcert', ['-cert-file', certPath, '-key-file', keyPath, ...HOSTS]);
