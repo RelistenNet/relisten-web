@@ -16,14 +16,14 @@ Our Sonos app is on the Sonos store and also open source @ https://github.com/Re
 
 ## Development
 
-### To run
+Relisten web uses Node.js 22.18 or newer and pnpm 11. Install dependencies with the locked versions:
 
+```sh
+pnpm install --frozen-lockfile
+pnpm dev
 ```
-  #### install node
-  #### install pnpm (npm i -g pnpm)
-  $ pnpm i
-  $ npm start
-```
+
+Browser-session development also needs trusted local HTTPS and the local Relisten User Service. Follow [Browser-session development](docs/browser-session-development.md) before using authenticated account or library routes.
 
 ## License
 
