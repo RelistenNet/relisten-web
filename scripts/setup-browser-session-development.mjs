@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 
 const minimumNode = { major: 22, minor: 18 };
 const localHosts = [
+  'localhost',
   'web.relisten.localhost',
   'auth.relisten.localhost',
   'accounts.relisten.localhost',

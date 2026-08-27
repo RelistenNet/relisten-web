@@ -19,6 +19,7 @@ pnpm setup:browser-session
 
 The setup command asks macOS to trust the local `mkcert` certificate authority. It then creates one certificate for these names:
 
+- `localhost`
 - `web.relisten.localhost`
 - `auth.relisten.localhost`
 - `accounts.relisten.localhost`
@@ -94,6 +95,80 @@ pnpm test:smoke:browser-session
 The smoke enters through a development persona and the real authorization-code flow. It checks the browser-safe account contract, a library snapshot, and logout. It does not start services, query PostgreSQL, parse credentials, or inspect browser storage.
 
 Use Browser or Chrome DevTools for deeper local verification. Keep any direct PostgreSQL inspection read-only and avoid printing cookies, validators, tokens, or user data.
+
+## Optional real Google proof
+
+Real Google sign-in can use the local User Service and local PostgreSQL. Create
+a separate Google OAuth client with application type **Web application**. Add
+this exact authorized redirect URI:
+
+```text
+https://localhost:5443/signin-google
+```
+
+Keep that client separate from the production Google client. If the OAuth
+consent screen is in testing mode, add the Google account that will run the
+proof as a test user.
+
+Store these values in the User Service's .NET user-secrets store without putting
+the client secret in Git or shell history:
+
+```text
+Accounts:Google:ClientId
+Accounts:Google:ClientSecret
+```
+
+From the API checkout, this zsh command reads the values without echoing the
+client secret and sends them to .NET Secret Manager over standard input:
+
+```sh
+cd /Users/alecgorge/code/relisten/RelistenApi
+read -r "google_client_id?Google OAuth client ID: "
+read -rs "google_client_secret?Google OAuth client secret: "
+printf '\n'
+printf '{"Accounts:Google:ClientId":"%s","Accounts:Google:ClientSecret":"%s"}' \
+  "$google_client_id" "$google_client_secret" | dotnet user-secrets set \
+    --project RelistenUserService/RelistenUserService.csproj
+unset google_client_id google_client_secret
+```
+
+Rerun setup after pulling this profile so the trusted certificate includes
+`localhost`:
+
+```sh
+cd /Users/alecgorge/code/relisten/relisten-web
+pnpm setup:browser-session
+```
+
+Start the local databases. Then start the User Service with the Google profile:
+
+```sh
+cd /Users/alecgorge/code/relisten/RelistenApi
+dotnet run \
+  --project RelistenUserService/RelistenUserService.csproj \
+  --launch-profile RelistenUserService.LocalGoogle
+```
+
+Start Timber in another terminal:
+
+```sh
+cd /Users/alecgorge/code/relisten/relisten-web
+pnpm dev
+```
+
+Use a normal Chrome window to open
+`https://web.relisten.localhost:5173/auth/session/start?return_to=/browser-session-development`.
+Google returns to `https://localhost:5443/signin-google`; Relisten then returns
+to Timber and creates the opaque session in local PostgreSQL.
+
+The launch profile pins both database connections to the checked-in local
+PostgreSQL endpoint. Startup migrations, identity rows, OpenIddict records, and
+browser sessions stay local. The profile does not use development personas and
+does not require the Apple private key.
+
+Apple cannot use this localhost profile. Sign in with Apple requires an HTTPS
+return URL on a registered domain, so an Apple development proof needs a
+separate public development hostname and secure tunnel.
 
 ## Production-backed development
 
