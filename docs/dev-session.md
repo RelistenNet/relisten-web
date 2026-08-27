@@ -3,7 +3,8 @@
 Plain `pnpm dev` needs nothing extra. Sign-in, `/account`, and favorites need the
 Relisten User Service reachable *same-origin* on the one local origin it accepts,
 `https://web.relisten.localhost:5173`. In production Traefik routes these paths to
-the User Service; locally Vite's proxy does (`dev/sessionDevServer.ts`).
+the User Service; locally `app/proxy.ts` forwards them (`src/lib/session/proxy.ts`) —
+timber handles requests before Vite's own `server.proxy`, so that can't be used.
 
 Proxied paths: `/auth/session/*`, `/api/user/v1/csrf`, `/v1/me`, `/v1/library/*`.
 

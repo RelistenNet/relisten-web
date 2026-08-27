@@ -1,3 +1,5 @@
+import { proxySessionRequest } from '@/lib/session/proxy';
+
 export default async (req: Request, next: () => Promise<Response>) => {
   const start = performance.now();
   const url = new URL(req.url);
@@ -9,6 +11,9 @@ export default async (req: Request, next: () => Promise<Response>) => {
     'unknown';
   const host = req.headers.get('host') ?? req.headers.get('x-forwarded-host') ?? 'unknown';
   const ua = req.headers.get('user-agent') ?? 'unknown';
+
+  const session = await proxySessionRequest(req);
+  if (session) return session;
 
   if (url.pathname === '/privacy-policy') {
     const file = await fetch(new URL('/privacy_policy.html', req.url));

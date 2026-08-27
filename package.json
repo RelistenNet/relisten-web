@@ -12,7 +12,7 @@
     "start": "timber preview",
     "lint": "oxlint src/**/*.ts src/**/*.tsx",
     "typecheck": "tsc --noEmit",
-    "dev:session": "RELISTEN_WEB_SESSION=local NODE_OPTIONS=--use-system-ca vite",
+    "dev:session": "RELISTEN_WEB_SESSION=${RELISTEN_WEB_SESSION:-local} NODE_OPTIONS=--use-system-ca vite",
     "setup:dev-session": "node scripts/setup-dev-session.mjs"
   },
   "dependencies": {
