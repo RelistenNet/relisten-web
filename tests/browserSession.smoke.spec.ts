@@ -1,15 +1,19 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 const webOrigin = 'https://web.relisten.localhost:5173';
 
 test('signs in through a development persona and clears the session on logout', async ({
   page,
 }) => {
-  await page.goto('/auth/session/start?return_to=%2Fbrowser-session-development');
-  await expect(page).toHaveURL(/^https:\/\/auth\.relisten\.localhost:5443\/development\/sign-in/);
+  await runRedirectStage(page, 'authorization start', async () => {
+    await page.goto('/auth/session/start?return_to=%2Fbrowser-session-development');
+    await expect(page).toHaveURL(/^https:\/\/auth\.relisten\.localhost:5443\/development\/sign-in/);
+  });
 
-  await page.getByRole('button', { name: /Alice · ordinary Google email/ }).click();
-  await expect(page).toHaveURL(`${webOrigin}/browser-session-development`);
+  await runRedirectStage(page, 'authorization callback', async () => {
+    await page.getByRole('button', { name: /Alice · ordinary Google email/ }).click();
+    await expect(page).toHaveURL(`${webOrigin}/browser-session-development`);
+  });
   await expect(page.getByTestId('browser-session-development-page')).toBeVisible();
 
   const resources = await page.evaluate(async () => {
@@ -64,3 +68,14 @@ test('signs in through a development persona and clears the session on logout', 
     )
   ).toBe(401);
 });
+
+async function runRedirectStage(page: Page, stage: string, action: () => Promise<void>) {
+  try {
+    await action();
+  } catch {
+    // Playwright includes complete callback URLs in assertion errors.
+    // Replacing the error keeps the OIDC code and state out of test output.
+    const currentUrl = new URL(page.url());
+    throw new Error(`${stage} failed at ${currentUrl.origin}${currentUrl.pathname}.`);
+  }
+}
