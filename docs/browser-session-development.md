@@ -172,18 +172,38 @@ separate public development hostname and secure tunnel.
 
 ## Production-backed development
 
-The development proxy supports the production target:
+Production-backed development needs Node.js, pnpm, and `mkcert`. It does not
+need the .NET SDK, a RelistenApi checkout, local databases, local User Service,
+or local Google credentials.
+
+Install dependencies and create the trusted local TLS certificate:
 
 ```sh
-RELISTEN_WEB_SESSION_TARGET=production pnpm dev
+pnpm install --frozen-lockfile
+pnpm setup:browser-session:production
 ```
 
-Do not use the production target until the production session routes, confidential client secret, and callback configuration have been deployed through the approved production plan. A production Google sign-in creates production session rows. Production sign-in and favorite mutations require explicit approval for this project.
+Start Timber with the production target:
+
+```sh
+env RELISTEN_WEB_SESSION_TARGET=production pnpm dev
+```
+
+Open
+`https://web.relisten.localhost:5173/auth/session/start?return_to=%2Fbrowser-session-development`.
+Production Relisten starts Google authentication and returns to the local
+Timber callback. Google still uses
+`https://auth.relisten.net/signin-google`, so developers do not need a Google
+Console change.
+
+A production Google sign-in creates production session rows. Log out when the
+test is complete. Do not mutate favorites unless the test intentionally changes
+production library data.
 
 ## Setup failures
 
-- If `mkcert` is missing, install it and rerun `pnpm setup:browser-session`.
-- If macOS rejects the trust change, complete the normal system password prompt and rerun setup. Do not give the password to a script or another person.
-- If the TLS files are absent, rerun `pnpm setup:browser-session`. Timber does not fall back to HTTP or disable certificate validation.
-- If the saved client secret has broad file permissions or malformed content, setup stops before changing User Service configuration. Correct the file permissions or restore the prior local secret. Do not rotate the secret while the existing local OpenIddict client remains in the database.
-- If port 5173 or 5443 is occupied, stop the conflicting process. The development servers do not choose a different origin or port.
+- If `mkcert` is missing, install it and rerun the same setup command.
+- If macOS rejects the trust change, complete the normal system password prompt and rerun the same setup command. Do not give the password to a script or another person.
+- If the TLS files are absent, rerun `pnpm setup:browser-session` for full local development or `pnpm setup:browser-session:production` for the production target. Timber does not fall back to HTTP or disable certificate validation.
+- If the saved client secret has broad file permissions or malformed content, full-local setup stops before changing User Service configuration. Correct the file permissions or restore the prior local secret. Do not rotate the secret while the existing local OpenIddict client remains in the database.
+- Port 5173 must be free. Full-local development also needs port 5443. The development servers do not choose different ports.

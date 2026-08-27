@@ -13,6 +13,7 @@
     "lint": "oxlint src/**/*.ts src/**/*.tsx",
     "typecheck": "tsc --noEmit",
     "setup:browser-session": "node scripts/setup-browser-session-development.mjs",
+    "setup:browser-session:production": "node scripts/setup-browser-session-development.mjs --production",
     "test:browser-session": "vitest run --config vitest.browser-session.config.ts",
     "test:smoke:browser-session": "PLAYWRIGHT_NO_COPY_PROMPT=1 playwright test tests/browserSession.smoke.spec.ts"
   },

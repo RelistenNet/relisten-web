@@ -5,9 +5,19 @@ import {
   createBrowserSessionProxyPlugin,
   isBrowserSessionProxyRequest,
   isExpectedDevelopmentHost,
+  loadBrowserSessionDevelopmentConfiguration,
   prepareBrowserSessionProxyHeaders,
   requestAuthority,
 } from '../dev/browserSessionDevelopment';
+
+test('recommends the TLS-only setup when production certificates are missing', () => {
+  expect(() =>
+    loadBrowserSessionDevelopmentConfiguration({
+      RELISTEN_WEB_SESSION_TARGET: 'production',
+      RELISTEN_LOCAL_TLS_DIR: '/path/that/does/not/exist',
+    })
+  ).toThrowError('Run "pnpm setup:browser-session:production" and try again.');
+});
 
 test('routes reviewed path families without deciding authorization', () => {
   expect(isBrowserSessionProxyRequest('/auth/session/start?return_to=%2F')).toBe(true);

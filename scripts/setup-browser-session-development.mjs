@@ -33,16 +33,43 @@ const certificateAuthorityPath = join(tlsDirectory, 'ca.pem');
 const clientSecretPath = join(tlsDirectory, 'web-client-secret');
 
 try {
-  main();
+  main(process.argv.slice(2));
 } catch (error) {
   const message = error instanceof Error ? error.message : 'Browser-session setup failed.';
   process.stderr.write(`${message}\n`);
   process.exitCode = 1;
 }
 
-function main() {
+function main(args) {
+  const setupTarget = parseSetupTarget(args);
   requireSupportedNode();
   requireCommand('mkcert', ['-version'], missingMkcertMessage());
+  if (setupTarget === 'local') {
+    requireLocalUserService();
+  }
+
+  mkdirSync(tlsDirectory, { recursive: true, mode: 0o700 });
+  chmodSync(tlsDirectory, 0o700);
+
+  run('mkcert', ['-install']);
+  run('mkcert', ['-cert-file', certificatePath, '-key-file', certificateKeyPath, ...localHosts]);
+  chmodSync(certificatePath, 0o644);
+  chmodSync(certificateKeyPath, 0o600);
+
+  if (setupTarget === 'local') {
+    configureLocalUserService();
+  }
+  const scope = setupTarget === 'local' ? 'local' : 'production-backed';
+  process.stdout.write(`Relisten ${scope} browser-session setup is ready.\n`);
+}
+
+function parseSetupTarget(args) {
+  if (args.length === 0) return 'local';
+  if (args.length === 1 && args[0] === '--production') return 'production';
+  throw new Error('Usage: setup-browser-session-development.mjs [--production]');
+}
+
+function requireLocalUserService() {
   requireCommand('dotnet', ['--version'], 'Install the .NET SDK and rerun setup.');
   if (!existsSync(apiProject)) {
     throw new Error(
@@ -50,23 +77,15 @@ function main() {
         'Set RELISTEN_API_CHECKOUT to the RelistenApi checkout and rerun setup.'
     );
   }
+}
 
-  mkdirSync(tlsDirectory, { recursive: true, mode: 0o700 });
-  chmodSync(tlsDirectory, 0o700);
+function configureLocalUserService() {
   const clientSecret = loadOrCreateClientSecret();
-
-  run('mkcert', ['-install']);
-  run('mkcert', ['-cert-file', certificatePath, '-key-file', certificateKeyPath, ...localHosts]);
-  chmodSync(certificatePath, 0o644);
-  chmodSync(certificateKeyPath, 0o600);
-
   const certificateAuthorityRoot = capture('mkcert', ['-CAROOT']);
   // Node trusts the copied public CA for the local API connection. The mkcert root private key stays in mkcert's protected store.
   copyFileSync(join(certificateAuthorityRoot, 'rootCA.pem'), certificateAuthorityPath);
   chmodSync(certificateAuthorityPath, 0o644);
-
   setUserSecrets(clientSecret);
-  process.stdout.write('Relisten browser-session development setup is ready.\n');
 }
 
 function configuredTlsDirectory() {

@@ -33,8 +33,13 @@ export function loadBrowserSessionDevelopmentConfiguration(
   const tlsDirectory =
     environment.RELISTEN_LOCAL_TLS_DIR ??
     join(homedir(), 'Library', 'Application Support', 'Relisten', 'local-browser-session-tls');
-  const certificate = readRequiredFile(join(tlsDirectory, 'relisten-local.pem'));
-  const certificateKey = readRequiredFile(join(tlsDirectory, 'relisten-local-key.pem'));
+  const setupCommand =
+    profile === 'local' ? 'pnpm setup:browser-session' : 'pnpm setup:browser-session:production';
+  const certificate = readRequiredFile(join(tlsDirectory, 'relisten-local.pem'), setupCommand);
+  const certificateKey = readRequiredFile(
+    join(tlsDirectory, 'relisten-local-key.pem'),
+    setupCommand
+  );
 
   return {
     profile,
@@ -42,7 +47,9 @@ export function loadBrowserSessionDevelopmentConfiguration(
     certificate,
     certificateKey,
     targetCertificateAuthority:
-      profile === 'local' ? readRequiredFile(join(tlsDirectory, 'ca.pem'), 'utf8') : undefined,
+      profile === 'local'
+        ? readRequiredFile(join(tlsDirectory, 'ca.pem'), setupCommand, 'utf8')
+        : undefined,
   };
 }
 
@@ -153,15 +160,19 @@ function hasAmbiguousPathSegment(pathname: string): boolean {
   });
 }
 
-function readRequiredFile(path: string): Buffer;
-function readRequiredFile(path: string, encoding: BufferEncoding): string;
-function readRequiredFile(path: string, encoding?: BufferEncoding): Buffer | string {
+function readRequiredFile(path: string, setupCommand: string): Buffer;
+function readRequiredFile(path: string, setupCommand: string, encoding: BufferEncoding): string;
+function readRequiredFile(
+  path: string,
+  setupCommand: string,
+  encoding?: BufferEncoding
+): Buffer | string {
   try {
     return encoding === undefined ? readFileSync(path) : readFileSync(path, encoding);
   } catch {
     throw new Error(
       `The browser-session development file is unavailable: ${path}. ` +
-        'Run "pnpm setup:browser-session" and try again.'
+        `Run "${setupCommand}" and try again.`
     );
   }
 }

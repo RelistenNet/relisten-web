@@ -26,6 +26,17 @@ pnpm dev
 
 The setup command also configures the local Relisten User Service. Follow [Browser-session development](docs/browser-session-development.md) for prerequisites, service startup, and authenticated account or library routes.
 
+To use local Timber with production authentication, install only the local TLS
+certificate and start the production proxy target:
+
+```sh
+pnpm setup:browser-session:production
+env RELISTEN_WEB_SESSION_TARGET=production pnpm dev
+```
+
+Production-backed development does not require the .NET SDK, a RelistenApi
+checkout, local databases, or local Google credentials.
+
 ## License
 
 AGPL3
