@@ -13,7 +13,8 @@
     "lint": "oxlint src/**/*.ts src/**/*.tsx",
     "typecheck": "tsc --noEmit",
     "setup:browser-session": "node scripts/setup-browser-session-development.mjs",
-    "test:browser-session": "PLAYWRIGHT_NO_COPY_PROMPT=1 playwright test tests/browserSessionClient.spec.ts tests/browserSessionProxy.spec.ts"
+    "test:browser-session": "PLAYWRIGHT_NO_COPY_PROMPT=1 playwright test tests/browserSessionClient.spec.ts tests/browserSessionProxy.spec.ts",
+    "test:smoke:browser-session": "PLAYWRIGHT_NO_COPY_PROMPT=1 playwright test tests/browserSession.smoke.spec.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
