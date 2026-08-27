@@ -16,15 +16,14 @@ Our Sonos app is on the Sonos store and also open source @ https://github.com/Re
 
 ## Development
 
-Relisten web uses Node.js 22.18 or newer and pnpm 11. The Vite development server always uses the fixed local HTTPS certificate. Run the browser-session setup once before starting Vite:
+### To run
 
-```sh
-pnpm install --frozen-lockfile
-pnpm setup:browser-session
-pnpm dev
 ```
-
-The setup command also configures the local Relisten User Service. Follow [Browser-session development](docs/browser-session-development.md) for prerequisites, service startup, and authenticated account or library routes.
+  #### install node
+  #### install pnpm (npm i -g pnpm)
+  $ pnpm i
+  $ npm start
+```
 
 ## License
 

@@ -17,9 +17,4 @@ dist/
 .timber
 .lb
 .content-collections
-.test-results
 .mcp.json
-/relisten-local.pem
-/relisten-local-key.pem
-/ca.pem
-/web-client-secret
