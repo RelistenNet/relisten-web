@@ -54,9 +54,19 @@ async function json<T>(path: string, init?: RequestInit): Promise<T> {
   return (await res.json()) as T;
 }
 
+/** Thrown when the User Service is down/erroring for a request that carries a session cookie. */
+export class SessionUnavailableError extends Error {
+  constructor(cause: unknown) {
+    super('The account service is temporarily unavailable.', { cause });
+    this.name = 'SessionUnavailableError';
+  }
+}
+
 /**
- * The signed-in user for this request, or null. Deduplicated per render via
- * React.cache so layouts, access.ts, and pages can all call it freely.
+ * The signed-in user for this request, or null when there is no (valid) session.
+ * Deduplicated per render via React.cache so layouts, access.ts, and pages can
+ * all call it freely. Throws SessionUnavailableError on outages rather than
+ * pretending the user is signed out — let error.tsx render that state.
  */
 export const getCurrentUser = cache(async (): Promise<AccountProfile | null> => {
   if (!getCookieJar().has(SESSION_COOKIE)) return null;
@@ -65,18 +75,36 @@ export const getCurrentUser = cache(async (): Promise<AccountProfile | null> => 
   } catch (err) {
     if (err instanceof UserServiceError && err.status === 401) return null;
     console.error('[session] /v1/me failed', err);
+    throw new SessionUnavailableError(err);
+  }
+});
+
+/** The favorites library, or null if it could not be loaded (logged). */
+export const getLibrarySnapshot = cache(async (): Promise<LibrarySnapshot | null> => {
+  try {
+    return await json<LibrarySnapshot>('/v1/library/snapshot');
+  } catch (err) {
+    console.error('[session] /v1/library/snapshot failed', err);
     return null;
   }
 });
 
-export const getLibrarySnapshot = cache(() => json<LibrarySnapshot>('/v1/library/snapshot'));
-
+/** Mutable contexts only (actions / route handlers): relays the CSRF cookie. */
 async function csrfToken(): Promise<string> {
-  const { request_token } = await json<{ request_token: string }>('/api/user/v1/csrf');
+  const path = '/api/user/v1/csrf';
+  const res = await userServiceFetch(path);
+  // The antiforgery cookie is a browser-session cookie while the web session
+  // cookie is persistent, so after a browser restart GetAndStoreTokens mints a
+  // fresh __Host-relisten_csrf here. Relay it before the POST: the jar's
+  // read-your-own-writes makes the next userServiceFetch send the cookie the
+  // request token is bound to, and the browser receives it too.
+  getCookieJar().setFromHeaders(res.headers);
+  if (!res.ok) throw new UserServiceError(res.status, path);
+  const { request_token } = (await res.json()) as { request_token: string };
   return request_token;
 }
 
-/** POST with a session-bound CSRF token, relaying any Set-Cookie back to the browser. */
+/** POST with a session-bound CSRF token, relaying any Set-Cookie back to the browser. Actions only. */
 async function mutate<T>(path: string, body?: unknown): Promise<T> {
   const token = await csrfToken();
   const headers: Record<string, string> = { [CSRF_HEADER]: token };

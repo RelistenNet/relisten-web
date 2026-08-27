@@ -37,7 +37,10 @@ persona. `dev:session` runs Node with `--use-system-ca` so both the Vite proxy a
 server-side `fetch` trust the mkcert CA without any CA-file plumbing.
 
 `RELISTEN_WEB_SESSION=production pnpm dev:session` proxies to `https://relisten.net`
-instead — only once the production session routes are deployed.
+instead, so you only need mkcert — no .NET, databases, or Google credentials. Google
+still returns to `https://auth.relisten.net/signin-google`, so no Google Console change
+is needed. This creates real production sessions: sign out when done and don't
+mutate favorites unless you mean to.
 
 ## Code map
 
