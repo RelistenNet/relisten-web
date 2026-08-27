@@ -11,7 +11,10 @@
     "build": "NODE_ENV=production vite build",
     "start": "timber preview",
     "lint": "oxlint src/**/*.ts src/**/*.tsx",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "setup:browser-session": "node scripts/setup-browser-session-development.mjs",
+    "test:browser-session": "vitest run --config vitest.browser-session.config.ts",
+    "test:smoke:browser-session": "PLAYWRIGHT_NO_COPY_PROMPT=1 playwright test tests/browserSession.smoke.spec.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -66,6 +69,7 @@
   "devDependencies": {
     "@content-collections/core": "^0.15.2",
     "@content-collections/vite": "^0.3.0",
+    "@playwright/test": "1.62.1",
     "@rolldown/plugin-babel": "^0.2.2",
     "@switz/eslint-config": "^13.1.0",
     "@tailwindcss/postcss": "^4.3.3",
@@ -76,6 +80,7 @@
     "@vitejs/plugin-react": "^6.1.0",
     "@vitejs/plugin-rsc": "^0.5.34",
     "babel-plugin-react-compiler": "^1.0.0",
+    "http-proxy-3": "2.0.0",
     "oxfmt": "^0.64.0",
     "oxlint": "^1.79.0",
     "postcss": "^8.5.26",
@@ -83,7 +88,11 @@
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vite": "^8.2.2",
-    "vite-plugin-satteri": "^0.3.5"
+    "vite-plugin-satteri": "^0.3.5",
+    "vitest": "^4.1.11"
+  },
+  "engines": {
+    "node": ">=22.18.0"
   },
   "packageManager": "pnpm@11.22.0"
 }
