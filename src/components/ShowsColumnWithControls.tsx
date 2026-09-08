@@ -42,6 +42,7 @@ const ShowsColumnWithControls = ({
     {
       type: 'sort' as const,
       isActive: sortBy === 'alpha',
+      isDefault: sortBy === 'alpha' && !alphaAsc,
       onToggle: () => setSortBy('alpha'),
       title: sortBy === 'alpha' ? (alphaAsc ? 'Oldest First' : 'Newest First') : 'Sort by date',
       label: 'Date',
@@ -50,7 +51,6 @@ const ShowsColumnWithControls = ({
     {
       type: 'sort' as const,
       isActive: sortBy === 'popularity',
-      isDefault: sortBy === 'popularity' && !alphaAsc,
       onToggle: () => setSortBy('popularity'),
       title:
         sortBy === 'popularity'

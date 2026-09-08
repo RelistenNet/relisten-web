@@ -29,6 +29,7 @@ const VenuesColumnWithControls = ({
     {
       type: 'sort' as const,
       isActive: sortBy === 'alpha',
+      isDefault: sortBy === 'alpha' && !alphaAsc,
       onToggle: () => setSortBy('alpha'),
       title: sortBy === 'alpha' ? 'A-Z' : 'Z-A',
       label: 'A-Z',
