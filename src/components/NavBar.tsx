@@ -13,6 +13,8 @@ import { getHeaders, getSegmentParams } from '@timber-js/app/server';
 import { UAParser } from 'ua-parser-js';
 import { getIsInIframe } from '@/lib/isInIframe';
 import { hasRecentPost } from '@/lib/blog/getPosts';
+import { getSession, type AccountSession } from '@/lib/session';
+import { ACCOUNTS_FEATURE_ENABLED } from '@/lib/constants';
 
 export const getUserAgent = async () => {
   const headersList = await getHeaders();
@@ -24,10 +26,13 @@ export const getUserAgent = async () => {
 };
 
 export default async function NavBar() {
-  const [artists, userAgent, isInIframe] = await Promise.all([
+  const [artists, userAgent, isInIframe, session] = await Promise.all([
     RelistenAPI.fetchAllArtists(),
     getUserAgent(),
     getIsInIframe(),
+    // Skip the accounts API call entirely when the feature is off — matches the previous
+    // client-side behavior where AccountMenu (and therefore useSession) never mounted.
+    ACCOUNTS_FEATURE_ENABLED ? getSession() : Promise.resolve<AccountSession>({ signedIn: false }),
   ]);
   const isAndroid = /android/i.test(userAgent?.ua || '');
   const blogHasNew = hasRecentPost();
@@ -45,7 +50,11 @@ export default async function NavBar() {
           lg:grid-cols-[1fr_auto_1fr] lg:px-4
         "
       >
-        <MainNavHeader artistName={artistName} indexOverride={isInIframe ? '/wsp' : undefined} />
+        <MainNavHeader
+          artistName={artistName}
+          indexOverride={isInIframe ? '/wsp' : undefined}
+          session={session}
+        />
         <div
           className="
             player overflow-hidden text-center
