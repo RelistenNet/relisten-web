@@ -40,7 +40,7 @@
     "cmdk": "^1.1.1",
     "date-fns": "^4.4.0",
     "framer-motion": "13.1.1",
-    "gapless": "4.2.3",
+    "gapless": "4.3.0",
     "isomorphic-fetch": "3.0.0",
     "ky": "^2.0.2",
     "lucide-react": "^1.33.0",

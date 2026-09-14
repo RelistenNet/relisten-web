@@ -443,7 +443,7 @@
   /* ── Blog Post Content ── */
 
   .blog-content {
-    --blog-content-width: 640px;
+    --blog-content-width: 100%;
   }
 
   .blog-content > * {
@@ -451,17 +451,19 @@
   }
 
   .blog-content > p {
-    line-height: 1.7;
+    line-height: 1.75;
     margin-top: 0;
     margin-bottom: 1rem;
   }
 
   .blog-content > h2 {
     @apply text-2xl font-semibold mt-10 mb-4;
+    color: var(--color-relisten-DEFAULT);
   }
 
   .blog-content > h3 {
     @apply text-xl font-semibold mt-8 mb-3;
+    color: var(--color-relisten-DEFAULT);
   }
 
   .blog-content > blockquote {
@@ -541,7 +543,7 @@
       margin: 0;
       width: 40%;
       max-width: 280px;
-      left: calc(50% + var(--blog-content-width, 640px) / 2 + 2rem);
+      left: calc(100% + 2rem);
     }
   }
 

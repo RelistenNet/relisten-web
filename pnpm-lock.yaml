@@ -92,8 +92,8 @@ importers:
         specifier: 13.1.1
         version: 13.1.1(react-dom@19.3.0-canary-ed69815c-20260323(react@19.3.0-canary-ed69815c-20260323))(react@19.3.0-canary-ed69815c-20260323)
       gapless:
-        specifier: 4.2.3
-        version: 4.2.3
+        specifier: 4.3.0
+        version: 4.3.0
       isomorphic-fetch:
         specifier: 3.0.0
         version: 3.0.0
@@ -3669,8 +3669,8 @@ packages:
   fuzzysort@3.1.0:
     resolution: {integrity: sha512-sR9BNCjBg6LNgwvxlBd0sBABvQitkLzoVY9MYYROQVX/FvfJ4Mai9LsGhDgd8qYdds0bY77VzYd5iuB+v5rwQQ==}
 
-  gapless@4.2.3:
-    resolution: {integrity: sha512-4cg43NKW+sxkOpPg0zPYd+POvBIf3ysQsYNjez0pt8O31+ZmCsOFS9Pd/szir45hofWPVVDlgUEzHeZDlP/5Og==}
+  gapless@4.3.0:
+    resolution: {integrity: sha512-l0zeGhu0pAyfEDmVsqmUbQcGNTqdQmlAy+zGEy+4CWoqZKWO2OHSuWyJIqjv0rro1uvJ0SSHY0mqYSCH+Bt3mg==}
 
   generator-function@2.0.1:
     resolution: {integrity: sha512-SFdFmIJi+ybC0vjlHN0ZGVGHc3lgE0DxPAT0djjVg+kjOnSqclqmj0KQ7ykTOLP6YxoqOvuAODGdcHJn+43q3g==}
@@ -9146,7 +9146,7 @@ snapshots:
 
   fuzzysort@3.1.0: {}
 
-  gapless@4.2.3:
+  gapless@4.3.0:
     dependencies:
       xstate: 5.32.1
 

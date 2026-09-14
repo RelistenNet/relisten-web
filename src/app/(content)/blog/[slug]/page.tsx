@@ -28,7 +28,7 @@ export default async function BlogPostPage() {
   const { default: MdxComponent } = await loader();
 
   return (
-    <div className="blog-post">
+    <div className="blog-post mx-auto max-w-3xl">
       <BlogSeenMarker />
       {post.is_draft && (
         <div
@@ -43,14 +43,14 @@ export default async function BlogPostPage() {
       <h1 className="mb-2 text-center">{post.title}</h1>
 
       <div className="mb-8 flex flex-col items-center gap-1 text-sm text-foreground-muted">
-        <span>{post.subtitle}</span>
+        <span className="text-relisten">{post.subtitle}</span>
         <div className="flex items-center gap-2">
           <span>
             {postAuthors.map((author, i) => (
               <span key={author.name}>
                 {i > 0 && ', '}
                 {author.url ? (
-                  <a href={author.url} target="_blank" rel="noreferrer">
+                  <a href={author.url} target="_blank" rel="noreferrer" className="text-inherit hover:underline">
                     {author.name}
                   </a>
                 ) : (
@@ -77,17 +77,24 @@ export default async function BlogPostPage() {
         "
       />
 
-      <div className="mt-12 border-t border-gray-200 pt-6">
+      <footer className="mt-12 border-t text-primary-foreground/80 border-gray-200/40 pt-6 flex justify-between text-sm items-center">
         <Link
           href="/blog"
           className="
-            text-relisten text-sm
+            text-sm
+            text-inherit
             hover:underline
           "
         >
           &larr; Back to all posts
         </Link>
-      </div>
+        <div>
+          thanks for reading. have a thought? please{' '}
+          <a href="mailto:team@relisten.net" className="underline" rel="nofollow">
+            email us
+          </a>
+        </div>
+      </footer>
     </div>
   );
 }
