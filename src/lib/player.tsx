@@ -7,6 +7,7 @@ import { updatePlayback } from '../redux/modules/playback';
 import type { GaplessMetadata } from '../types';
 import { toast } from 'sonner';
 import type { RootState, AppDispatch } from '../redux';
+import { replaceUrl } from '@timber-js/app/client';
 
 function detectMobileDevice(): boolean {
   if (window.matchMedia?.('(pointer: coarse)')?.matches) return true;
@@ -201,7 +202,7 @@ function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Qu
 
           // update URL and page title to reflect current track without triggering a full navigation
           if (window.location.pathname.indexOf(`/${artistSlug}/${year}/${month}/${day}`) !== -1) {
-            window.history.replaceState(window.history.state, '', nextUrl);
+            replaceUrl(nextUrl);
             // Keep everything after the first " | " (e.g. "2024-01-01 | Grateful Dead | Relisten")
             // and replace only the track name portion
             const titleParts = document.title.split(' | ');
