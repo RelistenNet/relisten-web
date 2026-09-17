@@ -7,6 +7,6 @@ allowBuilds:
   sharp: false
 
 overrides:
-  react: 19.3.0-canary-ed69815c-20260323
-  react-dom: 19.3.0-canary-ed69815c-20260323
-  scheduler: 0.28.0-canary-ed69815c-20260323
+  react: 19.3.0
+  react-dom: 19.3.0
+  scheduler: 0.26.0

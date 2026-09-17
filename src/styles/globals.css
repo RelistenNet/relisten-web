@@ -217,6 +217,30 @@
   --input: var(--dark-hairline);
 }
 
+.embed-force-light {
+  color-scheme: light;
+  --resolved-surface: var(--light-surface);
+  --resolved-surface-raised: var(--light-surface-raised);
+  --resolved-surface-elevated: var(--light-surface-elevated);
+  --resolved-surface-recessed: var(--light-surface-recessed);
+  --resolved-surface-hover: var(--light-surface-hover);
+  --resolved-hairline: var(--light-hairline);
+  --resolved-text-primary: var(--light-text-primary);
+  --resolved-text-secondary: var(--light-text-secondary);
+  --resolved-text-muted: var(--light-text-muted);
+  --resolved-accent: var(--light-accent);
+  --color-surface: var(--light-surface);
+  --color-surface-raised: var(--light-surface-raised);
+  --color-surface-elevated: var(--light-surface-elevated);
+  --color-surface-hover: var(--light-surface-hover);
+  --color-text-primary: var(--light-text-primary);
+  --color-text-muted: var(--light-text-muted);
+  --color-hairline: var(--light-hairline);
+  --color-accent: var(--light-accent);
+  --foreground: var(--light-text-primary);
+  --muted-foreground: var(--light-text-muted);
+}
+
 /*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still

@@ -33,9 +33,9 @@ const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
       artistName={artist?.name}
       artistYears={slimYears}
     >
-      <SubartistTabs artistSlug={artistSlug} features={features} />
-      <TodayInHistoryRow artistSlug={artistSlug} />
-      <RowHeader>Years</RowHeader>
+      <SubartistTabs key="tabs" artistSlug={artistSlug} features={features} />
+      <TodayInHistoryRow key="today" artistSlug={artistSlug} />
+      <RowHeader key="years-header">Years</RowHeader>
     </YearsColumnWithControls>
   );
 };

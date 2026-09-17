@@ -4,3 +4,5 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path=".timber/timber-routes.d.ts" />
 /// <reference types="vite/client" />
+/// <reference types="react/canary" />
+/// <reference types="react-dom/canary" />

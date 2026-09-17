@@ -29,7 +29,7 @@ const Column = ({ className, heading, children }: ColumnProps) => {
       className={cn('relisten-column flex-1 break-words bg-surface', className)}
       column
     >
-      <Scroller containerRef={ref} key={heading} />
+      <Scroller containerRef={ref} />
       {heading?.trim() && (
         <Flex
           center

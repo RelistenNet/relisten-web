@@ -19,6 +19,7 @@ import { useEffect } from 'react';
 interface PlayerManagerProps extends Props {
   artistName?: string;
   playImmediately?: boolean;
+  trackSlugs?: string[];
 }
 
 export default function PlayerManager(props: PlayerManagerProps) {
@@ -28,6 +29,7 @@ export default function PlayerManager(props: PlayerManagerProps) {
 
   // Remove leading slash and handle embed routes
   const pathParts = String(pathname)
+    .replace(/^\/embed-track/, '')
     .replace(/^\/embed/, '')
     .replace(/^\//, '')
     .split('/');
@@ -38,9 +40,12 @@ export default function PlayerManager(props: PlayerManagerProps) {
 
   useEffect(() => {
     if (activeSourceObj) {
-      const tracks = (activeSourceObj.sets?.map((set) => set.tracks).flat() ?? []).filter(
+      const allTracks = (activeSourceObj.sets?.map((set) => set.tracks).flat() ?? []).filter(
         (t): t is NonNullable<typeof t> => t != null
       );
+      const tracks = props.trackSlugs
+        ? allTracks.filter((t) => t.slug && props.trackSlugs!.includes(t.slug))
+        : allTracks;
       const activeTrackIndex = tracks.findIndex((track) => track?.slug === songSlug);
       const activeTrack = tracks[activeTrackIndex];
       const playImmediately = props.playImmediately ?? true;
@@ -104,6 +109,20 @@ export default function PlayerManager(props: PlayerManagerProps) {
 
       player.gotoTrack(activeTrackIndex, playImmediately);
 
+      if (!playImmediately && activeTrack) {
+        store.dispatch(
+          updatePlayback({
+            activeTrack: {
+              id: activeTrack.id,
+              index: activeTrackIndex,
+              isPaused: true,
+              currentTime: 0,
+              duration: activeTrack.duration,
+            },
+          })
+        );
+      }
+
       // Store seek time for deferred use if autoplay is blocked
       if (seekTime > 0) {
         setPendingSeekTime(seekTime);
@@ -114,7 +133,7 @@ export default function PlayerManager(props: PlayerManagerProps) {
         player.seek(seekTime);
       }
     }
-  }, [pathname, sourceId, activeSourceObj]);
+  }, [pathname, sourceId, activeSourceObj, props.trackSlugs]);
 
   return null;
 }

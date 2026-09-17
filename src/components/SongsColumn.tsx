@@ -1,5 +1,6 @@
 'use client';
 
+import { Fragment } from 'react';
 import { durationToHHMMSS, removeLeadingZero } from '../lib/utils';
 
 import { RawParams } from '@/types/params';
@@ -91,8 +92,9 @@ const SongsColumn = (props: Props) => {
       }
     >
       {activeSourceObj &&
-        activeSourceObj.sets?.map((set, setIdx) =>
-          set.tracks?.map((track, trackIdx) => {
+        activeSourceObj.sets?.map((set, setIdx) => (
+          <Fragment key={set.id}>
+          {set.tracks?.map((track, trackIdx) => {
             const trackIsActive = track.id === activePlaybackTrackId && isActiveSourcePlaying;
 
             const trackMetadata = isActiveSourcePlaying
@@ -147,8 +149,9 @@ const SongsColumn = (props: Props) => {
                 </Row>
               </div>
             );
-          })
-        )}
+          })}
+          </Fragment>
+        ))}
       {activeSourceObj && <RowHeader>FIN</RowHeader>}
       {activeSourceObj &&
         activeSourceObj.links &&

@@ -1,59 +1,64 @@
 'use client';
 
 import cn from '@/lib/cn';
-import { ReactNode, useRef, useState, useCallback } from 'react';
-import { createPortal } from 'react-dom';
+import { ReactNode, createContext, useContext } from 'react';
+import {
+  Tooltip as AnchorTooltip,
+  TooltipTrigger,
+  TooltipContent,
+  SafeArea,
+} from 'css-anchor-kit';
 
 type TooltipProps = {
   children: ReactNode;
   content: ReactNode;
   className?: string;
   contentClassName?: string;
-  align?: 'left' | 'right';
+  align?: 'left' | 'right' | 'top' | 'bottom';
 };
+
+const placementMap = {
+  top: 'top',
+  bottom: 'bottom',
+  left: 'bottom-start',
+  right: 'bottom-end',
+} as const;
+
+export const TooltipThemeContext = createContext<'light' | 'dark' | 'auto'>('auto');
 
 export default function Tooltip({
   children,
   content,
   contentClassName,
   className,
-  align = 'left',
+  align = 'bottom',
 }: TooltipProps) {
-  const triggerRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState<{ top: number; left: number; right: number } | null>(null);
-
-  const show = useCallback(() => {
-    const el = triggerRef.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    setPos({ top: r.bottom + 4, left: r.left, right: window.innerWidth - r.right });
-  }, []);
-
-  const hide = useCallback(() => setPos(null), []);
+  const theme = useContext(TooltipThemeContext);
 
   return (
-    <div ref={triggerRef} className={className ?? ''} onMouseEnter={show} onMouseLeave={hide}>
-      {children}
-      {pos &&
-        createPortal(
-          <div
-            className={cn(
-              contentClassName,
-              `
-                pointer-events-none fixed z-50 rounded-sm
-                border border-foreground-muted/20 bg-background p-2 shadow-lg
-                animate-in fade-in duration-150
-              `
-            )}
-            style={{
-              top: pos.top,
-              ...(align === 'right' ? { right: pos.right } : { left: pos.left }),
-            }}
-          >
-            {content}
-          </div>,
-          document.body
+    <AnchorTooltip
+      placement={placementMap[align]}
+      offset={4}
+      flip
+      safeArea
+      openDelay={0}
+      closeDelay={0}
+    >
+      <TooltipTrigger as="div" className={className ?? ''}>
+        {children}
+      </TooltipTrigger>
+      <TooltipContent
+        className={cn(
+          contentClassName,
+          'rounded-sm border p-2 text-sm shadow-lg',
+          theme === 'light'
+            ? 'border-gray-200 bg-white text-gray-900'
+            : 'border-foreground-muted/20 bg-surface-raised text-text-primary'
         )}
-    </div>
+      >
+        <SafeArea />
+        {content}
+      </TooltipContent>
+    </AnchorTooltip>
   );
 }

@@ -190,14 +190,17 @@ function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Qu
             }
           }
 
-          const nextUrl = `/${artistSlug}/${year}/${month}/${day}/${songSlug}?source=${source}`;
+          const basePath = `/${artistSlug}/${year}/${month}/${day}/${songSlug}`;
+          const prefixes = ['/embed-track', '/embed'];
+          const routePrefix = prefixes.find((p) => window.location.pathname.startsWith(p)) ?? '';
+          const nextUrl = `${routePrefix}${basePath}?source=${source}`;
 
           if (playback !== songSlug) {
             store.dispatch(updatePlayback({ songSlug, artistSlug, year, month, day, source }));
           }
 
-          if (songSlug) {
-            window.localStorage.lastPlayedUrl = nextUrl;
+          if (songSlug && !routePrefix) {
+            window.localStorage.lastPlayedUrl = `${basePath}?source=${source}`;
           }
 
           // update URL and page title to reflect current track without triggering a full navigation

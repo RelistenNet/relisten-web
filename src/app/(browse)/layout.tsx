@@ -31,7 +31,7 @@ export default function BrowseLayout({
         <div className="browse-col">{shows}</div>
         <div className="browse-col">{songs}</div>
         <div className="browse-col">{sources}</div>
-        {children}
+        <div>{children}</div>
       </BrowseContainer>
     </Flex>
   );

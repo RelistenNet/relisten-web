@@ -83,8 +83,8 @@ const YearsColumnWithControls = ({
       filteredCount={processedYears.length}
       totalCount={artistYears.length}
       onClearFilters={clearFilters}
+      subHeader={children}
     >
-      {children}
       {artistSlug &&
         processedYears.length > 0 &&
         processedYears.map((yearObj) => (
