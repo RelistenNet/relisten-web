@@ -19,6 +19,7 @@ const TopTapesColumn = async ({
       year={year}
       shows={shows}
       subHeader={subHeader}
+      quickHitSegment="top"
     />
   );
 };

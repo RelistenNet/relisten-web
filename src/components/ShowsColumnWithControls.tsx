@@ -7,6 +7,7 @@ import { useMemo } from 'react';
 import sortActiveBands from '../lib/sortActiveBands';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
+import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import Count from './Count';
 import Flex from './Flex';
@@ -20,6 +21,8 @@ type ShowsColumnWithControlsProps = {
   year?: string;
   shows: Show[];
   fullDate?: boolean;
+  quickHitSegment?: string;
+  quickHitSlug?: string;
 };
 
 const ShowsColumnWithControls = ({
@@ -27,14 +30,18 @@ const ShowsColumnWithControls = ({
   year,
   shows,
   fullDate,
+  quickHitSegment,
+  quickHitSlug,
 }: ShowsColumnWithControlsProps) => {
   const { alphaAsc, sortBy, setSortBy, sbdOnly, toggleFilter, clearFilters } = useFilterState(
     `${artistSlug}:shows`,
     'alpha'
   );
   const params = useSegmentParams() as Record<string, string | string[] | undefined>;
-  const currentMonth = unwrapSegment(params.month);
-  const currentDay = unwrapSegment(params.day);
+  const [{ date: activeDate }] = slugSearchParams.useQueryStates();
+  const dateParts = activeDate?.split('-');
+  const currentMonth = dateParts?.[1] ?? unwrapSegment(params.month);
+  const currentDay = dateParts?.[2] ?? unwrapSegment(params.day);
 
   const dirIcon = alphaAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
 
@@ -113,12 +120,17 @@ const ShowsColumnWithControls = ({
           const { venue, avg_duration, tour } = show;
           let tourName = '';
 
-          // keep track of which tours we've displayed
           if (tour) {
             if (!tours[tour.id]) tourName = tour.name ?? '';
-
             tours[tour.id] = true;
           }
+
+          const showHref = quickHitSegment
+            ? slugSearchParams.href(`/${artistSlug}/${quickHitSegment}`, {
+                slug: quickHitSlug,
+                date: `${year}-${month}-${day}`,
+              })
+            : `/${artistSlug}/${year}/${month}/${day}`;
 
           return (
             <div key={show.uuid}>
@@ -126,7 +138,7 @@ const ShowsColumnWithControls = ({
                 <RowHeader>{tourName}</RowHeader>
               )}
               <Row
-                href={`/${artistSlug}/${year}/${month}/${day}`}
+                href={showHref}
                 active={month === currentMonth && day === currentDay}
               >
                 <div>

@@ -7,17 +7,21 @@ import cn from '@/lib/cn';
 import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
-function getActiveColumn(segments: string[], hasSlug: boolean): number {
+function getActiveColumn(segments: string[], hasSlug: boolean, hasDate: boolean): number {
   const depth = segments.length;
   if (depth <= 0) return 0;
   if (depth === 1) return 1;
-  if (depth === 2 && isQuickHitSegment(segments[1]) && !hasSlug) return 1;
+  if (depth === 2 && isQuickHitSegment(segments[1])) {
+    if (hasDate) return 3;
+    if (hasSlug) return 2;
+    return 1;
+  }
   if (depth <= 3) return 2;
   return 3;
 }
 
 function getContentKey(segments: string[], hasSlug: boolean): string {
-  if (segments.length === 2 && isQuickHitSegment(segments[1]) && !hasSlug) {
+  if (segments.length >= 2 && isQuickHitSegment(segments[1]) && !hasSlug) {
     return segments[1];
   }
   return '';
@@ -34,9 +38,10 @@ export default function BrowseContainer({
 }) {
   const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
   const segments = useSelectedLayoutSegments();
-  const [{ slug }] = slugSearchParams.useQueryStates();
+  const [{ slug, date }] = slugSearchParams.useQueryStates();
   const hasSlug = !!slug;
-  const activeColumn = getActiveColumn(segments, hasSlug);
+  const hasDate = !!date;
+  const activeColumn = getActiveColumn(segments, hasSlug, hasDate);
   const contentKey = getContentKey(segments, hasSlug);
 
   const [displayedColumn, setDisplayedColumn] = useState(activeColumn);

@@ -19,16 +19,13 @@ const ShowsColumn = async ({
   if (year === 'today-in-history' && month && day)
     return <TodayInHistoryColumn artistSlug={artistSlug} month={month} day={day} />;
 
-  // Drill-down into a specific venue/song/tour
   if (year === 'venues' && slug && artistSlug)
-    return <VenueShowsColumn artistSlug={artistSlug} slug={slug} />;
+    return <VenueShowsColumn artistSlug={artistSlug} slug={slug} quickHitSegment="venues" />;
   if (year === 'songs' && slug && artistSlug)
-    return <SongShowsColumn artistSlug={artistSlug} slug={slug} />;
+    return <SongShowsColumn artistSlug={artistSlug} slug={slug} quickHitSegment="songs" />;
   if (year === 'tours' && slug && artistSlug)
-    return <TourShowsColumn artistSlug={artistSlug} slug={slug} />;
+    return <TourShowsColumn artistSlug={artistSlug} slug={slug} quickHitSegment="tours" />;
 
-  // Quick-hit lists (recently-added, top, venues, songs, tours) now render
-  // in the @years column. Return null so this slot stays empty.
   if (isQuickHitSegment(year)) return null;
 
   const artists = await RelistenAPI.fetchAllArtists().catch(() => {
@@ -40,10 +37,6 @@ const ShowsColumn = async ({
   const yearObj = artistYears?.find((y) => y.year === year);
   const artistShows = await RelistenAPI.fetchShows(artist?.uuid, yearObj?.uuid);
 
-  // Trim shows to only the fields the UI needs. Full show objects include
-  // artist_uuid, year_uuid, venue_uuid, era, most_recent_source_updated_at,
-  // has_streamable_flac_source, created_at, updated_at, and full venue/tour
-  // sub-objects. Trimming reduces the RSC payload by ~90% for this slot.
   const slimShows = (artistShows?.shows || []).map((s) => ({
     id: s.id,
     uuid: s.uuid,

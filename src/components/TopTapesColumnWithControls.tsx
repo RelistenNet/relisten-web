@@ -6,6 +6,7 @@ import { Show } from '@/types';
 import { useSegmentParams } from '@timber-js/app/client';
 import { useMemo } from 'react';
 import { durationToHHMMSS, splitShowDate } from '../lib/utils';
+import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import Count from './Count';
 import Flex from './Flex';
@@ -17,6 +18,7 @@ type TopTapesColumnWithControlsProps = {
   year?: string;
   shows: Show[];
   subHeader?: ReactNode;
+  quickHitSegment?: string;
 };
 
 const TopTapesColumnWithControls = ({
@@ -24,6 +26,7 @@ const TopTapesColumnWithControls = ({
   year,
   shows,
   subHeader,
+  quickHitSegment,
 }: TopTapesColumnWithControlsProps) => {
   const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(`${artistSlug}:shows`);
   const params = useSegmentParams() as Record<string, string | string[] | undefined>;
@@ -71,7 +74,9 @@ const TopTapesColumnWithControls = ({
           return (
             <div key={show.id}>
               <Row
-                href={`/${artistSlug}/${year}/${month}/${day}`}
+                href={quickHitSegment
+                  ? slugSearchParams.href(`/${artistSlug}/${quickHitSegment}`, { date: `${year}-${month}-${day}` })
+                  : `/${artistSlug}/${year}/${month}/${day}`}
                 active={month === currentMonth && day === currentDay}
               >
                 <div>

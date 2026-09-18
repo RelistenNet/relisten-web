@@ -19,6 +19,7 @@ const RecentTapesColumn = async ({
       year={year}
       shows={shows}
       subHeader={subHeader}
+      quickHitSegment="recently-added"
     />
   );
 };

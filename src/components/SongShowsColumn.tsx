@@ -2,7 +2,7 @@ import RelistenAPI from '@/lib/RelistenAPI';
 import { deny } from '@timber-js/app/server';
 import ShowsColumnWithControls from './ShowsColumnWithControls';
 
-const SongShowsColumn = async ({ artistSlug, slug }: { artistSlug: string; slug: string }) => {
+const SongShowsColumn = async ({ artistSlug, slug, quickHitSegment }: { artistSlug: string; slug: string; quickHitSegment?: string }) => {
   const song = await RelistenAPI.fetchSongShows(artistSlug, slug).catch(() => {
     deny(404);
   });
@@ -13,6 +13,8 @@ const SongShowsColumn = async ({ artistSlug, slug }: { artistSlug: string; slug:
       year={song?.name}
       shows={song?.shows ?? []}
       fullDate
+      quickHitSegment={quickHitSegment}
+      quickHitSlug={slug}
     />
   );
 };

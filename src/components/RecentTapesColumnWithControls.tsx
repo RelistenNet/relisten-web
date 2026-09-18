@@ -6,6 +6,7 @@ import { Show } from '@/types';
 import { useSegmentParams } from '@timber-js/app/client';
 import { useMemo } from 'react';
 import { durationToHHMMSS, splitShowDate } from '../lib/utils';
+import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import Count from './Count';
 import Flex from './Flex';
@@ -18,6 +19,7 @@ type RecentTapesColumnWithControlsProps = {
   year?: string;
   shows: Show[];
   subHeader?: ReactNode;
+  quickHitSegment?: string;
 };
 
 const RecentTapesColumnWithControls = ({
@@ -25,6 +27,7 @@ const RecentTapesColumnWithControls = ({
   year,
   shows,
   subHeader,
+  quickHitSegment,
 }: RecentTapesColumnWithControlsProps) => {
   const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(`${artistSlug}:shows`);
   const params = useSegmentParams() as Record<string, string | string[] | undefined>;
@@ -86,7 +89,9 @@ const RecentTapesColumnWithControls = ({
                 <RowHeader>{tourName === 'Not Part of a Tour' ? '' : tourName}</RowHeader>
               )}
               <Row
-                href={`/${artistSlug}/${year}/${month}/${day}`}
+                href={quickHitSegment
+                  ? slugSearchParams.href(`/${artistSlug}/${quickHitSegment}`, { date: `${year}-${month}-${day}` })
+                  : `/${artistSlug}/${year}/${month}/${day}`}
                 active={month === currentMonth && day === currentDay}
               >
                 <div>
