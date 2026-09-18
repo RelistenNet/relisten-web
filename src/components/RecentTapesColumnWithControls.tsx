@@ -31,8 +31,10 @@ const RecentTapesColumnWithControls = ({
 }: RecentTapesColumnWithControlsProps) => {
   const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(`${artistSlug}:shows`);
   const params = useSegmentParams() as Record<string, string | string[] | undefined>;
-  const currentMonth = unwrapSegment(params.month);
-  const currentDay = unwrapSegment(params.day);
+  const [{ date: activeDate }] = slugSearchParams.useQueryStates();
+  const dateParts = activeDate?.split('-');
+  const currentMonth = dateParts?.[1] ?? unwrapSegment(params.month);
+  const currentDay = dateParts?.[2] ?? unwrapSegment(params.day);
 
   const toggles = [
     {
