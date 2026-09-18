@@ -1,7 +1,7 @@
 'use client';
 
 import { useFilterState } from '@/hooks/useFilterState';
-import { Show } from '@/types';
+import type { SlimShow } from '@/lib/slimShow';
 import { useSegmentParams } from '@timber-js/app/client';
 import { useMemo } from 'react';
 import sortActiveBands from '../lib/sortActiveBands';
@@ -19,7 +19,7 @@ import Tag from './Tag';
 type ShowsColumnWithControlsProps = {
   artistSlug?: string;
   year?: string;
-  shows: Show[];
+  shows: SlimShow[];
   fullDate?: boolean;
   quickHitSegment?: string;
   quickHitSlug?: string;

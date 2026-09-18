@@ -1,4 +1,5 @@
 import RelistenAPI from '@/lib/RelistenAPI';
+import { slimShows } from '@/lib/slimShow';
 import { deny } from '@timber-js/app/server';
 import ShowsColumnWithControls from './ShowsColumnWithControls';
 
@@ -11,7 +12,7 @@ const VenueShowsColumn = async ({ artistSlug, slug, quickHitSegment }: { artistS
     <ShowsColumnWithControls
       artistSlug={artistSlug}
       year={venue?.name}
-      shows={venue?.shows ?? []}
+      shows={slimShows(venue?.shows)}
       fullDate
       quickHitSegment={quickHitSegment}
       quickHitSlug={slug}

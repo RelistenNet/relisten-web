@@ -97,68 +97,70 @@ const SongsColumn = (props: Props) => {
       {activeSourceObj &&
         activeSourceObj.sets?.map((set, setIdx) => (
           <Fragment key={set.id}>
-          {set.tracks?.map((track, trackIdx) => {
-            const trackIsActive = track.id === activePlaybackTrackId && isActiveSourcePlaying;
+            {set.tracks?.map((track, trackIdx) => {
+              const trackIsActive = track.id === activePlaybackTrackId && isActiveSourcePlaying;
 
-            const trackMetadata = isActiveSourcePlaying
-              ? gaplessTracksMetadata.find(
-                  (gaplessTrack) =>
-                    gaplessTrack.trackMetadata && gaplessTrack.trackMetadata.trackId === track.id
-                )
-              : null;
+              const trackMetadata = isActiveSourcePlaying
+                ? gaplessTracksMetadata.find(
+                    (gaplessTrack) =>
+                      gaplessTrack.trackMetadata && gaplessTrack.trackMetadata.trackId === track.id
+                  )
+                : null;
 
-            return (
-              <div key={track.id} className="relative">
-                {trackIdx === 0 && Number(activeSourceObj.sets?.length) > 1 && (
-                  <RowHeader>
-                    {set.name || `Set ${setIdx + 1}`} <div>{getSetTime(set)}</div>
-                  </RowHeader>
-                )}
-                {adminTools && track.slug && (
-                  <Link
-                    href={`/admin/clip/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${activeSourceObj.id}`}
-                    prefetch={false}
-                    title="Create clip"
-                    className="absolute top-1/2 right-1 z-10 -translate-y-1/2 rounded bg-surface px-1.5 py-0.5 text-xs hover:bg-surface-hover"
+              return (
+                <div key={track.id} className="relative">
+                  {trackIdx === 0 && Number(activeSourceObj.sets?.length) > 1 && (
+                    <RowHeader>
+                      {set.name || `Set ${setIdx + 1}`} <div>{getSetTime(set)}</div>
+                    </RowHeader>
+                  )}
+                  {adminTools && track.slug && (
+                    <Link
+                      href={`/admin/clip/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${activeSourceObj.id}`}
+                      prefetch={false}
+                      title="Create clip"
+                      className="absolute top-1/2 right-1 z-10 -translate-y-1/2 rounded bg-surface px-1.5 py-0.5 text-xs hover:bg-surface-hover"
+                    >
+                      {'✂'}
+                    </Link>
+                  )}
+                  <Row
+                    key={track.id}
+                    href={
+                      props.quickHitSegment
+                        ? slugSearchParams.href(`/${props.artistSlug}/${props.quickHitSegment}`, {
+                            slug: props.quickHitSlug,
+                            date: `${props.year}-${props.month}-${props.day}`,
+                            track: track.slug,
+                          }) + `&source=${activeSourceObj.id}`
+                        : `${props.routePrefix || ''}/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${activeSourceObj.id}`
+                    }
+                    active={trackIsActive}
                   >
-                    {'✂'}
-                  </Link>
-                )}
-                <Row
-                  key={track.id}
-                  href={props.quickHitSegment
-                    ? slugSearchParams.href(`/${props.artistSlug}/${props.quickHitSegment}`, {
-                        slug: props.quickHitSlug,
-                        date: `${props.year}-${props.month}-${props.day}`,
-                        track: track.slug,
-                      }) + `&source=${activeSourceObj.id}`
-                    : `${props.routePrefix || ''}/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${activeSourceObj.id}`}
-                  active={trackIsActive}
-                >
-                  <div>
-                    <div>{track.title}</div>
-                    {track.duration && (
-                      <div className="text-xxs text-foreground-muted">
-                        {durationToHHMMSS(track.duration)}
-                      </div>
-                    )}
-                  </div>
-                  <div className="shrink-0 text-right">
-                    {trackMetadata &&
-                      (() => {
-                        if (trackMetadata.webAudioLoadingState === 'LOADED')
-                          return <Tag variant="success">{'\u2713'} GAPLESS</Tag>;
-                        if (trackMetadata.webAudioLoadingState === 'LOADING')
-                          return <Tag variant="warning">LOADING</Tag>;
-                        if (trackMetadata.webAudioLoadingState === 'ERROR')
-                          return <Tag variant="error">ERROR</Tag>;
-                        return null;
-                      })()}
-                  </div>
-                </Row>
-              </div>
-            );
-          })}
+                    <div>
+                      <div>{track.title}</div>
+                      {track.duration && (
+                        <div className="text-xxs text-foreground-muted">
+                          {durationToHHMMSS(track.duration)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="shrink-0 text-right">
+                      {trackMetadata &&
+                        (() => {
+                          if (trackMetadata.webAudioLoadingState === 'LOADED')
+                            return <Tag variant="success">{'\u2713'} GAPLESS</Tag>;
+                          if (trackMetadata.webAudioLoadingState === 'LOADING')
+                            return <Tag variant="warning">LOADING</Tag>;
+                          if (trackMetadata.webAudioLoadingState === 'ERROR')
+                            return <Tag variant="error">ERROR</Tag>;
+                          return null;
+                        })()}
+                    </div>
+                  </Row>
+                </div>
+              );
+            })}
           </Fragment>
         ))}
       {activeSourceObj && <RowHeader>FIN</RowHeader>}

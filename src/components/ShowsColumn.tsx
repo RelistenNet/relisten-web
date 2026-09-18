@@ -1,7 +1,7 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { isQuickHitSegment } from '@/lib/quickHitSegments';
+import { slimShows } from '@/lib/slimShow';
 import { RawParams } from '@/types/params';
-import type { Venue, Tour } from '@/types';
 import { deny } from '@timber-js/app/server';
 import ShowsColumnWithControls from './ShowsColumnWithControls';
 import SongShowsColumn from './SongShowsColumn';
@@ -37,19 +37,7 @@ const ShowsColumn = async ({
   const yearObj = artistYears?.find((y) => y.year === year);
   const artistShows = await RelistenAPI.fetchShows(artist?.uuid, yearObj?.uuid);
 
-  const slimShows = (artistShows?.shows || []).map((s) => ({
-    id: s.id,
-    uuid: s.uuid,
-    display_date: s.display_date,
-    has_soundboard_source: s.has_soundboard_source,
-    popularity: s.popularity,
-    source_count: s.source_count,
-    avg_duration: s.avg_duration,
-    venue: s.venue ? ({ name: s.venue.name, location: s.venue.location } as Venue) : undefined,
-    tour: s.tour ? ({ id: s.tour.id, name: s.tour.name } as Tour) : undefined,
-  }));
-
-  return <ShowsColumnWithControls artistSlug={artistSlug} year={year} shows={slimShows} />;
+  return <ShowsColumnWithControls artistSlug={artistSlug} year={year} shows={slimShows(artistShows?.shows)} />;
 };
 
 export default ShowsColumn;
