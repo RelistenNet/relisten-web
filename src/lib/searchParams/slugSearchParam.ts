@@ -4,4 +4,5 @@ import { z } from 'zod/v4';
 export const slugSearchParams = defineSearchParams({
   slug: z.string().optional(),
   date: z.string().optional(),
+  track: z.string().optional(),
 });

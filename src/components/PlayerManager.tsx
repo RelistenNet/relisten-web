@@ -20,6 +20,7 @@ interface PlayerManagerProps extends Props {
   artistName?: string;
   playImmediately?: boolean;
   trackSlugs?: string[];
+  songSlug?: string;
 }
 
 export default function PlayerManager(props: PlayerManagerProps) {
@@ -27,14 +28,17 @@ export default function PlayerManager(props: PlayerManagerProps) {
   const [{ source: sourceId }] = sourceSearchParamsLoader.useQueryStates();
   const [{ t: seekTime }] = tSearchParamsLoader.useQueryStates();
 
-  // Remove leading slash and handle embed routes
   const pathParts = String(pathname)
     .replace(/^\/embed-track/, '')
     .replace(/^\/embed/, '')
     .replace(/^\//, '')
     .split('/');
 
-  const [artistSlug, year, month, day, songSlug] = pathParts;
+  const artistSlug = props.artistSlug ?? pathParts[0];
+  const year = props.year ?? pathParts[1];
+  const month = props.month ?? pathParts[2];
+  const day = props.day ?? pathParts[3];
+  const songSlug = props.songSlug ?? pathParts[4];
 
   const { activeSourceObj } = useSourceData({ ...props, source: sourceId });
 
@@ -133,7 +137,7 @@ export default function PlayerManager(props: PlayerManagerProps) {
         player.seek(seekTime);
       }
     }
-  }, [pathname, sourceId, activeSourceObj, props.trackSlugs]);
+  }, [pathname, sourceId, activeSourceObj, props.trackSlugs, songSlug]);
 
   return null;
 }

@@ -13,6 +13,7 @@ import Row from './Row';
 import RowHeader from './RowHeader';
 import Tag from './Tag';
 import { sortSources } from '@/lib/sortSources';
+import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
 import { useAdminTools } from '@/hooks/useAdminTools';
 import { Link } from '@timber-js/app/client';
 
@@ -26,6 +27,8 @@ const getSetTime = (set: Set): string =>
 export type Props = Pick<RawParams, 'artistSlug' | 'year' | 'month' | 'day'> & {
   show?: Partial<Tape>;
   routePrefix?: string;
+  quickHitSegment?: string;
+  quickHitSlug?: string;
 };
 
 interface SourceData {
@@ -123,7 +126,13 @@ const SongsColumn = (props: Props) => {
                 )}
                 <Row
                   key={track.id}
-                  href={`${props.routePrefix || ''}/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${activeSourceObj.id}`}
+                  href={props.quickHitSegment
+                    ? slugSearchParams.href(`/${props.artistSlug}/${props.quickHitSegment}`, {
+                        slug: props.quickHitSlug,
+                        date: `${props.year}-${props.month}-${props.day}`,
+                        track: track.slug,
+                      }) + `&source=${activeSourceObj.id}`
+                    : `${props.routePrefix || ''}/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${activeSourceObj.id}`}
                   active={trackIsActive}
                 >
                   <div>

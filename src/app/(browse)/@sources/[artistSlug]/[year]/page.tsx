@@ -11,7 +11,7 @@ export default async function SourcesYearSlot() {
 
   if (!isQuickHitSegment(year)) return null;
 
-  const { date } = await slugSearchParams.get();
+  const { date, slug } = await slugSearchParams.get();
   if (!date) return null;
 
   const { year: y, month: m, day: d } = splitShowDate(date);
@@ -20,5 +20,5 @@ export default async function SourcesYearSlot() {
   const show = await RelistenAPI.fetchShow(artistSlug, y, date);
   if (!show) return null;
 
-  return <TapesColumn artistSlug={artistSlug} year={y} month={m} day={d} show={show} />;
+  return <TapesColumn artistSlug={artistSlug} year={y} month={m} day={d} show={show} quickHitSegment={year} quickHitSlug={slug} />;
 }

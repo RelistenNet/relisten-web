@@ -5,6 +5,7 @@ import React from 'react';
 import { durationToHHMMSS } from '../lib/utils';
 
 import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
+import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
 import { Source } from '../types';
 import Column from './Column';
 import Flex from './Flex';
@@ -51,7 +52,12 @@ const TapesColumn = (props: Props) => {
         <div key={sourceObj.id}>
           <RowHeader>{author(sourceObj) || `Source ${idx + 1} of ${sourcesData.length}`}</RowHeader>
           <Row
-            href={`/${artistSlug}/${year}/${month}/${day}?source=${sourceObj.id}`}
+            href={props.quickHitSegment
+              ? slugSearchParams.href(`/${artistSlug}/${props.quickHitSegment}`, {
+                  slug: props.quickHitSlug,
+                  date: `${year}-${month}-${day}`,
+                }) + `&source=${sourceObj.id}`
+              : `/${artistSlug}/${year}/${month}/${day}?source=${sourceObj.id}`}
             active={activeSourceId === sourceObj?.id}
           >
             <div className="w-full">
