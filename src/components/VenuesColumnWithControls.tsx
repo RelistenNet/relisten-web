@@ -31,7 +31,7 @@ const VenuesColumnWithControls = ({
       isActive: sortBy === 'alpha',
       isDefault: sortBy === 'alpha' && !alphaAsc,
       onToggle: () => setSortBy('alpha'),
-      title: sortBy === 'alpha' ? 'A-Z' : 'Z-A',
+      title: sortBy === 'alpha' ? (alphaAsc ? 'Z-A' : 'A-Z') : 'Sort A-Z',
       label: 'A-Z',
       icon: sortBy === 'alpha' ? dirIcon : undefined
     },
@@ -39,7 +39,7 @@ const VenuesColumnWithControls = ({
       type: 'sort' as const,
       isActive: sortBy === 'tapes',
       onToggle: () => setSortBy('tapes'),
-      title: sortBy === 'tapes' ? 'Most Shows' : 'Least Shows',
+      title: sortBy === 'tapes' ? (alphaAsc ? 'Least Shows' : 'Most Shows') : 'Sort by shows',
       label: 'Shows',
       icon: sortBy === 'tapes' ? dirIcon : undefined
     },
@@ -54,7 +54,7 @@ const VenuesColumnWithControls = ({
     } else {
       sorted.sort((a, b) => (b.shows_at_venue ?? 0) - (a.shows_at_venue ?? 0));
     }
-    if (!alphaAsc) sorted.reverse();
+    if (alphaAsc) sorted.reverse();
     return sorted;
   }, [venues, sortBy, alphaAsc]);
 

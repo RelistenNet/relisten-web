@@ -63,7 +63,6 @@ export function useFilterState(filterKey?: string, defaultSortBy: SortByMode = '
       } else if (filterName === 'date' || filterName === 'alpha') {
         const currentValue = filters[filterName];
         const newValue = getInverse(filterName, currentValue);
-        console.log(filters, filterName, newValue, currentValue);
         setFilter(filterName, newValue);
       }
     },

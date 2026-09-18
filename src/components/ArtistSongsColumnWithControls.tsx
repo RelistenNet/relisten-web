@@ -31,7 +31,7 @@ const ArtistSongsColumnWithControls = ({
       isActive: sortBy === 'tapes',
       onToggle: () => setSortBy('tapes'),
       label: 'Played',
-      title: sortBy === 'tapes' ? 'Most Played' : 'Least Played',
+      title: sortBy === 'tapes' ? (alphaAsc ? 'Least Played' : 'Most Played') : 'Sort by plays',
       icon: sortBy === 'tapes' ? dirIcon : undefined
     },
     {
@@ -39,7 +39,7 @@ const ArtistSongsColumnWithControls = ({
       isActive: sortBy === 'alpha',
       isDefault: sortBy === 'alpha' && !alphaAsc,
       onToggle: () => setSortBy('alpha'),
-      title: sortBy === 'alpha' ? 'A-Z' : 'Z-A',
+      title: sortBy === 'alpha' ? (alphaAsc ? 'Z-A' : 'A-Z') : 'Sort A-Z',
       label: 'A-Z',
       icon: sortBy === 'alpha' ? dirIcon : undefined
     },
@@ -52,7 +52,7 @@ const ArtistSongsColumnWithControls = ({
     } else {
       sorted.sort((a, b) => (b.shows_played_at ?? 0) - (a.shows_played_at ?? 0));
     }
-    if (!alphaAsc) sorted.reverse();
+    if (alphaAsc) sorted.reverse();
     return sorted;
   }, [songs, sortBy, alphaAsc]);
 
