@@ -55,7 +55,7 @@ const ShowsColumnWithControls = ({
       label: 'Date',
       icon: sortBy === 'alpha' ? dirIcon : undefined,
     },
-    {
+    ...(!fullDate ? [{
       type: 'sort' as const,
       isActive: sortBy === 'popularity',
       onToggle: () => setSortBy('popularity'),
@@ -67,7 +67,7 @@ const ShowsColumnWithControls = ({
           : 'Sort by popularity',
       label: 'Pop',
       icon: sortBy === 'popularity' ? dirIcon : undefined,
-    },
+    }] : []),
     {
       type: 'filter' as const,
       isActive: !!sbdOnly,
