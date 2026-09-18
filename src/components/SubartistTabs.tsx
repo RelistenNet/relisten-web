@@ -15,6 +15,8 @@ type SubartistTabsProps = {
 const SubartistTabs = ({ artistSlug, features }: SubartistTabsProps) => {
   const params = useSegmentParams('/(browse)/[artistSlug]/[year]');
   const year = Array.isArray(params.year) ? params.year[0] : params.year;
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const isOnQuickHit = isQuickHitSegment(year);
 
@@ -35,58 +37,40 @@ const SubartistTabs = ({ artistSlug, features }: SubartistTabsProps) => {
         grid grid-cols-3 gap-1.5 border-b border-hairline bg-surface-raised px-2 py-1.5
       "
     >
-      {links.map(({ label, segment }) => (
-        <QuickHitsPill
-          key={segment ?? '_years'}
-          label={label}
-          href={segment ? `/${artistSlug}/${segment}` : `/${artistSlug}`}
-          isActive={segment ? year === segment : !isOnQuickHit}
-        />
-      ))}
+      {links.map(({ label, segment }) => {
+        const href = segment ? `/${artistSlug}/${segment}` : `/${artistSlug}`;
+        const isActive = segment ? year === segment : !isOnQuickHit;
+
+        return (
+          <Link
+            key={segment ?? '_years'}
+            href={href}
+            prefetch={false}
+            onClick={(e: MouseEvent<HTMLAnchorElement>) => {
+              if (e.metaKey || isActive) return;
+              e.preventDefault();
+              startTransition(() => router.push(href));
+            }}
+            className={cn(
+              'rounded-sm px-2 py-0.5 text-center text-sm transition-colors',
+              isActive
+                ? 'bg-accent font-medium text-white'
+                : `
+                  text-text-muted
+                  hover:bg-surface-hover hover:text-text-primary
+                `,
+              isPending && isActive &&
+                `
+                  bg-accent/40 font-medium text-white/70
+                  hover:bg-accent/40 hover:text-white/70
+                `
+            )}
+          >
+            {label}
+          </Link>
+        );
+      })}
     </div>
-  );
-};
-
-const QuickHitsPill = ({
-  label,
-  href,
-  isActive,
-}: {
-  label: string;
-  href: string;
-  isActive: boolean;
-}) => {
-  const [isPending, startTransition] = useTransition();
-  const router = useRouter();
-
-  const onClick = (e: MouseEvent<HTMLAnchorElement>) => {
-    if (e.metaKey || isActive) return;
-    e.preventDefault();
-    startTransition(() => router.push(href));
-  };
-
-  return (
-    <Link
-      href={href}
-      prefetch={false}
-      onClick={onClick}
-      className={cn(
-        'rounded-sm px-2 py-0.5 text-center text-sm transition-colors',
-        isActive
-          ? 'bg-accent font-medium text-white'
-          : `
-            text-text-muted
-            hover:bg-surface-hover hover:text-text-primary
-          `,
-        isPending &&
-          `
-            bg-accent/60 text-white
-            hover:bg-accent/60 hover:text-white
-          `
-      )}
-    >
-      {label}
-    </Link>
   );
 };
 
