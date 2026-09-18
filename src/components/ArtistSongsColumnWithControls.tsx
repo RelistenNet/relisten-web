@@ -22,6 +22,7 @@ const ArtistSongsColumnWithControls = ({
   subHeader,
 }: ArtistSongsColumnWithControlsProps) => {
   const { alphaAsc, sortBy, setSortBy } = useFilterState(`${artistSlug}:songs`, 'alpha')
+  const [{ slug: activeSlug }] = slugSearchParams.useQueryStates();
 
   const dirIcon = alphaAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
 
@@ -74,6 +75,7 @@ const ArtistSongsColumnWithControls = ({
               href={slugSearchParams.href(`/${artistSlug}/songs`, {
                 slug: song.slug || String(song.id),
               })}
+              active={activeSlug === (song.slug || String(song.id))}
             >
               <div>
                 <div>{song.name}</div>

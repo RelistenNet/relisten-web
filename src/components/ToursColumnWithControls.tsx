@@ -26,6 +26,7 @@ const ToursColumnWithControls = ({
   subHeader,
 }: ToursColumnWithControlsProps) => {
   const [sortOldest, setSortOldest] = useState(false);
+  const [{ slug: activeSlug }] = slugSearchParams.useQueryStates();
 
   const toggles = [
     {
@@ -64,6 +65,7 @@ const ToursColumnWithControls = ({
               href={slugSearchParams.href(`/${artistSlug}/tours`, {
                 slug: tour.slug || String(tour.id),
               })}
+              active={activeSlug === (tour.slug || String(tour.id))}
             >
               <div>
                 <div>{tour.name}</div>
