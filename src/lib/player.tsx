@@ -274,12 +274,12 @@ export function initGaplessPlayer(nextStore: { dispatch: AppDispatch; getState: 
   })
     .then((res) => (res.ok ? res.json() : null))
     .then((show) => {
-      if (!show?.sources?.length) return;
+      if (!show?.sources?.length) return clearRestoredPlaceholder();
       const sorted = sortSources(show.sources);
       sortTracksInSources(sorted);
       const activeSourceId = Number(restored.source) || sorted[0].id;
       const activeSource = sorted.find((s: any) => s.id === activeSourceId);
-      if (!activeSource) return;
+      if (!activeSource) return clearRestoredPlaceholder();
       const allTracks = activeSource.sets?.flatMap((set: any) => set.tracks).filter(Boolean) ?? [];
       restoreController = null;
       loadTracks(allTracks, restored.songSlug, {
@@ -287,7 +287,19 @@ export function initGaplessPlayer(nextStore: { dispatch: AppDispatch; getState: 
         seekTime: restored.currentTime,
       });
     })
-    .catch(() => {});
+    .catch(() => clearRestoredPlaceholder());
+}
+
+function clearRestoredPlaceholder() {
+  restoreController = null;
+  if (!store) return;
+  store.dispatch(updatePlayback({
+    artistSlug: undefined, artistName: undefined,
+    year: undefined, month: undefined, day: undefined, showDate: undefined,
+    songSlug: undefined, source: undefined,
+    paused: false, activeTrack: {}, tracks: [], gaplessTracksMetadata: [],
+  }));
+  delete localStorage.lastPlayedUrl;
 }
 
 function restorePlaybackFromStorage(): {
