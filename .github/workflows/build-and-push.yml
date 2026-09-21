@@ -14,15 +14,16 @@ env:
 jobs:
   build_and_publish:
     runs-on: ubuntu-latest
+    environment: relisten3
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Log in to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -39,7 +40,7 @@ jobs:
           echo "package=${IMAGE_NAME#relistennet/}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           platforms: linux/amd64
@@ -67,6 +68,7 @@ jobs:
           fi
 
       - name: Prune old GHCR image versions
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GHCR_CLEANUP_TOKEN || github.token }}
           ORG: relistennet
@@ -94,3 +96,34 @@ jobs:
             echo "Deleting old GHCR package version $id for $ORG/$PACKAGE"
             gh api -X DELETE "/orgs/$ORG/packages/container/$PACKAGE/versions/$id"
           done <<< "$ids"
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          audience: ${{ secrets.TS_AUDIENCE }}
+          ping: 100.99.27.11
+          use-cache: 'true'
+          tags: tag:ci
+          version: latest
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v5
+        with:
+          version: v1.36.2
+
+      - name: Configure relisten3 kubeconfig
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.kube"
+          printf '%s' "$KUBE_CONFIG" > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
+          kubectl config use-context relisten3-k3s
+
+      - name: Restart relisten3 deployment
+        run: |
+          set -euo pipefail
+          kubectl -n default rollout restart deployment/relisten-web
+          kubectl -n default rollout status deployment/relisten-web --timeout=10m
