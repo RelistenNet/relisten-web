@@ -1,13 +1,6 @@
-import { createSearchParams } from '@/lib/searchParams/createSearchParams';
-import { parseAsString } from 'nuqs/server';
+import { defineSearchParams } from '@timber-js/app/search-params';
 import { z } from 'zod/v4';
 
-export const sourceSchema = z.object({
-  source: z.string().nullable(),
+export const sourceSearchParamsLoader = defineSearchParams({
+  source: z.coerce.string().default(''),
 });
-
-export const sourceParser = {
-  source: parseAsString.withDefault(''),
-};
-
-export const sourceSearchParamsLoader = createSearchParams(sourceSchema, sourceParser);

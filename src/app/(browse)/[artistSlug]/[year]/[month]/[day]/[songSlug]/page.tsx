@@ -1,32 +1,36 @@
+import { METADATA_BASE } from '@/lib/constants';
 import PlayerManager from '@/components/PlayerManager';
+import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
 import RelistenAPI from '@/lib/RelistenAPI';
-import { isMobile } from '@/lib/isMobile';
 import { createShowDate } from '@/lib/utils';
-import { RawParams } from '@/types/params';
-import { notFound } from 'next/navigation';
+import { deny, getSegmentParams } from '@timber-js/app/server';
+import { SEGMENT_PATH } from './$segment';
 
-export default async function Page(props: { params: Promise<RawParams> }) {
-  const params = await props.params;
-  const { artistSlug, year, month, day } = params;
+export default async function Page() {
+  const { artistSlug, year, month, day } = getSegmentParams(SEGMENT_PATH);
 
-  if (!year || !month || !day) return notFound();
+  if (!year || !month || !day) return deny(404);
 
-  const [show, mobile] = await Promise.all([
+  const params = { artistSlug, year, month, day };
+
+  const [show, artists] = await Promise.all([
     RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day)),
-    isMobile(),
+    RelistenAPI.fetchAllArtists(),
   ]);
 
-  return <PlayerManager {...params} show={show} isMobile={mobile} />;
+  const artistName = artists?.find((a) => a.slug === artistSlug)?.name;
+
+  return <PlayerManager {...params} show={show} artistName={artistName} />;
 }
 
-export const generateMetadata = async (props) => {
-  const [params, artists] = await Promise.all([props.params, RelistenAPI.fetchArtists()]);
-  const { artistSlug, year, month, day, songSlug } = params;
+export const metadata = async () => {
+  const { artistSlug, year, month, day, songSlug } = getSegmentParams(SEGMENT_PATH);
 
-  const name = artists.find((a) => a.slug === artistSlug)?.name;
+  const artists = await RelistenAPI.fetchAllArtists();
 
-  if (!name) return notFound();
-  if (!year || !month || !day) return notFound();
+  const name = artists?.find((a) => a.slug === artistSlug)?.name;
+
+  if (!name || !year || !month || !day) return {};
 
   const show = await RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day));
 
@@ -42,11 +46,17 @@ export const generateMetadata = async (props) => {
     openGraph: {
       audio: [
         {
-          url: song?.mp3_url, // Must be an absolute URL
+          url: proxyStreamUrl(song?.mp3_url),
         },
       ],
       images: show?.uuid
-        ? [{ url: `/api/og?showUuid=${show.uuid}`, width: 550, height: 550 }]
+        ? [
+            {
+              url: `${METADATA_BASE.origin}/album-art/${show.uuid}.png`,
+              width: 550,
+              height: 550,
+            },
+          ]
         : [],
     },
   };

@@ -1,42 +1,38 @@
-import { Roboto } from 'next/font/google';
-import NextTopLoader from 'nextjs-toploader';
 import dns from 'node:dns';
 import React from 'react';
+import type { Metadata } from '@timber-js/app/server';
+import { METADATA_BASE } from '@/lib/constants';
 import Providers from './Providers';
+import { roboto } from '../fonts';
+import { themeCookie } from '../lib/themeCookie';
 
 // https://github.com/node-fetch/node-fetch/issues/1624#issuecomment-1407717012
 dns.setDefaultResultOrder('ipv4first');
 
 import '../styles/globals.css';
-import Link from 'next/link';
-// import Link from 'next/link';
-
-// TODO: figure out if we don't need any weights
-const font = Roboto({ subsets: ['latin'], weight: ['400', '500', '700', '900'] });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const theme = themeCookie.get();
+  const dataTheme = theme === 'light' || theme === 'dark' ? theme : undefined;
   return (
-    <html lang="en">
+    <html lang="en" className={roboto.className} data-theme={dataTheme}>
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <link rel="icon" href="/favicon.ico" />
         <meta name="apple-itunes-app" content="app-id=715886886" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
-      <body className={font.className}>
-        <NextTopLoader showSpinner={false} />
-        {/* <Link href="https://en.wikipedia.org/wiki/Bob_Weir" target="_blank">
-          <div className="fixed top-0 z-10 h-2 w-full bg-black" />
-        </Link> */}
+      <body>
         <Providers>{children}</Providers>
       </body>
     </html>
   );
 }
 
-export const metadata = {
-  metadataBase: new URL('https://relisten.net'),
+export const metadata: Metadata = {
+  metadataBase: METADATA_BASE,
   title: {
     template: '%s | Relisten',
-    default: 'Relisten', // a default is required when creating a template
+    default: 'Relisten',
   },
 };

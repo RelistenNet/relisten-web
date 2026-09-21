@@ -1,42 +1,40 @@
 # Stage 1: Install dependencies
-FROM node:24-alpine AS deps
-RUN corepack enable && corepack prepare pnpm@10 --activate
+FROM node:26-alpine AS deps
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN npm install -g corepack && corepack enable && corepack install
 RUN pnpm install --frozen-lockfile
 
 # Stage 2: Build the application
-FROM node:24-alpine AS builder
-RUN corepack enable && corepack prepare pnpm@10 --activate
+FROM node:26-alpine AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN npm install -g corepack && corepack enable && corepack install
 
 ENV NODE_ENV=production
 RUN pnpm run build
 
 # Stage 3: Production runner
-FROM node:24-alpine AS runner
+FROM node:26-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NODE_OPTIONS=--max-old-space-size=2048
 
 RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN adduser --system --uid 1001 appuser
 
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=appuser:nodejs /app/.timber/dist/nitro/.output ./
 
-USER nextjs
+USER appuser
 
 EXPOSE 3000
 
 ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
+ENV HOST="0.0.0.0"
 ENV RELISTEN_API_URL="http://relistenapi-srv.default:3823"
 
-CMD ["node", "server.js"]
+CMD ["node", "server/index.mjs"]

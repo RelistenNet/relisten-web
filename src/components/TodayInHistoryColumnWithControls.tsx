@@ -1,14 +1,15 @@
 'use client';
 
 import { useFilterState } from '@/hooks/useFilterState';
-import { FilterState } from '@/lib/filterCookies';
 import { Show } from '@/types';
 import { useMemo } from 'react';
+import { useSegmentParams } from '@timber-js/app/client';
 import sortActiveBands from '../lib/sortActiveBands';
-import { durationToHHMMSS, simplePluralize, splitShowDate } from '../lib/utils';
+import { durationToHHMMSS, splitShowDate } from '../lib/utils';
+import Count from './Count';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import Flex from './Flex';
-import Row from './Row';
+import Row, { unwrapSegment } from './Row';
 import Tag from './Tag';
 import TodayDateNav from './TodayDateNav';
 
@@ -16,7 +17,6 @@ type TodayInHistoryColumnWithControlsProps = {
   artistSlug?: string;
   year?: string;
   shows: Show[];
-  initialFilters?: FilterState;
   month: string;
   day: string;
 };
@@ -25,14 +25,13 @@ const TodayInHistoryColumnWithControls = ({
   artistSlug,
   year,
   shows,
-  initialFilters,
   month,
   day,
 }: TodayInHistoryColumnWithControlsProps) => {
-  const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(
-    initialFilters,
-    `${artistSlug}:shows`
-  );
+  const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(`${artistSlug}:shows`);
+  const params = useSegmentParams() as Record<string, string | string[] | undefined>;
+  const currentMonth = unwrapSegment(params.month);
+  const currentDay = unwrapSegment(params.day);
 
   const toggles = [
     {
@@ -80,12 +79,12 @@ const TodayInHistoryColumnWithControls = ({
       onClearFilters={clearFilters}
     >
       {artistSlug && (
-        <div className="border-b border-gray-200 px-2 py-2">
+        <div className="border-b border-hairline px-2 py-2">
           <TodayDateNav month={month} day={day} pathname={`/${artistSlug}/today-in-history`} />
         </div>
       )}
       {(!processedShows || processedShows.length === 0) && (
-        <div className="py-2 text-center text-sm text-gray-700">
+        <div className="py-2 text-center text-sm text-text-muted">
           No shows on this date, try another day!
         </div>
       )}
@@ -99,10 +98,7 @@ const TodayInHistoryColumnWithControls = ({
             <div key={show.id}>
               <Row
                 href={`/${artistSlug}/${year}/${month}/${day}`}
-                activeSegments={{
-                  month,
-                  day,
-                }}
+                active={month === currentMonth && day === currentDay}
               >
                 <div>
                   <Flex>
@@ -118,7 +114,9 @@ const TodayInHistoryColumnWithControls = ({
                 </div>
                 <div className="text-xxs text-foreground-muted flex h-full min-w-[20%] flex-col justify-center gap-2 text-right">
                   <div>{durationToHHMMSS(avg_duration)}</div>
-                  <div>{simplePluralize('tape', show.source_count)}</div>
+                  <div>
+                    <Count unit="tape" value={show.source_count} />
+                  </div>
                 </div>
               </Row>
             </div>

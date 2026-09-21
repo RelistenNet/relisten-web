@@ -1,16 +1,12 @@
 import RelistenAPI from '@/lib/RelistenAPI';
-import { getServerFilters } from '@/lib/serverFilterCookies';
+import { isQuickHitSegment } from '@/lib/quickHitSegments';
+import { slimShows } from '@/lib/slimShow';
 import { RawParams } from '@/types/params';
-import { notFound } from 'next/navigation';
-import ArtistSongsColumn from './ArtistSongsColumn';
-import RecentTapesColumn from './RecentTapesColumn';
+import { deny } from '@timber-js/app/server';
 import ShowsColumnWithControls from './ShowsColumnWithControls';
 import SongShowsColumn from './SongShowsColumn';
 import TodayInHistoryColumn from './TodayInHistoryColumn';
-import TopTapesColumn from './TopTapesColumn';
-import ToursColumn from './ToursColumn';
 import TourShowsColumn from './TourShowsColumn';
-import VenuesColumn from './VenuesColumn';
 import VenueShowsColumn from './VenueShowsColumn';
 
 const ShowsColumn = async ({
@@ -22,23 +18,18 @@ const ShowsColumn = async ({
 }: Pick<RawParams, 'artistSlug' | 'year'> & { month?: string; day?: string; slug?: string }) => {
   if (year === 'today-in-history' && month && day)
     return <TodayInHistoryColumn artistSlug={artistSlug} month={month} day={day} />;
-  if (year === 'recently-added') return <RecentTapesColumn artistSlug={artistSlug} />;
-  if (year === 'top') return <TopTapesColumn artistSlug={artistSlug} />;
-  if (year === 'venues' && slug && artistSlug)
-    return <VenueShowsColumn artistSlug={artistSlug} slug={slug} />;
-  if (year === 'venues') return <VenuesColumn artistSlug={artistSlug} />;
-  if (year === 'songs' && slug && artistSlug)
-    return <SongShowsColumn artistSlug={artistSlug} slug={slug} />;
-  if (year === 'songs') return <ArtistSongsColumn artistSlug={artistSlug} />;
-  if (year === 'tours' && slug && artistSlug)
-    return <TourShowsColumn artistSlug={artistSlug} slug={slug} />;
-  if (year === 'tours') return <ToursColumn artistSlug={artistSlug} />;
 
-  const [artists, initialFilters] = await Promise.all([
-    RelistenAPI.fetchArtists(),
-    getServerFilters(`${artistSlug}:shows`, true),
-  ]).catch(() => {
-    notFound();
+  if (year === 'venues' && slug && artistSlug)
+    return <VenueShowsColumn artistSlug={artistSlug} slug={slug} quickHitSegment="venues" />;
+  if (year === 'songs' && slug && artistSlug)
+    return <SongShowsColumn artistSlug={artistSlug} slug={slug} quickHitSegment="songs" />;
+  if (year === 'tours' && slug && artistSlug)
+    return <TourShowsColumn artistSlug={artistSlug} slug={slug} quickHitSegment="tours" />;
+
+  if (isQuickHitSegment(year)) return null;
+
+  const artists = await RelistenAPI.fetchAllArtists().catch(() => {
+    deny(404);
   });
 
   const artist = artists?.find((a) => a.slug === artistSlug);
@@ -46,14 +37,7 @@ const ShowsColumn = async ({
   const yearObj = artistYears?.find((y) => y.year === year);
   const artistShows = await RelistenAPI.fetchShows(artist?.uuid, yearObj?.uuid);
 
-  return (
-    <ShowsColumnWithControls
-      artistSlug={artistSlug}
-      year={year}
-      shows={artistShows?.shows || []}
-      initialFilters={initialFilters}
-    />
-  );
+  return <ShowsColumnWithControls artistSlug={artistSlug} year={year} shows={slimShows(artistShows?.shows)} />;
 };
 
 export default ShowsColumn;

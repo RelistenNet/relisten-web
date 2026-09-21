@@ -8,7 +8,7 @@ type RowHeaderProps = {
 
 const RowHeader = ({ height, children }: RowHeaderProps) => (
   <Flex
-    className="min-h-[28px] items-center justify-between border-b border-gray-200/50 bg-gray-100/80 px-2 text-xs font-medium text-gray-600"
+    className="min-h-[36px] items-center justify-between border-b border-hairline bg-column-subheader px-3 text-xs font-semibold tracking-wide text-column-subheader-text uppercase lg:min-h-[28px] lg:px-2 lg:text-[11px]"
     style={{ minHeight: !children ? 16 : height }}
   >
     {children}

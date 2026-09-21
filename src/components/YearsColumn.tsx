@@ -1,34 +1,41 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { RawParams } from '@/types/params';
-import { notFound } from 'next/navigation';
-import { getServerFilters } from '@/lib/serverFilterCookies';
+import { deny } from '@timber-js/app/server';
 import YearsColumnWithControls from './YearsColumnWithControls';
-import QuickHitsNav from './QuickHitsNav';
+import SubartistTabs from './SubartistTabs';
 import TodayInHistoryRow from './TodayInHistoryRow';
 import RowHeader from './RowHeader';
 
 const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
-  const [artists, initialFilters] = await Promise.all([
-    RelistenAPI.fetchArtists(),
-    getServerFilters(artistSlug || '', true),
-  ]).catch(() => {
-    notFound();
+  const artists = await RelistenAPI.fetchAllArtists().catch(() => {
+    deny(404);
   });
 
   const artist = artists?.find((artist) => artist.slug === artistSlug);
   const artistYears = await RelistenAPI.fetchYears(artist?.uuid);
   const features = artist?.features;
 
+  // Trim year objects to only what the UI reads. Drops duration,
+  // avg_duration, avg_rating, artist_uuid, created_at, updated_at.
+  const slimYears = (artistYears || []).map((y) => ({
+    id: y.id,
+    uuid: y.uuid,
+    year: y.year,
+    show_count: y.show_count,
+    source_count: y.source_count,
+    has_soundboard_source: y.has_soundboard_source,
+    popularity: y.popularity,
+  }));
+
   return (
     <YearsColumnWithControls
       artistSlug={artistSlug}
       artistName={artist?.name}
-      artistYears={artistYears}
-      initialFilters={initialFilters}
+      artistYears={slimYears}
     >
-      <QuickHitsNav artistSlug={artistSlug} features={features} />
-      <TodayInHistoryRow artistSlug={artistSlug} />
-      <RowHeader>Years</RowHeader>
+      <SubartistTabs key="tabs" artistSlug={artistSlug} features={features} />
+      <TodayInHistoryRow key="today" artistSlug={artistSlug} />
+      <RowHeader key="years-header">Years</RowHeader>
     </YearsColumnWithControls>
   );
 };

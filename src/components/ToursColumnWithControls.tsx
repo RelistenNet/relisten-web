@@ -1,8 +1,9 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
 import { Tour } from '@/types';
-import { simplePluralize } from '@/lib/utils';
+import Count from './Count';
 import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import Row from './Row';
@@ -10,6 +11,7 @@ import Row from './Row';
 type ToursColumnWithControlsProps = {
   artistSlug?: string;
   tours: Tour[];
+  subHeader?: ReactNode;
 };
 
 const formatTourDate = (dateStr?: string) => {
@@ -18,8 +20,13 @@ const formatTourDate = (dateStr?: string) => {
   return `${date.getUTCMonth() + 1}/${date.getUTCDate()}/${date.getUTCFullYear()}`;
 };
 
-const ToursColumnWithControls = ({ artistSlug, tours }: ToursColumnWithControlsProps) => {
+const ToursColumnWithControls = ({
+  artistSlug,
+  tours,
+  subHeader,
+}: ToursColumnWithControlsProps) => {
   const [sortOldest, setSortOldest] = useState(false);
+  const [{ slug: activeSlug }] = slugSearchParams.useQueryStates();
 
   const toggles = [
     {
@@ -46,14 +53,20 @@ const ToursColumnWithControls = ({ artistSlug, tours }: ToursColumnWithControlsP
       toggles={toggles}
       filteredCount={sortedTours.length}
       totalCount={tours.length}
+      subHeader={subHeader}
     >
       {sortedTours.length === 0 && (
-        <div className="py-2 text-center text-sm text-gray-700">No tours found.</div>
+        <div className="py-2 text-center text-sm text-text-muted">No tours found.</div>
       )}
       {artistSlug &&
         sortedTours.map((tour) => (
           <div key={tour.id}>
-            <Row href={slugSearchParams.buildUrl(`/${artistSlug}/tours`, { slug: tour.slug || String(tour.id) })}>
+            <Row
+              href={slugSearchParams.href(`/${artistSlug}/tours`, {
+                slug: tour.slug || String(tour.id),
+              })}
+              active={activeSlug === (tour.slug || String(tour.id))}
+            >
               <div>
                 <div>{tour.name}</div>
                 {(tour.start_date || tour.end_date) && (
@@ -63,9 +76,11 @@ const ToursColumnWithControls = ({ artistSlug, tours }: ToursColumnWithControlsP
                   </div>
                 )}
               </div>
-              <div className="text-xxs text-foreground-muted min-w-[20%] text-right">
+              <div className="text-xxs min-w-[20%] text-right">
                 {tour.shows_on_tour != null && (
-                  <div>{simplePluralize('show', tour.shows_on_tour)}</div>
+                  <div>
+                    <Count unit="show" value={tour.shows_on_tour} />
+                  </div>
                 )}
               </div>
             </Row>

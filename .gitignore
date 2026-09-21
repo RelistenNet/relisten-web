@@ -8,7 +8,13 @@ db/
 .vscode
 
 *.tsbuildinfo
+.timber
+
+dist/
+.lb
 
 .pi
 .timber
 .lb
+.content-collections
+.mcp.json

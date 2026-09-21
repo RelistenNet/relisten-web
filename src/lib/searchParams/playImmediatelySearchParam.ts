@@ -1,16 +1,6 @@
-import { createSearchParams } from '@/lib/searchParams/createSearchParams';
-import { parseAsBoolean } from 'nuqs/server';
+import { defineSearchParams } from '@timber-js/app/search-params';
 import { z } from 'zod/v4';
 
-export const playImmediatelySchema = z.object({
-  playImmediately: z.boolean().nullable(),
+export const playImmediatelySearchParamsLoader = defineSearchParams({
+  playImmediately: z.coerce.boolean().default(true),
 });
-
-export const playImmediatelyParser = {
-  playImmediately: parseAsBoolean.withDefault(true),
-};
-
-export const playImmediatelySearchParamsLoader = createSearchParams(
-  playImmediatelySchema,
-  playImmediatelyParser
-);

@@ -17,8 +17,8 @@ export const removeLeadingZero = (str = ''): string => {
   return String(int);
 };
 
-export const createShowDate = (year: string, month: string, day: string): string => {
-  return `${year}-${addZero(month)}-${addZero(day)}`;
+export const createShowDate = (year?: string, month?: string, day?: string): string => {
+  return `${year ?? ''}-${addZero(month ?? '')}-${addZero(day ?? '')}`;
 };
 
 export const splitShowDate = (showDate = ''): { year: string; month: string; day: string } => {
@@ -45,6 +45,10 @@ export const durationToHHMMSS = (duration = 0): string => {
 
 export const simplePluralize = (str: string, count = 0): string => {
   return `${count?.toLocaleString()} ${count === 1 ? str : str + 's'}`;
+};
+
+export const splitPluralize = (str: string, count = 0): [string, string] => {
+  return [count?.toLocaleString() ?? '0', count === 1 ? str : str + 's'];
 };
 
 export const groupBy = function <T>(xs: T[], key: keyof T): Record<string, T[]> {

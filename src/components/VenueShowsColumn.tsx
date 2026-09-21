@@ -1,24 +1,21 @@
 import RelistenAPI from '@/lib/RelistenAPI';
-import { getServerFilters } from '@/lib/serverFilterCookies';
-import { notFound } from 'next/navigation';
+import { slimShows } from '@/lib/slimShow';
+import { deny } from '@timber-js/app/server';
 import ShowsColumnWithControls from './ShowsColumnWithControls';
 
-const VenueShowsColumn = async ({ artistSlug, slug }: { artistSlug: string; slug: string }) => {
-  const [venue, initialFilters] = await Promise.all([
-    RelistenAPI.fetchVenueShows(artistSlug, slug),
-    getServerFilters(`${artistSlug}:shows`, true),
-  ]).catch(() => {
-    notFound();
+const VenueShowsColumn = async ({ artistSlug, slug, quickHitSegment }: { artistSlug: string; slug: string; quickHitSegment?: string }) => {
+  const venue = await RelistenAPI.fetchVenueShows(artistSlug, slug).catch(() => {
+    deny(404);
   });
 
   return (
     <ShowsColumnWithControls
       artistSlug={artistSlug}
-      year={venue.name}
-      shows={venue.shows || []}
-      initialFilters={initialFilters}
-      backHref={`/${artistSlug}/venues`}
+      year={venue?.name}
+      shows={slimShows(venue?.shows)}
       fullDate
+      quickHitSegment={quickHitSegment}
+      quickHitSlug={slug}
     />
   );
 };

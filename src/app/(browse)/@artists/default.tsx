@@ -1,10 +1,5 @@
 import ArtistsColumn from '@/components/ArtistsColumn';
-import { getIsInIframe } from '@/lib/isInIframe';
 
-export default async function ArtistsSlot() {
-  if (await getIsInIframe()) {
-    return null;
-  }
-
+export default function ArtistsSlot() {
   return <ArtistsColumn />;
 }
