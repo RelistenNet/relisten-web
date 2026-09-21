@@ -273,10 +273,10 @@ export function initGaplessPlayer(nextStore: { dispatch: AppDispatch; getState: 
       .then((res) => (res.ok ? res.json() : null))
       .then((show) => {
         if (!show?.sources?.length) return;
-        sortSources(show.sources);
-        sortTracksInSources(show.sources);
-        const activeSourceId = Number(source) || show.sources[0].id;
-        const activeSource = show.sources.find((s: any) => s.id === activeSourceId);
+        const sorted = sortSources(show.sources);
+        sortTracksInSources(sorted);
+        const activeSourceId = Number(source) || sorted[0].id;
+        const activeSource = sorted.find((s: any) => s.id === activeSourceId);
         if (!activeSource) return;
         const allTracks = activeSource.sets?.flatMap((set: any) => set.tracks).filter(Boolean) ?? [];
         restoreController = null;
@@ -287,15 +287,6 @@ export function initGaplessPlayer(nextStore: { dispatch: AppDispatch; getState: 
       })
       .catch(() => {});
   }
-
-  return () => {
-    if (player) {
-      player.destroy();
-      player = undefined;
-      window.player = undefined;
-      store = undefined;
-    }
-  };
 }
 
 export function resetPlayer() {

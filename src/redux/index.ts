@@ -1,5 +1,6 @@
 import reducers from './modules';
 import { configureStore } from '@reduxjs/toolkit';
+import { initGaplessPlayer } from '@/lib/player';
 
 declare global {
   interface Window {
@@ -13,6 +14,7 @@ export const store = configureStore({
 
 if (typeof window !== 'undefined') {
   window.store = store;
+  initGaplessPlayer(store);
 }
 
 export type RootState = ReturnType<typeof store.getState>;

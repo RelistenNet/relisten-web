@@ -1,6 +1,6 @@
 'use client';
 
-import player, { initGaplessPlayer } from '@/lib/player';
+import player from '@/lib/player';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { PropsWithChildren, useEffect, useState } from 'react';
@@ -19,10 +19,6 @@ export default function Providers({ children }: PropsWithChildren) {
         },
       })
   );
-
-  useEffect(() => {
-    return initGaplessPlayer(store);
-  }, []);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
