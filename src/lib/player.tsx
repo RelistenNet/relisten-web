@@ -287,7 +287,9 @@ export function initGaplessPlayer(nextStore: { dispatch: AppDispatch; getState: 
         seekTime: restored.currentTime,
       });
     })
-    .catch(() => clearRestoredPlaceholder());
+    .catch((e) => {
+      if (e?.name !== 'AbortError') clearRestoredPlaceholder();
+    });
 }
 
 function clearRestoredPlaceholder() {
