@@ -52,11 +52,13 @@ export default function playbackReducer(
   action: PlaybackAction
 ): PlaybackState {
   switch (action.type) {
-    case UPDATE:
-      return {
-        ...state,
-        ...action.data,
-      };
+    case UPDATE: {
+      const next = { ...state, ...action.data };
+      if (action.data.activeTrack) {
+        next.activeTrack = { ...state.activeTrack, ...action.data.activeTrack };
+      }
+      return next;
+    }
     case UPDATE_TRACK: {
       return {
         ...state,

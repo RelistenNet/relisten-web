@@ -1,7 +1,8 @@
 'use client';
 
 import { Link } from '@timber-js/app/client';
-import React, { useRef, useState } from 'react';
+import React, { Suspense, use, useRef, useState } from 'react';
+import { browser } from 'react-dom';
 
 import type { RootState } from '@/redux';
 import {
@@ -17,14 +18,14 @@ import player from '../lib/player';
 import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
 import Flex from './Flex';
 
-const Player = () => {
+function PlayerInner() {
+  use(browser());
+
   const playerRef = useRef<HTMLDivElement>(null);
   const playback = useSelector((state: RootState) => state.playback);
   const [showRemainingDuration, setShowRemainingDuration] = useState(false);
   const hoverTextRef = useRef<HTMLSpanElement>(null);
-  const [volume, setVolume] = useState(
-    (typeof localStorage !== 'undefined' && localStorage.volume) || 1
-  );
+  const [volume, setVolume] = useState(localStorage.volume || 1);
 
   const { year, month, day } = splitShowDate(playback.showDate);
   const { artistSlug, source } = playback;
@@ -35,11 +36,12 @@ const Player = () => {
   const nextTrack = playback.tracks.find(
     (_track, idx: number) => idx === (playback.activeTrack.index ?? -1) + 1
   );
-  const notchPosition =
-    typeof window === 'undefined' || !playerRef
-      ? 0
-      : ((playback.activeTrack.currentTime ?? 0) / (playback.activeTrack.duration ?? 1)) *
-        (Number(playerRef.current?.clientWidth) - 3);
+  const progressPercent = playback.activeTrack.duration
+    ? (playback.activeTrack.currentTime ?? 0) / playback.activeTrack.duration
+    : 0;
+  const onPlayPauseClick = () => {
+    player.togglePlayPause();
+  };
 
   const onProgressClick = (e: React.PointerEvent) => {
     const rect = playerRef.current?.getBoundingClientRect();
@@ -80,7 +82,7 @@ const Player = () => {
       {activeTrack && (
         <Flex
           className="playpause text-text-muted cursor-pointer items-center justify-center active:text-text-primary min-w-[44px] lg:min-w-0 lg:w-[40px]"
-          onClick={() => player.togglePlayPause()}
+          onClick={onPlayPauseClick}
         >
           {playback.activeTrack.isPaused ? (
             <PlayIcon
@@ -95,7 +97,7 @@ const Player = () => {
           )}
         </Flex>
       )}
-      {typeof window === 'undefined' || !activeTrack ? null : (
+      {activeTrack && (
         <div className="relative h-full flex-1" ref={playerRef}>
           <Flex className="info h-full justify-center transition-all duration-[1s] ease-in-out">
             <div className="timing text-text-muted absolute top-1/2 left-[8px] translate-x-0 translate-y-[-50%] text-left text-[0.8em]">
@@ -143,11 +145,11 @@ const Player = () => {
           >
             <div
               className="absolute bottom-0 left-0 h-1 bg-accent"
-              style={{ width: notchPosition ? notchPosition + 2 : 'auto' }}
+              style={{ width: `${progressPercent * 100}%` }}
             />
             <div
               className="absolute bottom-0 left-0 z-1 h-2 w-[3px] bg-text-primary"
-              style={{ transform: `translate(${notchPosition}px, 0)` }}
+              style={{ left: `${progressPercent * 100}%` }}
             />
             <div
               className="pointer-events-none absolute bottom-full z-2 mb-2 hidden -translate-x-1/2 rounded-md bg-surface-raised px-2.5 py-1 text-xs text-text-primary tabular-nums shadow-lg ring-1 ring-hairline group-hover:block"
@@ -186,6 +188,12 @@ const Player = () => {
       )}
     </Flex>
   );
-};
+}
+
+const Player = () => (
+  <Suspense fallback={<div className="h-[50px]" />}>
+    <PlayerInner />
+  </Suspense>
+);
 
 export default Player;

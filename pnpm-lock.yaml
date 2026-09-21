@@ -232,8 +232,8 @@ importers:
         specifier: ^3.14.13
         version: 3.14.13(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@timber-js/app':
-        specifier: 0.2.0-alpha.206
-        version: 0.2.0-alpha.206(@content-collections/core@0.15.2(typescript@7.0.2))(@content-collections/vite@0.3.0(@content-collections/core@0.15.2(typescript@7.0.2))(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1)))(@vitejs/plugin-react@6.1.1(@rolldown/plugin-babel@0.2.4(@babel/core@7.29.7(supports-color@9.4.0))(@babel/runtime@7.29.7)(rolldown@1.2.9)(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1)))(babel-plugin-react-compiler@1.0.0)(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1)))(@vitejs/plugin-rsc@0.5.35(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1)))(nuqs@2.10.1(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(satteri@0.10.5)(vite-plugin-satteri@0.3.5(satteri@0.10.5)(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1)))(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1))(zod@4.6.5)
+        specifier: 0.2.0-alpha.207
+        version: 0.2.0-alpha.207(@content-collections/core@0.15.2(typescript@7.0.2))(@content-collections/vite@0.3.0(@content-collections/core@0.15.2(typescript@7.0.2))(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1)))(@vitejs/plugin-react@6.1.1(@rolldown/plugin-babel@0.2.4(@babel/core@7.29.7(supports-color@9.4.0))(@babel/runtime@7.29.7)(rolldown@1.2.9)(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1)))(babel-plugin-react-compiler@1.0.0)(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1)))(@vitejs/plugin-rsc@0.5.35(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1)))(nuqs@2.10.1(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(satteri@0.10.5)(vite-plugin-satteri@0.3.5(satteri@0.10.5)(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1)))(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1))(zod@4.6.5)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -253,8 +253,8 @@ importers:
         specifier: 13.3.0
         version: 13.3.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       gapless:
-        specifier: 4.3.0
-        version: 4.3.0
+        specifier: 4.4.3
+        version: 4.4.3
       isomorphic-fetch:
         specifier: 3.0.0
         version: 3.0.0
@@ -2270,8 +2270,8 @@ packages:
   '@tanstack/virtual-core@3.17.11':
     resolution: {integrity: sha512-+ILjvtHup6Y2hzQ6YzwMgX1Q+oQpxEGOXCEsCNaPoIP0VxMbizIBTmYTDtkerkIQS8/CbP1BRuyt8V/8BCsy1g==}
 
-  '@timber-js/app@0.2.0-alpha.206':
-    resolution: {integrity: sha512-Ejo7PbFvFEHSgM0URDTyww6+VIKXH4qNlSKBONJb21N5wUwG31a/HGT/GCtvGcfJAZwpXkpRaZJIZ5k/tMOkZA==}
+  '@timber-js/app@0.2.0-alpha.207':
+    resolution: {integrity: sha512-zQNcxakNiz74EQtbLVCdg1sQdeNDMqG9/7PpI6kk9Bi+MxqWThgAvhNkqNsW0FdZZbK7krogvriGcDG3qc8vcA==}
     engines: {node: '>=22.18.0'}
     hasBin: true
     peerDependencies:
@@ -3459,8 +3459,8 @@ packages:
   fuzzysort@3.1.0:
     resolution: {integrity: sha512-sR9BNCjBg6LNgwvxlBd0sBABvQitkLzoVY9MYYROQVX/FvfJ4Mai9LsGhDgd8qYdds0bY77VzYd5iuB+v5rwQQ==}
 
-  gapless@4.3.0:
-    resolution: {integrity: sha512-l0zeGhu0pAyfEDmVsqmUbQcGNTqdQmlAy+zGEy+4CWoqZKWO2OHSuWyJIqjv0rro1uvJ0SSHY0mqYSCH+Bt3mg==}
+  gapless@4.4.3:
+    resolution: {integrity: sha512-oSwoZWJzcZjYsrTH67EivLlR6gNfZZxSga91uYF727n9tz4mZi+9tZRJiclHEeQn5zVnUTF0r3HDjyeXyFqhbQ==}
 
   generator-function@2.0.1:
     resolution: {integrity: sha512-SFdFmIJi+ybC0vjlHN0ZGVGHc3lgE0DxPAT0djjVg+kjOnSqclqmj0KQ7ykTOLP6YxoqOvuAODGdcHJn+43q3g==}
@@ -7434,7 +7434,7 @@ snapshots:
 
   '@tanstack/virtual-core@3.17.11': {}
 
-  '@timber-js/app@0.2.0-alpha.206(@content-collections/core@0.15.2(typescript@7.0.2))(@content-collections/vite@0.3.0(@content-collections/core@0.15.2(typescript@7.0.2))(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1)))(@vitejs/plugin-react@6.1.1(@rolldown/plugin-babel@0.2.4(@babel/core@7.29.7(supports-color@9.4.0))(@babel/runtime@7.29.7)(rolldown@1.2.9)(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1)))(babel-plugin-react-compiler@1.0.0)(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1)))(@vitejs/plugin-rsc@0.5.35(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1)))(nuqs@2.10.1(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(satteri@0.10.5)(vite-plugin-satteri@0.3.5(satteri@0.10.5)(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1)))(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1))(zod@4.6.5)':
+  '@timber-js/app@0.2.0-alpha.207(@content-collections/core@0.15.2(typescript@7.0.2))(@content-collections/vite@0.3.0(@content-collections/core@0.15.2(typescript@7.0.2))(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1)))(@vitejs/plugin-react@6.1.1(@rolldown/plugin-babel@0.2.4(@babel/core@7.29.7(supports-color@9.4.0))(@babel/runtime@7.29.7)(rolldown@1.2.9)(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1)))(babel-plugin-react-compiler@1.0.0)(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1)))(@vitejs/plugin-rsc@0.5.35(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1)))(nuqs@2.10.1(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(satteri@0.10.5)(vite-plugin-satteri@0.3.5(satteri@0.10.5)(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1)))(vite@8.3.0(@types/node@26.6.1)(jiti@2.7.0)(yaml@2.9.1))(zod@4.6.5)':
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/context-async-hooks': 2.11.0(@opentelemetry/api@1.9.1)
@@ -8748,7 +8748,7 @@ snapshots:
 
   fuzzysort@3.1.0: {}
 
-  gapless@4.3.0:
+  gapless@4.4.3:
     dependencies:
       xstate: 5.33.2
 
