@@ -10,10 +10,11 @@ export default defineSchema({
     '[songSlug]': z.string(),
     '[year]': z.string(),
     '[showUuid]': z.string(),
+    '[slug]': codec.string,
 
-    '[...artistSlugs]': codec.catchAll(codec.string),
     '[...days]': codec.catchAll(codec.string),
     '[...years]': codec.catchAll(codec.string),
-    '[slug]': codec.string,
+
+    '[[...rest]]': codec.optionalCatchAll(codec.string),
   },
 });

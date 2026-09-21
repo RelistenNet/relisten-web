@@ -1,15 +1,9 @@
 'use client';
 
 import { Props, useSourceData } from '@/components/SongsColumn';
-import player, {
-  initGaplessPlayer,
-  isPlayerMounted,
-  resetPlayer,
-  setPendingSeekTime,
-} from '@/lib/player';
+import player, { loadTracks } from '@/lib/player';
 import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { tSearchParamsLoader } from '@/lib/searchParams/tSearchParam';
-import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
 import { createShowDate } from '@/lib/utils';
 import { store } from '@/redux';
 import { updatePlayback } from '@/redux/modules/playback';
@@ -72,70 +66,24 @@ export default function PlayerManager(props: PlayerManagerProps) {
         }
       }
 
-      if (!isPlayerMounted()) {
-        initGaplessPlayer(store);
-      } else {
-        // check if track is already in queue, and re-use
-        if (player.currentTrack?.metadata?.trackId === activeTrack?.id) {
-          player.play();
-          return;
-        }
-
-        const prevFirstTrack = player.tracks[0];
-        const nextFirstTrack = tracks[0];
-        if (
-          prevFirstTrack &&
-          nextFirstTrack &&
-          prevFirstTrack.metadata?.trackId === nextFirstTrack.id
-        ) {
-          player.gotoTrack(activeTrackIndex, playImmediately);
-          return;
-        } else {
-          resetPlayer();
-        }
+      // check if track is already in queue, and re-use
+      if (player.currentTrack?.metadata?.trackId === activeTrack?.id) {
+        player.play();
+        return;
       }
 
-      tracks.map((track) => {
-        const url = proxyStreamUrl(
-          window.FLAC ? track?.flac_url || track?.mp3_url : track?.mp3_url
-        );
-
-        if (!url) return;
-        player.addTrack(url, {
-          skipHEAD: /phish\.in/.test(String(url)), // skip phish from loading head due to cloudflare
-          metadata: {
-            trackId: track?.id,
-          },
-        });
-      });
-
-      store.dispatch(updatePlayback({ tracks }));
-
-      player.gotoTrack(activeTrackIndex, playImmediately);
-
-      if (!playImmediately && activeTrack) {
-        store.dispatch(
-          updatePlayback({
-            activeTrack: {
-              id: activeTrack.id,
-              index: activeTrackIndex,
-              isPaused: true,
-              currentTime: 0,
-              duration: activeTrack.duration,
-            },
-          })
-        );
+      const prevFirstTrack = player.tracks?.[0];
+      const nextFirstTrack = tracks[0];
+      if (
+        prevFirstTrack &&
+        nextFirstTrack &&
+        prevFirstTrack.metadata?.trackId === nextFirstTrack.id
+      ) {
+        player.gotoTrack(activeTrackIndex, playImmediately);
+        return;
       }
 
-      // Store seek time for deferred use if autoplay is blocked
-      if (seekTime > 0) {
-        setPendingSeekTime(seekTime);
-      }
-
-      // Seek to time offset if `t` param is present (e.g. from embed popout)
-      if (seekTime > 0 && player.currentTrack) {
-        player.seek(seekTime);
-      }
+      loadTracks(tracks, songSlug, { playImmediately, seekTime });
     }
   }, [pathname, sourceId, activeSourceObj, props.trackSlugs, songSlug]);
 

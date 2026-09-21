@@ -4,6 +4,9 @@ import { splitShowDate } from './utils';
 
 import { scrobblePlay } from './scrobble';
 import { updatePlayback } from '../redux/modules/playback';
+import { API_DOMAIN } from './constants';
+import { sortSources, sortTracksInSources } from './sortSources';
+import { proxyStreamUrl } from './proxyStreamUrl';
 import type { GaplessMetadata } from '../types';
 import { toast } from 'sonner';
 import type { RootState, AppDispatch } from '../redux';
@@ -23,53 +26,32 @@ declare global {
   }
 }
 
-// Returns a function, that, when invoked, will only be triggered at most once
-// during a given window of time. Normally, the throttled function will run
-// as much as it can, without ever going more than once per `wait` duration;
-// but if you'd like to disable the execution on the leading edge, pass
-// `{leading: false}`. To disable execution on the trailing edge, ditto.
-function throttle(
-  func: ({
-    isPaused,
-    currentTime,
-    duration,
-  }: {
-    isPaused: boolean;
-    currentTime: string;
-    duration: number;
-  }) => void,
-  wait: number,
-  options = { leading: true, trailing: true },
-  ...args: IArguments[]
-) {
-  let context, result;
+function throttle<T extends (...args: any[]) => any>(func: T, wait: number): T {
   let timeout: ReturnType<typeof setTimeout> | null = null;
   let previous = 0;
+  let lastArgs: Parameters<T> | null = null;
   const later = function () {
-    previous = options.leading === false ? 0 : Date.now();
+    previous = Date.now();
     timeout = null;
-    result = func.apply(context, args);
-    if (!timeout) context = (args as any) = null;
+    if (lastArgs) func(...lastArgs);
+    lastArgs = null;
   };
-  return function () {
+  return function (...args: Parameters<T>) {
+    lastArgs = args;
     const now = Date.now();
-    if (!previous && options.leading === false) previous = now;
     const remaining = wait - (now - previous);
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    context = this;
     if (remaining <= 0 || remaining > wait) {
       if (timeout) {
         clearTimeout(timeout);
         timeout = null;
       }
       previous = now;
-      result = func.apply(context, args);
-      if (!timeout) context = (args as any) = null;
-    } else if (!timeout && options.trailing !== false) {
+      func(...args);
+      lastArgs = null;
+    } else if (!timeout) {
       timeout = setTimeout(later, remaining);
     }
-    return result;
-  };
+  } as T;
 }
 
 const updateLocalStorage = ({
@@ -83,21 +65,17 @@ const updateLocalStorage = ({
 }) => {
   localStorage.isPaused = isPaused;
   localStorage.currentTime = currentTime;
-  localStorage.duration = duration;
+  if (isFinite(duration) && duration > 0) {
+    localStorage.duration = duration;
+  }
 };
 
-const throttledUpdateLocalStorage = () => {
-  throttle(updateLocalStorage, 1000);
-};
+const throttledUpdateLocalStorage = throttle(updateLocalStorage, 1000);
 
 let store: { dispatch: AppDispatch; getState: () => RootState } | undefined;
-let mounted: boolean;
-let pendingSeekTime: number | null = null;
 let lastScrobbledTrackUuid: string | null = null;
+let restoreController: AbortController | null = null;
 
-export function setPendingSeekTime(seconds: number) {
-  pendingSeekTime = seconds;
-}
 
 let player: Queue | undefined;
 let currentPlaybackMethod: 'HYBRID' | 'HTML5_ONLY' = 'HYBRID'; // reassigned in initGaplessPlayer
@@ -121,7 +99,11 @@ function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Qu
     onProgress: (info: TrackInfo) => {
       if (!store) return;
       if (info) {
-        throttledUpdateLocalStorage();
+        throttledUpdateLocalStorage({
+          isPaused: info.isPaused,
+          currentTime: String(info.currentTime),
+          duration: info.duration,
+        });
         if (!info.isPaused) {
           toast.dismiss('autoplay-blocked');
         }
@@ -135,19 +117,22 @@ function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Qu
           }
         }
       }
+      const activeTrackUpdate: Record<string, unknown> = info
+        ? {
+            id: info.metadata?.trackId as number | undefined,
+            index: info.index,
+            currentTime: info.currentTime,
+            isPaused: info.isPaused,
+            playbackType: info.playbackType,
+            webAudioLoadingState: info.webAudioLoadingState,
+          }
+        : {};
+      if (info && isFinite(info.duration) && info.duration > 0) {
+        activeTrackUpdate.duration = info.duration;
+      }
       store.dispatch(
         updatePlayback({
-          activeTrack: info
-            ? {
-                id: info.metadata?.trackId as number | undefined,
-                index: info.index,
-                currentTime: info.currentTime,
-                duration: info.duration,
-                isPaused: info.isPaused,
-                playbackType: info.playbackType,
-                webAudioLoadingState: info.webAudioLoadingState,
-              }
-            : {},
+          activeTrack: activeTrackUpdate,
           gaplessTracksMetadata: player?.tracks
             ? player.tracks.map((trackInfo: TrackInfo) => ({
                 index: trackInfo.index,
@@ -201,6 +186,12 @@ function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Qu
 
           if (songSlug && !routePrefix) {
             window.localStorage.lastPlayedUrl = `${basePath}?source=${source}`;
+            window.localStorage.lastPlayedTrackTitle = track.title ?? '';
+            window.localStorage.lastPlayedArtistName = playback.artistName ?? '';
+            window.localStorage.lastPlayedShowDate = playback.showDate ?? '';
+            if (track.duration && isFinite(track.duration)) {
+              window.localStorage.duration = track.duration;
+            }
           }
 
           // update URL and page title to reflect current track without triggering a full navigation
@@ -250,12 +241,6 @@ function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Qu
             if (!player) return;
             player.resumeAudioContext();
             player.play();
-            if (pendingSeekTime && pendingSeekTime > 0 && player.currentTrack) {
-              setTimeout(() => {
-                player!.seek(pendingSeekTime!);
-                pendingSeekTime = null;
-              }, 100);
-            }
             toast.dismiss('autoplay-blocked');
           },
         },
@@ -266,19 +251,51 @@ function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Qu
 
 export function initGaplessPlayer(nextStore: { dispatch: AppDispatch; getState: () => RootState }) {
   if (typeof window === 'undefined') return;
+  if (player) return;
+
   store = nextStore;
 
   currentPlaybackMethod = detectMobileDevice() ? 'HTML5_ONLY' : 'HYBRID';
   player = createQueue({ playbackMethod: currentPlaybackMethod });
-
-  // just for debugging purposes
   window.player = player;
 
   if (localStorage.volume) {
     player.setVolume(localStorage.volume);
   }
 
-  mounted = true;
+  const { playback } = store.getState();
+  if (playback.artistSlug && playback.showDate && !playback.tracks.some((t) => t.id)) {
+    const { artistSlug, year, source, showDate, songSlug } = playback;
+    restoreController = new AbortController();
+    fetch(`${API_DOMAIN}/api/v2/artists/${artistSlug}/years/${year}/${showDate}`, {
+      signal: restoreController.signal,
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((show) => {
+        if (!show?.sources?.length) return;
+        sortSources(show.sources);
+        sortTracksInSources(show.sources);
+        const activeSourceId = Number(source) || show.sources[0].id;
+        const activeSource = show.sources.find((s: any) => s.id === activeSourceId);
+        if (!activeSource) return;
+        const allTracks = activeSource.sets?.flatMap((set: any) => set.tracks).filter(Boolean) ?? [];
+        restoreController = null;
+        loadTracks(allTracks, songSlug, {
+          playImmediately: false,
+          seekTime: playback.activeTrack.currentTime ?? 0,
+        });
+      })
+      .catch(() => {});
+  }
+
+  return () => {
+    if (player) {
+      player.destroy();
+      player = undefined;
+      window.player = undefined;
+      store = undefined;
+    }
+  };
 }
 
 export function resetPlayer() {
@@ -292,8 +309,44 @@ export function resetPlayer() {
   }
 }
 
-export function isPlayerMounted() {
-  return mounted;
+export function loadTracks(
+  tracks: any[],
+  songSlug: string | undefined,
+  { playImmediately = true, seekTime = 0 }: { playImmediately?: boolean; seekTime?: number } = {}
+) {
+  if (!store || !player) return;
+
+  if (restoreController) {
+    restoreController.abort();
+    restoreController = null;
+  }
+
+  const activeTrackIndex = tracks.findIndex((t) => t.slug === songSlug);
+  const idx = activeTrackIndex >= 0 ? activeTrackIndex : 0;
+
+  resetPlayer();
+
+  for (const track of tracks) {
+    const url = proxyStreamUrl(window.FLAC ? track.flac_url || track.mp3_url : track.mp3_url);
+    if (!url) continue;
+    player.addTrack(url, {
+      skipHEAD: /phish\.in/.test(String(url)),
+      metadata: { trackId: track.id },
+    });
+  }
+
+  store.dispatch(updatePlayback({
+    tracks,
+    activeTrack: {
+      id: tracks[idx]?.id,
+      index: idx,
+      isPaused: !playImmediately,
+      currentTime: seekTime,
+      duration: tracks[idx]?.duration,
+    },
+  }));
+
+  player.gotoTrack(idx, playImmediately, seekTime > 0 ? seekTime : undefined);
 }
 
 export default playerProxy;
