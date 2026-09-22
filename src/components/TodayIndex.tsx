@@ -4,6 +4,7 @@ import cn from '@/lib/cn';
 import { todayIndexSearchParams } from '@/lib/searchParams/todayIndexSearchParams';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
+import TodayDateNav from './TodayDateNav';
 
 export type TodayIndexItem = {
   name: string;
@@ -19,7 +20,14 @@ const sortComparators: Record<SortMode, ((a: TodayIndexItem, b: TodayIndexItem) 
   count: (a, b) => a.count - b.count || a.name.localeCompare(b.name),
 };
 
-const TodayIndex = ({ items }: { items: TodayIndexItem[] }) => {
+type TodayIndexProps = {
+  items: TodayIndexItem[];
+  month: string;
+  day: string;
+  pathname: string;
+};
+
+const TodayIndex = ({ items, month, day, pathname }: TodayIndexProps) => {
   const [{ sort: sortMode, dir: sortDir, anchor: rawAnchor }, setParams] =
     todayIndexSearchParams.useQueryStates({ shallow: true, scroll: false });
   const activeAnchor = rawAnchor ?? items[0]?.anchor;
@@ -48,7 +56,12 @@ const TodayIndex = ({ items }: { items: TodayIndexItem[] }) => {
   }, []);
 
   return (
-    <nav className="sticky top-4 hidden w-48 shrink-0 self-start md:block">
+    <nav className="sticky top-4 hidden max-h-[calc(100vh-2rem)] w-48 shrink-0 flex-col self-start md:flex">
+      <div className="mb-4">
+        <h1 className="mb-2 text-lg font-semibold text-text-primary">Today in History</h1>
+        <TodayDateNav month={month} day={day} pathname={pathname} />
+      </div>
+
       <div className="mb-2">
         <p className="mb-1 text-sm font-semibold uppercase text-white">Artists</p>
         <div className="flex gap-1">
@@ -87,7 +100,7 @@ const TodayIndex = ({ items }: { items: TodayIndexItem[] }) => {
           })}
         </div>
       </div>
-      <ul className="max-h-[calc(100vh-2rem)] list-none space-y-1 overflow-y-auto pr-2 text-sm">
+      <ul className="min-h-0 flex-1 list-none space-y-1 overflow-y-auto pr-2 text-sm">
         {sortedItems.map(({ name, anchor, count }) => {
           const isActive = anchor === activeAnchor;
           return (

@@ -60,15 +60,15 @@ export default async function Page() {
 
   return (
     <div className="mx-auto w-full max-w-6xl flex-1">
-      <div className="mb-10">
+      <div className="mb-10 md:hidden">
         <h1 className="mb-2 text-3xl font-semibold text-text-primary">Today in History</h1>
         <TodayDateNav month={month} day={day} pathname="/today" />
       </div>
 
-      <div className="flex items-start gap-10">
-        <TodayIndex items={artistAnchors} />
+      <div className="flex items-start gap-10 md:mt-2">
+        <TodayIndex items={artistAnchors} month={month} day={day} pathname="/today" />
 
-        <div className="min-w-0 flex-1 space-y-10">
+        <div className="min-w-0 flex-1 space-y-10 pt-2">
           {sortedArtists.map(([artistName, , days], i) => (
             <div key={artistName} id={artistAnchors[i].anchor} className="scroll-mt-4">
               <h2 className="mb-1 text-lg font-semibold text-text-primary">{artistName}</h2>
