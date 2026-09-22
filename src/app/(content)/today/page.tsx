@@ -1,9 +1,10 @@
 import TodayDateNav from '@/components/TodayDateNav';
-import TodayTOC from '@/components/TodayTOC';
+import TodayIndex from '@/components/TodayIndex';
 import TodayTrack from '@/components/TodayTrack';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { getCurrentMonthDay } from '@/lib/timezone';
 import { Day } from '@/types';
+import slugify from 'slugify';
 import { searchParams } from './params';
 
 export default async function Page() {
@@ -53,7 +54,7 @@ export default async function Page() {
 
   const artistAnchors = sortedArtists.map(([artistName, slug, days], i) => ({
     name: artistName,
-    anchor: `artist-${i}-${slug || slugify(artistName)}`,
+    anchor: `artist-${i}-${slug || slugify(artistName, { lower: true, strict: true })}`,
     count: days.length,
   }));
 
@@ -65,7 +66,7 @@ export default async function Page() {
       </div>
 
       <div className="flex items-start gap-10">
-        <TodayTOC items={artistAnchors} />
+        <TodayIndex items={artistAnchors} />
 
         <div className="min-w-0 flex-1 space-y-10">
           {sortedArtists.map(([artistName, , days], i) => (
@@ -85,13 +86,6 @@ export default async function Page() {
       </div>
     </div>
   );
-}
-
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
 }
 
 export const metadata = {

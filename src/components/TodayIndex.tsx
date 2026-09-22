@@ -1,30 +1,29 @@
 'use client';
 
 import cn from '@/lib/cn';
+import { todayIndexSearchParams } from '@/lib/searchParams/todayIndexSearchParams';
 import { ArrowDown, ArrowUp } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 
-export type TodayTOCItem = {
+export type TodayIndexItem = {
   name: string;
   anchor: string;
   count: number;
 };
 
 type SortMode = 'default' | 'alpha' | 'count';
-type SortDir = 'asc' | 'desc';
 
-const TodayTOC = ({ items }: { items: TodayTOCItem[] }) => {
-  const [activeAnchor, setActiveAnchor] = useState<string | undefined>(items[0]?.anchor);
-  const [sortMode, setSortMode] = useState<SortMode>('default');
-  const [sortDir, setSortDir] = useState<SortDir>('asc');
+const TodayIndex = ({ items }: { items: TodayIndexItem[] }) => {
+  const [{ sort: sortMode, dir: sortDir, anchor: rawAnchor }, setParams] =
+    todayIndexSearchParams.useQueryStates({ shallow: true, scroll: false });
+  const activeAnchor = rawAnchor ?? items[0]?.anchor;
 
   const toggleSort = (mode: SortMode) => {
     if (mode === 'default') return;
     if (sortMode === mode) {
-      setSortDir((dir) => (dir === 'asc' ? 'desc' : 'asc'));
+      setParams({ dir: sortDir === 'asc' ? 'desc' : 'asc' });
     } else {
-      setSortMode(mode);
-      setSortDir('asc');
+      setParams({ sort: mode, dir: 'asc' });
     }
   };
 
@@ -47,7 +46,7 @@ const TodayTOC = ({ items }: { items: TodayTOCItem[] }) => {
       (entries) => {
         const visible = entries.filter((entry) => entry.isIntersecting);
         if (visible.length > 0) {
-          setActiveAnchor(visible[0].target.id);
+          setParams({ anchor: visible[0].target.id }, { history: 'replace' });
         }
       },
       { rootMargin: '-64px 0px -70% 0px', threshold: 0 }
@@ -59,7 +58,7 @@ const TodayTOC = ({ items }: { items: TodayTOCItem[] }) => {
     });
 
     return () => observer.disconnect();
-  }, [items]);
+  }, [items, setParams]);
 
   return (
     <nav className="sticky top-4 hidden w-48 shrink-0 self-start md:block">
@@ -78,7 +77,9 @@ const TodayTOC = ({ items }: { items: TodayTOCItem[] }) => {
               <button
                 key={mode}
                 type="button"
-                onClick={() => (mode === 'default' ? setSortMode('default') : toggleSort(mode))}
+                onClick={() =>
+                  mode === 'default' ? setParams({ sort: 'default' }) : toggleSort(mode)
+                }
                 title={label}
                 className={cn(
                   'flex cursor-pointer items-center gap-1 rounded p-1 text-[10px] transition-all duration-200',
@@ -125,4 +126,4 @@ const TodayTOC = ({ items }: { items: TodayTOCItem[] }) => {
   );
 };
 
-export default TodayTOC;
+export default TodayIndex;
