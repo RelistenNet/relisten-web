@@ -1,4 +1,5 @@
 import TodayDateNav from '@/components/TodayDateNav';
+import TodayTOC from '@/components/TodayTOC';
 import TodayTrack from '@/components/TodayTrack';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { getCurrentMonthDay } from '@/lib/timezone';
@@ -50,10 +51,11 @@ export default async function Page() {
       return aName.localeCompare(bName);
     });
 
-  const artistAnchors = sortedArtists.map(([artistName, slug], i) => [
-    artistName,
-    `artist-${i}-${slug || slugify(artistName)}`,
-  ]) as [string, string][];
+  const artistAnchors = sortedArtists.map(([artistName, slug, days], i) => ({
+    name: artistName,
+    anchor: `artist-${i}-${slug || slugify(artistName)}`,
+    count: days.length,
+  }));
 
   return (
     <div className="mx-auto w-full max-w-6xl flex-1">
@@ -63,25 +65,11 @@ export default async function Page() {
       </div>
 
       <div className="flex items-start gap-10">
-        <nav className="sticky top-4 hidden w-48 shrink-0 self-start md:block">
-          <p className="mb-2 text-xs font-semibold uppercase text-text-muted">Artists</p>
-          <ul className="max-h-[calc(100vh-2rem)] space-y-1 overflow-y-auto pr-2 text-sm">
-            {artistAnchors.map(([artistName, anchor]) => (
-              <li key={anchor}>
-                <a
-                  href={`#${anchor}`}
-                  className="block truncate text-text-secondary hover:text-text-primary hover:underline"
-                >
-                  {artistName}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <TodayTOC items={artistAnchors} />
 
         <div className="min-w-0 flex-1 space-y-10">
           {sortedArtists.map(([artistName, , days], i) => (
-            <div key={artistName} id={artistAnchors[i][1]} className="scroll-mt-4">
+            <div key={artistName} id={artistAnchors[i].anchor} className="scroll-mt-4">
               <h2 className="mb-1 text-lg font-semibold text-text-primary">{artistName}</h2>
               <p className="mb-4 text-sm text-text-muted">
                 {days.length} {days.length === 1 ? 'show' : 'shows'}
