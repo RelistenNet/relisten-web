@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import cn from '@/lib/cn';
+import { ArrowDown, ArrowUp } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 
 export type TodayTOCItem = {
   name: string;
@@ -8,8 +10,37 @@ export type TodayTOCItem = {
   count: number;
 };
 
+type SortMode = 'default' | 'alpha' | 'count';
+type SortDir = 'asc' | 'desc';
+
 const TodayTOC = ({ items }: { items: TodayTOCItem[] }) => {
   const [activeAnchor, setActiveAnchor] = useState<string | undefined>(items[0]?.anchor);
+  const [sortMode, setSortMode] = useState<SortMode>('default');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+
+  const toggleSort = (mode: SortMode) => {
+    if (mode === 'default') return;
+    if (sortMode === mode) {
+      setSortDir((dir) => (dir === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortMode(mode);
+      setSortDir('asc');
+    }
+  };
+
+  const sortedItems = useMemo(() => {
+    if (sortMode === 'alpha') {
+      const sorted = [...items].sort((a, b) => a.name.localeCompare(b.name));
+      return sortDir === 'asc' ? sorted : sorted.reverse();
+    }
+    if (sortMode === 'count') {
+      const sorted = [...items].sort(
+        (a, b) => a.count - b.count || a.name.localeCompare(b.name)
+      );
+      return sortDir === 'asc' ? sorted : sorted.reverse();
+    }
+    return items;
+  }, [items, sortMode, sortDir]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -32,9 +63,46 @@ const TodayTOC = ({ items }: { items: TodayTOCItem[] }) => {
 
   return (
     <nav className="sticky top-4 hidden w-48 shrink-0 self-start md:block">
-      <p className="mb-2 text-sm font-semibold uppercase text-white">Artists</p>
+      <div className="mb-2">
+        <p className="mb-1 text-sm font-semibold uppercase text-white">Artists</p>
+        <div className="flex gap-1">
+          {(
+            [
+              ['default', 'Default'],
+              ['alpha', 'A–Z'],
+              ['count', '# Shows'],
+            ] as const
+          ).map(([mode, label]) => {
+            const isActive = sortMode === mode;
+            return (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => (mode === 'default' ? setSortMode('default') : toggleSort(mode))}
+                title={label}
+                className={cn(
+                  'flex cursor-pointer items-center gap-1 rounded p-1 text-[10px] transition-all duration-200',
+                  'hover:scale-105 active:scale-95',
+                  isActive
+                    ? 'ring-1 ring-accent/40 bg-accent/10 font-medium text-accent hover:bg-accent/15'
+                    : 'bg-column-header-text/5 text-column-header-text/70 hover:bg-column-header-text/10 hover:text-column-header-text'
+                )}
+              >
+                {isActive && mode !== 'default' ? (
+                  sortDir === 'asc' ? (
+                    <ArrowUp className="h-3 w-3" />
+                  ) : (
+                    <ArrowDown className="h-3 w-3" />
+                  )
+                ) : null}
+                <span>{label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
       <ul className="max-h-[calc(100vh-2rem)] list-none space-y-1 overflow-y-auto pr-2 text-sm">
-        {items.map(({ name, anchor, count }) => {
+        {sortedItems.map(({ name, anchor, count }) => {
           const isActive = anchor === activeAnchor;
           return (
             <li key={anchor} className="ml-0 list-none">
