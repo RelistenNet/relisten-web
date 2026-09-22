@@ -13,14 +13,21 @@ export type TodayIndexItem = {
 
 type SortMode = 'default' | 'alpha' | 'count';
 
+const sortComparators: Record<SortMode, ((a: TodayIndexItem, b: TodayIndexItem) => number) | null> = {
+  default: null,
+  alpha: (a, b) => a.name.localeCompare(b.name),
+  count: (a, b) => a.count - b.count || a.name.localeCompare(b.name),
+};
+
 const TodayIndex = ({ items }: { items: TodayIndexItem[] }) => {
   const [{ sort: sortMode, dir: sortDir, anchor: rawAnchor }, setParams] =
     todayIndexSearchParams.useQueryStates({ shallow: true, scroll: false });
   const activeAnchor = rawAnchor ?? items[0]?.anchor;
 
   const toggleSort = (mode: SortMode) => {
-    if (mode === 'default') return;
-    if (sortMode === mode) {
+    if (mode === 'default') {
+      setParams({ sort: 'default' });
+    } else if (sortMode === mode) {
       setParams({ dir: sortDir === 'asc' ? 'desc' : 'asc' });
     } else {
       setParams({ sort: mode, dir: 'asc' });
@@ -28,37 +35,17 @@ const TodayIndex = ({ items }: { items: TodayIndexItem[] }) => {
   };
 
   const sortedItems = useMemo(() => {
-    if (sortMode === 'alpha') {
-      const sorted = [...items].sort((a, b) => a.name.localeCompare(b.name));
-      return sortDir === 'asc' ? sorted : sorted.reverse();
-    }
-    if (sortMode === 'count') {
-      const sorted = [...items].sort(
-        (a, b) => a.count - b.count || a.name.localeCompare(b.name)
-      );
-      return sortDir === 'asc' ? sorted : sorted.reverse();
-    }
-    return items;
+    const comparator = sortComparators[sortMode];
+    if (!comparator) return items;
+    const sorted = [...items].sort(comparator);
+    return sortDir === 'asc' ? sorted : sorted.reverse();
   }, [items, sortMode, sortDir]);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.filter((entry) => entry.isIntersecting);
-        if (visible.length > 0) {
-          setParams({ anchor: visible[0].target.id }, { history: 'replace' });
-        }
-      },
-      { rootMargin: '-64px 0px -70% 0px', threshold: 0 }
-    );
-
-    items.forEach(({ anchor }) => {
-      const el = document.getElementById(anchor);
-      if (el) observer.observe(el);
-    });
-
-    return () => observer.disconnect();
-  }, [items, setParams]);
+    if (!rawAnchor) return;
+    document.getElementById(rawAnchor)?.scrollIntoView({ block: 'start' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <nav className="sticky top-4 hidden w-48 shrink-0 self-start md:block">
@@ -77,9 +64,7 @@ const TodayIndex = ({ items }: { items: TodayIndexItem[] }) => {
               <button
                 key={mode}
                 type="button"
-                onClick={() =>
-                  mode === 'default' ? setParams({ sort: 'default' }) : toggleSort(mode)
-                }
+                onClick={() => toggleSort(mode)}
                 title={label}
                 className={cn(
                   'flex cursor-pointer items-center gap-1 rounded p-1 text-[10px] transition-all duration-200',
@@ -108,7 +93,12 @@ const TodayIndex = ({ items }: { items: TodayIndexItem[] }) => {
           return (
             <li key={anchor} className="ml-0 list-none">
               <a
-                href={`#${anchor}`}
+                href={`?${todayIndexSearchParams.buildSearchParams({ sort: sortMode, dir: sortDir, anchor })}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  setParams({ anchor });
+                }}
                 className={`flex items-center justify-between gap-2 rounded px-2 py-1 transition-colors ${
                   isActive
                     ? 'bg-surface-hover font-medium text-text-primary'

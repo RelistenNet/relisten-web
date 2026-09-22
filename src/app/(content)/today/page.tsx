@@ -52,9 +52,9 @@ export default async function Page() {
       return aName.localeCompare(bName);
     });
 
-  const artistAnchors = sortedArtists.map(([artistName, slug, days], i) => ({
+  const artistAnchors = sortedArtists.map(([artistName, slug, days]) => ({
     name: artistName,
-    anchor: `artist-${i}-${slug || slugify(artistName, { lower: true, strict: true })}`,
+    anchor: slug || slugify(artistName, { lower: true, strict: true }),
     count: days.length,
   }));
 
