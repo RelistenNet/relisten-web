@@ -22,7 +22,7 @@ export default function TodayDateNav({ month, day, pathname }: TodayDateNavProps
   const next = addDays(date, 1);
 
   return (
-    <div className="flex items-center justify-center gap-2">
+    <div className="flex items-center justify-start gap-2">
       <Link
         href={buildDateUrl(pathname, prev)}
         className="

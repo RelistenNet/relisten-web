@@ -6,8 +6,8 @@ export default function PagesLayout({ children }: PropsWithChildren) {
   return (
     <Flex column className="lg:h-dvh">
       <NavBar />
-      <div className="flex-1 lg:overflow-y-auto px-4">
-        <div className="mx-auto max-w-2xl py-8 has-[.blog-post]:max-w-3xl">{children}</div>
+      <div className="flex-1 px-4 pt-2 lg:overflow-y-auto">
+        <div className="mx-auto max-w-2xl pb-8 has-[.blog-post]:max-w-3xl">{children}</div>
       </div>
     </Flex>
   );

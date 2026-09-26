@@ -1,8 +1,10 @@
 import TodayDateNav from '@/components/TodayDateNav';
+import TodayIndex from '@/components/TodayIndex';
 import TodayTrack from '@/components/TodayTrack';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { getCurrentMonthDay } from '@/lib/timezone';
 import { Day } from '@/types';
+import slugify from 'slugify';
 import { searchParams } from './params';
 
 export default async function Page() {
@@ -24,20 +26,20 @@ export default async function Page() {
     (acc, day) => {
       const artistName = day.artist?.name || 'Unknown Artist';
       if (!acc[artistName]) {
-        acc[artistName] = [];
+        acc[artistName] = { slug: day.artist?.slug, days: [] };
       }
-      acc[artistName].push(day);
+      acc[artistName].days.push(day);
       return acc;
     },
-    {} as Record<string, Day[]>
+    {} as Record<string, { slug?: string; days: Day[] }>
   );
 
   const sortedArtists = Object.entries(groupedBy)
-    .map(([name, days]) => {
+    .map(([name, { slug, days }]) => {
       const sorted = [...days].sort((a, b) =>
         (a.display_date || '').localeCompare(b.display_date || '')
       );
-      return [name, sorted] as [string, Day[]];
+      return [name, slug, sorted] as [string, string | undefined, Day[]];
     })
     .sort(([aName], [bName]) => {
       const aMeta = artistMeta.get(aName) ?? { featured: 999, show_count: 0 };
@@ -50,27 +52,37 @@ export default async function Page() {
       return aName.localeCompare(bName);
     });
 
+  const artistAnchors = sortedArtists.map(([artistName, slug, days]) => ({
+    name: artistName,
+    anchor: slug || slugify(artistName, { lower: true, strict: true }),
+    count: days.length,
+  }));
+
   return (
-    <div className="mx-auto w-full max-w-3xl flex-1">
-      <div className="mb-10">
+    <div className="mx-auto w-full max-w-6xl flex-1">
+      <div className="mb-10 md:hidden">
         <h1 className="mb-2 text-3xl font-semibold text-text-primary">Today in History</h1>
         <TodayDateNav month={month} day={day} pathname="/today" />
       </div>
 
-      <div className="space-y-10">
-        {sortedArtists.map(([artistName, days]) => (
-          <div key={artistName}>
-            <h2 className="mb-1 text-lg font-semibold text-text-primary">{artistName}</h2>
-            <p className="mb-4 text-sm text-text-muted">
-              {days.length} {days.length === 1 ? 'show' : 'shows'}
-            </p>
-            <div className="divide-y divide-hairline overflow-hidden rounded-lg border border-hairline bg-surface">
-              {days.map((day: Day) => (
-                <TodayTrack day={day} key={day.id} />
-              ))}
+      <div className="flex items-start gap-10 md:mt-2">
+        <TodayIndex items={artistAnchors} month={month} day={day} pathname="/today" />
+
+        <div className="min-w-0 flex-1 space-y-10 pt-2">
+          {sortedArtists.map(([artistName, , days], i) => (
+            <div key={artistName} id={artistAnchors[i].anchor} className="scroll-mt-4">
+              <h2 className="mb-1 text-lg font-semibold text-text-primary">{artistName}</h2>
+              <p className="mb-4 text-sm text-text-muted">
+                {days.length} {days.length === 1 ? 'show' : 'shows'}
+              </p>
+              <div className="divide-y divide-hairline overflow-hidden rounded-lg border border-hairline bg-surface">
+                {days.map((day: Day) => (
+                  <TodayTrack day={day} key={day.id} />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
