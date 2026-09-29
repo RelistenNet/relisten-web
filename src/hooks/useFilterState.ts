@@ -1,14 +1,16 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
+import { usePathname } from '@timber-js/app/client';
 import { useCallback, useMemo } from 'react';
-import useCookie from 'react-use-cookie';
-import { FilterState, getFilterKey } from '@/lib/filterCookies';
+import {
+  SORT_DIRECTION,
+  type FilterState,
+  type SortByMode,
+  getFilterKey,
+  getFilterCookie,
+} from '@/lib/filterCookies';
 
-export enum SORT_DIRECTION {
-  desc = 'desc',
-  asc = 'asc',
-}
+export { SORT_DIRECTION } from '@/lib/filterCookies';
 
 export const DEFAULT_FILTERS = {
   date: SORT_DIRECTION.desc,
@@ -25,26 +27,19 @@ const getInverse = (key: string, sort?: SORT_DIRECTION) => {
   return undefined;
 };
 
-export function useFilterState(initialFilters?: FilterState, filterKey?: string) {
+export function useFilterState(filterKey?: string, defaultSortBy: SortByMode = 'popularity') {
   const pathname = usePathname();
 
-  // Generate cookie name based on custom key or pathname
-  const cookieName = useMemo(() => {
-    const key = filterKey || getFilterKey(pathname);
-    return `relisten_filters_${key.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
-  }, [pathname, filterKey]);
+  const key = useMemo(() => filterKey || getFilterKey(pathname), [pathname, filterKey]);
 
-  // Use the cookie hook with initial value from server
-  const defaultValue = initialFilters ? JSON.stringify(initialFilters) : '{}';
-  const [cookieValue, setCookieValue] = useCookie(cookieName, defaultValue);
+  const cookie = getFilterCookie(key);
+  const [cookieValue, setCookieValue] = cookie.useCookie();
 
-  // Parse the filter state from cookie
   const filters = useMemo(() => {
-    try {
-      return JSON.parse(cookieValue) as FilterState;
-    } catch {
-      return {} as FilterState;
+    if (cookieValue && Object.keys(cookieValue).length > 0) {
+      return cookieValue;
     }
+    return {} as FilterState;
   }, [cookieValue]);
 
   const setFilter = useCallback(
@@ -55,15 +50,8 @@ export function useFilterState(initialFilters?: FilterState, filterKey?: string)
       if (value === undefined || value === false) {
         delete newFilters[filterName];
       }
-      // For both date and alpha, default is desc (newest first for dates, A-Z for alpha)
-      if (
-        (filterName === 'date' && value === DEFAULT_FILTERS[filterName]) ||
-        (filterName === 'alpha' && value === DEFAULT_FILTERS[filterName])
-      ) {
-        delete newFilters[filterName];
-      }
 
-      setCookieValue(JSON.stringify(newFilters), { days: 365, SameSite: 'Lax' });
+      setCookieValue(newFilters);
     },
     [filters, setCookieValue]
   );
@@ -75,7 +63,6 @@ export function useFilterState(initialFilters?: FilterState, filterKey?: string)
       } else if (filterName === 'date' || filterName === 'alpha') {
         const currentValue = filters[filterName];
         const newValue = getInverse(filterName, currentValue);
-        console.log(filterName, newValue, currentValue);
         setFilter(filterName, newValue);
       }
     },
@@ -83,17 +70,33 @@ export function useFilterState(initialFilters?: FilterState, filterKey?: string)
   );
 
   const clearFilters = useCallback(() => {
-    setCookieValue('{}', { days: 365, SameSite: 'Lax' });
+    setCookieValue({});
   }, [setCookieValue]);
+
+  const setSortBy = useCallback(
+    (mode: SortByMode) => {
+      const currentMode = filters.sortBy ?? defaultSortBy;
+      if (currentMode === mode) {
+        const currentAlpha = filters.alpha;
+        const newAlpha = getInverse('alpha', currentAlpha);
+        setCookieValue({ ...filters, sortBy: mode, alpha: newAlpha });
+      } else {
+        setCookieValue({ ...filters, sortBy: mode });
+      }
+    },
+    [filters, setCookieValue]
+  );
 
   return {
     filters,
     setFilter,
     toggleFilter,
     clearFilters,
+    setSortBy,
     // Computed values for easier use
     alphaAsc: filters.alpha === SORT_DIRECTION.asc,
     dateAsc: filters.date === SORT_DIRECTION.asc,
     sbdOnly: filters.sbd === true,
+    sortBy: (filters.sortBy ?? defaultSortBy) as SortByMode,
   };
 }

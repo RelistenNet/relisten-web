@@ -1,13 +1,9 @@
 import RelistenAPI from '@/lib/RelistenAPI';
-import type { RawParams } from '@/types/params';
-import { notFound, redirect } from 'next/navigation';
+import { deny, getSegmentParams, redirect } from '@timber-js/app/server';
+import { SEGMENT_PATH } from './$segment';
 
-interface EmbedShowPageProps {
-  params: Promise<RawParams>;
-}
-
-export default async function EmbedShowPage({ params }: EmbedShowPageProps) {
-  const { artistSlug, year, month, day } = await params;
+export default async function EmbedShowPage() {
+  const { artistSlug, year, month, day } = getSegmentParams(SEGMENT_PATH);
 
   if (!artistSlug || !year || !month || !day) {
     return (
@@ -21,7 +17,7 @@ export default async function EmbedShowPage({ params }: EmbedShowPageProps) {
   const show = await RelistenAPI.fetchShow(artistSlug, year, displayDate);
 
   if (!show) {
-    notFound();
+    deny(404);
   }
 
   // Find the first song from the first source and redirect to it
@@ -40,12 +36,19 @@ export default async function EmbedShowPage({ params }: EmbedShowPageProps) {
   redirect(`/embed/${artistSlug}/${year}/${month}/${day}/${firstTrack.slug}?playImmediately=false`);
 }
 
-export async function generateMetadata(props: EmbedShowPageProps) {
-  const params = await props.params;
-  const { artistSlug, year, month, day } = params;
+export async function metadata() {
+  const params = getSegmentParams(SEGMENT_PATH);
+  const artistSlug = params?.artistSlug as string | undefined;
+  const year = params?.year as string | undefined;
+  const month = params?.month as string | undefined;
+  const day = params?.day as string | undefined;
+  if (!artistSlug || !year || !month || !day) return {};
 
   return {
     title: `${artistSlug} - ${year}/${month}/${day}`,
     description: `Embedded view of ${artistSlug} show from ${year}/${month}/${day}`,
+    alternates: {
+      canonical: `/${artistSlug}/${year}/${month}/${day}`,
+    },
   };
 }

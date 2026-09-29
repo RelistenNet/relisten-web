@@ -1,41 +1,61 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
 import { Song } from '@/types';
-import { simplePluralize } from '@/lib/utils';
+import Count from './Count';
 import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import Row from './Row';
+import { ArrowUp, ArrowDown } from 'lucide-react';
+import { useFilterState } from '@/hooks/useFilterState';
 
 type ArtistSongsColumnWithControlsProps = {
   artistSlug?: string;
   songs: Song[];
+  subHeader?: ReactNode;
 };
 
 const ArtistSongsColumnWithControls = ({
   artistSlug,
   songs,
+  subHeader,
 }: ArtistSongsColumnWithControlsProps) => {
-  const [sortAlpha, setSortAlpha] = useState(false);
+  const { alphaAsc, sortBy, setSortBy } = useFilterState(`${artistSlug}:songs`, 'alpha')
+  const [{ slug: activeSlug }] = slugSearchParams.useQueryStates();
+
+  const dirIcon = alphaAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
 
   const toggles = [
     {
       type: 'sort' as const,
-      isActive: sortAlpha,
-      onToggle: () => setSortAlpha((v) => !v),
-      title: sortAlpha ? 'Most Played' : 'A-Z',
+      isActive: sortBy === 'tapes',
+      onToggle: () => setSortBy('tapes'),
+      label: 'Played',
+      title: sortBy === 'tapes' ? (alphaAsc ? 'Least Played' : 'Most Played') : 'Sort by plays',
+      icon: sortBy === 'tapes' ? dirIcon : undefined
+    },
+    {
+      type: 'sort' as const,
+      isActive: sortBy === 'alpha',
+      isDefault: sortBy === 'alpha' && !alphaAsc,
+      onToggle: () => setSortBy('alpha'),
+      title: sortBy === 'alpha' ? (alphaAsc ? 'Z-A' : 'A-Z') : 'Sort A-Z',
+      label: 'A-Z',
+      icon: sortBy === 'alpha' ? dirIcon : undefined
     },
   ];
 
   const sortedSongs = useMemo(() => {
     const sorted = [...songs];
-    if (sortAlpha) {
+    if (sortBy === 'alpha') {
       sorted.sort((a, b) => (a.sortName || a.name || '').localeCompare(b.sortName || b.name || ''));
     } else {
       sorted.sort((a, b) => (b.shows_played_at ?? 0) - (a.shows_played_at ?? 0));
     }
+    if (alphaAsc) sorted.reverse();
     return sorted;
-  }, [songs, sortAlpha]);
+  }, [songs, sortBy, alphaAsc]);
 
   return (
     <ColumnWithToggleControls
@@ -43,20 +63,29 @@ const ArtistSongsColumnWithControls = ({
       toggles={toggles}
       filteredCount={sortedSongs.length}
       totalCount={songs.length}
+      subHeader={subHeader}
     >
       {sortedSongs.length === 0 && (
-        <div className="py-2 text-center text-sm text-gray-700">No songs found.</div>
+        <div className="py-2 text-center text-sm text-text-muted">No songs found.</div>
       )}
       {artistSlug &&
         sortedSongs.map((song) => (
           <div key={song.id}>
-            <Row href={slugSearchParams.buildUrl(`/${artistSlug}/songs`, { slug: song.slug || String(song.id) })}>
+            <Row
+              href={slugSearchParams.href(`/${artistSlug}/songs`, {
+                slug: song.slug || String(song.id),
+              })}
+              active={activeSlug === (song.slug || String(song.id))}
+            >
               <div>
                 <div>{song.name}</div>
               </div>
-              <div className="text-xxs text-foreground-muted min-w-[20%] text-right">
+              <div className="text-xxs min-w-[20%] text-right">
                 {song.shows_played_at != null && (
-                  <div>{simplePluralize('time', song.shows_played_at)} played</div>
+                  <div>
+                    <Count unit="time" value={song.shows_played_at} />{' '}
+                    <span className="text-text-muted">played</span>
+                  </div>
                 )}
               </div>
             </Row>

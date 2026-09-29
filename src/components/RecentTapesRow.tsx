@@ -1,9 +1,12 @@
 import { RawParams } from '@/types/params';
-import Row from './Row';
+import RowSegmentMatch from './RowSegmentMatch';
 
 const RecentTapesRow = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
   return (
-    <Row href={`/${artistSlug}/recently-added`} activeSegments={{ year: 'recently-added' }}>
+    <RowSegmentMatch
+      href={`/${artistSlug}/recently-added`}
+      activeSegments={{ year: 'recently-added' }}
+    >
       <div>
         <div>Recent Tapes</div>
         <div className="text-xxs text-foreground-muted">The Newest Recordings</div>
@@ -12,7 +15,7 @@ const RecentTapesRow = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => 
         <div>fresh shows</div>
         <div>fresh tapes</div>
       </div>
-    </Row>
+    </RowSegmentMatch>
   );
 };
 

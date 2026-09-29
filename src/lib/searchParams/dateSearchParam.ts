@@ -1,15 +1,7 @@
-import { createSearchParams } from '@/lib/searchParams/createSearchParams';
-import { parseAsString } from 'nuqs/server';
+import { defineSearchParams } from '@timber-js/app/search-params';
 import { z } from 'zod/v4';
 
-export const dateSchema = z.object({
-  month: z.string().nullable(),
-  day: z.string().nullable(),
+export const dateSearchParams = defineSearchParams({
+  month: z.string().optional(),
+  day: z.string().optional(),
 });
-
-export const dateParser = {
-  month: parseAsString,
-  day: parseAsString,
-};
-
-export const dateSearchParams = createSearchParams(dateSchema, dateParser);

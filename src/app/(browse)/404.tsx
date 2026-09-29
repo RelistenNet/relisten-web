@@ -1,0 +1,70 @@
+'use client';
+
+import { Link } from '@timber-js/app/client';
+import { ArrowDown } from 'lucide-react';
+
+export default function NotFound() {
+  return (
+    <div className="flex flex-1 items-center justify-center px-4 col-span-full">
+      <div className="mx-auto w-full max-w-lg text-center">
+        <div className="mb-8">
+          <div
+            className="
+              mx-auto mb-4 flex size-20 items-center justify-center rounded-full bg-surface-raised
+            "
+          >
+            <svg
+              className="size-10 text-text-secondary"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+
+          <h1 className="mb-3 text-3xl font-semibold text-text-primary">404 - Page Not Found</h1>
+
+          <p className="mb-8 text-lg text-text-secondary">
+            Looks like this keyboardist got lost on the way to the show. The Page you're looking for
+            doesn't exist yet - maybe it's 1983.
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          <Link
+            href="/"
+            className="
+              inline-block w-full rounded-lg bg-relisten-600 px-6 py-3 font-medium text-white
+              transition-colors
+              hover:bg-relisten-700
+              sm:w-auto
+            "
+          >
+            Go to HomePage
+            <div className="flex flex-col items-center">
+              <ArrowDown />
+            </div>
+            <img
+              src="/HomePage.jpg"
+              alt="HomePage"
+              width={140}
+              height={225}
+              sizes="(max-width: 640px) 100vw, 400px"
+              className="mx-auto"
+            />
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export const metadata = {
+  title: '404 - Page Not Found',
+};

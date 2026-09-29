@@ -1,39 +1,37 @@
 import PlayerManager from '@/components/PlayerManager';
 import SongsColumn from '@/components/SongsColumn';
+import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
 import RelistenAPI from '@/lib/RelistenAPI';
-import { isMobile } from '@/lib/isMobile';
 import { createShowDate } from '@/lib/utils';
-import { RawParams } from '@/types/params';
-import { notFound } from 'next/navigation';
+import { deny, getSegmentParams } from '@timber-js/app/server';
 import { playImmediatelySearchParamsLoader } from '@/lib/searchParams/playImmediatelySearchParam';
+import { SEGMENT_PATH } from './$segment';
 
-interface EmbedSongPageProps {
-  params: Promise<RawParams>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}
+export default async function EmbedSongPage() {
+  const { artistSlug, year, month, day, songSlug } = getSegmentParams(SEGMENT_PATH);
 
-export default async function EmbedSongPage({ params, searchParams }: EmbedSongPageProps) {
-  const resolvedParams = await params;
-  const { artistSlug, year, month, day } = resolvedParams;
+  const resolvedParams = { artistSlug, year, month, day, songSlug };
 
-  if (!year || !month || !day) return notFound();
+  if (!year || !month || !day) return deny(404);
 
-  const [show, mobile] = await Promise.all([
+  const [show, artists] = await Promise.all([
     RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day)),
-    isMobile(),
+    RelistenAPI.fetchAllArtists(),
   ]);
 
   if (!show) {
-    notFound();
+    deny(404);
   }
 
+  const artistName = artists?.find((a) => a.slug === artistSlug)?.name;
+
   // Parse search params on server
-  const parsedSearchParams = await playImmediatelySearchParamsLoader.parseAndValidate(searchParams);
+  const parsedSearchParams = await playImmediatelySearchParamsLoader.get();
   const playImmediately = parsedSearchParams.playImmediately ?? true;
 
   return (
     <div className="flex h-full">
-      <div className="w-full flex-shrink-0 overflow-y-auto border-r px-2">
+      <div className="w-full shrink-0 overflow-y-auto border-r px-2">
         <SongsColumn
           artistSlug={artistSlug}
           year={year}
@@ -46,22 +44,26 @@ export default async function EmbedSongPage({ params, searchParams }: EmbedSongP
       <PlayerManager
         {...resolvedParams}
         show={show}
+        artistName={artistName}
         routePrefix="/embed"
         playImmediately={playImmediately}
-        isMobile={mobile}
       />
     </div>
   );
 }
 
-export async function generateMetadata(props) {
-  const [params, artists] = await Promise.all([props.params, RelistenAPI.fetchArtists()]);
-  const { artistSlug, year, month, day, songSlug } = params;
+export async function metadata() {
+  const params = getSegmentParams(SEGMENT_PATH);
+  const artists = await RelistenAPI.fetchAllArtists();
+  const artistSlug = params?.artistSlug as string | undefined;
+  const year = params?.year as string | undefined;
+  const month = params?.month as string | undefined;
+  const day = params?.day as string | undefined;
+  const songSlug = params?.songSlug as string | undefined;
 
-  const name = artists.find((a) => a.slug === artistSlug)?.name;
+  const name = artists?.find((a) => a.slug === artistSlug)?.name;
 
-  if (!name) return notFound();
-  if (!year || !month || !day) return notFound();
+  if (!name || !year || !month || !day) return {};
 
   const show = await RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day));
 
@@ -74,10 +76,13 @@ export async function generateMetadata(props) {
   return {
     title: [song?.title, createShowDate(year, month, day), name].filter((x) => x).join(' | '),
     description: [show?.venue?.name, show?.venue?.location].filter((x) => x).join(' '),
+    alternates: {
+      canonical: `/${artistSlug}/${year}/${month}/${day}/${songSlug}`,
+    },
     openGraph: {
       audio: [
         {
-          url: song?.mp3_url,
+          url: proxyStreamUrl(song?.mp3_url),
         },
       ],
     },

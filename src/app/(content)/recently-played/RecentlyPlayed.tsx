@@ -4,8 +4,9 @@ import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Activity, Clock } from 'lucide-react';
 import LiveTrack from '@/components/LiveTrack';
-import RelistenAPI from '@/lib/RelistenAPI';
+import { API_DOMAIN } from '@/lib/constants';
 import type { LiveHistoryItem } from '@/types';
+import Spinner from '@/components/Spinner';
 
 function uniqBy(a: LiveHistoryItem[], key: (item: LiveHistoryItem) => number | undefined) {
   const seen = new Set();
@@ -27,7 +28,9 @@ const fetchRecentlyPlayed = async (queryClient: QueryClient) => {
   const cache = queryClient.getQueryData(QUERY_KEY) as LiveHistoryItem[] | undefined;
   const lastSeenId = cache ? Math.max(...cache.map((t) => t.id)) : '';
 
-  const parsed = await RelistenAPI.fetchLiveHistory(String(lastSeenId) || undefined);
+  const params = lastSeenId ? `?lastSeenId=${lastSeenId}` : '';
+  const res = await fetch(`${API_DOMAIN}/api/v2/live/history${params}`);
+  const parsed = (await res.json()) as LiveHistoryItem[];
 
   if (Array.isArray(parsed)) {
     return parsed.concat(cache ?? []).slice(0, 500);
@@ -36,32 +39,17 @@ const fetchRecentlyPlayed = async (queryClient: QueryClient) => {
   return cache ?? [];
 };
 
-const LoadingSkeleton = () => (
-  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
-    {Array.from({ length: 8 }).map((_, i) => (
-      <div key={i} className="animate-pulse space-y-3 rounded-xl border border-gray-100 p-4">
-        <div className="h-4 rounded bg-gray-200"></div>
-        <div className="h-3 w-3/4 rounded bg-gray-200"></div>
-        <div className="space-y-2">
-          <div className="h-2 w-1/2 rounded bg-gray-200"></div>
-          <div className="h-2 w-2/3 rounded bg-gray-200"></div>
-        </div>
-      </div>
-    ))}
-  </div>
-);
-
 const EmptyState = () => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     className="flex flex-col items-center justify-center py-16 text-center"
   >
-    <div className="mb-4 rounded-full bg-gray-50 p-4">
-      <Clock className="h-8 w-8 text-gray-400" />
+    <div className="mb-4 rounded-full bg-surface-raised p-4">
+      <Clock className="h-8 w-8 text-text-muted" />
     </div>
-    <h3 className="mb-2 text-lg font-medium text-gray-900">No recent activity</h3>
-    <p className="max-w-sm text-gray-500">
+    <h3 className="mb-2 text-lg font-medium text-text-primary">No recent activity</h3>
+    <p className="max-w-sm text-text-muted">
       Tracks will appear here as people listen to shows across the Relisten community.
     </p>
   </motion.div>
@@ -78,27 +66,29 @@ export default function RecentlyPlayed() {
   const tracks = query.data ? uniqBy(query.data, keyFn).slice(0, 40) : [];
 
   return (
-    <div className="min-h-screen bg-gray-50/30">
+    <div className="min-h-screen">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center"
-        >
+        <div className="text-center">
           <div className="mb-2 flex items-center justify-center gap-3">
-            <div className="rounded-full bg-green-100 p-2">
-              <Activity className="h-6 w-6 text-green-600" />
+            <div className="rounded-full bg-accent/15 p-2">
+              <Activity className="h-6 w-6 text-accent" />
             </div>
-            <h1 className="mb-0 text-3xl font-bold text-gray-900 sm:text-4xl">Recently Played</h1>
+            <h1 className="mb-0 text-3xl font-bold text-text-primary sm:text-4xl">
+              Recently Played
+            </h1>
           </div>
-          <p className="mx-auto mb-4 max-w-2xl text-gray-600">
+          <p className="mx-auto mb-4 max-w-2xl text-text-muted">
             This is what people are listening to right now - join 'em.
           </p>
-        </motion.div>
+        </div>
 
         {/* Content */}
-        {query.isLoading && <LoadingSkeleton />}
+        {query.isLoading && (
+          <div className="flex items-center justify-center opacity-60 py-12">
+            <Spinner />
+          </div>
+        )}
 
         {query.data && tracks.length === 0 && <EmptyState />}
 

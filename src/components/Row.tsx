@@ -1,104 +1,87 @@
 'use client';
 
 import cn from '@/lib/cn';
-import Link from 'next/link';
-import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
-import React, { MouseEvent, useTransition } from 'react';
+import { Link, useLinkStatus } from '@timber-js/app/client';
+import React from 'react';
 import Flex from './Flex';
 import RowLoading from './RowLoading';
-import Spinner from './Spinner';
 
 type RowProps = {
   children?: React.ReactNode;
   href?: string;
   active?: boolean;
   loading?: boolean;
-  activeSegments?: Record<string, string | undefined>;
-  fallbackParams?: Record<string, string>;
-  isActiveOverride?: boolean;
 };
 
-const unwrap = (val: Array<any> | any) => {
+export const unwrapSegment = (val: unknown): string | undefined => {
   if (Array.isArray(val)) return val[0];
-
-  return val;
+  return val as string | undefined;
 };
 
-const Row = ({
+function RowLinkContent({
   children,
-  href,
-  activeSegments,
-  isActiveOverride,
+  isActive,
   loading,
-  fallbackParams,
   ...props
-}: RowProps) => {
-  const [isPending, startTransition] = useTransition();
-  const params = useParams();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const router = useRouter();
-
-  let isActive = isActiveOverride ?? false;
-
-  if (isActiveOverride === undefined && activeSegments) {
-    isActive = Object.entries(activeSegments).every(
-      ([key, value]) => (unwrap(params[key]) ?? fallbackParams?.[key]) === value
-    );
-  }
-
-  if (!href) {
-    return (
-      <div className="content relative w-full flex-1 items-center justify-between py-1">
-        {loading && <RowLoading />}
-        {isActive && <div className="bg-foreground h-full w-2" />}
-
-        {children}
-      </div>
-    );
-  }
-
-  const onLinkClick = (e: MouseEvent<HTMLAnchorElement>) => {
-    // dont block new tab
-    if (e.metaKey) {
-      return;
-    }
-    e.preventDefault();
-
-    const fullPath = [pathname, searchParams].filter((x) => x).join('?');
-
-    if (fullPath === href) {
-      startTransition(() => router.refresh());
-      console.log('refreshing from row', pathname, href);
-    } else {
-      startTransition(() => router.push(href));
-    }
-  };
+}: {
+  children: React.ReactNode;
+  isActive: boolean;
+  loading?: boolean;
+}) {
+  const { isPending } = useLinkStatus();
 
   return (
-    <Link href={href ?? '/'} prefetch={false} onClick={onLinkClick} data-is-active={isActive}>
-      <Flex
-        className={cn('relisten-row relative min-h-[46px] items-stretch border-b border-gray-100', {
+    <Flex
+      className={cn(
+        'relative relisten-row min-h-[56px] items-stretch border-b border-hairline hover:bg-surface-hover lg:min-h-[46px]',
+        {
           'opacity-70': isPending,
-        })}
-        // style={{ minHeight: height }}
-        {...props}
+          'bg-accent/10 hover:bg-accent/15': isActive && !isPending,
+        }
+      )}
+      {...props}
+    >
+      {loading && <RowLoading />}
+      {isPending && (
+        <div className="absolute top-1/2 left-1/2 -translate-1/2 text-white/80 opacity-70">
+          {/* <Spinner /> */}
+        </div>
+      )}
+      {isPending && <div className="w-2 animate-pulse bg-relisten-600/30" />}
+
+      {!isPending && isActive && <div className="w-2 min-w-2 bg-accent" />}
+      <Flex className="w-full flex-1 items-center justify-between p-2 leading-tight tabular-nums lg:p-1">
+        {children}
+      </Flex>
+    </Flex>
+  );
+}
+
+const Row = ({ children, href, active = false, loading, ...props }: RowProps) => {
+  if (!href) {
+    return (
+      <Flex
+        className={cn(
+          'relisten-row relative min-h-[56px] items-stretch border-b border-hairline hover:bg-surface-hover lg:min-h-[46px]',
+          { 'bg-accent/10 hover:bg-accent/15': active }
+        )}
       >
         {loading && <RowLoading />}
-        {isPending && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-40">
-            <Spinner />
-          </div>
-        )}
-        {isPending && <div className="bg-relisten-600/30 w-2 animate-pulse" />}
-
-        {!isPending && isActive && <div className="bg-relisten-600 w-2 min-w-2" />}
-        <Flex className="w-full flex-1 items-center justify-between p-1 leading-tight tabular-nums">
+        {active && <div className="w-2 min-w-2 bg-accent" />}
+        <Flex className="w-full flex-1 items-center justify-between p-2 leading-tight tabular-nums lg:p-1">
           {children}
         </Flex>
       </Flex>
+    );
+  }
+
+  return (
+    <Link href={href} prefetch={false} data-is-active={active}>
+      <RowLinkContent isActive={active} loading={loading} {...props}>
+        {children}
+      </RowLinkContent>
     </Link>
   );
 };
 
-export default Row;
+export default React.memo(Row);

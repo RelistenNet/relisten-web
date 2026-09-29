@@ -1,29 +1,244 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
 
 @theme {
+  --animate-fade-in: fade-in 0.3s ease-in;
   --text-xxs: 0.7rem;
   --text-xxs--line-height: 1rem;
 
-  --color-relisten-DEFAULT: #009DC1;
-  --color-relisten-50: #A2EEFF;
-  --color-relisten-100: #8EEAFF;
-  --color-relisten-200: #65E2FF;
-  --color-relisten-300: #3CDBFF;
-  --color-relisten-400: #14D3FF;
-  --color-relisten-500: #00BEEA;
-  --color-relisten-600: #009DC1;
-  --color-relisten-700: #006F89;
+  --color-relisten-DEFAULT: #009dc1;
+  --color-relisten-50: #a2eeff;
+  --color-relisten-100: #8eeaff;
+  --color-relisten-200: #65e2ff;
+  --color-relisten-300: #3cdbff;
+  --color-relisten-400: #14d3ff;
+  --color-relisten-500: #00beea;
+  --color-relisten-600: #009dc1;
+  --color-relisten-700: #006f89;
   --color-relisten-800: #004251;
-  --color-relisten-900: #001D24;
+  --color-relisten-900: #001d24;
   --color-relisten-950: #001114;
 
-  /* Basic foreground colors */
-  --color-foreground: #333;
-  --color-foreground-muted: var(--color-gray-500);
+  /* Semantic tokens — resolved by :root rules below. Reference via Tailwind
+     utilities like `bg-surface`, `text-text-primary`, `border-hairline`. */
+  --color-surface: var(--resolved-surface);
+  --color-surface-raised: var(--resolved-surface-raised);
+  --color-surface-elevated: var(--resolved-surface-elevated);
+  --color-surface-recessed: var(--resolved-surface-recessed);
+  --color-surface-hover: var(--resolved-surface-hover);
+  --color-hairline: var(--resolved-hairline);
+  --color-text-primary: var(--resolved-text-primary);
+  --color-text-secondary: var(--resolved-text-secondary);
+  --color-text-muted: var(--resolved-text-muted);
+  --color-accent: var(--resolved-accent);
+  --color-nav-border: var(--resolved-nav-border);
+  --color-column-header: var(--resolved-column-header);
+  --color-column-header-text: var(--resolved-column-header-text);
+  --color-column-subheader: var(--resolved-column-subheader);
+  --color-column-subheader-text: var(--resolved-column-subheader-text);
 
-  /* Basic background colors */
-  --color-background: #fefefe;
-  --color-background-muted: #f3f4f6;
+  /* Basic foreground colors (legacy — kept so existing callers don't break) */
+  --color-foreground: var(--resolved-text-primary);
+  --color-foreground-muted: var(--resolved-text-muted);
+
+  /* Basic background colors (legacy) */
+  --color-background: var(--resolved-surface);
+  --color-background-muted: var(--resolved-surface-recessed);
+}
+
+/* Palette definitions — each color defined exactly once. The --resolved-*
+   tokens below switch between these palettes based on theme. */
+:root {
+  --light-surface: #ffffff;
+  --light-surface-raised: #fafafa;
+  --light-surface-elevated: #f4f4f5;
+  --light-surface-recessed: #ebebef;
+  --light-surface-hover: #f4f4f5;
+  --light-hairline: rgba(9, 9, 11, 0.07);
+  --light-text-primary: #18181b;
+  --light-text-secondary: #3f3f46;
+  --light-text-muted: #71717a;
+  --light-accent: #007a96;
+  --light-nav-border: rgba(9, 9, 11, 0.07);
+  --light-column-header: #d4d4d8;
+  --light-column-header-text: #27272a;
+  --light-column-subheader: #f4f4f5;
+  --light-column-subheader-text: #52525b;
+
+  --dark-surface: #151820;
+  --dark-surface-raised: #1f2530;
+  --dark-surface-elevated: #252a33;
+  --dark-surface-recessed: #111419;
+  --dark-surface-hover: #2c323c;
+  --dark-column-header: #2a303b;
+  --dark-column-header-text: #cdd2da;
+  --dark-column-subheader-text: #b8bfc9;
+  --dark-hairline: rgba(160, 175, 195, 0.18);
+  --dark-text-primary: #e8ecf0;
+  --dark-text-secondary: #9ba5b4;
+  --dark-text-muted: #8d99ab;
+  --dark-accent: #1ab4d6;
+  --dark-nav-border: rgba(0, 0, 0, 0.5);
+
+  /* Default: light */
+  --resolved-surface: var(--light-surface);
+  --resolved-surface-raised: var(--light-surface-raised);
+  --resolved-surface-elevated: var(--light-surface-elevated);
+  --resolved-surface-recessed: var(--light-surface-recessed);
+  --resolved-surface-hover: var(--light-surface-hover);
+  --resolved-hairline: var(--light-hairline);
+  --resolved-text-primary: var(--light-text-primary);
+  --resolved-text-secondary: var(--light-text-secondary);
+  --resolved-text-muted: var(--light-text-muted);
+  --resolved-accent: var(--light-accent);
+  --resolved-nav-border: var(--light-nav-border);
+  --resolved-column-header: var(--light-column-header);
+  --resolved-column-header-text: var(--light-column-header-text);
+  --resolved-column-subheader: var(--light-column-subheader);
+  --resolved-column-subheader-text: var(--light-column-subheader-text);
+
+  /* shadcn tokens */
+  --background: var(--light-surface);
+  --foreground: var(--light-text-primary);
+  --popover: #ffffff;
+  --popover-foreground: var(--light-text-primary);
+  --primary: #009dc1;
+  --primary-foreground: #ffffff;
+  --muted: var(--light-surface-elevated);
+  --muted-foreground: var(--light-text-muted);
+  --accent: var(--light-surface-elevated);
+  --accent-foreground: var(--light-text-primary);
+  --border: var(--light-hairline);
+  --input: rgba(9, 9, 11, 0.15);
+  --ring: #009dc1;
+  --radius: 0.5rem;
+  color-scheme: light;
+}
+
+/* Auto dark via OS */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --resolved-surface: var(--dark-surface);
+    --resolved-surface-raised: var(--dark-surface-raised);
+    --resolved-surface-elevated: var(--dark-surface-elevated);
+    --resolved-surface-recessed: var(--dark-surface-recessed);
+    --resolved-surface-hover: var(--dark-surface-hover);
+    --resolved-hairline: var(--dark-hairline);
+    --resolved-text-primary: var(--dark-text-primary);
+    --resolved-text-secondary: var(--dark-text-secondary);
+    --resolved-text-muted: var(--dark-text-muted);
+    --resolved-accent: var(--dark-accent);
+    --resolved-nav-border: var(--dark-nav-border);
+    --resolved-column-header: var(--dark-column-header);
+    --resolved-column-header-text: var(--dark-column-header-text);
+    --resolved-column-subheader: var(--dark-surface-hover);
+    --resolved-column-subheader-text: var(--dark-column-subheader-text);
+    --background: var(--dark-surface);
+    --foreground: var(--dark-text-primary);
+    --popover: var(--dark-surface-raised);
+    --popover-foreground: var(--dark-text-primary);
+    --muted: var(--dark-surface-hover);
+    --muted-foreground: var(--dark-text-muted);
+    --accent: var(--dark-surface-hover);
+    --accent-foreground: var(--dark-text-primary);
+    --border: var(--dark-hairline);
+    --input: var(--dark-hairline);
+  }
+}
+
+/* Explicit override — wins over prefers-color-scheme. Must come after
+   the @media block so the cascade resolves in its favor. */
+:root[data-theme='light'] {
+  color-scheme: light;
+  --resolved-surface: var(--light-surface);
+  --resolved-surface-raised: var(--light-surface-raised);
+  --resolved-surface-elevated: var(--light-surface-elevated);
+  --resolved-surface-recessed: var(--light-surface-recessed);
+  --resolved-surface-hover: var(--light-surface-hover);
+  --resolved-hairline: var(--light-hairline);
+  --resolved-text-primary: var(--light-text-primary);
+  --resolved-text-secondary: var(--light-text-secondary);
+  --resolved-text-muted: var(--light-text-muted);
+  --resolved-accent: var(--light-accent);
+  --resolved-nav-border: var(--light-nav-border);
+  --resolved-column-header: var(--light-column-header);
+  --resolved-column-header-text: var(--light-column-header-text);
+  --resolved-column-subheader: var(--light-column-subheader);
+  --resolved-column-subheader-text: var(--light-column-subheader-text);
+  --background: var(--light-surface);
+  --foreground: var(--light-text-primary);
+  --popover: #ffffff;
+  --popover-foreground: var(--light-text-primary);
+  --muted: var(--light-surface-elevated);
+  --muted-foreground: var(--light-text-muted);
+  --accent: var(--light-surface-elevated);
+  --accent-foreground: var(--light-text-primary);
+  --border: var(--light-hairline);
+  --input: rgba(9, 9, 11, 0.15);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --resolved-surface: var(--dark-surface);
+  --resolved-surface-raised: var(--dark-surface-raised);
+  --resolved-surface-elevated: var(--dark-surface-elevated);
+  --resolved-surface-recessed: var(--dark-surface-recessed);
+  --resolved-surface-hover: var(--dark-surface-hover);
+  --resolved-hairline: var(--dark-hairline);
+  --resolved-text-primary: var(--dark-text-primary);
+  --resolved-text-secondary: var(--dark-text-secondary);
+  --resolved-text-muted: var(--dark-text-muted);
+  --resolved-accent: var(--dark-accent);
+  --resolved-nav-border: var(--dark-nav-border);
+  --resolved-column-header: var(--dark-column-header);
+  --resolved-column-header-text: var(--dark-column-header-text);
+  --resolved-column-subheader: var(--dark-surface-hover);
+  --resolved-column-subheader-text: var(--dark-text-secondary);
+  --background: var(--dark-surface);
+  --foreground: var(--dark-text-primary);
+  --popover: var(--dark-surface-raised);
+  --popover-foreground: var(--dark-text-primary);
+  --muted: var(--dark-surface-hover);
+  --muted-foreground: var(--dark-text-muted);
+  --accent: var(--dark-surface-hover);
+  --accent-foreground: var(--dark-text-primary);
+  --border: var(--dark-hairline);
+  --input: var(--dark-hairline);
+}
+
+.embed-force-light {
+  color-scheme: light;
+  --resolved-surface: var(--light-surface);
+  --resolved-surface-raised: var(--light-surface-raised);
+  --resolved-surface-elevated: var(--light-surface-elevated);
+  --resolved-surface-recessed: var(--light-surface-recessed);
+  --resolved-surface-hover: var(--light-surface-hover);
+  --resolved-hairline: var(--light-hairline);
+  --resolved-text-primary: var(--light-text-primary);
+  --resolved-text-secondary: var(--light-text-secondary);
+  --resolved-text-muted: var(--light-text-muted);
+  --resolved-accent: var(--light-accent);
+  --color-surface: var(--light-surface);
+  --color-surface-raised: var(--light-surface-raised);
+  --color-surface-elevated: var(--light-surface-elevated);
+  --color-surface-hover: var(--light-surface-hover);
+  --color-text-primary: var(--light-text-primary);
+  --color-text-muted: var(--light-text-muted);
+  --color-hairline: var(--light-hairline);
+  --color-accent: var(--light-accent);
+  --foreground: var(--light-text-primary);
+  --muted-foreground: var(--light-text-muted);
 }
 
 /*
@@ -40,7 +255,7 @@
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
+    border-color: var(--color-hairline, currentColor);
   }
 
   p {
@@ -61,8 +276,159 @@
   }
 }
 
+/* ── Browse column wrappers ──
+   On desktop (lg+), .browse-col uses display:contents so the inner
+   Column component is a direct grid item — preserving the original
+   scroll behavior. On narrow screens, the wrapper becomes visible
+   and controls which column is shown based on URL depth. */
+@media (min-width: 1024px) {
+  .browse-grid > .browse-col {
+    display: contents;
+  }
+}
+
+@media (max-width: 1023px) {
+  .browse-grid {
+    position: relative;
+  }
+
+  .browse-grid .relisten-column {
+    min-height: 0;
+  }
+
+  .browse-grid > .browse-col {
+    /* Hidden columns stay mounted with real dimensions so
+       virtualizers don't remeasure to zero during transitions */
+    position: absolute;
+    inset: 0;
+    visibility: hidden;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .browse-grid[data-browse-depth='0'] > .browse-col:nth-child(1),
+  .browse-grid[data-browse-depth='1'] > .browse-col:nth-child(2),
+  .browse-grid[data-browse-depth='2'] > .browse-col:nth-child(3),
+  .browse-grid[data-browse-depth='3'] > .browse-col:nth-child(4) {
+    position: static;
+    visibility: visible;
+    pointer-events: auto;
+    flex: 1;
+    min-height: 0;
+    view-transition-name: browse-active-col;
+  }
+}
+
+/* ── View Transition: iOS-style push/pop ── */
+
+::view-transition-group(browse-active-col) {
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+::view-transition-old(browse-active-col),
+::view-transition-new(browse-active-col) {
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  /* fill both so the snapshot holds at start and end */
+  animation-fill-mode: both;
+}
+
+/* ── Forward push ── */
+:root[data-nav-direction='forward']::view-transition-new(browse-active-col) {
+  animation-name: ios-push-enter;
+  z-index: 1;
+}
+:root[data-nav-direction='forward']::view-transition-old(browse-active-col) {
+  animation-name: ios-push-exit;
+  z-index: 0;
+}
+
+/* ── Back pop ── */
+:root[data-nav-direction='back']::view-transition-new(browse-active-col) {
+  animation-name: ios-pop-enter;
+  z-index: 0;
+}
+:root[data-nav-direction='back']::view-transition-old(browse-active-col) {
+  animation-name: ios-pop-exit;
+  z-index: 1;
+}
+
+@keyframes ios-push-enter {
+  from {
+    transform: translateX(100%);
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.25);
+  }
+  to {
+    transform: translateX(0);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  }
+}
+
+@keyframes ios-push-exit {
+  from {
+    transform: translateX(0);
+    filter: brightness(1);
+  }
+  to {
+    transform: translateX(-33%);
+    filter: brightness(0.75);
+  }
+}
+
+@keyframes ios-pop-enter {
+  from {
+    transform: translateX(-33%);
+    filter: brightness(0.75);
+  }
+  to {
+    transform: translateX(0);
+    filter: brightness(1);
+  }
+}
+
+@keyframes ios-pop-exit {
+  from {
+    transform: translateX(0);
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.25);
+  }
+  to {
+    transform: translateX(100%);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  }
+}
+
+/* ── In-column content swap (crossfade) ── */
+:root[data-nav-direction='swap']::view-transition-new(browse-active-col) {
+  animation: swap-in 200ms ease-out both;
+  z-index: 1;
+}
+:root[data-nav-direction='swap']::view-transition-old(browse-active-col) {
+  animation: swap-out 200ms ease-in both;
+  z-index: 0;
+}
+
+@keyframes swap-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes swap-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 @utility nav-btn {
-  @apply flex h-full items-center text-center active:relative active:top-[1px] active:text-foreground;
+  @apply flex h-full tracking-wider items-center rounded-sm px-2 text-center transition-colors hover:bg-surface-hover hover:text-text-primary active:relative active:top-[1px] active:text-text-primary;
 }
 
 @utility relisten-row {
@@ -78,7 +444,7 @@
 }
 
 @utility button {
-  @apply rounded-sm bg-green-400 p-4 py-2 border border-green-100 my-4 inline-block font-medium text-black/70 tracking-wide;
+  @apply rounded-sm bg-green-500 p-4 py-2 my-4 inline-block font-medium text-black tracking-wide transition-colors hover:bg-green-400;
 }
 
 @layer base {
@@ -86,6 +452,153 @@
     @apply text-3xl font-semibold mb-8;
   }
 
-  body { margin: 0; font-family: Roboto, Helvetica, Helvetica Neue, sans-serif; -webkit-font-smoothing: antialiased; @apply text-foreground; }
-  a { text-decoration: none; @apply text-foreground; }
+  body {
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    /* scrollbar-gutter: stable; */
+    padding-bottom: env(safe-area-inset-bottom);
+    @apply bg-surface text-text-primary;
+  }
+  a {
+    text-decoration: none;
+    @apply text-foreground;
+  }
+
+  /* ── Blog Post Content ── */
+
+  .blog-content {
+    --blog-content-width: 100%;
+  }
+
+  .blog-content > * {
+    max-width: var(--blog-content-width);
+  }
+
+  .blog-content > p {
+    line-height: 1.75;
+    margin-top: 0;
+    margin-bottom: 1rem;
+  }
+
+  .blog-content > h2 {
+    @apply text-2xl font-semibold mt-10 mb-4;
+    color: var(--color-relisten-DEFAULT);
+  }
+
+  .blog-content > h3 {
+    @apply text-xl font-semibold mt-8 mb-3;
+    color: var(--color-relisten-DEFAULT);
+  }
+
+  .blog-content > blockquote {
+    border-left: 4px solid color-mix(in srgb, var(--color-relisten-DEFAULT) 40%, transparent);
+    padding-left: 1rem;
+    font-style: italic;
+    color: var(--color-foreground-muted);
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .blog-content > ul,
+  .blog-content > ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+  }
+
+  .blog-content > ul li,
+  .blog-content > ol li {
+    line-height: 1.7;
+    margin-bottom: 0.25rem;
+  }
+
+  .blog-content > hr {
+    @apply my-8 border-hairline;
+  }
+
+  .blog-content a {
+    color: var(--color-relisten-DEFAULT);
+  }
+
+  .blog-content a:hover {
+    text-decoration: underline;
+  }
+
+  .blog-content .bleed {
+    max-width: none;
+    margin: 1.5rem -1rem;
+    border-radius: 0.5rem;
+    background-color: var(--color-background-muted);
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  /* ── Footnotes / Sidenotes ── */
+
+  .footnote-index {
+    color: var(--color-relisten-DEFAULT);
+  }
+
+  /* Float fallback for sidenotes */
+  .footnote-content {
+    float: right;
+    clear: right;
+    margin-right: -45%;
+    width: 40%;
+    word-wrap: break-word;
+    margin-top: 0;
+    margin-bottom: 0.1rem;
+    vertical-align: baseline;
+    position: relative;
+    box-sizing: border-box;
+    font-style: normal;
+    opacity: 0.9;
+  }
+
+  /* CSS Anchor Positioning enhancement */
+  @supports (anchor-name: --fn) {
+    .blog-post {
+      position: relative;
+    }
+
+    .footnote-content {
+      float: none;
+      clear: none;
+      position: absolute;
+      margin: 0;
+      width: 40%;
+      max-width: 280px;
+      left: calc(100% + 2rem);
+    }
+  }
+
+  @media only screen and (max-width: 900px) {
+    .footnote-content.footnote-content {
+      display: none;
+    }
+  }
+
+  /* ── Print ── */
+
+  @media print {
+    .blog-post .draft-alert {
+      display: none !important;
+    }
+  }
+}
+
+@theme inline {
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
 }

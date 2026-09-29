@@ -1,7 +1,11 @@
 'use client';
 
-import Link from 'next/link';
-import { useParams, usePathname, useSelectedLayoutSegments } from 'next/navigation';
+import {
+  Link,
+  usePathname,
+  useSegmentParams,
+  useSelectedLayoutSegments,
+} from '@timber-js/app/client';
 
 const pages = {
   'sonos': {
@@ -17,8 +21,8 @@ const pages = {
     title: 'TODAY IN HISTORY',
   },
   'recently-played': {
-    prefix: 'TO',
-    title: 'RECENTLY PLAYED',
+    prefix: 'WITH',
+    title: 'OTHERS',
   },
   'chat': {
     prefix: 'WITH',
@@ -28,10 +32,14 @@ const pages = {
     prefix: 'TO',
     title: 'OUR LIFE STORY',
   },
+  'blog': {
+    prefix: 'TO',
+    title: 'OUR BLOG',
+  },
 };
 
 interface Props {
-  artistSlugsToName: Record<string, string | undefined>;
+  artistName?: string;
 }
 
 const bandsWithThe = [
@@ -50,12 +58,12 @@ const bandsWithThe = [
   'tedeschi-trucks',
 ];
 
-export default function SecondaryNavBar({ artistSlugsToName }: Props) {
+export default function SecondaryNavBar({ artistName }: Props) {
   const pathname = usePathname();
-  const key = pathname.replace('/', '');
-  const { artistSlug } = useParams();
+  const { artistSlug } = useSegmentParams() as { artistSlug?: string };
+  const segments = useSelectedLayoutSegments();
 
-  const pageMetadata = pages[key];
+  const pageMetadata = pages[segments[0]];
 
   if (pageMetadata) {
     return (
@@ -67,7 +75,7 @@ export default function SecondaryNavBar({ artistSlugsToName }: Props) {
   }
 
   if (typeof artistSlug === 'string') {
-    const artistName = artistSlugsToName[artistSlug];
+    if (!artistName) return null;
     return (
       <>
         <span>TO</span>

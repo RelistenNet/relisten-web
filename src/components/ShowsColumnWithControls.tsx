@@ -1,49 +1,73 @@
 'use client';
 
-import { useMemo } from 'react';
-import Link from 'next/link';
-import { ChevronLeft } from 'lucide-react';
-import sortActiveBands from '../lib/sortActiveBands';
-import { durationToHHMMSS, removeLeadingZero, simplePluralize, splitShowDate } from '../lib/utils';
-import { Show } from '@/types';
 import { useFilterState } from '@/hooks/useFilterState';
-import { FilterState } from '@/lib/filterCookies';
+import type { SlimShow } from '@/lib/slimShow';
+import { useSegmentParams } from '@timber-js/app/client';
+import { useMemo } from 'react';
+import sortActiveBands from '../lib/sortActiveBands';
+import { ArrowUp, ArrowDown } from 'lucide-react';
+import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
+import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
+import Count from './Count';
 import Flex from './Flex';
 import PopularityBadge from './PopularityBadge';
-import Row from './Row';
+import Row, { unwrapSegment } from './Row';
 import RowHeader from './RowHeader';
 import Tag from './Tag';
 
 type ShowsColumnWithControlsProps = {
   artistSlug?: string;
   year?: string;
-  shows: Show[];
-  initialFilters?: FilterState;
-  backHref?: string;
+  shows: SlimShow[];
   fullDate?: boolean;
+  quickHitSegment?: string;
+  quickHitSlug?: string;
 };
 
 const ShowsColumnWithControls = ({
   artistSlug,
   year,
   shows,
-  initialFilters,
-  backHref,
   fullDate,
+  quickHitSegment,
+  quickHitSlug,
 }: ShowsColumnWithControlsProps) => {
-  const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(
-    initialFilters,
-    `${artistSlug}:shows`
+  const { alphaAsc, sortBy, setSortBy, sbdOnly, toggleFilter, clearFilters } = useFilterState(
+    `${artistSlug}:shows`,
+    'alpha'
   );
+  const params = useSegmentParams() as Record<string, string | string[] | undefined>;
+  const [{ date: activeDate }] = slugSearchParams.useQueryStates();
+  const dateParts = activeDate?.split('-');
+  const currentMonth = dateParts?.[1] ?? unwrapSegment(params.month);
+  const currentDay = dateParts?.[2] ?? unwrapSegment(params.day);
+
+  const dirIcon = alphaAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
 
   const toggles = [
     {
       type: 'sort' as const,
-      isActive: dateAsc, // Show as active when oldest first (ascending)
-      onToggle: () => toggleFilter('date'),
-      title: !dateAsc ? 'Newest First' : 'Oldest First',
+      isActive: sortBy === 'alpha',
+      isDefault: sortBy === 'alpha' && !alphaAsc,
+      onToggle: () => setSortBy('alpha'),
+      title: sortBy === 'alpha' ? (alphaAsc ? 'Oldest First' : 'Newest First') : 'Sort by date',
+      label: 'Date',
+      icon: sortBy === 'alpha' ? dirIcon : undefined,
     },
+    ...(!fullDate ? [{
+      type: 'sort' as const,
+      isActive: sortBy === 'popularity',
+      onToggle: () => setSortBy('popularity'),
+      title:
+        sortBy === 'popularity'
+          ? alphaAsc
+            ? 'Least popular'
+            : 'Most popular'
+          : 'Sort by popularity',
+      label: 'Pop',
+      icon: sortBy === 'popularity' ? dirIcon : undefined,
+    }] : []),
     {
       type: 'filter' as const,
       isActive: !!sbdOnly,
@@ -56,23 +80,28 @@ const ShowsColumnWithControls = ({
   const processedShows = useMemo(() => {
     let processedShows = [...shows];
 
-    // Apply filter
     if (sbdOnly) {
       processedShows = processedShows.filter((show) => show.has_soundboard_source);
     }
 
-    // Apply sorting
-    if (artistSlug) {
-      processedShows = sortActiveBands(artistSlug, processedShows);
-    }
-
-    // Reverse if needed (default is desc/newest first when no filter set)
-    if (!dateAsc) {
-      processedShows.reverse(); // Change to oldest first
+    if (sortBy === 'popularity') {
+      const dir = alphaAsc ? -1 : 1;
+      processedShows.sort((a, b) => {
+        const ap = a.popularity?.windows?.['30d']?.plays ?? 0;
+        const bp = b.popularity?.windows?.['30d']?.plays ?? 0;
+        return dir * (bp - ap);
+      });
+    } else {
+      if (artistSlug) {
+        processedShows = sortActiveBands(artistSlug, processedShows);
+      }
+      if (!alphaAsc) {
+        processedShows.reverse();
+      }
     }
 
     return processedShows;
-  }, [shows, artistSlug, dateAsc, sbdOnly]);
+  }, [shows, artistSlug, alphaAsc, sortBy, sbdOnly]);
 
   const tours = {};
 
@@ -84,15 +113,6 @@ const ShowsColumnWithControls = ({
       totalCount={shows.length}
       onClearFilters={clearFilters}
     >
-      {backHref && (
-        <Link
-          href={backHref}
-          className="flex items-center gap-1 border-b border-gray-100 px-2 py-2 text-sm hover:bg-gray-50"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Back
-        </Link>
-      )}
       {processedShows &&
         artistSlug &&
         processedShows.map((show) => {
@@ -100,24 +120,26 @@ const ShowsColumnWithControls = ({
           const { venue, avg_duration, tour } = show;
           let tourName = '';
 
-          // keep track of which tours we've displayed
           if (tour) {
             if (!tours[tour.id]) tourName = tour.name ?? '';
-
             tours[tour.id] = true;
           }
 
+          const showHref = quickHitSegment
+            ? slugSearchParams.href(`/${artistSlug}/${quickHitSegment}`, {
+                slug: quickHitSlug,
+                date: `${year}-${month}-${day}`,
+              })
+            : `/${artistSlug}/${year}/${month}/${day}`;
+
           return (
             <div key={show.uuid}>
-              {!fullDate && tourName && (
-                <RowHeader>{tourName === 'Not Part of a Tour' ? '' : tourName}</RowHeader>
+              {!fullDate && tourName && tourName !== 'Not Part of a Tour' && (
+                <RowHeader>{tourName}</RowHeader>
               )}
               <Row
-                href={`/${artistSlug}/${year}/${month}/${day}`}
-                activeSegments={{
-                  month,
-                  day,
-                }}
+                href={showHref}
+                active={month === currentMonth && day === currentDay}
               >
                 <div>
                   <Flex className="tabular-nums">
@@ -134,7 +156,9 @@ const ShowsColumnWithControls = ({
                 <div className="text-xxs text-foreground-muted flex h-full min-w-[20%] flex-col justify-between text-right">
                   <PopularityBadge popularity={show.popularity} align="right" />
                   <div>{durationToHHMMSS(avg_duration)}</div>
-                  <div>{simplePluralize('tape', show.source_count)}</div>
+                  <div>
+                    <Count unit="tape" value={show.source_count} />
+                  </div>
                 </div>
               </Row>
             </div>

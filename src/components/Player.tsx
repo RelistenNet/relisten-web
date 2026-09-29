@@ -1,7 +1,8 @@
 'use client';
 
-import Link from 'next/link';
-import React, { useRef, useState } from 'react';
+import { Link } from '@timber-js/app/client';
+import React, { Suspense, use, useRef, useState } from 'react';
+import { browser } from 'react-dom';
 
 import type { RootState } from '@/redux';
 import {
@@ -17,45 +18,42 @@ import player from '../lib/player';
 import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
 import Flex from './Flex';
 
-interface Props {
-  artistSlugsToName: Record<string, string | undefined>;
-}
+function PlayerInner() {
+  use(browser());
 
-const Player = ({ artistSlugsToName }: Props) => {
   const playerRef = useRef<HTMLDivElement>(null);
   const playback = useSelector((state: RootState) => state.playback);
   const [showRemainingDuration, setShowRemainingDuration] = useState(false);
   const hoverTextRef = useRef<HTMLSpanElement>(null);
-  const [volume, setVolume] = useState(
-    (typeof localStorage !== 'undefined' && localStorage.volume) || 1
-  );
+  const [volume, setVolume] = useState(localStorage.volume || 1);
 
   const { year, month, day } = splitShowDate(playback.showDate);
   const { artistSlug, source } = playback;
-  const artistName = artistSlug ? artistSlugsToName[artistSlug] : undefined;
+  const artistName = playback.artistName;
   const activeTrack = playback.tracks.find(
     (_track, idx: number) => idx === playback.activeTrack.index
   );
   const nextTrack = playback.tracks.find(
     (_track, idx: number) => idx === (playback.activeTrack.index ?? -1) + 1
   );
-  const notchPosition =
-    typeof window === 'undefined' || !playerRef
-      ? 0
-      : ((playback.activeTrack.currentTime ?? 0) / (playback.activeTrack.duration ?? 1)) *
-        (Number(playerRef.current?.clientWidth) - 3);
+  const progressPercent = playback.activeTrack.duration
+    ? (playback.activeTrack.currentTime ?? 0) / playback.activeTrack.duration
+    : 0;
+  const onPlayPauseClick = () => {
+    player.togglePlayPause();
+  };
 
-  const onProgressClick = (e: React.MouseEvent) => {
+  const onProgressClick = (e: React.PointerEvent) => {
     const rect = playerRef.current?.getBoundingClientRect();
 
     if (!rect) return;
 
-    const percentage = (e.pageX - rect?.left) / rect?.width;
+    const percentage = (e.clientX - rect.left) / rect.width;
 
     player.seek(percentage * (playback?.activeTrack?.duration ?? 0));
   };
 
-  const onProgressMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const onProgressPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const time = (x / rect.width) * (playback.activeTrack.duration ?? 0);
@@ -67,10 +65,10 @@ const Player = ({ artistSlugsToName }: Props) => {
     setShowRemainingDuration((t) => !t);
   };
 
-  const updateVolume = (e: React.MouseEvent<HTMLElement>) => {
+  const updateVolume = (e: React.PointerEvent<HTMLElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const height = rect.height;
-    const nextVolume = (height - (e.pageY - rect.top)) / height;
+    const nextVolume = (height - (e.clientY - rect.top)) / height;
 
     setVolume(Math.max(0, Math.min(1, nextVolume)));
 
@@ -83,40 +81,36 @@ const Player = ({ artistSlugsToName }: Props) => {
     <Flex className="content relative h-[50px] flex-1">
       {activeTrack && (
         <Flex
-          className="playpause text-foreground-muted cursor-pointer items-center justify-center active:text-gray-800 lg:w-[40px]"
-          onClick={() => player.togglePlayPause()}
+          className="playpause text-text-muted cursor-pointer items-center justify-center active:text-text-primary min-w-[44px] lg:min-w-0 lg:w-[40px]"
+          onClick={onPlayPauseClick}
         >
           {playback.activeTrack.isPaused ? (
             <PlayIcon
               size={20}
-              className="fas fa fa-play fill-foreground-muted active:fill-gray-800"
+              className="fas fa fa-play fill-text-muted active:fill-text-primary"
             />
           ) : (
             <PauseIcon
               size={20}
-              className="fas fa fa-pause fill-foreground-muted active:fill-gray-800"
+              className="fas fa fa-pause fill-text-muted active:fill-text-primary"
             />
           )}
         </Flex>
       )}
-      {typeof window === 'undefined' || !activeTrack ? null : (
+      {activeTrack && (
         <div className="relative h-full flex-1" ref={playerRef}>
           <Flex className="info h-full justify-center transition-all duration-[1s] ease-in-out">
-            <div className="timing text-foreground-muted absolute top-1/2 left-[8px] translate-x-0 translate-y-[-50%] text-left text-[0.8em]">
-              <div>
-                <RewindIcon
-                  className="fill-foreground-muted cursor-pointer"
-                  onClick={() => player.previous()}
-                  size={16}
-                />
+            <div className="timing text-text-muted absolute top-1/2 left-[8px] translate-x-0 translate-y-[-50%] text-left text-[0.8em]">
+              <div className="-m-2 cursor-pointer p-2" onClick={() => player.previous()}>
+                <RewindIcon className="fill-text-muted" size={16} />
               </div>
               <div>{durationToHHMMSS(playback.activeTrack.currentTime)}</div>
             </div>
             <Flex column className="justify-center pb-1">
-              <div className="song-title relative top-1 text-center text-[1em] text-gray-900">
+              <div className="song-title relative top-1 text-center text-[1em] text-text-primary">
                 {activeTrack.title}
                 {false && (
-                  <Flex className="text-foreground-muted absolute top-[2px] left-full ml-2 w-full items-center text-[0.8em]">
+                  <Flex className="text-text-muted absolute top-[2px] left-full ml-2 w-full items-center text-[0.8em]">
                     <div>Next: {nextTrack?.title}&nbsp;</div>
                     <ChevronDown size={12} className="cursor-pointer" />
                   </Flex>
@@ -124,20 +118,15 @@ const Player = ({ artistSlugsToName }: Props) => {
               </div>
 
               <Link
-                href="/"
-                as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
-                className="band-title text-foreground-muted justify-center text-center text-[0.8em]"
+                href={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
+                className="band-title text-text-muted justify-center text-center text-[0.8em]"
               >
                 {artistName} – {removeLeadingZero(month)}/{removeLeadingZero(day)}/{year.slice(2)}
               </Link>
             </Flex>
-            <div className="timing duration text-foreground-muted absolute top-1/2 right-[8px] translate-x-0 translate-y-[-50%] text-right text-[0.8em]">
-              <div>
-                <FastForwardIcon
-                  className="fill-foreground-muted ml-auto cursor-pointer"
-                  onClick={() => player.next()}
-                  size={16}
-                />
+            <div className="timing duration text-text-muted absolute top-1/2 right-[8px] translate-x-0 translate-y-[-50%] text-right text-[0.8em]">
+              <div className="-m-2 cursor-pointer p-2" onClick={() => player.next()}>
+                <FastForwardIcon className="fill-text-muted" size={16} />
               </div>
               <div onClick={toggleRemainingDuration} className="cursor-pointer">
                 {durationToHHMMSS(
@@ -149,25 +138,25 @@ const Player = ({ artistSlugsToName }: Props) => {
             </div>
           </Flex>
           <div
-            className="group absolute bottom-0 left-0 z-1 h-1 w-full cursor-pointer bg-[#bcbcbc] before:absolute before:-top-2 before:left-0 before:h-3 before:w-full before:content-['']"
-            onClick={onProgressClick}
-            onMouseMove={onProgressMouseMove}
+            className="group absolute bottom-0 left-0 z-1 h-1 w-full touch-none cursor-pointer bg-hairline before:absolute before:-top-2 before:left-0 before:h-3 before:w-full before:content-['']"
+            onPointerDown={onProgressClick}
+            onPointerMove={onProgressPointerMove}
             style={{ opacity: (playback.activeTrack.currentTime ?? 0) < 0.1 ? 0.8 : 1 }}
           >
             <div
-              className="absolute bottom-0 left-0 h-1 bg-[#707070]"
-              style={{ width: notchPosition ? notchPosition + 2 : 'auto' }}
+              className="absolute bottom-0 left-0 h-1 bg-accent"
+              style={{ width: `${progressPercent * 100}%` }}
             />
             <div
-              className="absolute bottom-0 left-0 z-1 h-2 w-[3px] bg-black"
-              style={{ transform: `translate(${notchPosition}px, 0)` }}
+              className="absolute bottom-0 left-0 z-1 h-2 w-[3px] bg-text-primary"
+              style={{ left: `${progressPercent * 100}%` }}
             />
             <div
-              className="pointer-events-none absolute bottom-full z-2 mb-2 hidden -translate-x-1/2 rounded-md bg-gray-900 px-2.5 py-1 text-xs text-gray-100 tabular-nums shadow-lg ring-1 ring-white/10 group-hover:block"
+              className="pointer-events-none absolute bottom-full z-2 mb-2 hidden -translate-x-1/2 rounded-md bg-surface-raised px-2.5 py-1 text-xs text-text-primary tabular-nums shadow-lg ring-1 ring-hairline group-hover:block"
               style={{ left: 'var(--hover-x)' }}
             >
               <span ref={hoverTextRef} />
-              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-surface-raised" />
             </div>
           </div>
         </div>
@@ -175,11 +164,11 @@ const Player = ({ artistSlugsToName }: Props) => {
       {activeTrack && (
         <div className="volume-control">
           <div
-            className="relative h-full w-[6px] cursor-pointer bg-[#0000001a]"
-            onClick={updateVolume}
+            className="relative h-full w-[6px] touch-none cursor-pointer bg-hairline"
+            onPointerDown={updateVolume}
           >
             <div
-              className="pointer-events-none absolute right-0 bottom-0 left-0 bg-[#707070]"
+              className="pointer-events-none absolute right-0 bottom-0 left-0 bg-text-muted"
               style={{
                 height: `${volume * 100}%`,
               }}
@@ -189,9 +178,8 @@ const Player = ({ artistSlugsToName }: Props) => {
       )}
       {activeTrack && (
         <Link
-          href="/"
-          as={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
-          className="text-foreground-muted flex w-[40px] cursor-pointer items-center justify-center self-center active:text-gray-800 max-lg:hidden"
+          href={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
+          className="text-text-muted flex w-[40px] cursor-pointer items-center justify-center self-center active:text-text-primary max-lg:hidden"
         >
           <div>
             <ListMusicIcon size={22} />
@@ -200,6 +188,12 @@ const Player = ({ artistSlugsToName }: Props) => {
       )}
     </Flex>
   );
-};
+}
+
+const Player = () => (
+  <Suspense fallback={<div className="h-[50px]" />}>
+    <PlayerInner />
+  </Suspense>
+);
 
 export default Player;

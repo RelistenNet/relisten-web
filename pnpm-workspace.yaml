@@ -1,0 +1,12 @@
+minimumReleaseAge: 0
+
+allowBuilds:
+  esbuild: true
+  msw: false
+  protobufjs: false
+  sharp: false
+
+overrides:
+  react: 19.3.0
+  react-dom: 19.3.0
+  scheduler: 0.26.0

@@ -1,32 +1,39 @@
 'use client';
 
-import { useMemo } from 'react';
-import { durationToHHMMSS, removeLeadingZero, simplePluralize, splitShowDate } from '../lib/utils';
-import { Show } from '@/types';
+import type { ReactNode } from 'react';
 import { useFilterState } from '@/hooks/useFilterState';
-import { FilterState } from '@/lib/filterCookies';
+import { Show } from '@/types';
+import { useSegmentParams } from '@timber-js/app/client';
+import { useMemo } from 'react';
+import { durationToHHMMSS, splitShowDate } from '../lib/utils';
+import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
+import Count from './Count';
 import Flex from './Flex';
-import Row from './Row';
+import Row, { unwrapSegment } from './Row';
 import Tag from './Tag';
 
 type TopTapesColumnWithControlsProps = {
   artistSlug?: string;
   year?: string;
   shows: Show[];
-  initialFilters?: FilterState;
+  subHeader?: ReactNode;
+  quickHitSegment?: string;
 };
 
 const TopTapesColumnWithControls = ({
   artistSlug,
   year,
   shows,
-  initialFilters,
+  subHeader,
+  quickHitSegment,
 }: TopTapesColumnWithControlsProps) => {
-  const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(
-    initialFilters,
-    `${artistSlug}:shows`
-  );
+  const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(`${artistSlug}:shows`);
+  const params = useSegmentParams() as Record<string, string | string[] | undefined>;
+  const [{ date: activeDate }] = slugSearchParams.useQueryStates();
+  const dateParts = activeDate?.split('-');
+  const currentMonth = dateParts?.[1] ?? unwrapSegment(params.month);
+  const currentDay = dateParts?.[2] ?? unwrapSegment(params.day);
 
   const toggles = [
     {
@@ -55,9 +62,10 @@ const TopTapesColumnWithControls = ({
       filteredCount={processedShows.length}
       totalCount={shows.length}
       onClearFilters={clearFilters}
+      subHeader={subHeader}
     >
       {(!processedShows || processedShows.length === 0) && (
-        <div className="py-2 text-center text-sm text-gray-700">No top rated shows!</div>
+        <div className="py-2 text-center text-sm text-text-muted">No top rated shows!</div>
       )}
       {processedShows &&
         artistSlug &&
@@ -68,11 +76,10 @@ const TopTapesColumnWithControls = ({
           return (
             <div key={show.id}>
               <Row
-                href={`/${artistSlug}/${year}/${month}/${day}`}
-                activeSegments={{
-                  month,
-                  day,
-                }}
+                href={quickHitSegment
+                  ? slugSearchParams.href(`/${artistSlug}/${quickHitSegment}`, { date: `${year}-${month}-${day}` })
+                  : `/${artistSlug}/${year}/${month}/${day}`}
+                active={month === currentMonth && day === currentDay}
               >
                 <div>
                   <Flex>
@@ -89,7 +96,9 @@ const TopTapesColumnWithControls = ({
                 <div className="text-xxs text-foreground-muted flex h-full min-w-[20%] flex-col justify-center gap-2 text-right">
                   {avg_rating != null && <div>{avg_rating.toFixed(1)} ★</div>}
                   <div>{durationToHHMMSS(avg_duration)}</div>
-                  <div>{simplePluralize('tape', show.source_count)}</div>
+                  <div>
+                    <Count unit="tape" value={show.source_count} />
+                  </div>
                 </div>
               </Row>
             </div>

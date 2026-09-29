@@ -1,21 +1,16 @@
 import ShowsColumn from '@/components/ShowsColumn';
-import { isMobile } from '@/lib/isMobile';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { splitShowDate } from '@/lib/utils';
-import { notFound } from 'next/navigation';
+import { getSegmentParams } from '@timber-js/app/server';
+import { SEGMENT_PATH } from './$segment';
 
-export default async function ShowsDaySlot({
-  params,
-}: {
-  params: Promise<{ artistSlug: string }>;
-}) {
-  if (await isMobile()) return null;
-
-  const { artistSlug } = await params;
+export default async function ShowsDaySlot() {
+  const { artistSlug } = getSegmentParams(SEGMENT_PATH);
+  if (!artistSlug) return null;
 
   const show = await RelistenAPI.fetchRandomShow(artistSlug);
 
-  if (!show) return notFound();
+  if (!show) return null;
 
   const { year } = splitShowDate(show.display_date);
 

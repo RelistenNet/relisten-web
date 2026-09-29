@@ -2,19 +2,19 @@
 
 import { Year } from '@/types';
 import { PropsWithChildren, useMemo } from 'react';
+import { useSegmentParams } from '@timber-js/app/client';
 import { useFilterState } from '@/hooks/useFilterState';
-import { FilterState } from '@/lib/filterCookies';
+import { ArrowUp, ArrowDown } from 'lucide-react';
 import sortActiveBands from '../lib/sortActiveBands';
-import { simplePluralize } from '../lib/utils';
+import Count from './Count';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import PopularityBadge from './PopularityBadge';
-import Row from './Row';
+import Row, { unwrapSegment } from './Row';
 
 type YearsColumnWithControlsProps = {
   artistSlug?: string;
   artistName?: string;
   artistYears: Year[];
-  initialFilters?: FilterState;
 } & PropsWithChildren;
 
 const YearsColumnWithControls = ({
@@ -22,37 +22,59 @@ const YearsColumnWithControls = ({
   artistName,
   artistYears,
   children,
-  initialFilters,
 }: YearsColumnWithControlsProps) => {
-  const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(
-    initialFilters,
-    artistSlug
-  );
+  const { alphaAsc, sortBy, setSortBy, clearFilters } = useFilterState(artistSlug, 'alpha');
+  const params = useSegmentParams() as Record<string, string | string[] | undefined>;
+  const currentYear = unwrapSegment(params.year);
+
+  const dirIcon = alphaAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
 
   const toggles = [
     {
       type: 'sort' as const,
-      isActive: dateAsc, // Show as active when oldest first (ascending)
-      onToggle: () => toggleFilter('date'),
-      title: !dateAsc ? 'Newest First' : 'Oldest First',
+      isActive: sortBy === 'alpha',
+      isDefault: sortBy === 'alpha' && !alphaAsc,
+      onToggle: () => setSortBy('alpha'),
+      title: sortBy === 'alpha' ? (alphaAsc ? 'Oldest First' : 'Newest First') : 'Sort by date',
+      label: 'Date',
+      icon: sortBy === 'alpha' ? dirIcon : undefined,
+    },
+    {
+      type: 'sort' as const,
+      isActive: sortBy === 'popularity',
+      onToggle: () => setSortBy('popularity'),
+      title:
+        sortBy === 'popularity'
+          ? alphaAsc
+            ? 'Least popular'
+            : 'Most popular'
+          : 'Sort by popularity',
+      label: 'Pop',
+      icon: sortBy === 'popularity' ? dirIcon : undefined,
     },
   ];
 
   const processedYears = useMemo(() => {
     let years = [...artistYears];
 
-    // Apply sorting
-    if (artistSlug) {
-      years = sortActiveBands(artistSlug, years);
-    }
-
-    // Reverse if needed (default is desc/newest first when no filter set)
-    if (!dateAsc) {
-      years.reverse(); // Change to oldest first
+    if (sortBy === 'popularity') {
+      const dir = alphaAsc ? -1 : 1;
+      years.sort((a, b) => {
+        const ap = a.popularity?.windows?.['30d']?.plays ?? 0;
+        const bp = b.popularity?.windows?.['30d']?.plays ?? 0;
+        return dir * (bp - ap);
+      });
+    } else {
+      if (artistSlug) {
+        years = sortActiveBands(artistSlug, years);
+      }
+      if (!alphaAsc) {
+        years.reverse();
+      }
     }
 
     return years;
-  }, [artistYears, artistSlug, dateAsc, sbdOnly]);
+  }, [artistYears, artistSlug, alphaAsc, sortBy]);
 
   return (
     <ColumnWithToggleControls
@@ -61,15 +83,15 @@ const YearsColumnWithControls = ({
       filteredCount={processedYears.length}
       totalCount={artistYears.length}
       onClearFilters={clearFilters}
+      subHeader={children}
     >
-      {children}
       {artistSlug &&
         processedYears.length > 0 &&
         processedYears.map((yearObj) => (
           <Row
             key={yearObj.uuid}
             href={`/${artistSlug}/${yearObj.year}`}
-            activeSegments={{ year: yearObj.year }}
+            active={yearObj.year === currentYear}
           >
             <div>
               <div className="flex items-center gap-1">
@@ -82,9 +104,13 @@ const YearsColumnWithControls = ({
               </div>
               <PopularityBadge popularity={yearObj.popularity} />
             </div>
-            <div className="text-xxs text-foreground-muted min-w-[20%] text-right">
-              <div>{simplePluralize('show', yearObj.show_count)}</div>
-              <div>{simplePluralize('tape', yearObj.source_count)}</div>
+            <div className="text-xxs min-w-[20%] text-right">
+              <div>
+                <Count unit="show" value={yearObj.show_count} />
+              </div>
+              <div>
+                <Count unit="tape" value={yearObj.source_count} />
+              </div>
             </div>
           </Row>
         ))}
