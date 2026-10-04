@@ -9,7 +9,6 @@ dns.setDefaultResultOrder('ipv4first');
 
 import '../styles/globals.css';
 import Link from 'next/link';
-// import Link from 'next/link';
 
 // TODO: figure out if we don't need any weights
 const font = Roboto({ subsets: ['latin'], weight: ['400', '500', '700', '900'] });
@@ -24,6 +23,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={font.className}>
         <NextTopLoader showSpinner={false} />
+        <Link
+          href="https://archive.org/search?query=subject:%22Duncan%20Oldham%22"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="In memory of Duncan Oldham"
+          title="In memory of Duncan Oldham"
+          className="fixed top-0 z-10 h-2 w-full bg-black"
+        />
         {/* <Link href="https://en.wikipedia.org/wiki/Bob_Weir" target="_blank">
           <div className="fixed top-0 z-10 h-2 w-full bg-black" />
         </Link> */}
