@@ -94,5 +94,8 @@
   "lint-staged": {
     "*": "oxfmt --write --ignore-path .gitignore --no-error-on-unmatched-pattern"
   },
+  "engines": {
+    "node": ">=26.0.0"
+  },
   "packageManager": "pnpm@12.5.1"
 }
