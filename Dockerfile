@@ -3,7 +3,6 @@ FROM node:26-alpine AS deps
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY .husky/install.mjs ./.husky/install.mjs
 RUN npm install -g corepack && corepack enable && corepack install
 RUN pnpm install --frozen-lockfile
 
