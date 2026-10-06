@@ -25,6 +25,13 @@ Our Sonos app is on the Sonos store and also open source @ https://github.com/Re
   $ npm start
 ```
 
+### Commit formatting
+
+Use Node.js 26 and run `pnpm install` to enable the repository’s native Git hooks. Commits use lint-staged and oxfmt to format
+and re-stage supported files while preserving unstaged changes. Formatter
+ignores and the root `.gitignore` apply. Use `git commit --no-verify` for an
+intentional one-off bypass.
+
 ## License
 
 AGPL3
