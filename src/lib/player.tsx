@@ -86,7 +86,7 @@ let currentPlaybackMethod: 'HYBRID' | 'HTML5_ONLY' = 'HYBRID'; // reassigned in 
 const playerProxy = new Proxy({} as Queue, {
   get(_target, prop) {
     if (!player) return undefined;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // oxlint-disable-next-line typescript/no-explicit-any
     const val = (player as any)[prop];
     return typeof val === 'function' ? val.bind(player) : val;
   },

@@ -1,4 +1,4 @@
-/* eslint-disable react/no-unknown-property */
+/* oxlint-disable react/no-unknown-property */
 import 'server-only';
 
 import RelistenAPI from '@/lib/RelistenAPI';

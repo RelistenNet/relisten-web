@@ -52,7 +52,7 @@ const TodayIndex = ({ items, month, day, pathname }: TodayIndexProps) => {
   useEffect(() => {
     if (!rawAnchor) return;
     document.getElementById(rawAnchor)?.scrollIntoView({ block: 'start' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
