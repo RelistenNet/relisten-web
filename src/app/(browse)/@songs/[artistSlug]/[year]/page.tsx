@@ -20,5 +20,15 @@ export default async function SongsYearSlot() {
   const show = await RelistenAPI.fetchShow(artistSlug, y, date);
   if (!show) return null;
 
-  return <SongsColumn artistSlug={artistSlug} year={y} month={m} day={d} show={show} quickHitSegment={year} quickHitSlug={slug} />;
+  return (
+    <SongsColumn
+      artistSlug={artistSlug}
+      year={y}
+      month={m}
+      day={d}
+      show={show}
+      quickHitSegment={year}
+      quickHitSlug={slug}
+    />
+  );
 }

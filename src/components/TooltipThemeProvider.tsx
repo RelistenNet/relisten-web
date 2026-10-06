@@ -10,9 +10,5 @@ export default function TooltipThemeProvider({
   theme: 'light' | 'dark' | 'auto';
   children: ReactNode;
 }) {
-  return (
-    <TooltipThemeContext.Provider value={theme}>
-      {children}
-    </TooltipThemeContext.Provider>
-  );
+  return <TooltipThemeContext.Provider value={theme}>{children}</TooltipThemeContext.Provider>;
 }

@@ -21,7 +21,7 @@ const VenuesColumnWithControls = ({
   venues,
   subHeader,
 }: VenuesColumnWithControlsProps) => {
-  const { alphaAsc, sortBy, setSortBy } = useFilterState(`${artistSlug}:venues`, 'alpha')
+  const { alphaAsc, sortBy, setSortBy } = useFilterState(`${artistSlug}:venues`, 'alpha');
   const [{ slug: activeSlug }] = slugSearchParams.useQueryStates();
 
   const dirIcon = alphaAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
@@ -34,7 +34,7 @@ const VenuesColumnWithControls = ({
       onToggle: () => setSortBy('alpha'),
       title: sortBy === 'alpha' ? (alphaAsc ? 'Z-A' : 'A-Z') : 'Sort A-Z',
       label: 'A-Z',
-      icon: sortBy === 'alpha' ? dirIcon : undefined
+      icon: sortBy === 'alpha' ? dirIcon : undefined,
     },
     {
       type: 'sort' as const,
@@ -42,7 +42,7 @@ const VenuesColumnWithControls = ({
       onToggle: () => setSortBy('tapes'),
       title: sortBy === 'tapes' ? (alphaAsc ? 'Least Shows' : 'Most Shows') : 'Sort by shows',
       label: 'Shows',
-      icon: sortBy === 'tapes' ? dirIcon : undefined
+      icon: sortBy === 'tapes' ? dirIcon : undefined,
     },
   ];
 
@@ -50,8 +50,10 @@ const VenuesColumnWithControls = ({
     const sorted = [...venues];
     if (sortBy === 'alpha') {
       sorted.sort((a, b) => {
-        return (a.sortName?.trim() || a.name || '').localeCompare(b.sortName?.trim() || b.name || '')
-    });
+        return (a.sortName?.trim() || a.name || '').localeCompare(
+          b.sortName?.trim() || b.name || ''
+        );
+      });
     } else {
       sorted.sort((a, b) => (b.shows_at_venue ?? 0) - (a.shows_at_venue ?? 0));
     }

@@ -76,9 +76,13 @@ const TopTapesColumnWithControls = ({
           return (
             <div key={show.id}>
               <Row
-                href={quickHitSegment
-                  ? slugSearchParams.href(`/${artistSlug}/${quickHitSegment}`, { date: `${year}-${month}-${day}` })
-                  : `/${artistSlug}/${year}/${month}/${day}`}
+                href={
+                  quickHitSegment
+                    ? slugSearchParams.href(`/${artistSlug}/${quickHitSegment}`, {
+                        date: `${year}-${month}-${day}`,
+                      })
+                    : `/${artistSlug}/${year}/${month}/${day}`
+                }
                 active={month === currentMonth && day === currentDay}
               >
                 <div>

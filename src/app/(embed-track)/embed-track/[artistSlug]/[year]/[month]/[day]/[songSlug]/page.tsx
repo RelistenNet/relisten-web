@@ -36,10 +36,7 @@ export default async function SingleTrackEmbedPage() {
   return (
     <>
       {contextTracks.length > 1 && (
-        <EmbedTrackList
-          tracks={contextTracks}
-          startPosition={startIdx + 1}
-        />
+        <EmbedTrackList tracks={contextTracks} startPosition={startIdx + 1} />
       )}
       <PlayerManager
         artistSlug={artistSlug}

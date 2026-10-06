@@ -76,7 +76,6 @@ let store: { dispatch: AppDispatch; getState: () => RootState } | undefined;
 let lastScrobbledTrackUuid: string | null = null;
 let restoreController: AbortController | null = null;
 
-
 let player: Queue | undefined;
 let currentPlaybackMethod: 'HYBRID' | 'HTML5_ONLY' = 'HYBRID'; // reassigned in initGaplessPlayer
 
@@ -269,9 +268,12 @@ export function initGaplessPlayer(nextStore: { dispatch: AppDispatch; getState: 
   if (!restored) return;
 
   restoreController = new AbortController();
-  fetch(`${API_DOMAIN}/api/v2/artists/${restored.artistSlug}/years/${restored.year}/${restored.showDate}`, {
-    signal: restoreController.signal,
-  })
+  fetch(
+    `${API_DOMAIN}/api/v2/artists/${restored.artistSlug}/years/${restored.year}/${restored.showDate}`,
+    {
+      signal: restoreController.signal,
+    }
+  )
     .then((res) => (res.ok ? res.json() : null))
     .then((show) => {
       if (!show?.sources?.length) return clearRestoredPlaceholder();
@@ -295,18 +297,33 @@ export function initGaplessPlayer(nextStore: { dispatch: AppDispatch; getState: 
 function clearRestoredPlaceholder() {
   restoreController = null;
   if (!store) return;
-  store.dispatch(updatePlayback({
-    artistSlug: undefined, artistName: undefined,
-    year: undefined, month: undefined, day: undefined, showDate: undefined,
-    songSlug: undefined, source: undefined,
-    paused: false, activeTrack: {}, tracks: [], gaplessTracksMetadata: [],
-  }));
+  store.dispatch(
+    updatePlayback({
+      artistSlug: undefined,
+      artistName: undefined,
+      year: undefined,
+      month: undefined,
+      day: undefined,
+      showDate: undefined,
+      songSlug: undefined,
+      source: undefined,
+      paused: false,
+      activeTrack: {},
+      tracks: [],
+      gaplessTracksMetadata: [],
+    })
+  );
   delete localStorage.lastPlayedUrl;
 }
 
 function restorePlaybackFromStorage(): {
-  artistSlug: string; year: string; month: string; day: string;
-  showDate: string; songSlug: string; source: string | undefined;
+  artistSlug: string;
+  year: string;
+  month: string;
+  day: string;
+  showDate: string;
+  songSlug: string;
+  source: string | undefined;
   currentTime: number;
 } | null {
   if (!store) return null;
@@ -325,26 +342,42 @@ function restorePlaybackFromStorage(): {
     const currentTime = parseFloat(localStorage.currentTime) || 0;
     const duration = parseFloat(localStorage.duration) || 0;
 
-    store.dispatch(updatePlayback({
-      artistSlug,
-      artistName: localStorage.lastPlayedArtistName || artistSlug.replace(/-/g, ' '),
-      year, month, day,
-      showDate: `${year}-${month}-${day}`,
-      songSlug, source,
-      paused: true,
-      activeTrack: {
-        index: 0,
-        isPaused: true,
-        currentTime,
-        duration,
-      },
-      tracks: [{
-        title: localStorage.lastPlayedTrackTitle || songSlug.replace(/-/g, ' '),
-        slug: songSlug,
-      }] as any,
-    }));
+    store.dispatch(
+      updatePlayback({
+        artistSlug,
+        artistName: localStorage.lastPlayedArtistName || artistSlug.replace(/-/g, ' '),
+        year,
+        month,
+        day,
+        showDate: `${year}-${month}-${day}`,
+        songSlug,
+        source,
+        paused: true,
+        activeTrack: {
+          index: 0,
+          isPaused: true,
+          currentTime,
+          duration,
+        },
+        tracks: [
+          {
+            title: localStorage.lastPlayedTrackTitle || songSlug.replace(/-/g, ' '),
+            slug: songSlug,
+          },
+        ] as any,
+      })
+    );
 
-    return { artistSlug, year, month, day, showDate: `${year}-${month}-${day}`, songSlug, source, currentTime };
+    return {
+      artistSlug,
+      year,
+      month,
+      day,
+      showDate: `${year}-${month}-${day}`,
+      songSlug,
+      source,
+      currentTime,
+    };
   } catch {
     return null;
   }
@@ -387,16 +420,18 @@ export function loadTracks(
     });
   }
 
-  store.dispatch(updatePlayback({
-    tracks,
-    activeTrack: {
-      id: tracks[idx]?.id,
-      index: idx,
-      isPaused: !playImmediately,
-      currentTime: seekTime,
-      duration: tracks[idx]?.duration,
-    },
-  }));
+  store.dispatch(
+    updatePlayback({
+      tracks,
+      activeTrack: {
+        id: tracks[idx]?.id,
+        index: idx,
+        isPaused: !playImmediately,
+        currentTime: seekTime,
+        duration: tracks[idx]?.duration,
+      },
+    })
+  );
 
   player.gotoTrack(idx, playImmediately, seekTime > 0 ? seekTime : undefined);
 }

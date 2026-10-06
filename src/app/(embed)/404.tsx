@@ -15,5 +15,5 @@ export default function NotFound() {
 }
 
 export const metadata = {
-  title: "404 - Page Not Found",
+  title: '404 - Page Not Found',
 };

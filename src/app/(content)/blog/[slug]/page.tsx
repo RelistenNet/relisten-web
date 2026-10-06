@@ -50,7 +50,12 @@ export default async function BlogPostPage() {
               <span key={author.name}>
                 {i > 0 && ', '}
                 {author.url ? (
-                  <a href={author.url} target="_blank" rel="noreferrer" className="text-inherit hover:underline">
+                  <a
+                    href={author.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-inherit hover:underline"
+                  >
                     {author.name}
                   </a>
                 ) : (

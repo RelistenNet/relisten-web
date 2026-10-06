@@ -2,12 +2,7 @@
 
 import cn from '@/lib/cn';
 import { ReactNode, createContext, useContext } from 'react';
-import {
-  Tooltip as AnchorTooltip,
-  TooltipTrigger,
-  TooltipContent,
-  SafeArea,
-} from 'css-anchor-kit';
+import { Tooltip as AnchorTooltip, TooltipTrigger, TooltipContent, SafeArea } from 'css-anchor-kit';
 
 type TooltipProps = {
   children: ReactNode;

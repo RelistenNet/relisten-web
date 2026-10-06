@@ -43,10 +43,7 @@ function getBackPath(
   return '/' + segments.slice(0, prevSegmentCount).join('/') || '/';
 }
 
-function getBackLabel(
-  segments: string[],
-  activeColumn: number
-): string {
+function getBackLabel(segments: string[], activeColumn: number): string {
   const isQuickHit = segments.length >= 2 && isQuickHitSegment(segments[1]);
 
   if (isQuickHit && activeColumn >= 2) {
