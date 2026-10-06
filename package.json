@@ -13,7 +13,8 @@
     "lint": "oxlint",
     "typecheck": "tsc --noEmit",
     "format": "oxfmt --write .",
-    "format:check": "oxfmt --check ."
+    "format:check": "oxfmt --check .",
+    "prepare": "node .husky/install.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -79,6 +80,8 @@
     "@vitejs/plugin-react": "^6.1.1",
     "@vitejs/plugin-rsc": "^0.5.34",
     "babel-plugin-react-compiler": "^1.0.0",
+    "husky": "9.1.7",
+    "lint-staged": "17.6.0",
     "oxfmt": "^0.71.0",
     "oxlint": "^1.86.0",
     "oxlint-tailwindcss": "^1.14.0",
