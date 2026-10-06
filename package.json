@@ -10,8 +10,10 @@
     "dev": "timber dev",
     "build": "NODE_ENV=production vite build",
     "start": "timber preview",
-    "lint": "oxlint src/**/*.ts src/**/*.tsx",
-    "typecheck": "tsc --noEmit"
+    "lint": "oxlint",
+    "typecheck": "tsc --noEmit",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check ."
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -68,7 +70,7 @@
     "@content-collections/core": "^0.15.3",
     "@content-collections/vite": "^0.3.1",
     "@rolldown/plugin-babel": "^0.2.4",
-    "@switz/eslint-config": "^13.1.0",
+    "@switz/lint-config": "^14.0.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/mdx": "^2.0.14",
     "@types/node": "^26.6.3",
@@ -79,6 +81,7 @@
     "babel-plugin-react-compiler": "^1.0.0",
     "oxfmt": "^0.71.0",
     "oxlint": "^1.86.0",
+    "oxlint-tailwindcss": "^1.14.0",
     "postcss": "^8.5.28",
     "satteri": "^0.10.5",
     "tailwindcss": "^4.3.3",

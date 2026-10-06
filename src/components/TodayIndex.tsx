@@ -14,11 +14,12 @@ export type TodayIndexItem = {
 
 type SortMode = 'default' | 'alpha' | 'count';
 
-const sortComparators: Record<SortMode, ((a: TodayIndexItem, b: TodayIndexItem) => number) | null> = {
-  default: null,
-  alpha: (a, b) => a.name.localeCompare(b.name),
-  count: (a, b) => a.count - b.count || a.name.localeCompare(b.name),
-};
+const sortComparators: Record<SortMode, ((a: TodayIndexItem, b: TodayIndexItem) => number) | null> =
+  {
+    default: null,
+    alpha: (a, b) => a.name.localeCompare(b.name),
+    count: (a, b) => a.count - b.count || a.name.localeCompare(b.name),
+  };
 
 type TodayIndexProps = {
   items: TodayIndexItem[];
@@ -52,7 +53,7 @@ const TodayIndex = ({ items, month, day, pathname }: TodayIndexProps) => {
   useEffect(() => {
     if (!rawAnchor) return;
     document.getElementById(rawAnchor)?.scrollIntoView({ block: 'start' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -109,7 +110,9 @@ const TodayIndex = ({ items, month, day, pathname }: TodayIndexProps) => {
                 href={`?${todayIndexSearchParams.buildSearchParams({ sort: sortMode, dir: sortDir, anchor })}`}
                 onClick={(e) => {
                   e.preventDefault();
-                  document.getElementById(anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  document
+                    .getElementById(anchor)
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   setParams({ anchor });
                 }}
                 className={`flex items-center justify-between gap-2 rounded px-2 py-1 transition-colors ${

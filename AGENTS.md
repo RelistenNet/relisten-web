@@ -45,14 +45,32 @@ There is NO `loading.tsx`. Use `<Suspense>` with the flush point model instead.
 
 ```ts
 // Server (server components, middleware, access, actions)
-import { deny, redirect, getHeaders, getCookieJar, getSegmentParams,
-         createActionClient, ActionError, revalidatePath, revalidateTag,
-         waitUntil, getTraceId, withSpan } from '@timber-js/app/server';
+import {
+  deny,
+  redirect,
+  getHeaders,
+  getCookieJar,
+  getSegmentParams,
+  createActionClient,
+  ActionError,
+  revalidatePath,
+  revalidateTag,
+  waitUntil,
+  getTraceId,
+  withSpan,
+} from '@timber-js/app/server';
 
 // Client (client components)
-import { Link, useRouter, usePathname, useActionState,
-         useSegmentParams, usePendingNavigation, useLinkStatus,
-         useSelectedLayoutSegment } from '@timber-js/app/client';
+import {
+  Link,
+  useRouter,
+  usePathname,
+  useActionState,
+  useSegmentParams,
+  usePendingNavigation,
+  useLinkStatus,
+  useSelectedLayoutSegment,
+} from '@timber-js/app/client';
 
 // Typed params
 import { defineSchema } from '@timber-js/app/params';
@@ -108,7 +126,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 import { useState } from 'react';
 export function Counter() {
   const [count, setCount] = useState(0);
-  return <button onClick={() => setCount(c => c + 1)}>{count}</button>;
+  return <button onClick={() => setCount((c) => c + 1)}>{count}</button>;
 }
 ```
 
@@ -119,11 +137,11 @@ Server components can render client components as children. Client components ca
 `deny()` produces real HTTP status codes. `redirect()` sends HTTP redirects.
 
 ```ts
-deny();           // 403 (default)
-deny(404);        // 404 Not Found
-deny(503, data);  // 503 with data for error boundary
+deny(); // 403 (default)
+deny(404); // 404 Not Found
+deny(503, data); // 503 with data for error boundary
 
-redirect('/login');                     // 307 temporary
+redirect('/login'); // 307 temporary
 redirect('/new-page', { permanent: true }); // 308 permanent
 ```
 
@@ -251,10 +269,7 @@ No implicit caching. `fetch()` is never patched. Use `timber.cache()` for cross-
 ```ts
 import { cache } from '@timber-js/app/cache';
 
-const getProducts = cache(
-  async () => db.products.findMany(),
-  { ttl: 60, tags: ['products'] }
-);
+const getProducts = cache(async () => db.products.findMany(), { ttl: 60, tags: ['products'] });
 ```
 
 Use `React.cache` for single-request deduplication.
@@ -274,8 +289,8 @@ timber holds the HTTP response until the shell (everything outside `<Suspense>`)
 import { cloudflare } from '@timber-js/app/adapters/cloudflare';
 
 export default {
-  output: 'server',        // or 'static'
-  adapter: cloudflare(),   // or nitro({ preset: 'node-server' })
+  output: 'server', // or 'static'
+  adapter: cloudflare(), // or nitro({ preset: 'node-server' })
 };
 ```
 

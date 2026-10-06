@@ -59,7 +59,8 @@ const SubartistTabs = ({ artistSlug, features }: SubartistTabsProps) => {
                   text-text-muted
                   hover:bg-surface-hover hover:text-text-primary
                 `,
-              isPending && isActive &&
+              isPending &&
+                isActive &&
                 `
                   bg-accent/40 font-medium text-white/70
                   hover:bg-accent/40 hover:text-white/70

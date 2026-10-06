@@ -52,12 +52,14 @@ const TapesColumn = (props: Props) => {
         <div key={sourceObj.id}>
           <RowHeader>{author(sourceObj) || `Source ${idx + 1} of ${sourcesData.length}`}</RowHeader>
           <Row
-            href={props.quickHitSegment
-              ? slugSearchParams.href(`/${artistSlug}/${props.quickHitSegment}`, {
-                  slug: props.quickHitSlug,
-                  date: `${year}-${month}-${day}`,
-                }) + `&source=${sourceObj.id}`
-              : `/${artistSlug}/${year}/${month}/${day}?source=${sourceObj.id}`}
+            href={
+              props.quickHitSegment
+                ? slugSearchParams.href(`/${artistSlug}/${props.quickHitSegment}`, {
+                    slug: props.quickHitSlug,
+                    date: `${year}-${month}-${day}`,
+                  }) + `&source=${sourceObj.id}`
+                : `/${artistSlug}/${year}/${month}/${day}?source=${sourceObj.id}`
+            }
             active={activeSourceId === sourceObj?.id}
           >
             <div className="w-full">

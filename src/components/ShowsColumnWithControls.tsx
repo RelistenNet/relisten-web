@@ -55,19 +55,23 @@ const ShowsColumnWithControls = ({
       label: 'Date',
       icon: sortBy === 'alpha' ? dirIcon : undefined,
     },
-    ...(!fullDate ? [{
-      type: 'sort' as const,
-      isActive: sortBy === 'popularity',
-      onToggle: () => setSortBy('popularity'),
-      title:
-        sortBy === 'popularity'
-          ? alphaAsc
-            ? 'Least popular'
-            : 'Most popular'
-          : 'Sort by popularity',
-      label: 'Pop',
-      icon: sortBy === 'popularity' ? dirIcon : undefined,
-    }] : []),
+    ...(!fullDate
+      ? [
+          {
+            type: 'sort' as const,
+            isActive: sortBy === 'popularity',
+            onToggle: () => setSortBy('popularity'),
+            title:
+              sortBy === 'popularity'
+                ? alphaAsc
+                  ? 'Least popular'
+                  : 'Most popular'
+                : 'Sort by popularity',
+            label: 'Pop',
+            icon: sortBy === 'popularity' ? dirIcon : undefined,
+          },
+        ]
+      : []),
     {
       type: 'filter' as const,
       isActive: !!sbdOnly,
@@ -137,10 +141,7 @@ const ShowsColumnWithControls = ({
               {!fullDate && tourName && tourName !== 'Not Part of a Tour' && (
                 <RowHeader>{tourName}</RowHeader>
               )}
-              <Row
-                href={showHref}
-                active={month === currentMonth && day === currentDay}
-              >
+              <Row href={showHref} active={month === currentMonth && day === currentDay}>
                 <div>
                   <Flex className="tabular-nums">
                     {fullDate ? `${year}-${month}-${day}` : `${removeLeadingZero(month)}/${day}`}

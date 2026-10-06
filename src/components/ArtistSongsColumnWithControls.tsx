@@ -21,7 +21,7 @@ const ArtistSongsColumnWithControls = ({
   songs,
   subHeader,
 }: ArtistSongsColumnWithControlsProps) => {
-  const { alphaAsc, sortBy, setSortBy } = useFilterState(`${artistSlug}:songs`, 'alpha')
+  const { alphaAsc, sortBy, setSortBy } = useFilterState(`${artistSlug}:songs`, 'alpha');
   const [{ slug: activeSlug }] = slugSearchParams.useQueryStates();
 
   const dirIcon = alphaAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
@@ -33,7 +33,7 @@ const ArtistSongsColumnWithControls = ({
       onToggle: () => setSortBy('tapes'),
       label: 'Played',
       title: sortBy === 'tapes' ? (alphaAsc ? 'Least Played' : 'Most Played') : 'Sort by plays',
-      icon: sortBy === 'tapes' ? dirIcon : undefined
+      icon: sortBy === 'tapes' ? dirIcon : undefined,
     },
     {
       type: 'sort' as const,
@@ -42,7 +42,7 @@ const ArtistSongsColumnWithControls = ({
       onToggle: () => setSortBy('alpha'),
       title: sortBy === 'alpha' ? (alphaAsc ? 'Z-A' : 'A-Z') : 'Sort A-Z',
       label: 'A-Z',
-      icon: sortBy === 'alpha' ? dirIcon : undefined
+      icon: sortBy === 'alpha' ? dirIcon : undefined,
     },
   ];
 
