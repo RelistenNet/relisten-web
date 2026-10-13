@@ -116,7 +116,16 @@ export class RelistenAPI {
         return deny(404);
       }
 
-      return apiFetch<Partial<Tape>>(safeApiPath`/api/v2/artists/${artistSlug}/shows/random`);
+      const show = await apiFetch<Partial<Tape>>(
+        safeApiPath`/api/v2/artists/${artistSlug}/shows/random`
+      );
+
+      if (show?.sources?.length) {
+        show.sources = sortSources(show.sources);
+        sortTracksInSources(show.sources);
+      }
+
+      return show;
     }
   );
 

@@ -59,9 +59,11 @@ export const useSourceData = ({
 
   const displayDate = year && month && day ? [year, month, day].join('-') : undefined;
 
-  const activeSourceId = Number(source) || show?.sources?.[0]?.id;
+  const sourcesData = sortSources(show?.sources ?? []);
 
-  const activeSourceObj = show?.sources?.find((source) => source.id === activeSourceId);
+  const activeSourceId = Number(source) || sourcesData[0]?.id;
+
+  const activeSourceObj = sourcesData.find((source) => source.id === activeSourceId);
 
   return {
     gaplessTracksMetadata,
@@ -71,7 +73,7 @@ export const useSourceData = ({
     isActiveSourcePlaying: activeSourceObj?.id === activePlaybackSourceId,
     displayDate,
     activeSourceObj,
-    sourcesData: sortSources(show?.sources ?? []),
+    sourcesData,
   };
 };
 
