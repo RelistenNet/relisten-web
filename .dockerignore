@@ -1,6 +1,35 @@
+# Build output / dependencies (rebuilt inside the image)
 node_modules/
 dist/
-.git/
 .timber/
 .content-collections
 .next/
+coverage/
+*.tsbuildinfo
+
+# VCS
+.git/
+.githooks/
+.github/
+
+# Secrets and local env
+**/.env*
+**/*.pem
+**/*.key
+
+# Local tooling / agent state
+.claude/
+.lb/
+.pi/
+.mcp.json
+.vscode/
+.DS_Store
+**/*.log
+**/*.swp
+
+# Docker / deploy files not needed in the build
+Dockerfile
+.dockerignore
+deploy
+deploy-timber
+nginx.conf.d/
