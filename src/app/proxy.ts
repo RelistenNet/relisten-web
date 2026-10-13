@@ -1,3 +1,6 @@
+// Bundled at build time so we never fetch from a Host-header-derived origin.
+import privacyPolicyHtml from '../../public/privacy_policy.html?raw';
+
 export default async (req: Request, next: () => Promise<Response>) => {
   const start = performance.now();
   const url = new URL(req.url);
@@ -11,12 +14,9 @@ export default async (req: Request, next: () => Promise<Response>) => {
   const ua = req.headers.get('user-agent') ?? 'unknown';
 
   if (url.pathname === '/privacy-policy') {
-    const file = await fetch(new URL('/privacy_policy.html', req.url));
-    const res = new Response(await file.text(), {
-      headers: { 'content-type': 'text/html' },
+    return new Response(privacyPolicyHtml, {
+      headers: { 'content-type': 'text/html; charset=utf-8' },
     });
-
-    return res;
   }
 
   if (url.pathname === '/discord') {
