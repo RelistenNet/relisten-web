@@ -57,36 +57,50 @@ function parseDisplayDate(displayDate: string) {
 }
 
 const searchParams = defineSearchParams({
-  size: z.coerce.number().gte(256).lte(1024).default(1024),
+  // Small allow-list so each show has at most a few distinct renders.
+  // Anything else falls back to the default.
+  size: z.enum(['256', '512', '1024']).default('1024').transform(Number),
   debug: z.coerce.boolean().default(false),
 });
+
+// Pinned fontsource version; fonts are fetched once per process and reused.
+const FONT_BASE = 'https://cdn.jsdelivr.net/fontsource/fonts/roboto@5.3.0';
+
+async function fetchFont(weight: number): Promise<ArrayBuffer> {
+  const res = await fetch(`${FONT_BASE}/latin-${weight}-normal.ttf`);
+  if (!res.ok) throw new Error(`Failed to load Roboto ${weight}: ${res.status}`);
+  return res.arrayBuffer();
+}
+
+let fontsPromise: Promise<[ArrayBuffer, ArrayBuffer, ArrayBuffer]> | undefined;
+
+function loadFonts() {
+  fontsPromise ??= Promise.all([fetchFont(400), fetchFont(700), fetchFont(900)]).catch((err) => {
+    // Don't cache failures; retry on the next request.
+    fontsPromise = undefined;
+    throw err;
+  });
+  return fontsPromise;
+}
 
 export async function GET() {
   const { showUuid } = getSegmentParams(SEGMENT_PATH);
 
-  let size: number;
-  let debug: boolean;
-  try {
-    ({ size, debug } = searchParams.get());
-  } catch {
-    return new Response('Not Found', { status: 404 });
-  }
+  const params = searchParams.get();
+  const size = params.size;
+  // Debug overlay is a layout aid; only honor it in development.
+  const debug = params.debug && process.env.NODE_ENV === 'development';
 
-  const [artists, show, fontReg, fontBold, fontMegaBold] = await Promise.all([
+  // showUuid is already format-validated by app/schema.ts. Look up the show
+  // before loading fonts so unknown shows 404 without any font work.
+  const [artists, show] = await Promise.all([
     RelistenAPI.fetchAllArtists(),
     RelistenAPI.fetchShowByUUID(showUuid),
-    fetch('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-400-normal.ttf').then(
-      (res) => res.arrayBuffer()
-    ),
-    fetch('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-700-normal.ttf').then(
-      (res) => res.arrayBuffer()
-    ),
-    fetch('https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-900-normal.ttf').then(
-      (res) => res.arrayBuffer()
-    ),
   ]);
 
   if (!show || !show.sources?.length) return new Response('Not Found', { status: 404 });
+
+  const [fontReg, fontBold, fontMegaBold] = await loadFonts();
 
   const artist = artists.find((artist) => artist.uuid === show.artist_uuid);
   const artistName = artist?.name ?? 'Unknown Artist';
