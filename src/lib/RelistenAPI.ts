@@ -22,6 +22,15 @@ import type {
   LiveHistoryItem,
 } from '@/types';
 
+// Tagged template that URL-encodes every interpolated value, so route params
+// can't inject path segments or query strings into backend API URLs.
+function safeApiPath(strings: TemplateStringsArray, ...values: Array<string | number>): string {
+  return strings.reduce(
+    (acc, str, i) => acc + str + (i < values.length ? encodeURIComponent(values[i]) : ''),
+    ''
+  );
+}
+
 // Cross-request cached fetch — caches API responses in memory with TTL.
 // React cache() still deduplicates within a single render pass on top of this.
 async function apiFetch<T>(endpoint: string): Promise<T> {
@@ -73,7 +82,7 @@ export class RelistenAPI {
       if (!slug || !year || !displayDate) return { sources: [] };
 
       const show = await cachedApiFetch<Tape>(
-        `/api/v2/artists/${slug}/years/${year}/${displayDate}`
+        safeApiPath`/api/v2/artists/${slug}/years/${year}/${displayDate}`
       );
 
       if (show?.sources?.length) {
@@ -88,7 +97,7 @@ export class RelistenAPI {
   static fetchShowByUUID = cache(async (showUuid: string): Promise<Partial<Tape> | undefined> => {
     if (!showUuid) return { sources: [] };
 
-    const show = await cachedApiFetch<Tape>(`/api/v3/shows/${showUuid}`);
+    const show = await cachedApiFetch<Tape>(safeApiPath`/api/v3/shows/${showUuid}`);
 
     if (show?.sources?.length) {
       show.sources = sortSources(show.sources);
@@ -107,7 +116,7 @@ export class RelistenAPI {
         return deny(404);
       }
 
-      return apiFetch<Partial<Tape>>(`/api/v2/artists/${artistSlug}/shows/random`);
+      return apiFetch<Partial<Tape>>(safeApiPath`/api/v2/artists/${artistSlug}/shows/random`);
     }
   );
 
@@ -115,7 +124,7 @@ export class RelistenAPI {
   static fetchYears = cache(async (artistUuid?: string): Promise<Year[]> => {
     if (!artistUuid) return [];
 
-    return cachedApiFetch<Year[]>(`/api/v3/artists/${artistUuid}/years`);
+    return cachedApiFetch<Year[]>(safeApiPath`/api/v3/artists/${artistUuid}/years`);
   });
 
   // Artist Shows API (v3 — UUID-based, includes popularity)
@@ -123,7 +132,9 @@ export class RelistenAPI {
     async (artistUuid?: string, yearUuid?: string): Promise<ArtistShows | undefined> => {
       if (!artistUuid || !yearUuid) return undefined;
 
-      return cachedApiFetch<ArtistShows>(`/api/v3/artists/${artistUuid}/years/${yearUuid}`);
+      return cachedApiFetch<ArtistShows>(
+        safeApiPath`/api/v3/artists/${artistUuid}/years/${yearUuid}`
+      );
     }
   );
 
@@ -137,14 +148,14 @@ export class RelistenAPI {
       if (!artistSlug) return [];
 
       return cachedApiFetch<Show[]>(
-        `/api/v2/artists/${artistSlug}/shows/on-date?month=${month}&day=${day}`
+        safeApiPath`/api/v2/artists/${artistSlug}/shows/on-date?month=${month}&day=${day}`
       );
     }
   );
 
   static fetchTodayShows = cache(
     async (month: number | string, day: number | string): Promise<Day[]> => {
-      return cachedApiFetch<Day[]>(`/api/v2/shows/today?month=${month}&day=${day}`);
+      return cachedApiFetch<Day[]>(safeApiPath`/api/v2/shows/today?month=${month}&day=${day}`);
     }
   );
 
@@ -152,48 +163,54 @@ export class RelistenAPI {
   static fetchTopShows = cache(async (artistSlug?: string): Promise<Show[]> => {
     if (!artistSlug) return [];
 
-    return cachedApiFetch<Show[]>(`/api/v2/artists/${artistSlug}/shows/top`);
+    return cachedApiFetch<Show[]>(safeApiPath`/api/v2/artists/${artistSlug}/shows/top`);
   });
 
   // Recently Added Shows API
   static fetchRecentlyAdded = cache(async (artistSlug?: string): Promise<Show[]> => {
     if (!artistSlug) return [];
 
-    return cachedApiFetch<Show[]>(`/api/v2/artists/${artistSlug}/shows/recently-added`);
+    return cachedApiFetch<Show[]>(safeApiPath`/api/v2/artists/${artistSlug}/shows/recently-added`);
   });
 
   // Venues API
   static fetchVenues = cache(async (artistSlug?: string): Promise<Venue[]> => {
     if (!artistSlug) return [];
 
-    return cachedApiFetch<Venue[]>(`/api/v2/artists/${artistSlug}/venues`);
+    return cachedApiFetch<Venue[]>(safeApiPath`/api/v2/artists/${artistSlug}/venues`);
   });
 
   // Songs API
   static fetchSongs = cache(async (artistSlug?: string): Promise<Song[]> => {
     if (!artistSlug) return [];
 
-    return cachedApiFetch<Song[]>(`/api/v2/artists/${artistSlug}/songs`);
+    return cachedApiFetch<Song[]>(safeApiPath`/api/v2/artists/${artistSlug}/songs`);
   });
 
   // Tours API
   static fetchTours = cache(async (artistSlug?: string): Promise<Tour[]> => {
     if (!artistSlug) return [];
 
-    return cachedApiFetch<Tour[]>(`/api/v2/artists/${artistSlug}/tours`);
+    return cachedApiFetch<Tour[]>(safeApiPath`/api/v2/artists/${artistSlug}/tours`);
   });
 
   // Detail endpoints — v3, slug-based
   static fetchVenueShows = cache(async (artistSlug: string, venueSlug: string) => {
-    return cachedApiFetch<VenueWithShows>(`/api/v3/artists/${artistSlug}/venues/${venueSlug}`);
+    return cachedApiFetch<VenueWithShows>(
+      safeApiPath`/api/v3/artists/${artistSlug}/venues/${venueSlug}`
+    );
   });
 
   static fetchSongShows = cache(async (artistSlug: string, songSlug: string) => {
-    return cachedApiFetch<SongWithShows>(`/api/v3/artists/${artistSlug}/songs/${songSlug}`);
+    return cachedApiFetch<SongWithShows>(
+      safeApiPath`/api/v3/artists/${artistSlug}/songs/${songSlug}`
+    );
   });
 
   static fetchTourShows = cache(async (artistSlug: string, tourSlug: string) => {
-    return cachedApiFetch<TourWithShows>(`/api/v3/artists/${artistSlug}/tours/${tourSlug}`);
+    return cachedApiFetch<TourWithShows>(
+      safeApiPath`/api/v3/artists/${artistSlug}/tours/${tourSlug}`
+    );
   });
 
   // Live API
@@ -202,8 +219,11 @@ export class RelistenAPI {
   });
 
   static fetchLiveHistory = cache(async (lastSeenId?: string): Promise<LiveHistoryItem[]> => {
-    const params = lastSeenId ? `?lastSeenId=${lastSeenId}` : '';
-    return apiFetch<LiveHistoryItem[]>(`/api/v2/live/history${params}`);
+    return apiFetch<LiveHistoryItem[]>(
+      lastSeenId
+        ? safeApiPath`/api/v2/live/history?lastSeenId=${lastSeenId}`
+        : '/api/v2/live/history'
+    );
   });
 }
 
