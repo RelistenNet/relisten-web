@@ -2,6 +2,7 @@ import { METADATA_BASE } from '@/lib/constants';
 import PlayerManager from '@/components/PlayerManager';
 import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
 import RelistenAPI from '@/lib/RelistenAPI';
+import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { createShowDate } from '@/lib/utils';
 import { deny, getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
@@ -19,8 +20,9 @@ export default async function Page() {
   ]);
 
   const artistName = artists?.find((a) => a.slug === artistSlug)?.name;
+  const { source } = sourceSearchParamsLoader.get();
 
-  return <PlayerManager {...params} show={show} artistName={artistName} />;
+  return <PlayerManager {...params} show={show} artistName={artistName} source={source} />;
 }
 
 export const metadata = async () => {

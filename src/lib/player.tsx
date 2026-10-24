@@ -77,6 +77,21 @@ let lastScrobbledTrackUuid: string | null = null;
 let restoreController: AbortController | null = null;
 
 let player: Queue | undefined;
+let autoplayToastVisible = false;
+
+// gapless fires callbacks synchronously from inside player calls, which can run
+// during React work (e.g. PlayerManager's effect). Defer toast updates so sonner's
+// Toaster isn't setState'd mid-render of another component.
+function deferToast(fn: () => void) {
+  queueMicrotask(fn);
+}
+
+function dismissAutoplayToast() {
+  if (!autoplayToastVisible) return;
+  autoplayToastVisible = false;
+  deferToast(() => toast.dismiss('autoplay-blocked'));
+}
+
 let currentPlaybackMethod: 'HYBRID' | 'HTML5_ONLY' = 'HYBRID'; // reassigned in initGaplessPlayer
 
 // Proxy that always delegates to the current `player` instance.
@@ -104,7 +119,7 @@ function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Qu
           duration: info.duration,
         });
         if (!info.isPaused) {
-          toast.dismiss('autoplay-blocked');
+          dismissAutoplayToast();
         }
         // Scrobble after 5 seconds of playback
         if (info.currentTime >= 5) {
@@ -195,7 +210,9 @@ function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Qu
 
           // update URL and page title to reflect current track without triggering a full navigation
           if (window.location.pathname.indexOf(`/${artistSlug}/${year}/${month}/${day}`) !== -1) {
-            replaceUrl(nextUrl);
+            if (source && window.location.pathname + window.location.search !== nextUrl) {
+              replaceUrl(nextUrl);
+            }
             // Keep everything after the first " | " (e.g. "2024-01-01 | Grateful Dead | Relisten")
             // and replace only the track name portion
             const titleParts = document.title.split(' | ');
@@ -206,44 +223,52 @@ function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Qu
       }
     },
     onError: () => {
-      toast.error('There was an error loading your audio', {
-        toasterId: 'audio-error',
-        duration: Infinity,
-      });
+      deferToast(() =>
+        toast.error('There was an error loading your audio', {
+          toasterId: 'audio-error',
+          duration: Infinity,
+        })
+      );
     },
     onPlayBlocked: () => {
-      toast.warning('Autoplay blocked', {
-        toasterId: 'audio-error',
-        id: 'autoplay-blocked',
-        duration: Infinity,
-        description: (
-          <ol className="m-0 flex flex-col gap-1 pl-0">
-            <li>
-              To start playing, hit <strong>Play now</strong>
-            </li>
-            <li>
-              To prevent this in the future, click the <strong>lock icon</strong> in your address
-              bar, select <strong>Sound</strong>, and choose <strong>Always Allow</strong>
-            </li>
-          </ol>
-        ),
-        classNames: {
-          toast: '!bg-amber-100 !text-amber-800 !border-amber-500',
-          title: '!text-base !font-semibold !inline !align-middle',
-          icon: '!inline !align-middle !mr-1',
-          actionButton: '!bg-amber-700 !text-white',
-          closeButton: '!border-amber-400',
-        },
-        action: {
-          label: 'Play now',
-          onClick: () => {
-            if (!player) return;
-            player.resumeAudioContext();
-            player.play();
-            toast.dismiss('autoplay-blocked');
+      autoplayToastVisible = true;
+      deferToast(() =>
+        toast.warning('Autoplay blocked', {
+          toasterId: 'audio-error',
+          id: 'autoplay-blocked',
+          duration: Infinity,
+          description: (
+            <ol className="m-0 flex flex-col gap-1 pl-0">
+              <li>
+                To start playing, hit <strong>Play now</strong>
+              </li>
+              <li>
+                To prevent this in the future, click the <strong>lock icon</strong> in your address
+                bar, select <strong>Sound</strong>, and choose <strong>Always Allow</strong>
+              </li>
+            </ol>
+          ),
+          classNames: {
+            toast: '!bg-amber-100 !text-amber-800 !border-amber-500',
+            title: '!text-base !font-semibold !inline !align-middle',
+            icon: '!inline !align-middle !mr-1',
+            actionButton: '!bg-amber-700 !text-white',
+            closeButton: '!border-amber-400',
           },
-        },
-      });
+          action: {
+            label: 'Play now',
+            onClick: () => {
+              if (!player) return;
+              player.resumeAudioContext();
+              player.play();
+              dismissAutoplayToast();
+            },
+          },
+          onDismiss: () => {
+            autoplayToastVisible = false;
+          },
+        })
+      );
     },
   });
 }

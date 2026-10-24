@@ -2,6 +2,7 @@ import PlayerManager from '@/components/PlayerManager';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { isQuickHitSegment } from '@/lib/quickHitSegments';
 import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
+import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { splitShowDate } from '@/lib/utils';
 import { getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
@@ -21,6 +22,7 @@ export default async function Page() {
   if (!year || !isQuickHitSegment(year)) return null;
 
   const { date, track } = await slugSearchParams.get();
+  const { source } = sourceSearchParamsLoader.get();
   if (!date || !track) return null;
 
   const { year: y, month: m, day: d } = splitShowDate(date);
@@ -44,6 +46,7 @@ export default async function Page() {
       songSlug={track}
       show={show}
       artistName={artistName}
+      source={source}
     />
   );
 }

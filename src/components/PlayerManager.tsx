@@ -15,11 +15,16 @@ interface PlayerManagerProps extends Props {
   playImmediately?: boolean;
   trackSlugs?: string[];
   songSlug?: string;
+  // Server-resolved ?source. Prefer this over nuqs: after a pathname change nuqs
+  // returns the previous URL's state for one render, so the effect below would see
+  // the new track with the old (often empty) source.
+  source?: string;
 }
 
 export default function PlayerManager(props: PlayerManagerProps) {
   const pathname = usePathname();
-  const [{ source: sourceId }] = sourceSearchParamsLoader.useQueryStates();
+  const [{ source: querySourceId }] = sourceSearchParamsLoader.useQueryStates();
+  const sourceId = props.source ?? querySourceId;
   const [{ t: seekTime }] = tSearchParamsLoader.useQueryStates();
 
   const pathParts = String(pathname)
@@ -55,7 +60,7 @@ export default function PlayerManager(props: PlayerManagerProps) {
           year,
           showDate: createShowDate(year, month, day),
           songSlug,
-          source: sourceId,
+          source: String(activeSourceObj.id),
           paused: false,
         })
       );
