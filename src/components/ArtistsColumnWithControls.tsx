@@ -232,10 +232,11 @@ const ArtistsColumnWithControls = ({
                   ref={virtualizer.measureElement}
                   style={{
                     position: 'absolute',
-                    top: 0,
+                    // `top`, not translateY: Firefox ignores ancestor transforms when
+                    // resolving CSS anchor positions, so tooltips in rows land offset.
+                    top: vi.start,
                     left: 0,
                     right: 0,
-                    transform: `translateY(${vi.start}px)`,
                   }}
                 >
                   {renderItem(item)}
