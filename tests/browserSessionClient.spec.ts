@@ -45,11 +45,13 @@ test('acquires a fresh CSRF token for each browser mutation', async () => {
     contract_version: 1,
     mutations: [
       {
-        mutation_uuid: '019cf000-0000-7000-8000-000000000001',
-        catalog_type: 'artist',
-        catalog_uuid: '019cf000-0000-7000-8000-000000000002',
+        mutation_id: 'mutation_01m69cswt9ez4a4211h4ndqhyr',
+        target: {
+          kind: 'artist',
+          id: 'artist_3qmp7zjbg1rpebhtyfy43096vj',
+        },
         desired_state: 'favorite',
-        favorite_uuid: '019cf000-0000-7000-8000-000000000003',
+        favorite_id: 'favorite_01m69cswt9fyfsbex244mjmejk',
       },
     ],
   };

@@ -2,7 +2,9 @@ export type FavoriteCatalogType =
   | 'artist'
   | 'show'
   | 'source'
-  | 'source_track'
+  | 'track'
+  | 'imported_song'
+  | 'imported_venue'
   | 'song'
   | 'tour'
   | 'venue';
@@ -10,43 +12,45 @@ export type FavoriteCatalogType =
 export type FavoriteDesiredState = 'favorite' | 'not_favorite';
 
 export interface BrowserAccountProfile {
-  contract_version: number;
-  user_uuid: string;
+  contract_version: 1;
+  user_id: string;
   username: string;
   username_version: number;
   username_review_needed: boolean;
   username_reviewed_at: string | null;
   username_change_available_at: string | null;
-  native_session_uuid?: string;
+}
+
+export interface FavoriteTarget {
+  kind: FavoriteCatalogType;
+  id: string;
 }
 
 export interface FavoriteSnapshotItem {
-  favorite_uuid: string;
-  catalog_type: FavoriteCatalogType;
-  catalog_uuid: string;
+  favorite_id: string;
+  target: FavoriteTarget;
   created_at: string;
   updated_at: string;
 }
 
 export interface FavoriteLibrarySnapshot {
-  contract_version: number;
+  contract_version: 1;
   library_revision: number;
   next_cursor: string;
   favorites: FavoriteSnapshotItem[];
 }
 
 export interface FavoriteLibraryChange {
-  change_uuid: string;
+  change_id: string;
   revision: number;
   change_type: 'favorite_added' | 'favorite_removed';
-  favorite_uuid: string;
-  catalog_type: FavoriteCatalogType;
-  catalog_uuid: string;
+  favorite_id: string;
+  target: FavoriteTarget;
   changed_at: string;
 }
 
 export interface FavoriteLibraryChanges {
-  contract_version: number;
+  contract_version: 1;
   library_revision: number;
   changes: FavoriteLibraryChange[];
   next_cursor: string;
@@ -54,11 +58,10 @@ export interface FavoriteLibraryChanges {
 }
 
 export interface FavoriteMutationRequestItem {
-  mutation_uuid: string;
-  catalog_type: FavoriteCatalogType;
-  catalog_uuid: string;
+  mutation_id: string;
+  target: FavoriteTarget;
   desired_state: FavoriteDesiredState;
-  favorite_uuid: string | null;
+  favorite_id?: string;
 }
 
 export interface FavoriteMutationBatchRequest {
@@ -67,18 +70,17 @@ export interface FavoriteMutationBatchRequest {
 }
 
 export interface FavoriteMutationResult {
-  mutation_uuid: string;
-  catalog_type: FavoriteCatalogType;
-  catalog_uuid: string;
+  mutation_id: string;
+  target: FavoriteTarget;
   desired_state: FavoriteDesiredState;
   changed: boolean;
-  submitted_favorite_uuid: string | null;
-  canonical_favorite_uuid: string | null;
+  submitted_favorite_id: string | null;
+  canonical_favorite_id: string | null;
   library_revision: number;
 }
 
 export interface FavoriteMutationBatchResponse {
-  contract_version: number;
+  contract_version: 1;
   library_revision: number;
   results: FavoriteMutationResult[];
 }

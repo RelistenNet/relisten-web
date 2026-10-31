@@ -23,22 +23,37 @@ test('signs in through a development persona and clears the session on logout', 
     ]);
     const me = (await meResponse.json()) as Record<string, unknown>;
     const snapshot = (await snapshotResponse.json()) as Record<string, unknown>;
+    const favorites = snapshot.favorites as Array<Record<string, unknown>>;
+    const hasTypedFavorites =
+      favorites.length > 0 &&
+      favorites.every((favorite) => {
+        const target = favorite.target as Record<string, unknown> | undefined;
+        return (
+          typeof favorite.favorite_id === 'string' &&
+          favorite.favorite_id.startsWith('favorite_') &&
+          typeof target?.kind === 'string' &&
+          typeof target.id === 'string' &&
+          target.id.startsWith(`${target.kind}_`)
+        );
+      });
     return {
       meStatus: meResponse.status,
       meContractVersion: me.contract_version,
-      hasUserUuid: typeof me.user_uuid === 'string',
-      hasNativeSessionUuid: Object.hasOwn(me, 'native_session_uuid'),
+      hasUserId: typeof me.user_id === 'string' && me.user_id.startsWith('user_'),
+      hasNativeSessionId: Object.hasOwn(me, 'native_session_id'),
       snapshotStatus: snapshotResponse.status,
       snapshotContractVersion: snapshot.contract_version,
+      hasTypedFavorites,
     };
   });
   expect(resources).toEqual({
     meStatus: 200,
     meContractVersion: 1,
-    hasUserUuid: true,
-    hasNativeSessionUuid: false,
+    hasUserId: true,
+    hasNativeSessionId: false,
     snapshotStatus: 200,
     snapshotContractVersion: 1,
+    hasTypedFavorites: true,
   });
 
   const logout = await page.evaluate(async () => {
