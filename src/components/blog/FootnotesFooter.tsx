@@ -9,7 +9,7 @@ export default async function FootnotesFooter({ className }: { className?: strin
   if (foot.length === 0) return null;
 
   return (
-    <div className={cn('flex flex-col gap-3 border-t border-gray-200 pt-4', className)}>
+    <div className={cn('flex flex-col gap-3 border-t border-hairline pt-4', className)}>
       {foot.map((footnote) => (
         <div key={footnote.index} className="text-sm text-foreground-muted italic">
           <a href={`#footnote-${footnote.index}`} className="hover:no-underline">

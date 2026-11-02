@@ -1,7 +1,6 @@
 /// <reference types="vite/client" />
 import 'server-only';
 
-import BlogSeenMarker from '@/components/blog/BlogSeenMarker';
 import FootnotesFooter from '@/components/blog/FootnotesFooter';
 import { getAuthor } from '@/lib/blog/authors';
 import getPosts, { getPost } from '@/lib/blog/getPosts';
@@ -28,48 +27,52 @@ export default async function BlogPostPage() {
   const { default: MdxComponent } = await loader();
 
   return (
-    <div className="blog-post mx-auto max-w-3xl">
-      <BlogSeenMarker />
+    <div className="blog-post pt-3 pb-6">
       {post.is_draft && (
         <div
           className="
-            mb-6 rounded-lg border border-yellow-300 bg-yellow-50 p-4 text-sm text-yellow-800
+            mb-8 rounded-md border border-yellow-500/40 bg-yellow-500/10 px-3 py-2 text-sm
+            text-foreground/80
           "
         >
           <strong>Draft</strong> &mdash; This post is not published yet.
         </div>
       )}
 
-      <h1 className="mb-2 text-center">{post.title}</h1>
-
-      <div className="mb-8 flex flex-col items-center gap-1 text-sm text-foreground-muted">
-        <span className="text-relisten-600">{post.subtitle}</span>
-        <div className="flex items-center gap-2">
-          <span>
-            {postAuthors.map((author, i) => (
-              <span key={author.name}>
-                {i > 0 && ', '}
-                {author.url ? (
-                  <a
-                    href={author.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-inherit hover:underline"
-                  >
-                    {author.name}
-                  </a>
-                ) : (
-                  author.name
-                )}
-              </span>
-            ))}
-          </span>
-          <span>&middot;</span>
+      <header className="mb-10 text-center">
+        <h1 className="mb-2 text-[2.25rem] leading-[1.1] font-black tracking-tight text-balance sm:text-[2.5rem]">
+          {post.title}
+        </h1>
+        <p className="mb-0 text-[13px] text-foreground/80">
+          {post.subtitle && (
+            <>
+              <span className="">{post.subtitle}</span>
+              <span className="mx-1.5">&middot;</span>
+            </>
+          )}
+          {postAuthors.map((author, i) => (
+            <span key={author.name}>
+              {i > 0 && ', '}
+              {author.url ? (
+                <a
+                  href={author.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-inherit hover:text-foreground"
+                >
+                  {author.name}
+                </a>
+              ) : (
+                author.name
+              )}
+            </span>
+          ))}
+          <span className="mx-1.5">&middot;</span>
           <time dateTime={post.date} title={format(parseISO(post.date), 'MMMM d, yyyy')}>
             {post.is_draft ? 'drafted' : 'published'} {format(parseISO(post.date), 'MMMM yyyy')}
           </time>
-        </div>
-      </div>
+        </p>
+      </header>
 
       <article className="blog-content">
         <MdxComponent />
@@ -84,24 +87,21 @@ export default async function BlogPostPage() {
 
       <footer
         className="
-        mt-12 flex items-center justify-between border-t border-gray-200/40 pt-6 text-sm
-        text-primary-foreground/80
-      "
+          mt-14 flex items-baseline justify-between gap-4 border-t border-hairline pt-5 text-[13px]
+          text-foreground/60
+        "
       >
-        <Link
-          href="/blog"
-          className="
-            text-sm
-            text-inherit
-            hover:underline
-          "
-        >
-          &larr; Back to all posts
+        <Link href="/blog" className="text-inherit hover:text-foreground">
+          &larr; All posts
         </Link>
-        <div>
-          thanks for reading. have a thought? please{' '}
-          <a href="mailto:team@relisten.net" className="underline" rel="nofollow">
-            email us
+        <div className="text-right">
+          Have a thought?{' '}
+          <a
+            href="mailto:team@relisten.net"
+            className="text-foreground/85 underline decoration-foreground/30 underline-offset-4 hover:text-foreground"
+            rel="nofollow"
+          >
+            Email us
           </a>
         </div>
       </footer>

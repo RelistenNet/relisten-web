@@ -1,6 +1,5 @@
 import getPosts from '@/lib/blog/getPosts';
 import { getAuthor } from '@/lib/blog/authors';
-import BlogSeenMarker from '@/components/blog/BlogSeenMarker';
 import { format, parseISO } from 'date-fns';
 import { Link } from '@timber-js/app/client';
 
@@ -14,7 +13,6 @@ export default function BlogIndex() {
 
   return (
     <div>
-      <BlogSeenMarker />
       <h1 className="mb-8">Blog</h1>
 
       {posts.length === 0 && (

@@ -85,7 +85,7 @@ const ClientFootnote = ({ index, content, children }: Props) => {
               ref={setFloating}
               style={floatingStyles}
               className="
-                  z-50 inline-flex max-w-72 rounded-lg border border-gray-300 bg-white p-2
+                  z-50 inline-flex max-w-72 rounded-lg border border-hairline bg-surface-raised p-2
                   text-foreground shadow-lg
                   xl:hidden
                 "
@@ -98,8 +98,8 @@ const ClientFootnote = ({ index, content, children }: Props) => {
       </LazyMotion>
       <span
         className="
-            footnote-content hidden border-l-3 border-l-relisten-600/0 p-2 pt-2 transition-colors
-            group-hover/footnote:border-l-relisten-600/65
+            footnote-content hidden border-l-2 border-l-transparent py-0.5 pl-3 transition-colors
+            group-hover/footnote:border-l-accent/60
             xl:flex
           "
         ref={ref}
@@ -115,7 +115,9 @@ const ClientFootnote = ({ index, content, children }: Props) => {
       >
         <sup className="footnote-index mt-0.5 text-xs">{index}</sup>
         &nbsp;{' '}
-        <span className="text-left text-sm text-foreground-muted">{content || children}</span>
+        <span className="text-left text-[13px]/relaxed text-foreground/80">
+          {content || children}
+        </span>
       </span>
     </span>
   );

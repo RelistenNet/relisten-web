@@ -1,15 +1,18 @@
 'use client';
 
 import { blogSeenCookie } from '@/lib/blogSeenCookie';
-import { Link } from '@timber-js/app/client';
-import { parseISO, subDays, isBefore } from 'date-fns';
+import { Link, usePathname } from '@timber-js/app/client';
+import { isBefore, parseISO, subDays } from 'date-fns';
 import { useState } from 'react';
 
 export default function BlogNavLink({ hasNewPost }: { hasNewPost: boolean }) {
   const [seen] = blogSeenCookie.useCookie();
   const [now] = useState(() => new Date());
+  const onBlog = usePathname().startsWith('/blog');
 
-  const highlight = hasNewPost && (!seen || isBefore(parseISO(seen), subDays(now, 30)));
+  // blog/middleware.ts sets the cookie server-side; hide the dot while on
+  // /blog, and the pathname change on the way out re-reads the fresh cookie.
+  const highlight = hasNewPost && !onBlog && (!seen || isBefore(parseISO(seen), subDays(now, 30)));
 
   return (
     <Link className="nav-btn" href="/blog">
