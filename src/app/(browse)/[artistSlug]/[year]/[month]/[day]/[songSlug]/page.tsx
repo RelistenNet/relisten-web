@@ -8,7 +8,7 @@ import { deny, getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 
 export default async function Page() {
-  const { artistSlug, year, month, day } = getSegmentParams(SEGMENT_PATH);
+  const { artistSlug, year, month, day, songSlug } = getSegmentParams(SEGMENT_PATH);
 
   if (!year || !month || !day) return deny(404);
 
@@ -18,6 +18,12 @@ export default async function Page() {
     RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day)),
     RelistenAPI.fetchAllArtists(),
   ]);
+
+  // A missing show already 404s in fetchShow; also 404 when no source has this song.
+  const songExists = show?.sources?.some((source) =>
+    source.sets?.some((set) => set.tracks?.some((track) => track.slug === songSlug))
+  );
+  if (!songExists) return deny(404);
 
   const artistName = artists?.find((a) => a.slug === artistSlug)?.name;
   const { source } = sourceSearchParamsLoader.get();
