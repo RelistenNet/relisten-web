@@ -7,6 +7,14 @@ export default defineConfig({
   // JSON imports widen rule severities to strings; keep the shared runtime config intact.
   ...(base as unknown as OxlintConfig),
   extends: [react as OxlintConfig, tailwind as unknown as OxlintConfig],
+  overrides: [
+    ...((base as unknown as OxlintConfig).overrides ?? []),
+    {
+      // takumi (ImageResponse) renders JSX with a `tw` prop for Tailwind classes.
+      files: ['src/app/album-art/**/*.tsx', 'src/app/**/opengraph-image.tsx'],
+      rules: { 'react/no-unknown-property': ['error', { ignore: ['tw'] }] },
+    },
+  ],
   settings: {
     ...react.settings,
     tailwindcss: {

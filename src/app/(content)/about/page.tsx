@@ -59,7 +59,7 @@ const About = () => (
         https://github.com/relistennet
       </a>
       . We maintain a level of direction for our vision, but we do welcome contributions. If you are
-      interested, best to stop by <a href="/discord">our Discord</a> to discuss what you'd like to
+      interested, best to stop by <a href="/discord">our Discord</a> to discuss what you’d like to
       contribute. Or you can always open an issue on Github with questions or bugs.
     </p>
 
@@ -97,7 +97,7 @@ const About = () => (
     <p>
       This site complies with{' '}
       <a href="https://archive.org/post/261115/hotlinking-allowed" target="_blank" rel="noreferrer">
-        Archive.org's policy
+        Archive.org’s policy
       </a>
       .
     </p>

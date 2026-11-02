@@ -18,6 +18,8 @@ const Apps = () => (
       </a>
 
       <a
+        // Intentional override of the button utility's background.
+        // oxlint-disable-next-line tailwindcss/no-conflicting-classes
         className="button bg-blue-300"
         href="https://play.google.com/store/apps/details?id=net.relisten.android&hl=en_US"
         target="_blank"

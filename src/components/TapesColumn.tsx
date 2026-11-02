@@ -73,7 +73,7 @@ const TapesColumn = (props: Props) => {
               </Flex>
               {Number(sourceObj?.avg_rating) > 0 && (
                 <Flex className="py-1 text-xs">
-                  <div className="text-foreground-muted min-w-[48px] truncate pr-2 whitespace-nowrap">
+                  <div className="text-foreground-muted min-w-[48px] truncate pr-2">
                     {artistSlug === 'phish' ? 'Dot Net' : 'Rating'}:
                   </div>{' '}
                   <div className="truncate">
@@ -93,7 +93,7 @@ const TapesColumn = (props: Props) => {
               )}
               {exists(sourceObj.transferrer) && (
                 <Flex className="py-1 text-xs">
-                  <div className="text-foreground-muted min-w-[48px] truncate pr-2 whitespace-nowrap">
+                  <div className="text-foreground-muted min-w-[48px] truncate pr-2">
                     Transferrer:
                   </div>{' '}
                   <div className="truncate">{sourceObj.transferrer}</div>
@@ -101,31 +101,25 @@ const TapesColumn = (props: Props) => {
               )}
               {exists(sourceObj.upstream_identifier) && (
                 <Flex className="py-1 text-xs">
-                  <div className="text-foreground-muted min-w-[48px] truncate pr-2 whitespace-nowrap">
-                    SHNID:
-                  </div>{' '}
+                  <div className="text-foreground-muted min-w-[48px] truncate pr-2">SHNID:</div>{' '}
                   <div className="truncate">{sourceObj.upstream_identifier}</div>
                 </Flex>
               )}
               {exists(sourceObj.source) && (
                 <Flex className="py-1 text-xs">
-                  <div className="text-foreground-muted min-w-[48px] truncate pr-2 whitespace-nowrap">
-                    Source:
-                  </div>{' '}
+                  <div className="text-foreground-muted min-w-[48px] truncate pr-2">Source:</div>{' '}
                   <div className="truncate">{sourceObj.source}</div>
                 </Flex>
               )}
               {exists(sourceObj.lineage) && (
                 <Flex className="py-1 text-xs">
-                  <div className="text-foreground-muted min-w-[48px] truncate pr-2 whitespace-nowrap">
-                    Lineage:
-                  </div>{' '}
+                  <div className="text-foreground-muted min-w-[48px] truncate pr-2">Lineage:</div>{' '}
                   <div className="truncate">{sourceObj.lineage}</div>
                 </Flex>
               )}
               {exists(sourceObj.taper_notes) && (
                 <Flex className="py-1 text-xs">
-                  <div className="text-foreground-muted min-w-[48px] truncate pr-2 whitespace-nowrap">
+                  <div className="text-foreground-muted min-w-[48px] truncate pr-2">
                     Taper Notes:
                   </div>{' '}
                   <TaperNotes notes={sourceObj.taper_notes} />

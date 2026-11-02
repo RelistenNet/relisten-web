@@ -40,7 +40,7 @@ export default function Error({
           <h1 className="mb-3 text-3xl font-semibold text-gray-900">Oops! Something went wrong</h1>
 
           <p className="mb-8 text-lg text-foreground-muted">
-            We encountered an error while loading this page. Don't worry, it's not your fault.
+            We encountered an error while loading this page. Don’t worry, it’s not your fault.
           </p>
         </div>
 

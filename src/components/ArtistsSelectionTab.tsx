@@ -108,7 +108,7 @@ const ArtistsSelectionTab = ({ artistsAll }: ArtistsSelectionTabProps) => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Filter artists…"
-          className="w-full tracking-wide text-lg bg-surface px-3 py-1.5 pr-7 text-sm text-text-primary placeholder:text-text-muted focus:outline-none lg:text-xs"
+          className="w-full tracking-wide bg-surface px-3 py-1.5 pr-7 text-sm text-text-primary placeholder:text-text-muted focus:outline-none lg:text-xs"
         />
         {searchQuery && (
           <button

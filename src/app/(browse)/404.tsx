@@ -31,8 +31,8 @@ export default function NotFound() {
           <h1 className="mb-3 text-3xl font-semibold text-text-primary">404 - Page Not Found</h1>
 
           <p className="mb-8 text-lg text-text-secondary">
-            Looks like this keyboardist got lost on the way to the show. The Page you're looking for
-            doesn't exist yet - maybe it's 1983.
+            Looks like this keyboardist got lost on the way to the show. The Page you’re looking for
+            doesn’t exist yet - maybe it’s 1983.
           </p>
         </div>
 

@@ -79,7 +79,7 @@ export default function RecentlyPlayed() {
             </h1>
           </div>
           <p className="mx-auto mb-4 max-w-2xl text-text-muted">
-            This is what people are listening to right now - join 'em.
+            This is what people are listening to right now - join ’em.
           </p>
         </div>
 
