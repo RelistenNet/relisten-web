@@ -8,7 +8,7 @@ import { Toaster } from 'sonner';
 export default async function EmbedLayout({ children }: { children: ReactNode }) {
   return (
     <TooltipThemeProvider theme="light">
-      <Flex column className="h-screen bg-white embed-force-light">
+      <Flex column className="embed-force-light h-screen bg-white">
         <Toaster id="audio-error" position="top-center" offset="54px" richColors closeButton />
         <EmbedHeader />
         <div className="flex h-[50px] min-h-[50px] items-center justify-center border-b border-gray-300 bg-white">

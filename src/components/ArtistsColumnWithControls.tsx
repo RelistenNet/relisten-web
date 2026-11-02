@@ -193,7 +193,7 @@ const ArtistsColumnWithControls = ({
           </div>
           <PopularityBadge popularity={item.artist.popularity} />
           {byObject[String(item.artist.slug)] && (
-            <div className="text-foreground-muted text-xxs">
+            <div className="text-xxs text-foreground-muted">
               Powered by {byObject[String(item.artist.slug)]}
             </div>
           )}

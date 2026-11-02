@@ -95,8 +95,8 @@ const ClientFootnote = ({ index, content, children }: Props) => {
         </LazyMotion>
         <span
           className="
-            footnote-content hidden border-l-3 border-l-relisten/0 p-2 pt-2 transition-colors
-            group-hover/footnote:border-l-relisten/65
+            footnote-content hidden border-l-3 border-l-relisten-600/0 p-2 pt-2 transition-colors
+            group-hover/footnote:border-l-relisten-600/65
             xl:flex
           "
           ref={ref}

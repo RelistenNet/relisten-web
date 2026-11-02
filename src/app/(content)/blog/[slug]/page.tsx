@@ -43,7 +43,7 @@ export default async function BlogPostPage() {
       <h1 className="mb-2 text-center">{post.title}</h1>
 
       <div className="mb-8 flex flex-col items-center gap-1 text-sm text-foreground-muted">
-        <span className="text-relisten">{post.subtitle}</span>
+        <span className="text-relisten-600">{post.subtitle}</span>
         <div className="flex items-center gap-2">
           <span>
             {postAuthors.map((author, i) => (
@@ -82,7 +82,7 @@ export default async function BlogPostPage() {
         "
       />
 
-      <footer className="mt-12 border-t text-primary-foreground/80 border-gray-200/40 pt-6 flex justify-between text-sm items-center">
+      <footer className="mt-12 flex items-center justify-between border-t border-gray-200/40 pt-6 text-sm text-primary-foreground/80">
         <Link
           href="/blog"
           className="

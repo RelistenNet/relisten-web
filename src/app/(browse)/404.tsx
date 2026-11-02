@@ -5,7 +5,7 @@ import { ArrowDown } from 'lucide-react';
 
 export default function NotFound() {
   return (
-    <div className="flex flex-1 items-center justify-center px-4 col-span-full">
+    <div className="col-span-full flex flex-1 items-center justify-center px-4">
       <div className="mx-auto w-full max-w-lg text-center">
         <div className="mb-8">
           <div

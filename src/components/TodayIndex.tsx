@@ -64,7 +64,7 @@ const TodayIndex = ({ items, month, day, pathname }: TodayIndexProps) => {
       </div>
 
       <div className="mb-2">
-        <p className="mb-1 text-sm font-semibold uppercase text-white">Artists</p>
+        <p className="mb-1 text-sm font-semibold text-white uppercase">Artists</p>
         <div className="flex gap-1">
           {(
             [
@@ -84,7 +84,7 @@ const TodayIndex = ({ items, month, day, pathname }: TodayIndexProps) => {
                   'flex cursor-pointer items-center gap-1 rounded p-1 text-[10px] transition-all duration-200',
                   'hover:scale-105 active:scale-95',
                   isActive
-                    ? 'ring-1 ring-accent/40 bg-accent/10 font-medium text-accent hover:bg-accent/15'
+                    ? 'bg-accent/10 font-medium text-accent ring-1 ring-accent/40 hover:bg-accent/15'
                     : 'bg-column-header-text/5 text-column-header-text/70 hover:bg-column-header-text/10 hover:text-column-header-text'
                 )}
               >

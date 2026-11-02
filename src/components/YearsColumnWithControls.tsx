@@ -104,7 +104,7 @@ const YearsColumnWithControls = ({
               </div>
               <PopularityBadge popularity={yearObj.popularity} />
             </div>
-            <div className="text-xxs min-w-[20%] text-right">
+            <div className="min-w-[20%] text-right text-xxs">
               <div>
                 <Count unit="show" value={yearObj.show_count} />
               </div>

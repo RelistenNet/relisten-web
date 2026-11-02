@@ -78,10 +78,10 @@ function PlayerInner() {
   };
 
   return (
-    <Flex className="content relative h-[50px] flex-1">
+    <Flex className="relative content h-[50px] flex-1">
       {activeTrack && (
         <Flex
-          className="playpause text-text-muted cursor-pointer items-center justify-center active:text-text-primary min-w-[44px] lg:min-w-0 lg:w-[40px]"
+          className="playpause min-w-[44px] cursor-pointer items-center justify-center text-text-muted active:text-text-primary lg:w-[40px] lg:min-w-0"
           onClick={onPlayPauseClick}
         >
           {playback.activeTrack.isPaused ? (
@@ -100,7 +100,7 @@ function PlayerInner() {
       {activeTrack && (
         <div className="relative h-full flex-1" ref={playerRef}>
           <Flex className="info h-full justify-center transition-all duration-[1s] ease-in-out">
-            <div className="timing text-text-muted absolute top-1/2 left-[8px] translate-x-0 translate-y-[-50%] text-left text-[0.8em]">
+            <div className="timing absolute top-1/2 left-[8px] translate-x-0 translate-y-[-50%] text-left text-[0.8em] text-text-muted">
               <div className="-m-2 cursor-pointer p-2" onClick={() => player.previous()}>
                 <RewindIcon className="fill-text-muted" size={16} />
               </div>
@@ -110,7 +110,7 @@ function PlayerInner() {
               <div className="song-title relative top-1 text-center text-[1em] text-text-primary">
                 {activeTrack.title}
                 {false && (
-                  <Flex className="text-text-muted absolute top-[2px] left-full ml-2 w-full items-center text-[0.8em]">
+                  <Flex className="absolute top-[2px] left-full ml-2 w-full items-center text-[0.8em] text-text-muted">
                     <div>Next: {nextTrack?.title}&nbsp;</div>
                     <ChevronDown size={12} className="cursor-pointer" />
                   </Flex>
@@ -119,12 +119,12 @@ function PlayerInner() {
 
               <Link
                 href={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
-                className="band-title text-text-muted justify-center text-center text-[0.8em]"
+                className="band-title justify-center text-center text-[0.8em] text-text-muted"
               >
                 {artistName} – {removeLeadingZero(month)}/{removeLeadingZero(day)}/{year.slice(2)}
               </Link>
             </Flex>
-            <div className="timing duration text-text-muted absolute top-1/2 right-[8px] translate-x-0 translate-y-[-50%] text-right text-[0.8em]">
+            <div className="timing duration absolute top-1/2 right-[8px] translate-x-0 translate-y-[-50%] text-right text-[0.8em] text-text-muted">
               <div className="-m-2 cursor-pointer p-2" onClick={() => player.next()}>
                 <FastForwardIcon className="fill-text-muted" size={16} />
               </div>
@@ -138,7 +138,7 @@ function PlayerInner() {
             </div>
           </Flex>
           <div
-            className="group absolute bottom-0 left-0 z-1 h-1 w-full touch-none cursor-pointer bg-hairline before:absolute before:-top-2 before:left-0 before:h-3 before:w-full before:content-['']"
+            className="group absolute bottom-0 left-0 z-1 h-1 w-full cursor-pointer touch-none bg-hairline before:absolute before:-top-2 before:left-0 before:h-3 before:w-full before:content-['']"
             onPointerDown={onProgressClick}
             onPointerMove={onProgressPointerMove}
             style={{ opacity: (playback.activeTrack.currentTime ?? 0) < 0.1 ? 0.8 : 1 }}
@@ -164,7 +164,7 @@ function PlayerInner() {
       {activeTrack && (
         <div className="volume-control">
           <div
-            className="relative h-full w-[6px] touch-none cursor-pointer bg-hairline"
+            className="relative h-full w-[6px] cursor-pointer touch-none bg-hairline"
             onPointerDown={updateVolume}
           >
             <div
@@ -179,7 +179,7 @@ function PlayerInner() {
       {activeTrack && (
         <Link
           href={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
-          className="text-text-muted flex w-[40px] cursor-pointer items-center justify-center self-center active:text-text-primary max-lg:hidden"
+          className="flex w-[40px] cursor-pointer items-center justify-center self-center text-text-muted active:text-text-primary max-lg:hidden"
         >
           <div>
             <ListMusicIcon size={22} />

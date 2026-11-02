@@ -11,7 +11,7 @@ export default function BlogNavLink({ hasNewPost }: { hasNewPost: boolean }) {
 
   return (
     <Link className="nav-btn" href="/blog">
-      {highlight && <span className="size-1 mr-1 bg-relisten-500 rounded-full" />}
+      {highlight && <span className="mr-1 size-1 rounded-full bg-relisten-500" />}
       Blog
     </Link>
   );

@@ -16,7 +16,7 @@
   --text-xxs: 0.7rem;
   --text-xxs--line-height: 1rem;
 
-  --color-relisten-DEFAULT: #009dc1;
+  --color-destructive: var(--color-red-600);
   --color-relisten-50: #a2eeff;
   --color-relisten-100: #8eeaff;
   --color-relisten-200: #65e2ff;

@@ -39,7 +39,7 @@ export default function GlobalError({
 
               <h1 className="mb-2 text-2xl font-semibold text-gray-900">Something went wrong</h1>
 
-              <p className="text-foreground-muted mb-6">
+              <p className="mb-6 text-foreground-muted">
                 An unexpected error occurred. Please try again or contact support if the problem
                 persists.
               </p>
@@ -47,7 +47,7 @@ export default function GlobalError({
               <div className="space-y-3">
                 <button
                   onClick={() => reset()}
-                  className="bg-relisten-600 w-full rounded-md px-4 py-2 text-white transition-colors hover:bg-relisten-700"
+                  className="w-full rounded-md bg-relisten-600 px-4 py-2 text-white transition-colors hover:bg-relisten-700"
                 >
                   Try again
                 </button>

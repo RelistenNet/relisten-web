@@ -85,7 +85,7 @@ export default function RecentlyPlayed() {
 
         {/* Content */}
         {query.isLoading && (
-          <div className="flex items-center justify-center opacity-60 py-12">
+          <div className="flex items-center justify-center py-12 opacity-60">
             <Spinner />
           </div>
         )}

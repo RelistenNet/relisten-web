@@ -90,7 +90,7 @@ export default function LiveTrack({
       >
         {/* New track indicator */}
         {isLastSeen && (
-          <div className="absolute -top-1 -right-1 size-3 animate-pulse rounded-full bg-accent"></div>
+          <div className="absolute -top-1 -right-1 size-3 animate-pulse rounded-full bg-accent" />
         )}
 
         <div className="space-y-1">

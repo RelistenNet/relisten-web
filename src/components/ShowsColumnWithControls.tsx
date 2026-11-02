@@ -148,13 +148,13 @@ const ShowsColumnWithControls = ({
                     {show.has_soundboard_source && <Tag>SBD</Tag>}
                   </Flex>
                   {venue && (
-                    <div className="text-xxs text-foreground-muted my-0.5 leading-3.5">
+                    <div className="my-0.5 text-xxs leading-3.5 text-foreground-muted">
                       <div>{venue.name}</div>
                       <div>{venue.location}</div>
                     </div>
                   )}
                 </div>
-                <div className="text-xxs text-foreground-muted flex h-full min-w-[20%] flex-col justify-between text-right">
+                <div className="flex h-full min-w-[20%] flex-col justify-between text-right text-xxs text-foreground-muted">
                   <PopularityBadge popularity={show.popularity} align="right" />
                   <div>{durationToHHMMSS(avg_duration)}</div>
                   <div>

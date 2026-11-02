@@ -80,7 +80,7 @@ const ArtistSongsColumnWithControls = ({
               <div>
                 <div>{song.name}</div>
               </div>
-              <div className="text-xxs min-w-[20%] text-right">
+              <div className="min-w-[20%] text-right text-xxs">
                 {song.shows_played_at != null && (
                   <div>
                     <Count unit="time" value={song.shows_played_at} />{' '}

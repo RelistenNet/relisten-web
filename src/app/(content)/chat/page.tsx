@@ -12,7 +12,7 @@ const Chat = () => (
     >
       Please Join Us!
     </a>
-    <p className="text-muted-foreground italic text-sm">
+    <p className="text-sm text-muted-foreground italic">
       Relisten is open source. If you are interested in contributing code to Relisten, please join
       the #new-contributors channel.
     </p>

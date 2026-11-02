@@ -16,14 +16,14 @@ export default function PopularityBadge({
 
   return (
     <Tooltip
-      className={cn('text-foreground-muted text-xxs flex items-center tracking-wide', {
+      className={cn('flex items-center text-xxs tracking-wide text-foreground-muted', {
         ['justify-end']: align === 'right',
       })}
       align={align}
       content={
         popularity?.windows && (
           <>
-            <table className="text-foreground-muted text-xxs tabular-nums">
+            <table className="text-xxs text-foreground-muted tabular-nums">
               <thead>
                 <tr className="text-foreground">
                   <th className="pr-3 text-right font-medium">Playback</th>
@@ -48,7 +48,7 @@ export default function PopularityBadge({
         )
       }
     >
-      <div className="text-foreground-muted flex items-center gap-1 text-right">
+      <div className="flex items-center gap-1 text-right text-foreground-muted">
         <Music className="size-3" />
         {formatNumber(plays)}
       </div>

@@ -76,7 +76,7 @@ const ToursColumnWithControls = ({
                   </div>
                 )}
               </div>
-              <div className="text-xxs min-w-[20%] text-right">
+              <div className="min-w-[20%] text-right text-xxs">
                 {tour.shows_on_tour != null && (
                   <div>
                     <Count unit="show" value={tour.shows_on_tour} />

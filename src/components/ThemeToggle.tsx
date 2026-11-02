@@ -39,7 +39,7 @@ export default function ThemeToggle() {
               role="radio"
               aria-checked={active}
               onClick={() => handleSelect(value)}
-              className={`rounded-sm px-3 py-1 text-sm transition-colors cursor-pointer ${
+              className={`cursor-pointer rounded-sm px-3 py-1 text-sm transition-colors ${
                 active
                   ? 'bg-surface-raised text-text-primary'
                   : 'text-text-secondary hover:bg-surface-hover'

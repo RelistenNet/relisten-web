@@ -26,14 +26,14 @@ const Column = ({ className, heading, children }: ColumnProps) => {
   return (
     <Flex
       ref={ref}
-      className={cn('relisten-column flex-1 break-words bg-surface', className)}
+      className={cn('relisten-column flex-1 bg-surface break-words', className)}
       column
     >
       <Scroller containerRef={ref} />
       {heading?.trim() && (
         <Flex
           center
-          className="bg-column-header min-h-[32px] w-full border-b border-hairline text-sm font-medium text-column-header-text capitalize max-lg:hidden"
+          className="min-h-[32px] w-full border-b border-hairline bg-column-header text-sm font-medium text-column-header-text capitalize max-lg:hidden"
         >
           {heading?.replaceAll('-', ' ')}
         </Flex>

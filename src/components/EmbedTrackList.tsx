@@ -27,7 +27,7 @@ export default function EmbedTrackList({ tracks, startPosition }: EmbedTrackList
             onClick={() => {
               player.gotoTrack(i, true);
             }}
-            className={`flex w-full items-center cursor-pointer gap-3 px-3 py-2 text-left text-sm transition-colors hover:bg-gray-50 ${
+            className={`flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left text-sm transition-colors hover:bg-gray-50 ${
               isActive ? 'bg-amber-50' : ''
             }`}
           >

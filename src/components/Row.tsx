@@ -62,7 +62,7 @@ const Row = ({ children, href, active = false, loading, ...props }: RowProps) =>
     return (
       <Flex
         className={cn(
-          'relisten-row relative min-h-[56px] items-stretch border-b border-hairline hover:bg-surface-hover lg:min-h-[46px]',
+          'relative relisten-row min-h-[56px] items-stretch border-b border-hairline hover:bg-surface-hover lg:min-h-[46px]',
           { 'bg-accent/10 hover:bg-accent/15': active }
         )}
       >

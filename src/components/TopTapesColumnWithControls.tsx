@@ -97,7 +97,7 @@ const TopTapesColumnWithControls = ({
                     </div>
                   )}
                 </div>
-                <div className="text-xxs text-foreground-muted flex h-full min-w-[20%] flex-col justify-center gap-2 text-right">
+                <div className="flex h-full min-w-[20%] flex-col justify-center gap-2 text-right text-xxs text-foreground-muted">
                   {avg_rating != null && <div>{avg_rating.toFixed(1)} ★</div>}
                   <div>{durationToHHMMSS(avg_duration)}</div>
                   <div>

@@ -37,7 +37,7 @@ const Apps = () => (
       </a>
     </p>
 
-    <h4 className="text-xl mb-2 font-semibold">Mobile Screenshots</h4>
+    <h4 className="mb-2 text-xl font-semibold">Mobile Screenshots</h4>
     <a
       href="https://itunes.apple.com/us/app/relisten-all-live-music/id715886886?mt=8"
       target="_blank"
