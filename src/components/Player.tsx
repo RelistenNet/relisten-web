@@ -68,7 +68,14 @@ function PlayerInner() {
   };
 
   return (
-    <Flex className="relative content h-[50px] flex-1">
+    <Flex
+      key={activeTrack ? 'active' : 'empty'}
+      className={`relative content h-[50px] flex-1 ${
+        activeTrack
+          ? 'animate-in duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] fade-in motion-reduce:animate-none'
+          : ''
+      }`}
+    >
       {activeTrack && (
         <Flex
           className="
