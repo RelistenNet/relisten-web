@@ -55,6 +55,25 @@ const cachedApiFetch = timberCache.data(apiFetch, {
   staleWhileRevalidate: true,
 });
 
+// Shows are sorted once before entering the cache. Cached values are shared
+// across requests, so callers must never mutate them.
+async function fetchSortedShow(endpoint: string): Promise<Tape> {
+  const show = await apiFetch<Tape>(endpoint);
+
+  if (show?.sources?.length) {
+    show.sources = sortSources(show.sources);
+    sortTracksInSources(show.sources);
+  }
+
+  return show;
+}
+
+const cachedShowFetch = timberCache.data(fetchSortedShow, {
+  ttl: 60 * 5, // 5 minutes
+  key: (endpoint: string) => `show:${endpoint}`,
+  staleWhileRevalidate: true,
+});
+
 export class RelistenAPI {
   private static baseURL = SERVER_API_DOMAIN;
 
@@ -81,30 +100,14 @@ export class RelistenAPI {
     ): Promise<Partial<Tape> | undefined> => {
       if (!slug || !year || !displayDate) return { sources: [] };
 
-      const show = await cachedApiFetch<Tape>(
-        safeApiPath`/api/v2/artists/${slug}/years/${year}/${displayDate}`
-      );
-
-      if (show?.sources?.length) {
-        show.sources = sortSources(show.sources);
-        sortTracksInSources(show.sources);
-      }
-
-      return show;
+      return cachedShowFetch(safeApiPath`/api/v2/artists/${slug}/years/${year}/${displayDate}`);
     }
   );
 
   static fetchShowByUUID = cache(async (showUuid: string): Promise<Partial<Tape> | undefined> => {
     if (!showUuid) return { sources: [] };
 
-    const show = await cachedApiFetch<Tape>(safeApiPath`/api/v3/shows/${showUuid}`);
-
-    if (show?.sources?.length) {
-      show.sources = sortSources(show.sources);
-      sortTracksInSources(show.sources);
-    }
-
-    return show;
+    return cachedShowFetch(safeApiPath`/api/v3/shows/${showUuid}`);
   });
 
   static fetchRandomShow = cache(
