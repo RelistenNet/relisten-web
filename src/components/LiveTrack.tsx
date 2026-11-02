@@ -81,7 +81,8 @@ export default function LiveTrack({
           stiffness: 300,
         }}
         className={`
-          relative h-full rounded-xl border border-hairline bg-surface-raised p-4 shadow-sm transition-all
+          relative h-full rounded-xl border border-hairline bg-surface-raised p-4 shadow-sm
+          transition-all
           duration-200
           hover:border-accent/40 hover:shadow-lg
           ${isLastSeen ? 'border-accent/60 ring-2 ring-accent/20' : ''}

@@ -31,7 +31,7 @@ export default async function SingleTrackEmbedPage() {
   const startIdx = Math.max(0, anchorIndex - context);
   const endIdx = Math.min(allTracks.length, anchorIndex + context + 1);
   const contextTracks = allTracks.slice(startIdx, endIdx).filter((t): t is Track => t != null);
-  const trackSlugs = contextTracks.map((t) => t.slug!);
+  const trackSlugs = contextTracks.flatMap((t) => (t.slug ? [t.slug] : []));
 
   return (
     <>

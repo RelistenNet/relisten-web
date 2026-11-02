@@ -18,10 +18,6 @@ const exists = (str = ''): boolean => {
   return !!str && !/unknown/i.test(str);
 };
 
-const cleanFlac = (str = ''): string => {
-  return str ? str.replace(/Flac|Bit/g, '') + '-BIT ' : '';
-};
-
 // TODO: i18n
 const pluralize = (str: string, count: number): string => {
   if (count === 1) return str;
@@ -66,9 +62,6 @@ const TapesColumn = (props: Props) => {
               <Flex className="mb-1">
                 <div className="min-w-[53px]">{durationToHHMMSS(sourceObj.duration)}</div>
                 {sourceObj.is_soundboard && <Tag>SBD</Tag>}
-                {false && sourceObj.flac_type !== 'NoFlac' && (
-                  <Tag>{cleanFlac(sourceObj.flac_type)}FLAC</Tag>
-                )}
                 {sourceObj.is_remaster && <Tag>REMASTER</Tag>}
               </Flex>
               {Number(sourceObj?.avg_rating) > 0 && (

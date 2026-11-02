@@ -14,7 +14,7 @@ export default function DateJumper({ month, day }: { month: string; day: string 
   );
 
   // Use 2024 as reference year (leap year) so Feb 29 works
-  const date = parse(`2024-${month}-${day}`, 'yyyy-M-d', new Date());
+  const date = new Date(2024, Number(month) - 1, Number(day));
   const value = format(date, 'yyyy-MM-dd');
 
   return (

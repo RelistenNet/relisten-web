@@ -28,7 +28,7 @@ const ROW_ESTIMATE = 45;
 const GROUP_ORDER: Record<string, number> = { '1': 0, '0': 1 };
 
 function HighlightText({ text, ranges }: { text: string; ranges: HighlightRanges }) {
-  if (!ranges.length) return <>{text}</>;
+  if (!ranges.length) return text;
   const parts: React.ReactNode[] = [];
   let last = 0;
   for (const [start, end] of ranges) {
@@ -41,7 +41,7 @@ function HighlightText({ text, ranges }: { text: string; ranges: HighlightRanges
     last = end + 1;
   }
   if (last < text.length) parts.push(text.slice(last));
-  return <>{parts}</>;
+  return parts;
 }
 
 type ArtistsColumnWithControlsProps = {
@@ -166,6 +166,8 @@ const ArtistsColumnWithControls = ({
 
   const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
 
+  // TanStack Virtual returns mutable, unmemoizable values; the React Compiler knows and skips them.
+  // oxlint-disable-next-line react/incompatible-library
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => scrollEl,
@@ -185,7 +187,7 @@ const ArtistsColumnWithControls = ({
             {item.artist.uuid && highlightRanges?.has(item.artist.uuid) ? (
               <HighlightText
                 text={item.artist.name || ''}
-                ranges={highlightRanges.get(item.artist.uuid)!}
+                ranges={highlightRanges.get(item.artist.uuid) ?? []}
               />
             ) : (
               item.artist.name

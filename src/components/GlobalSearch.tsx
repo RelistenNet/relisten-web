@@ -47,7 +47,7 @@ type SearchTour = {
 
 type SearchResults = {
   Artists: SlimArtist[];
-  Shows: any[];
+  Shows: unknown[];
   Songs: SearchSong[];
   Venues: SearchVenue[];
   Tours: SearchTour[];
@@ -63,7 +63,8 @@ function fetchSearchResults(query: string): Promise<SearchResults> {
   let cached = searchCache.get(query);
   if (!cached) {
     if (searchCache.size > 50) {
-      searchCache.delete(searchCache.keys().next().value!);
+      const oldest = searchCache.keys().next().value;
+      if (oldest !== undefined) searchCache.delete(oldest);
     }
     cached = fetch(`${API_DOMAIN}/api/v2/search?q=${encodeURIComponent(query)}`)
       .then((res) => (res.ok ? (res.json() as Promise<SearchResults>) : EMPTY))
@@ -209,10 +210,7 @@ export default function GlobalSearch() {
   }, []);
 
   useEffect(() => {
-    if (inputValue.length < 2) {
-      setQuery(inputValue);
-      return;
-    }
+    if (inputValue.length < 2) return;
     const timer = setTimeout(() => setQuery(inputValue), 200);
     return () => clearTimeout(timer);
   }, [inputValue]);
@@ -265,7 +263,10 @@ export default function GlobalSearch() {
           <CommandInput
             placeholder="Search artists, songs, venues..."
             value={inputValue}
-            onValueChange={setInputValue}
+            onValueChange={(value) => {
+              setInputValue(value);
+              if (value.length < 2) setQuery(value);
+            }}
             autoFocus
           />
           <CommandList className="max-h-80">

@@ -85,7 +85,10 @@ const TodayIndex = ({ items, month, day, pathname }: TodayIndexProps) => {
                   'hover:scale-105 active:scale-95',
                   isActive
                     ? 'bg-accent/10 font-medium text-accent ring-1 ring-accent/40 hover:bg-accent/15'
-                    : 'bg-column-header-text/5 text-column-header-text/70 hover:bg-column-header-text/10 hover:text-column-header-text'
+                    : `
+                      bg-column-header-text/5 text-column-header-text/70
+                      hover:bg-column-header-text/10 hover:text-column-header-text
+                    `
                 )}
               >
                 {isActive && mode !== 'default' ? (

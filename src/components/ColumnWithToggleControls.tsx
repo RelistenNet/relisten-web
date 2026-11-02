@@ -57,7 +57,13 @@ const ColumnWithToggleControls = ({
     >
       <Scroller containerRef={ref} />
       {heading && (
-        <Flex className="min-h-[44px] w-full items-center justify-between border-b border-hairline bg-column-header px-3 text-base font-medium text-column-header-text capitalize lg:min-h-[32px] lg:px-2 lg:text-sm">
+        <Flex
+          className="
+          min-h-[44px] w-full items-center justify-between border-b border-hairline bg-column-header
+          px-3 text-base font-medium text-column-header-text capitalize lg:min-h-[32px] lg:px-2
+          lg:text-sm
+        "
+        >
           <span className="flex-1 text-center">{heading?.replaceAll('-', ' ')}</span>
 
           <Flex className="absolute right-2 gap-1">
@@ -70,9 +76,15 @@ const ColumnWithToggleControls = ({
                   'hover:scale-105 active:scale-95',
                   toggle.isActive && !toggle.isDefault
                     ? toggle.type === 'filter'
-                      ? 'bg-emerald-500/10 font-medium text-emerald-600 ring-1 ring-emerald-400/40 hover:bg-emerald-500/15 dark:text-emerald-400'
+                      ? `
+                        bg-emerald-500/10 font-medium text-emerald-600 ring-1 ring-emerald-400/40
+                        hover:bg-emerald-500/15 dark:text-emerald-400
+                      `
                       : 'bg-accent/10 font-medium text-accent ring-1 ring-accent/40 hover:bg-accent/15'
-                    : 'bg-column-header-text/5 text-column-header-text/70 hover:bg-column-header-text/10 hover:text-column-header-text',
+                    : `
+                      bg-column-header-text/5 text-column-header-text/70
+                      hover:bg-column-header-text/10 hover:text-column-header-text
+                    `,
                   toggle.label && 'text-[10px]'
                 )}
                 title={toggle.title}

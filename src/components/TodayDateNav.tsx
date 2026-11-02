@@ -1,7 +1,7 @@
 'use client';
 
 import { Link } from '@timber-js/app/client';
-import { format, addDays, subDays, parse, getMonth, getDate } from 'date-fns';
+import { format, addDays, subDays, getMonth, getDate } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import DateJumper from './DateJumper';
 
@@ -17,7 +17,7 @@ function buildDateUrl(pathname: string, date: Date) {
 
 export default function TodayDateNav({ month, day, pathname }: TodayDateNavProps) {
   // Use 2024 as reference year (leap year) so Feb 29 works
-  const date = parse(`2024-${month}-${day}`, 'yyyy-M-d', new Date());
+  const date = new Date(2024, Number(month) - 1, Number(day));
   const prev = subDays(date, 1);
   const next = addDays(date, 1);
 

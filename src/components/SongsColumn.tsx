@@ -121,7 +121,10 @@ const SongsColumn = (props: Props) => {
                       href={`/admin/clip/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${activeSourceObj.id}`}
                       prefetch={false}
                       title="Create clip"
-                      className="absolute top-1/2 right-1 z-10 -translate-y-1/2 rounded bg-surface px-1.5 py-0.5 text-xs hover:bg-surface-hover"
+                      className="
+                        absolute top-1/2 right-1 z-10 -translate-y-1/2 rounded bg-surface px-1.5
+                        py-0.5 text-xs hover:bg-surface-hover
+                      "
                     >
                       {'✂'}
                     </Link>

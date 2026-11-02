@@ -26,7 +26,7 @@ export default async (req: Request, next: () => Promise<Response>) => {
   const res = await next();
   const ms = (performance.now() - start).toFixed(3).padStart(3, '0');
   if (url.pathname !== '/api/status') {
-    console.log(
+    console.info(
       `[request] ${req.method} ${url.pathname} ${res.status} ${ms}ms ip=${ip} host=${host} ua=${ua}`
     );
   }

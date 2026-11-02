@@ -8,7 +8,7 @@ import { createShowDate } from '@/lib/utils';
 import { store } from '@/redux';
 import { updatePlayback } from '@/redux/modules/playback';
 import { usePathname } from '@timber-js/app/client';
-import { useEffect } from 'react';
+import { useEffect, useEffectEvent } from 'react';
 
 interface PlayerManagerProps extends Props {
   artistName?: string;
@@ -41,13 +41,15 @@ export default function PlayerManager(props: PlayerManagerProps) {
 
   const { activeSourceObj } = useSourceData({ ...props, source: sourceId });
 
-  useEffect(() => {
+  // Non-reactive values (props, ?t=) are read at sync time; only the deps below re-trigger it.
+  const syncPlayer = useEffectEvent(() => {
     if (activeSourceObj) {
       const allTracks = (activeSourceObj.sets?.map((set) => set.tracks).flat() ?? []).filter(
         (t): t is NonNullable<typeof t> => t != null
       );
-      const tracks = props.trackSlugs
-        ? allTracks.filter((t) => t.slug && props.trackSlugs!.includes(t.slug))
+      const { trackSlugs } = props;
+      const tracks = trackSlugs
+        ? allTracks.filter((t) => t.slug && trackSlugs.includes(t.slug))
         : allTracks;
       const activeTrackIndex = tracks.findIndex((track) => track?.slug === songSlug);
       const activeTrack = tracks[activeTrackIndex];
@@ -90,6 +92,10 @@ export default function PlayerManager(props: PlayerManagerProps) {
 
       loadTracks(tracks, songSlug, { playImmediately, seekTime });
     }
+  });
+
+  useEffect(() => {
+    syncPlayer();
   }, [pathname, sourceId, activeSourceObj, props.trackSlugs, songSlug]);
 
   return null;

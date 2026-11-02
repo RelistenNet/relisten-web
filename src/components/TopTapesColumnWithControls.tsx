@@ -28,7 +28,7 @@ const TopTapesColumnWithControls = ({
   subHeader,
   quickHitSegment,
 }: TopTapesColumnWithControlsProps) => {
-  const { dateAsc, sbdOnly, toggleFilter, clearFilters } = useFilterState(`${artistSlug}:shows`);
+  const { sbdOnly, toggleFilter, clearFilters } = useFilterState(`${artistSlug}:shows`);
   const params = useSegmentParams() as Record<string, string | string[] | undefined>;
   const [{ date: activeDate }] = slugSearchParams.useQueryStates();
   const dateParts = activeDate?.split('-');
@@ -53,7 +53,7 @@ const TopTapesColumnWithControls = ({
     }
 
     return processedShows;
-  }, [shows, dateAsc, sbdOnly]);
+  }, [shows, sbdOnly]);
 
   return (
     <ColumnWithToggleControls

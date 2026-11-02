@@ -3,11 +3,13 @@
 import { blogSeenCookie } from '@/lib/blogSeenCookie';
 import { Link } from '@timber-js/app/client';
 import { parseISO, subDays, isBefore } from 'date-fns';
+import { useState } from 'react';
 
 export default function BlogNavLink({ hasNewPost }: { hasNewPost: boolean }) {
   const [seen] = blogSeenCookie.useCookie();
+  const [now] = useState(() => new Date());
 
-  const highlight = hasNewPost && (!seen || isBefore(parseISO(seen), subDays(new Date(), 30)));
+  const highlight = hasNewPost && (!seen || isBefore(parseISO(seen), subDays(now, 30)));
 
   return (
     <Link className="nav-btn" href="/blog">

@@ -16,7 +16,7 @@ export default function ThemeToggle() {
     if (value === 'system') {
       document.documentElement.removeAttribute('data-theme');
     } else {
-      document.documentElement.dataset.theme = value;
+      document.documentElement.setAttribute('data-theme', value);
     }
   };
 

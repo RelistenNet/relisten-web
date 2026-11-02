@@ -55,8 +55,8 @@ export default function BrowseContainer({
     };
     window.addEventListener('popstate', onPopState);
 
-    const nav = 'navigation' in window ? (window as any).navigation : null;
-    const onNavigate = (e: any) => {
+    const nav = 'navigation' in window ? window.navigation : null;
+    const onNavigate = (e: NavigateEvent) => {
       if (e.navigationType === 'traverse') isTraversalNav.current = true;
     };
     nav?.addEventListener('navigate', onNavigate);

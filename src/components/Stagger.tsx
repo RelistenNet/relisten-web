@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type TargetAndTransition } from 'framer-motion';
 
 export type StaggerProps = React.PropsWithChildren<{
   enabled?: boolean;
@@ -16,11 +16,11 @@ export type StaggerProps = React.PropsWithChildren<{
   /**
    * Custom animation variants for entering
    */
-  entering?: () => any;
+  entering?: () => TargetAndTransition;
   /**
    * Custom animation variants for exiting
    */
-  exiting?: () => any;
+  exiting?: () => TargetAndTransition;
 
   onEnterFinished?: () => void;
   onExitFinished?: () => void;
@@ -84,7 +84,6 @@ export function Stagger({
               layout
               initial={{ opacity: 0, y: 10 }}
               onAnimationComplete={(def) => {
-                console.log('complete!', index, def);
                 incrementIndex();
                 if (isLastEnter && onEnterFinished) {
                   onEnterFinished();

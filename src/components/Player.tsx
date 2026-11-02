@@ -5,14 +5,7 @@ import React, { Suspense, use, useRef, useState } from 'react';
 import { browser } from 'react-dom';
 
 import type { RootState } from '@/redux';
-import {
-  ChevronDown,
-  FastForwardIcon,
-  ListMusicIcon,
-  PauseIcon,
-  PlayIcon,
-  RewindIcon,
-} from 'lucide-react';
+import { FastForwardIcon, ListMusicIcon, PauseIcon, PlayIcon, RewindIcon } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import player from '../lib/player';
 import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
@@ -32,9 +25,6 @@ function PlayerInner() {
   const artistName = playback.artistName;
   const activeTrack = playback.tracks.find(
     (_track, idx: number) => idx === playback.activeTrack.index
-  );
-  const nextTrack = playback.tracks.find(
-    (_track, idx: number) => idx === (playback.activeTrack.index ?? -1) + 1
   );
   const progressPercent = playback.activeTrack.duration
     ? (playback.activeTrack.currentTime ?? 0) / playback.activeTrack.duration
@@ -81,7 +71,10 @@ function PlayerInner() {
     <Flex className="relative content h-[50px] flex-1">
       {activeTrack && (
         <Flex
-          className="playpause min-w-[44px] cursor-pointer items-center justify-center text-text-muted active:text-text-primary lg:w-[40px] lg:min-w-0"
+          className="
+            playpause min-w-[44px] cursor-pointer items-center justify-center text-text-muted
+            active:text-text-primary lg:w-[40px] lg:min-w-0
+          "
           onClick={onPlayPauseClick}
         >
           {playback.activeTrack.isPaused ? (
@@ -100,7 +93,12 @@ function PlayerInner() {
       {activeTrack && (
         <div className="relative h-full flex-1" ref={playerRef}>
           <Flex className="info h-full justify-center transition-all duration-[1s] ease-in-out">
-            <div className="timing absolute top-1/2 left-[8px] translate-x-0 translate-y-[-50%] text-left text-[0.8em] text-text-muted">
+            <div
+              className="
+              timing absolute top-1/2 left-[8px] translate-x-0 translate-y-[-50%] text-left
+              text-[0.8em] text-text-muted
+            "
+            >
               <div className="-m-2 cursor-pointer p-2" onClick={() => player.previous()}>
                 <RewindIcon className="fill-text-muted" size={16} />
               </div>
@@ -109,12 +107,6 @@ function PlayerInner() {
             <Flex column className="justify-center pb-1">
               <div className="song-title relative top-1 text-center text-[1em] text-text-primary">
                 {activeTrack.title}
-                {false && (
-                  <Flex className="absolute top-[2px] left-full ml-2 w-full items-center text-[0.8em] text-text-muted">
-                    <div>Next: {nextTrack?.title}&nbsp;</div>
-                    <ChevronDown size={12} className="cursor-pointer" />
-                  </Flex>
-                )}
               </div>
 
               <Link
@@ -124,7 +116,12 @@ function PlayerInner() {
                 {artistName} – {removeLeadingZero(month)}/{removeLeadingZero(day)}/{year.slice(2)}
               </Link>
             </Flex>
-            <div className="timing duration absolute top-1/2 right-[8px] translate-x-0 translate-y-[-50%] text-right text-[0.8em] text-text-muted">
+            <div
+              className="
+              timing duration absolute top-1/2 right-[8px] translate-x-0 translate-y-[-50%]
+              text-right text-[0.8em] text-text-muted
+            "
+            >
               <div className="-m-2 cursor-pointer p-2" onClick={() => player.next()}>
                 <FastForwardIcon className="fill-text-muted" size={16} />
               </div>
@@ -138,7 +135,11 @@ function PlayerInner() {
             </div>
           </Flex>
           <div
-            className="group absolute bottom-0 left-0 z-1 h-1 w-full cursor-pointer touch-none bg-hairline before:absolute before:-top-2 before:left-0 before:h-3 before:w-full before:content-['']"
+            className="
+              group absolute bottom-0 left-0 z-1 h-1 w-full cursor-pointer touch-none bg-hairline
+              before:absolute before:-top-2 before:left-0 before:h-3 before:w-full
+              before:content-['']
+            "
             onPointerDown={onProgressClick}
             onPointerMove={onProgressPointerMove}
             style={{ opacity: (playback.activeTrack.currentTime ?? 0) < 0.1 ? 0.8 : 1 }}
@@ -152,7 +153,11 @@ function PlayerInner() {
               style={{ left: `${progressPercent * 100}%` }}
             />
             <div
-              className="pointer-events-none absolute bottom-full z-2 mb-2 hidden -translate-x-1/2 rounded-md bg-surface-raised px-2.5 py-1 text-xs text-text-primary tabular-nums shadow-lg ring-1 ring-hairline group-hover:block"
+              className="
+                pointer-events-none absolute bottom-full z-2 mb-2 hidden -translate-x-1/2 rounded-md
+                bg-surface-raised px-2.5 py-1 text-xs text-text-primary tabular-nums shadow-lg
+                ring-1 ring-hairline group-hover:block
+              "
               style={{ left: 'var(--hover-x)' }}
             >
               <span ref={hoverTextRef} />
@@ -179,7 +184,10 @@ function PlayerInner() {
       {activeTrack && (
         <Link
           href={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
-          className="flex w-[40px] cursor-pointer items-center justify-center self-center text-text-muted active:text-text-primary max-lg:hidden"
+          className="
+            flex w-[40px] cursor-pointer items-center justify-center self-center text-text-muted
+            active:text-text-primary max-lg:hidden
+          "
         >
           <div>
             <ListMusicIcon size={22} />

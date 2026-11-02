@@ -84,7 +84,7 @@ export function useFilterState(filterKey?: string, defaultSortBy: SortByMode = '
         setCookieValue({ ...filters, sortBy: mode });
       }
     },
-    [filters, setCookieValue]
+    [filters, setCookieValue, defaultSortBy]
   );
 
   return {

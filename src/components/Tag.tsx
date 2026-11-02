@@ -3,7 +3,10 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import cn from '@/lib/cn';
 
 const tagVariants = cva(
-  'ml-1 inline-flex items-center rounded px-1.5 py-0.5 text-[10px] leading-tight font-medium whitespace-nowrap',
+  `
+    ml-1 inline-flex items-center rounded px-1.5 py-0.5 text-[10px] leading-tight font-medium
+    whitespace-nowrap
+  `,
   {
     variants: {
       variant: {

@@ -41,7 +41,7 @@ async function apiFetch<T>(endpoint: string): Promise<T> {
     return response as T;
   } catch (err) {
     if (err instanceof HTTPError && err.response.status === 404) {
-      console.log(`404: ${url}`);
+      console.warn(`404: ${url}`);
     } else {
       console.error(`API fetch error for ${url}`);
     }
@@ -220,11 +220,6 @@ export class RelistenAPI {
     return cachedApiFetch<TourWithShows>(
       safeApiPath`/api/v3/artists/${artistSlug}/tours/${tourSlug}`
     );
-  });
-
-  // Live API
-  static fetchRecentlyPlayed = cache(async (): Promise<any[]> => {
-    return apiFetch<any[]>('/api/v2/live/recently_played');
   });
 
   static fetchLiveHistory = cache(async (lastSeenId?: string): Promise<LiveHistoryItem[]> => {

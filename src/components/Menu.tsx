@@ -15,7 +15,10 @@ const Menu = () => (
       href="https://github.com/relistennet/relisten-web"
       target="_blank"
       rel="noopener noreferrer"
-      className="flex min-h-[56px] items-center border-b border-hairline p-2 hover:bg-surface-hover lg:min-h-[46px] lg:p-1"
+      className="
+        flex min-h-[56px] items-center border-b border-hairline p-2 hover:bg-surface-hover
+        lg:min-h-[46px] lg:p-1
+      "
     >
       GitHub
     </a>

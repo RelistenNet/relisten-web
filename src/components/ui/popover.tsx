@@ -16,7 +16,11 @@ function PopoverArrow({ className, ...props }: PopoverPrimitive.Arrow.Props) {
     <PopoverPrimitive.Arrow
       data-slot="popover-arrow"
       className={cn(
-        'size-3 rotate-45 rounded-tl-sm border-t border-l border-hairline bg-surface-raised data-[side=bottom]:-top-1.5 data-[side=left]:-right-1.5 data-[side=right]:-left-1.5 data-[side=top]:-bottom-1.5',
+        `
+          size-3 rotate-45 rounded-tl-sm border-t border-l border-hairline bg-surface-raised
+          data-[side=bottom]:-top-1.5 data-[side=left]:-right-1.5 data-[side=right]:-left-1.5
+          data-[side=top]:-bottom-1.5
+        `,
         className
       )}
       {...props}
@@ -51,7 +55,16 @@ function PopoverContent({
         <PopoverPrimitive.Popup
           data-slot="popover-content"
           className={cn(
-            'z-50 flex w-72 origin-(--transform-origin) flex-col gap-2.5 rounded-lg bg-surface-raised p-2.5 text-sm text-text-primary shadow-lg ring-1 ring-hairline outline-hidden duration-100 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95',
+            `
+              z-50 flex w-72 origin-(--transform-origin) flex-col gap-2.5 rounded-lg
+              bg-surface-raised p-2.5 text-sm text-text-primary shadow-lg ring-1 ring-hairline
+              outline-hidden duration-100 data-[side=bottom]:slide-in-from-top-2
+              data-[side=inline-end]:slide-in-from-left-2
+              data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2
+              data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2
+              data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out
+              data-closed:fade-out-0 data-closed:zoom-out-95
+            `,
             className
           )}
           {...props}

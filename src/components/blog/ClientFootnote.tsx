@@ -27,7 +27,11 @@ const ClientFootnote = ({ index, content, children }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [ref, animate] = useAnimate();
 
-  const { refs, floatingStyles, context } = useFloating({
+  const {
+    refs: { setReference, setFloating },
+    floatingStyles,
+    context,
+  } = useFloating({
     middleware: [autoPlacement()],
     open: isOpen,
     onOpenChange: setIsOpen,
@@ -55,67 +59,65 @@ const ClientFootnote = ({ index, content, children }: Props) => {
   };
 
   return (
-    <>
-      <span className="group/footnote inline">
-        <sup
-          className="
+    <span className="group/footnote inline">
+      <sup
+        className="
             footnote-index relative cursor-pointer text-xs
             after:absolute after:-inset-2 after:content-['']
           "
-          id={`footnote-${index}`}
-          ref={refs.setReference}
-          onClick={onClick}
-          style={{ anchorName: `--fn-${index}` } as React.CSSProperties}
-          {...getReferenceProps()}
-        >
-          {index}
-        </sup>
+        id={`footnote-${index}`}
+        ref={setReference}
+        onClick={onClick}
+        style={{ anchorName: `--fn-${index}` } as React.CSSProperties}
+        {...getReferenceProps()}
+      >
+        {index}
+      </sup>
 
-        <LazyMotion features={domAnimation}>
-          <AnimatePresence>
-            {isOpen && (
-              <m.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ type: 'ease-in-out' as AnimationGeneratorType, duration: 0.2 }}
-                ref={refs.setFloating}
-                style={floatingStyles}
-                className="
+      <LazyMotion features={domAnimation}>
+        <AnimatePresence>
+          {isOpen && (
+            <m.span
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ type: 'ease-in-out' as AnimationGeneratorType, duration: 0.2 }}
+              ref={setFloating}
+              style={floatingStyles}
+              className="
                   z-50 inline-flex max-w-72 rounded-lg border border-gray-300 bg-white p-2
                   text-foreground shadow-lg
                   xl:hidden
                 "
-                {...getFloatingProps()}
-              >
-                &nbsp; <span>{content || children}</span>
-              </m.span>
-            )}
-          </AnimatePresence>
-        </LazyMotion>
-        <span
-          className="
+              {...getFloatingProps()}
+            >
+              &nbsp; <span>{content || children}</span>
+            </m.span>
+          )}
+        </AnimatePresence>
+      </LazyMotion>
+      <span
+        className="
             footnote-content hidden border-l-3 border-l-relisten-600/0 p-2 pt-2 transition-colors
             group-hover/footnote:border-l-relisten-600/65
             xl:flex
           "
-          ref={ref}
-          style={
-            {
-              anchorName: `--fn-content-${index}`,
-              top:
-                index === 1
-                  ? `anchor(--fn-${index} top)`
-                  : `max(anchor(--fn-${index} top), calc(anchor(--fn-content-${index - 1} bottom) + 0.5rem))`,
-            } as React.CSSProperties
-          }
-        >
-          <sup className="footnote-index mt-0.5 text-xs">{index}</sup>
-          &nbsp;{' '}
-          <span className="text-left text-sm text-foreground-muted">{content || children}</span>
-        </span>
+        ref={ref}
+        style={
+          {
+            anchorName: `--fn-content-${index}`,
+            top:
+              index === 1
+                ? `anchor(--fn-${index} top)`
+                : `max(anchor(--fn-${index} top), calc(anchor(--fn-content-${index - 1} bottom) + 0.5rem))`,
+          } as React.CSSProperties
+        }
+      >
+        <sup className="footnote-index mt-0.5 text-xs">{index}</sup>
+        &nbsp;{' '}
+        <span className="text-left text-sm text-foreground-muted">{content || children}</span>
       </span>
-    </>
+    </span>
   );
 };
 

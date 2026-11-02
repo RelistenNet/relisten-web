@@ -33,7 +33,10 @@ function RowLinkContent({
   return (
     <Flex
       className={cn(
-        'relative relisten-row min-h-[56px] items-stretch border-b border-hairline hover:bg-surface-hover lg:min-h-[46px]',
+        `
+          relative relisten-row min-h-[56px] items-stretch border-b border-hairline
+          hover:bg-surface-hover lg:min-h-[46px]
+        `,
         {
           'opacity-70': isPending,
           'bg-accent/10 hover:bg-accent/15': isActive && !isPending,
@@ -62,7 +65,10 @@ const Row = ({ children, href, active = false, loading, ...props }: RowProps) =>
     return (
       <Flex
         className={cn(
-          'relative relisten-row min-h-[56px] items-stretch border-b border-hairline hover:bg-surface-hover lg:min-h-[46px]',
+          `
+            relative relisten-row min-h-[56px] items-stretch border-b border-hairline
+            hover:bg-surface-hover lg:min-h-[46px]
+          `,
           { 'bg-accent/10 hover:bg-accent/15': active }
         )}
       >

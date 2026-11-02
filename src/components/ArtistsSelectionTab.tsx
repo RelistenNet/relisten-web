@@ -5,7 +5,7 @@ import { Artist } from '@/types';
 import { fuzzyMatch, type HighlightRanges } from '@nozbe/microfuzz';
 import { useSegmentParams } from '@timber-js/app/client';
 import { X } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
+import { useMemo, useRef, useState, useTransition } from 'react';
 import ArtistsColumnWithControls from './ArtistsColumnWithControls';
 
 type Tab = 'primary' | 'all';
@@ -38,11 +38,12 @@ const ArtistsSelectionTab = ({ artistsAll }: ArtistsSelectionTabProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (!artistSlug) return;
-    const isArchive = archiveArtists.some((a) => a.slug === artistSlug);
-    if (isArchive) setTab('all');
-  }, [artistSlug, archiveArtists]);
+  // Switch to the "all" tab when navigating to an archive artist.
+  const [syncedArtistSlug, setSyncedArtistSlug] = useState(artistSlug);
+  if (artistSlug !== syncedArtistSlug) {
+    setSyncedArtistSlug(artistSlug);
+    if (initialTab === 'all') setTab('all');
+  }
 
   const { artists, highlightRanges } = useMemo(() => {
     const query = searchQuery.trim();
@@ -108,7 +109,10 @@ const ArtistsSelectionTab = ({ artistsAll }: ArtistsSelectionTabProps) => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Filter artists…"
-          className="w-full bg-surface px-3 py-1.5 pr-7 text-sm tracking-wide text-text-primary placeholder:text-text-muted focus:outline-none lg:text-xs"
+          className="
+            w-full bg-surface px-3 py-1.5 pr-7 text-sm tracking-wide text-text-primary
+            placeholder:text-text-muted focus:outline-none lg:text-xs
+          "
         />
         {searchQuery && (
           <button

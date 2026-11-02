@@ -99,7 +99,12 @@ export default function MobileBrowseNav() {
   const heading = getCurrentHeading(segments, activeColumn, hasSlug, hasDate, date);
 
   return (
-    <div className="sticky top-[50px] z-10 grid min-h-[36px] grid-cols-[1fr_auto_1fr] items-center border-b border-hairline bg-surface-raised px-2 text-sm lg:hidden">
+    <div
+      className="
+      sticky top-[50px] z-10 grid min-h-[36px] grid-cols-[1fr_auto_1fr] items-center border-b
+      border-hairline bg-surface-raised px-2 text-sm lg:hidden
+    "
+    >
       <Link href={backPath} className="flex items-center gap-0.5 justify-self-start text-accent">
         <ChevronLeft className="size-4" />
         <span className="capitalize">{backLabel}</span>

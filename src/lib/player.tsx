@@ -7,7 +7,7 @@ import { updatePlayback } from '../redux/modules/playback';
 import { API_DOMAIN } from './constants';
 import { sortSources, sortTracksInSources } from './sortSources';
 import { proxyStreamUrl } from './proxyStreamUrl';
-import type { GaplessMetadata } from '../types';
+import type { GaplessMetadata, Track } from '../types';
 import { toast } from 'sonner';
 import type { RootState, AppDispatch } from '../redux';
 import { replaceUrl } from '@timber-js/app/client';
@@ -21,12 +21,12 @@ function detectMobileDevice(): boolean {
 
 declare global {
   interface Window {
-    player: any;
+    player: Queue | undefined;
     FLAC: string;
   }
 }
 
-function throttle<T extends (...args: any[]) => any>(func: T, wait: number): T {
+function throttle<T extends (...args: never[]) => unknown>(func: T, wait: number): T {
   let timeout: ReturnType<typeof setTimeout> | null = null;
   let previous = 0;
   let lastArgs: Parameters<T> | null = null;
@@ -109,7 +109,7 @@ const playerProxy = new Proxy({} as Queue, {
 function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Queue {
   return new Queue({
     playbackMethod: options?.playbackMethod ?? 'HYBRID',
-    onDebug: (msg: string) => console.log('[gapless]', msg),
+    onDebug: (msg: string) => console.debug('[gapless]', msg),
     onProgress: (info: TrackInfo) => {
       if (!store) return;
       if (info) {
@@ -305,9 +305,9 @@ export function initGaplessPlayer(nextStore: { dispatch: AppDispatch; getState: 
       const sorted = sortSources(show.sources);
       sortTracksInSources(sorted);
       const activeSourceId = Number(restored.source) || sorted[0].id;
-      const activeSource = sorted.find((s: any) => s.id === activeSourceId);
+      const activeSource = sorted.find((s) => s.id === activeSourceId);
       if (!activeSource) return clearRestoredPlaceholder();
-      const allTracks = activeSource.sets?.flatMap((set: any) => set.tracks).filter(Boolean) ?? [];
+      const allTracks = activeSource.sets?.flatMap((set) => set.tracks ?? []).filter(Boolean) ?? [];
       restoreController = null;
       loadTracks(allTracks, restored.songSlug, {
         playImmediately: false,
@@ -389,7 +389,7 @@ function restorePlaybackFromStorage(): {
             title: localStorage.lastPlayedTrackTitle || songSlug.replace(/-/g, ' '),
             slug: songSlug,
           },
-        ] as any,
+        ] as Track[],
       })
     );
 
@@ -420,7 +420,7 @@ export function resetPlayer() {
 }
 
 export function loadTracks(
-  tracks: any[],
+  tracks: Track[],
   songSlug: string | undefined,
   { playImmediately = true, seekTime = 0 }: { playImmediately?: boolean; seekTime?: number } = {}
 ) {

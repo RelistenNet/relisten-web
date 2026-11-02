@@ -23,8 +23,9 @@ export default async function Page() {
 
   const tracks = activeSource?.sets?.flatMap((set) => set.tracks ?? []) ?? [];
   const track = tracks.find((t) => t.slug === songSlug);
+  const streamUrl = proxyStreamUrl(track?.mp3_url);
 
-  if (!track || !track.mp3_url) {
+  if (!track || !streamUrl) {
     return (
       <div className="p-4">
         <h1 className="text-lg font-semibold">Clip editor</h1>
@@ -40,11 +41,7 @@ export default async function Page() {
       <h1 className="text-lg font-semibold">
         Clip: {track.title} — {artistSlug} {displayDate}
       </h1>
-      <ClipEditor
-        url={proxyStreamUrl(track.mp3_url)!}
-        title={track.title ?? songSlug}
-        duration={track.duration ?? 0}
-      />
+      <ClipEditor url={streamUrl} title={track.title ?? songSlug} duration={track.duration ?? 0} />
     </div>
   );
 }

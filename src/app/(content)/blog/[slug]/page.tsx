@@ -82,7 +82,12 @@ export default async function BlogPostPage() {
         "
       />
 
-      <footer className="mt-12 flex items-center justify-between border-t border-gray-200/40 pt-6 text-sm text-primary-foreground/80">
+      <footer
+        className="
+        mt-12 flex items-center justify-between border-t border-gray-200/40 pt-6 text-sm
+        text-primary-foreground/80
+      "
+      >
         <Link
           href="/blog"
           className="
