@@ -37,7 +37,7 @@
     "@tanstack/react-query": "^5.105.3",
     "@tanstack/react-query-devtools": "^5.105.3",
     "@tanstack/react-virtual": "^3.14.25",
-    "@timber-js/app": "0.2.0-alpha.223",
+    "@timber-js/app": "0.2.0-alpha.224",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
