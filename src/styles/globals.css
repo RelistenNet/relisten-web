@@ -263,7 +263,7 @@
   }
 
   .content a {
-    @apply text-blue-500 hover:underline;
+    @apply text-relisten-600 hover:underline;
   }
 
   h3 {

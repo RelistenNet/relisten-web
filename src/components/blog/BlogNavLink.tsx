@@ -16,8 +16,13 @@ export default function BlogNavLink({ hasNewPost }: { hasNewPost: boolean }) {
 
   return (
     <Link className="nav-btn" href="/blog">
-      {highlight && <span className="mr-1 size-1 rounded-full bg-relisten-500" />}
-      Blog
+      <span className="relative">
+        {/* Absolutely positioned in the left padding so hiding it doesn't shift the nav */}
+        {highlight && (
+          <span className="absolute top-1/2 right-full mr-1 size-1 -translate-y-1/2 rounded-full bg-relisten-500" />
+        )}
+        Blog
+      </span>
     </Link>
   );
 }
