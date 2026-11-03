@@ -2,7 +2,7 @@
 
 import cn from '@/lib/cn';
 import { ReactNode, createContext, useContext } from 'react';
-import { Tooltip as AnchorTooltip, TooltipTrigger, TooltipContent, SafeArea } from 'css-anchor-kit';
+import { Tooltip as AnchorTooltip, TooltipTrigger, TooltipContent } from 'css-anchor-kit';
 
 type TooltipProps = {
   children: ReactNode;
@@ -31,27 +31,21 @@ export default function Tooltip({
   const theme = useContext(TooltipThemeContext);
 
   return (
-    <AnchorTooltip
-      placement={placementMap[align]}
-      offset={4}
-      flip
-      safeArea
-      openDelay={0}
-      closeDelay={0}
-    >
+    <AnchorTooltip placement={placementMap[align]} offset={4} flip openDelay={0} closeDelay={0}>
       <TooltipTrigger as="div" className={className ?? ''}>
         {children}
       </TooltipTrigger>
       <TooltipContent
         className={cn(
           contentClassName,
-          'rounded-sm border p-2 text-sm shadow-lg',
+          // Non-interactive: the tooltip often overlaps the next row's trigger, and
+          // if it caught the pointer, hovering that trigger would never open its tooltip.
+          'pointer-events-none rounded-sm border p-2 text-sm shadow-lg',
           theme === 'light'
             ? 'border-gray-200 bg-white text-gray-900'
             : 'border-foreground-muted/20 bg-surface-raised text-text-primary'
         )}
       >
-        <SafeArea />
         {content}
       </TooltipContent>
     </AnchorTooltip>
