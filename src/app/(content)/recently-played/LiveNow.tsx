@@ -124,7 +124,7 @@ function ArtistRow({ artist }: { artist: LiveArtist }) {
       className="group flex items-center px-4 py-2 transition-colors duration-150 hover:bg-surface-hover"
     >
       <div className="mr-4 w-14 shrink-0 text-sm font-semibold text-accent tabular-nums">
-        {formatListeners(artist.listeners)}
+        {formatListeners(artist.listeners, { min: 1 })}
       </div>
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-medium text-text-primary">{artist.artistName}</div>

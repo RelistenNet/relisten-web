@@ -109,9 +109,13 @@ function estimateListeners(plays: LivePlay[], windowMinutes: number) {
 
 /** Groups the buffer by artist, with each artist's most-listened show. */
 export function summarize(
-  plays: LivePlay[],
+  buffer: LivePlay[],
   { monthDay, now = Date.now() }: { monthDay: string; now?: number }
 ): LiveSummary {
+  // The buffer is only trimmed when a poll succeeds, so expire old plays here
+  // too; otherwise a run of failed polls would keep stale plays in the counts.
+  const cutoff = now - LIVE_WINDOW_MINUTES * 60_000;
+  const plays = buffer.filter((p) => p.playedAt >= cutoff);
   const oldest = plays.length ? plays[plays.length - 1].playedAt : now;
   const windowMinutes = Math.max(1, Math.min(LIVE_WINDOW_MINUTES, (now - oldest) / 60_000));
 
@@ -159,5 +163,12 @@ export const formatShowDate = (displayDate: string) => {
   return `${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year.slice(2)}`;
 };
 
-/** "~350", never "~0": anyone in the list has at least one track going. */
-export const formatListeners = (n: number) => `~${Math.max(1, Math.round(n)).toLocaleString()}`;
+/**
+ * "~350". Pass `min: 1` for artist rows: an artist in the list has at least one
+ * track going, so it shouldn't round down to nothing. The site-wide total keeps
+ * a real zero, shown without the "~".
+ */
+export const formatListeners = (n: number, { min = 0 }: { min?: number } = {}) => {
+  const rounded = Math.max(min, Math.round(n));
+  return rounded === 0 ? '0' : `~${rounded.toLocaleString()}`;
+};
