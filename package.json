@@ -39,7 +39,7 @@
     "ky": "^1.14.3",
     "ky-universal": "^0.12.0",
     "lucide-react": "^1.24.0",
-    "next": "16.2.10",
+    "next": "16.4.5",
     "next-redux-wrapper": "8.1.0",
     "next-zod-route": "^1.0.0",
     "nextjs-toploader": "^3.9.17",
