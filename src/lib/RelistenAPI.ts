@@ -49,6 +49,25 @@ async function apiFetch<T>(endpoint: string): Promise<T> {
   }
 }
 
+// The live page should degrade, not 404, when the live endpoint hiccups.
+async function softApiFetch<T>(endpoint: string, fallback: T): Promise<T> {
+  try {
+    return await ky(`${SERVER_API_DOMAIN}${endpoint}`).json<T>();
+  } catch {
+    console.error(`API fetch error for ${SERVER_API_DOMAIN}${endpoint}`);
+    return fallback;
+  }
+}
+
+const cachedLiveFetch = timberCache.data(
+  (endpoint: string) => softApiFetch<unknown[]>(endpoint, []),
+  {
+    ttl: 10,
+    key: (endpoint: string) => `live:${endpoint}`,
+    staleWhileRevalidate: true,
+  }
+);
+
 const cachedApiFetch = timberCache.data(apiFetch, {
   ttl: 60 * 5, // 5 minutes
   key: (endpoint: string) => `api:${endpoint}`,
@@ -225,12 +244,11 @@ export class RelistenAPI {
     );
   });
 
-  static fetchLiveHistory = cache(async (lastSeenId?: string): Promise<LiveHistoryItem[]> => {
-    return apiFetch<LiveHistoryItem[]>(
-      lastSeenId
-        ? safeApiPath`/api/v2/live/history?lastSeenId=${lastSeenId}`
-        : '/api/v2/live/history'
-    );
+  // Live — never deny(); an empty result just renders the empty state.
+  static fetchLiveHistory = cache(async (limit = 1000): Promise<LiveHistoryItem[]> => {
+    return (await cachedLiveFetch(
+      safeApiPath`/api/v2/live/history?limit=${limit}`
+    )) as LiveHistoryItem[];
   });
 }
 

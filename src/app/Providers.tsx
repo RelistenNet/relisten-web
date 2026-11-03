@@ -1,25 +1,12 @@
 'use client';
 
 import player from '@/lib/player';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { PropsWithChildren, useEffect, useState } from 'react';
+import { PropsWithChildren, useEffect } from 'react';
 import { Provider } from 'react-redux';
 import { store } from '../redux';
 import AdminToolsInit from '@/components/AdminToolsInit';
 
 export default function Providers({ children }: PropsWithChildren) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: Infinity,
-          },
-        },
-      })
-  );
-
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       // Guard: player proxy returns undefined for methods when
@@ -48,11 +35,8 @@ export default function Providers({ children }: PropsWithChildren) {
 
   return (
     <Provider store={store}>
-      <QueryClientProvider client={queryClient}>
-        <AdminToolsInit />
-        {children}
-        <ReactQueryDevtools initialIsOpen={false} />
-      </QueryClientProvider>
+      <AdminToolsInit />
+      {children}
     </Provider>
   );
 }
