@@ -1,0 +1,9 @@
+import { defineConfig } from '@timber-js/app';
+import { nitro } from '@timber-js/app/adapters/nitro';
+
+export default defineConfig({
+  output: 'server',
+  adapter: nitro({ preset: 'node-server' }),
+  pageExtensions: ['tsx', 'ts', 'jsx', 'js', 'mdx'],
+  clientSegmentCache: true,
+});

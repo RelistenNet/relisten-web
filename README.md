@@ -7,14 +7,17 @@ Relisten is a simple free music streaming platform for recorded live concerts.
 Visit https://relisten.net to find out more.
 
 ## iOS
+
 Our mobile app is on the App Store/Play Store and also open source @ https://github.com/RelistenNet/relisten-mobile
 
 ## Sonos
+
 Our Sonos app is on the Sonos store and also open source @ https://github.com/RelistenNet/relisten-sonos
 
 ## Development
 
 ### To run
+
 ```
   #### install node
   #### install pnpm (npm i -g pnpm)
@@ -22,5 +25,13 @@ Our Sonos app is on the Sonos store and also open source @ https://github.com/Re
   $ npm start
 ```
 
+### Commit formatting
+
+Use Node.js 26 and run `pnpm install` to enable the repository’s native Git hooks. Commits use lint-staged and oxfmt to format
+and re-stage supported files while preserving unstaged changes. Formatter
+ignores and the root `.gitignore` apply. Use `git commit --no-verify` for an
+intentional one-off bypass.
+
 ## License
+
 AGPL3

@@ -1,29 +1,244 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
 
 @theme {
+  --animate-fade-in: fade-in 0.3s ease-in;
   --text-xxs: 0.7rem;
   --text-xxs--line-height: 1rem;
 
-  --color-relisten-DEFAULT: #009DC1;
-  --color-relisten-50: #A2EEFF;
-  --color-relisten-100: #8EEAFF;
-  --color-relisten-200: #65E2FF;
-  --color-relisten-300: #3CDBFF;
-  --color-relisten-400: #14D3FF;
-  --color-relisten-500: #00BEEA;
-  --color-relisten-600: #009DC1;
-  --color-relisten-700: #006F89;
+  --color-destructive: var(--color-red-600);
+  --color-relisten-50: #a2eeff;
+  --color-relisten-100: #8eeaff;
+  --color-relisten-200: #65e2ff;
+  --color-relisten-300: #3cdbff;
+  --color-relisten-400: #14d3ff;
+  --color-relisten-500: #00beea;
+  --color-relisten-600: #009dc1;
+  --color-relisten-700: #006f89;
   --color-relisten-800: #004251;
-  --color-relisten-900: #001D24;
+  --color-relisten-900: #001d24;
   --color-relisten-950: #001114;
 
-  /* Basic foreground colors */
-  --color-foreground: #333;
-  --color-foreground-muted: var(--color-gray-500);
+  /* Semantic tokens — resolved by :root rules below. Reference via Tailwind
+     utilities like `bg-surface`, `text-text-primary`, `border-hairline`. */
+  --color-surface: var(--resolved-surface);
+  --color-surface-raised: var(--resolved-surface-raised);
+  --color-surface-elevated: var(--resolved-surface-elevated);
+  --color-surface-recessed: var(--resolved-surface-recessed);
+  --color-surface-hover: var(--resolved-surface-hover);
+  --color-hairline: var(--resolved-hairline);
+  --color-text-primary: var(--resolved-text-primary);
+  --color-text-secondary: var(--resolved-text-secondary);
+  --color-text-muted: var(--resolved-text-muted);
+  --color-accent: var(--resolved-accent);
+  --color-nav-border: var(--resolved-nav-border);
+  --color-column-header: var(--resolved-column-header);
+  --color-column-header-text: var(--resolved-column-header-text);
+  --color-column-subheader: var(--resolved-column-subheader);
+  --color-column-subheader-text: var(--resolved-column-subheader-text);
 
-  /* Basic background colors */
-  --color-background: #fefefe;
-  --color-background-muted: #f3f4f6;
+  /* Basic foreground colors (legacy — kept so existing callers don't break) */
+  --color-foreground: var(--resolved-text-primary);
+  --color-foreground-muted: var(--resolved-text-muted);
+
+  /* Basic background colors (legacy) */
+  --color-background: var(--resolved-surface);
+  --color-background-muted: var(--resolved-surface-recessed);
+}
+
+/* Palette definitions — each color defined exactly once. The --resolved-*
+   tokens below switch between these palettes based on theme. */
+:root {
+  --light-surface: #ffffff;
+  --light-surface-raised: #fafafa;
+  --light-surface-elevated: #f4f4f5;
+  --light-surface-recessed: #ebebef;
+  --light-surface-hover: #f4f4f5;
+  --light-hairline: rgba(9, 9, 11, 0.07);
+  --light-text-primary: #18181b;
+  --light-text-secondary: #3f3f46;
+  --light-text-muted: #71717a;
+  --light-accent: #007a96;
+  --light-nav-border: rgba(9, 9, 11, 0.07);
+  --light-column-header: #d4d4d8;
+  --light-column-header-text: #27272a;
+  --light-column-subheader: #f4f4f5;
+  --light-column-subheader-text: #52525b;
+
+  --dark-surface: #151820;
+  --dark-surface-raised: #1f2530;
+  --dark-surface-elevated: #252a33;
+  --dark-surface-recessed: #111419;
+  --dark-surface-hover: #2c323c;
+  --dark-column-header: #2a303b;
+  --dark-column-header-text: #cdd2da;
+  --dark-column-subheader-text: #b8bfc9;
+  --dark-hairline: rgba(160, 175, 195, 0.18);
+  --dark-text-primary: #e8ecf0;
+  --dark-text-secondary: #9ba5b4;
+  --dark-text-muted: #8d99ab;
+  --dark-accent: #1ab4d6;
+  --dark-nav-border: rgba(0, 0, 0, 0.5);
+
+  /* Default: light */
+  --resolved-surface: var(--light-surface);
+  --resolved-surface-raised: var(--light-surface-raised);
+  --resolved-surface-elevated: var(--light-surface-elevated);
+  --resolved-surface-recessed: var(--light-surface-recessed);
+  --resolved-surface-hover: var(--light-surface-hover);
+  --resolved-hairline: var(--light-hairline);
+  --resolved-text-primary: var(--light-text-primary);
+  --resolved-text-secondary: var(--light-text-secondary);
+  --resolved-text-muted: var(--light-text-muted);
+  --resolved-accent: var(--light-accent);
+  --resolved-nav-border: var(--light-nav-border);
+  --resolved-column-header: var(--light-column-header);
+  --resolved-column-header-text: var(--light-column-header-text);
+  --resolved-column-subheader: var(--light-column-subheader);
+  --resolved-column-subheader-text: var(--light-column-subheader-text);
+
+  /* shadcn tokens */
+  --background: var(--light-surface);
+  --foreground: var(--light-text-primary);
+  --popover: #ffffff;
+  --popover-foreground: var(--light-text-primary);
+  --primary: #009dc1;
+  --primary-foreground: #ffffff;
+  --muted: var(--light-surface-elevated);
+  --muted-foreground: var(--light-text-muted);
+  --accent: var(--light-surface-elevated);
+  --accent-foreground: var(--light-text-primary);
+  --border: var(--light-hairline);
+  --input: rgba(9, 9, 11, 0.15);
+  --ring: #009dc1;
+  --radius: 0.5rem;
+  color-scheme: light;
+}
+
+/* Auto dark via OS */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --resolved-surface: var(--dark-surface);
+    --resolved-surface-raised: var(--dark-surface-raised);
+    --resolved-surface-elevated: var(--dark-surface-elevated);
+    --resolved-surface-recessed: var(--dark-surface-recessed);
+    --resolved-surface-hover: var(--dark-surface-hover);
+    --resolved-hairline: var(--dark-hairline);
+    --resolved-text-primary: var(--dark-text-primary);
+    --resolved-text-secondary: var(--dark-text-secondary);
+    --resolved-text-muted: var(--dark-text-muted);
+    --resolved-accent: var(--dark-accent);
+    --resolved-nav-border: var(--dark-nav-border);
+    --resolved-column-header: var(--dark-column-header);
+    --resolved-column-header-text: var(--dark-column-header-text);
+    --resolved-column-subheader: var(--dark-surface-hover);
+    --resolved-column-subheader-text: var(--dark-column-subheader-text);
+    --background: var(--dark-surface);
+    --foreground: var(--dark-text-primary);
+    --popover: var(--dark-surface-raised);
+    --popover-foreground: var(--dark-text-primary);
+    --muted: var(--dark-surface-hover);
+    --muted-foreground: var(--dark-text-muted);
+    --accent: var(--dark-surface-hover);
+    --accent-foreground: var(--dark-text-primary);
+    --border: var(--dark-hairline);
+    --input: var(--dark-hairline);
+  }
+}
+
+/* Explicit override — wins over prefers-color-scheme. Must come after
+   the @media block so the cascade resolves in its favor. */
+:root[data-theme='light'] {
+  color-scheme: light;
+  --resolved-surface: var(--light-surface);
+  --resolved-surface-raised: var(--light-surface-raised);
+  --resolved-surface-elevated: var(--light-surface-elevated);
+  --resolved-surface-recessed: var(--light-surface-recessed);
+  --resolved-surface-hover: var(--light-surface-hover);
+  --resolved-hairline: var(--light-hairline);
+  --resolved-text-primary: var(--light-text-primary);
+  --resolved-text-secondary: var(--light-text-secondary);
+  --resolved-text-muted: var(--light-text-muted);
+  --resolved-accent: var(--light-accent);
+  --resolved-nav-border: var(--light-nav-border);
+  --resolved-column-header: var(--light-column-header);
+  --resolved-column-header-text: var(--light-column-header-text);
+  --resolved-column-subheader: var(--light-column-subheader);
+  --resolved-column-subheader-text: var(--light-column-subheader-text);
+  --background: var(--light-surface);
+  --foreground: var(--light-text-primary);
+  --popover: #ffffff;
+  --popover-foreground: var(--light-text-primary);
+  --muted: var(--light-surface-elevated);
+  --muted-foreground: var(--light-text-muted);
+  --accent: var(--light-surface-elevated);
+  --accent-foreground: var(--light-text-primary);
+  --border: var(--light-hairline);
+  --input: rgba(9, 9, 11, 0.15);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --resolved-surface: var(--dark-surface);
+  --resolved-surface-raised: var(--dark-surface-raised);
+  --resolved-surface-elevated: var(--dark-surface-elevated);
+  --resolved-surface-recessed: var(--dark-surface-recessed);
+  --resolved-surface-hover: var(--dark-surface-hover);
+  --resolved-hairline: var(--dark-hairline);
+  --resolved-text-primary: var(--dark-text-primary);
+  --resolved-text-secondary: var(--dark-text-secondary);
+  --resolved-text-muted: var(--dark-text-muted);
+  --resolved-accent: var(--dark-accent);
+  --resolved-nav-border: var(--dark-nav-border);
+  --resolved-column-header: var(--dark-column-header);
+  --resolved-column-header-text: var(--dark-column-header-text);
+  --resolved-column-subheader: var(--dark-surface-hover);
+  --resolved-column-subheader-text: var(--dark-text-secondary);
+  --background: var(--dark-surface);
+  --foreground: var(--dark-text-primary);
+  --popover: var(--dark-surface-raised);
+  --popover-foreground: var(--dark-text-primary);
+  --muted: var(--dark-surface-hover);
+  --muted-foreground: var(--dark-text-muted);
+  --accent: var(--dark-surface-hover);
+  --accent-foreground: var(--dark-text-primary);
+  --border: var(--dark-hairline);
+  --input: var(--dark-hairline);
+}
+
+.embed-force-light {
+  color-scheme: light;
+  --resolved-surface: var(--light-surface);
+  --resolved-surface-raised: var(--light-surface-raised);
+  --resolved-surface-elevated: var(--light-surface-elevated);
+  --resolved-surface-recessed: var(--light-surface-recessed);
+  --resolved-surface-hover: var(--light-surface-hover);
+  --resolved-hairline: var(--light-hairline);
+  --resolved-text-primary: var(--light-text-primary);
+  --resolved-text-secondary: var(--light-text-secondary);
+  --resolved-text-muted: var(--light-text-muted);
+  --resolved-accent: var(--light-accent);
+  --color-surface: var(--light-surface);
+  --color-surface-raised: var(--light-surface-raised);
+  --color-surface-elevated: var(--light-surface-elevated);
+  --color-surface-hover: var(--light-surface-hover);
+  --color-text-primary: var(--light-text-primary);
+  --color-text-muted: var(--light-text-muted);
+  --color-hairline: var(--light-hairline);
+  --color-accent: var(--light-accent);
+  --foreground: var(--light-text-primary);
+  --muted-foreground: var(--light-text-muted);
 }
 
 /*
@@ -40,7 +255,7 @@
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
+    border-color: var(--color-hairline, currentColor);
   }
 
   p {
@@ -48,7 +263,7 @@
   }
 
   .content a {
-    @apply text-blue-500 hover:underline;
+    @apply text-relisten-600 hover:underline;
   }
 
   h3 {
@@ -61,8 +276,159 @@
   }
 }
 
+/* ── Browse column wrappers ──
+   On desktop (lg+), .browse-col uses display:contents so the inner
+   Column component is a direct grid item — preserving the original
+   scroll behavior. On narrow screens, the wrapper becomes visible
+   and controls which column is shown based on URL depth. */
+@media (min-width: 1024px) {
+  .browse-grid > .browse-col {
+    display: contents;
+  }
+}
+
+@media (max-width: 1023px) {
+  .browse-grid {
+    position: relative;
+  }
+
+  .browse-grid .relisten-column {
+    min-height: 0;
+  }
+
+  .browse-grid > .browse-col {
+    /* Hidden columns stay mounted with real dimensions so
+       virtualizers don't remeasure to zero during transitions */
+    position: absolute;
+    inset: 0;
+    visibility: hidden;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .browse-grid[data-browse-depth='0'] > .browse-col:nth-child(1),
+  .browse-grid[data-browse-depth='1'] > .browse-col:nth-child(2),
+  .browse-grid[data-browse-depth='2'] > .browse-col:nth-child(3),
+  .browse-grid[data-browse-depth='3'] > .browse-col:nth-child(4) {
+    position: static;
+    visibility: visible;
+    pointer-events: auto;
+    flex: 1;
+    min-height: 0;
+    view-transition-name: browse-active-col;
+  }
+}
+
+/* ── View Transition: iOS-style push/pop ── */
+
+::view-transition-group(browse-active-col) {
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+::view-transition-old(browse-active-col),
+::view-transition-new(browse-active-col) {
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  /* fill both so the snapshot holds at start and end */
+  animation-fill-mode: both;
+}
+
+/* ── Forward push ── */
+:root[data-nav-direction='forward']::view-transition-new(browse-active-col) {
+  animation-name: ios-push-enter;
+  z-index: 1;
+}
+:root[data-nav-direction='forward']::view-transition-old(browse-active-col) {
+  animation-name: ios-push-exit;
+  z-index: 0;
+}
+
+/* ── Back pop ── */
+:root[data-nav-direction='back']::view-transition-new(browse-active-col) {
+  animation-name: ios-pop-enter;
+  z-index: 0;
+}
+:root[data-nav-direction='back']::view-transition-old(browse-active-col) {
+  animation-name: ios-pop-exit;
+  z-index: 1;
+}
+
+@keyframes ios-push-enter {
+  from {
+    transform: translateX(100%);
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.25);
+  }
+  to {
+    transform: translateX(0);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  }
+}
+
+@keyframes ios-push-exit {
+  from {
+    transform: translateX(0);
+    filter: brightness(1);
+  }
+  to {
+    transform: translateX(-33%);
+    filter: brightness(0.75);
+  }
+}
+
+@keyframes ios-pop-enter {
+  from {
+    transform: translateX(-33%);
+    filter: brightness(0.75);
+  }
+  to {
+    transform: translateX(0);
+    filter: brightness(1);
+  }
+}
+
+@keyframes ios-pop-exit {
+  from {
+    transform: translateX(0);
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.25);
+  }
+  to {
+    transform: translateX(100%);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  }
+}
+
+/* ── In-column content swap (crossfade) ── */
+:root[data-nav-direction='swap']::view-transition-new(browse-active-col) {
+  animation: swap-in 200ms ease-out both;
+  z-index: 1;
+}
+:root[data-nav-direction='swap']::view-transition-old(browse-active-col) {
+  animation: swap-out 200ms ease-in both;
+  z-index: 0;
+}
+
+@keyframes swap-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes swap-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 @utility nav-btn {
-  @apply flex h-full items-center text-center active:relative active:top-[1px] active:text-foreground;
+  @apply flex h-full tracking-wider items-center rounded-sm px-2 text-center transition-colors hover:bg-surface-hover hover:text-text-primary active:relative active:top-[1px] active:text-text-primary;
 }
 
 @utility relisten-row {
@@ -78,7 +444,7 @@
 }
 
 @utility button {
-  @apply rounded-sm bg-green-400 p-4 py-2 border border-green-100 my-4 inline-block font-medium text-black/70 tracking-wide;
+  @apply rounded-sm bg-green-500 p-4 py-2 my-4 inline-block font-medium text-black tracking-wide transition-colors hover:bg-green-400;
 }
 
 @layer base {
@@ -86,6 +452,279 @@
     @apply text-3xl font-semibold mb-8;
   }
 
-  body { margin: 0; font-family: Roboto, Helvetica, Helvetica Neue, sans-serif; -webkit-font-smoothing: antialiased; @apply text-foreground; }
-  a { text-decoration: none; @apply text-foreground; }
+  body {
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    /* scrollbar-gutter: stable; */
+    padding-bottom: env(safe-area-inset-bottom);
+    @apply bg-surface text-text-primary;
+  }
+  a {
+    text-decoration: none;
+    @apply text-foreground;
+  }
+
+  /* ── Blog Post Content ── */
+
+  .blog-content {
+    font-size: 1.05rem;
+    line-height: 1.65;
+    color: color-mix(in srgb, var(--color-foreground) 90%, transparent);
+  }
+
+  .blog-content > p,
+  .blog-content > ul,
+  .blog-content > ol,
+  .blog-content > blockquote {
+    margin-top: 0;
+    margin-bottom: 1.5em;
+  }
+
+  .blog-content > h2,
+  .blog-content > h3 {
+    color: var(--color-foreground);
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  .blog-content > h2 {
+    font-size: 1.375rem;
+    line-height: 1.3;
+    margin: 2.25em 0 0.75em;
+  }
+
+  .blog-content > h3 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    line-height: 1.4;
+    margin: 2em 0 0.5em;
+  }
+
+  .blog-content > blockquote {
+    border-left: 2px solid var(--color-hairline);
+    padding-left: 1.25em;
+    color: color-mix(in srgb, var(--color-foreground) 65%, transparent);
+  }
+
+  .blog-content > ul,
+  .blog-content > ol {
+    padding-left: 1.25em;
+  }
+
+  .blog-content > ul {
+    list-style: disc;
+  }
+
+  .blog-content > ol {
+    list-style: decimal;
+  }
+
+  .blog-content li {
+    margin-bottom: 0.375em;
+    padding-left: 0.25em;
+  }
+
+  .blog-content li::marker {
+    color: color-mix(in srgb, var(--color-foreground) 40%, transparent);
+  }
+
+  .blog-content > hr {
+    @apply my-12 border-hairline;
+  }
+
+  .blog-content strong {
+    color: var(--color-foreground);
+    font-weight: 600;
+  }
+
+  .blog-content a {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--color-accent) 35%, transparent);
+    text-underline-offset: 0.2em;
+    transition: text-decoration-color 150ms;
+  }
+
+  .blog-content a:hover {
+    text-decoration-color: currentColor;
+  }
+
+  .blog-content code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.8em;
+    padding: 0.1em 0.35em;
+    border-radius: 0.25rem;
+    background-color: var(--color-surface-elevated);
+  }
+
+  .blog-content .bleed {
+    max-width: none;
+    margin: 2rem -1rem;
+    border-radius: 0.5rem;
+    background-color: var(--color-background-muted);
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  /* ── Charts (palette validated: light vs #fcfcfb, dark vs #151820) ── */
+
+  .viz-root {
+    --series-1: #2a78d6;
+    --series-2: #eb6834;
+    --series-3: #1baf7a;
+    --series-4: #eda100;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme='light'])) .viz-root {
+      --series-1: #3987e5;
+      --series-2: #d95926;
+      --series-3: #199e70;
+      --series-4: #c98500;
+    }
+  }
+
+  :root[data-theme='dark'] .viz-root {
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+  }
+
+  .viz-slice {
+    stroke: var(--color-surface);
+    stroke-width: 2px;
+    stroke-linejoin: round;
+    transition: opacity 150ms;
+  }
+
+  .viz-row {
+    transition: opacity 150ms;
+  }
+
+  /* Hovering a slice or legend row dims every other slice and row. */
+  .viz-root:has(.viz-slice:is(:hover, :focus-visible), .viz-row:hover) :is(.viz-slice, .viz-row) {
+    opacity: 0.4;
+  }
+
+  .viz-root:has(.viz-slice[data-slot='1']:is(:hover, :focus-visible), .viz-row[data-slot='1']:hover)
+    [data-slot='1']:is(.viz-slice, .viz-row),
+  .viz-root:has(.viz-slice[data-slot='2']:is(:hover, :focus-visible), .viz-row[data-slot='2']:hover)
+    [data-slot='2']:is(.viz-slice, .viz-row),
+  .viz-root:has(.viz-slice[data-slot='3']:is(:hover, :focus-visible), .viz-row[data-slot='3']:hover)
+    [data-slot='3']:is(.viz-slice, .viz-row),
+  .viz-root:has(.viz-slice[data-slot='4']:is(:hover, :focus-visible), .viz-row[data-slot='4']:hover)
+    [data-slot='4']:is(.viz-slice, .viz-row),
+  .viz-root:has(.viz-slice[data-slot='5']:is(:hover, :focus-visible), .viz-row[data-slot='5']:hover)
+    [data-slot='5']:is(.viz-slice, .viz-row),
+  .viz-root:has(.viz-slice[data-slot='6']:is(:hover, :focus-visible), .viz-row[data-slot='6']:hover)
+    [data-slot='6']:is(.viz-slice, .viz-row),
+  .viz-root:has(.viz-slice[data-slot='7']:is(:hover, :focus-visible), .viz-row[data-slot='7']:hover)
+    [data-slot='7']:is(.viz-slice, .viz-row),
+  .viz-root:has(.viz-slice[data-slot='8']:is(:hover, :focus-visible), .viz-row[data-slot='8']:hover)
+    [data-slot='8']:is(.viz-slice, .viz-row) {
+    opacity: 1;
+  }
+
+  /* Tooltip: centered above the pie on phones, outside its slice from sm up. */
+  .viz-tip {
+    left: 50%;
+    top: 0;
+    transform: translate(-50%, calc(-100% - 8px));
+    opacity: 0;
+    transition: opacity 150ms;
+  }
+
+  @media (min-width: 640px) {
+    .viz-tip {
+      left: var(--tip-x);
+      top: var(--tip-y);
+      transform: translate(var(--tip-tx), var(--tip-ty));
+    }
+  }
+
+  .viz-pie:has(.viz-slice[data-slot='1']:is(:hover, :focus-visible)) .viz-tip[data-slot='1'],
+  .viz-pie:has(.viz-slice[data-slot='2']:is(:hover, :focus-visible)) .viz-tip[data-slot='2'],
+  .viz-pie:has(.viz-slice[data-slot='3']:is(:hover, :focus-visible)) .viz-tip[data-slot='3'],
+  .viz-pie:has(.viz-slice[data-slot='4']:is(:hover, :focus-visible)) .viz-tip[data-slot='4'],
+  .viz-pie:has(.viz-slice[data-slot='5']:is(:hover, :focus-visible)) .viz-tip[data-slot='5'],
+  .viz-pie:has(.viz-slice[data-slot='6']:is(:hover, :focus-visible)) .viz-tip[data-slot='6'],
+  .viz-pie:has(.viz-slice[data-slot='7']:is(:hover, :focus-visible)) .viz-tip[data-slot='7'],
+  .viz-pie:has(.viz-slice[data-slot='8']:is(:hover, :focus-visible)) .viz-tip[data-slot='8'] {
+    opacity: 1;
+  }
+
+  /* ── Footnotes / Sidenotes ── */
+
+  .footnote-index {
+    color: var(--color-accent);
+    font-weight: 500;
+  }
+
+  .blog-content .footnote-content {
+    line-height: 1.5;
+  }
+
+  /* Float fallback for sidenotes */
+  .footnote-content {
+    float: right;
+    clear: right;
+    margin-right: -45%;
+    width: 40%;
+    word-wrap: break-word;
+    margin-top: 0;
+    margin-bottom: 0.1rem;
+    vertical-align: baseline;
+    position: relative;
+    box-sizing: border-box;
+    font-style: normal;
+  }
+
+  /* CSS Anchor Positioning enhancement */
+  @supports (anchor-name: --fn) {
+    .blog-post {
+      position: relative;
+    }
+
+    .footnote-content {
+      float: none;
+      clear: none;
+      position: absolute;
+      margin: 0;
+      width: 15rem;
+      left: calc(100% + 3rem);
+    }
+  }
+
+  @media only screen and (max-width: 900px) {
+    .footnote-content.footnote-content {
+      display: none;
+    }
+  }
+
+  /* ── Print ── */
+
+  @media print {
+    .blog-post .draft-alert {
+      display: none !important;
+    }
+  }
+}
+
+@theme inline {
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
 }

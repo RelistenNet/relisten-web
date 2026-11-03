@@ -1,32 +1,53 @@
+'use client';
+
 import cn from '@/lib/cn';
-import { ReactNode } from 'react';
+import { ReactNode, createContext, useContext } from 'react';
+import { Tooltip as AnchorTooltip, TooltipTrigger, TooltipContent } from 'css-anchor-kit';
 
 type TooltipProps = {
   children: ReactNode;
   content: ReactNode;
   className?: string;
   contentClassName?: string;
-  align?: 'left' | 'right';
+  align?: 'left' | 'right' | 'top' | 'bottom';
 };
+
+const placementMap = {
+  top: 'top',
+  bottom: 'bottom',
+  left: 'bottom-start',
+  right: 'bottom-end',
+} as const;
+
+export const TooltipThemeContext = createContext<'light' | 'dark' | 'auto'>('auto');
 
 export default function Tooltip({
   children,
   content,
   contentClassName,
   className,
-  align = 'left',
+  align = 'bottom',
 }: TooltipProps) {
+  const theme = useContext(TooltipThemeContext);
+
   return (
-    <div className={`group/tooltip relative ${className ?? ''}`}>
-      {children}
-      <div
+    <AnchorTooltip placement={placementMap[align]} offset={4} flip openDelay={0} closeDelay={0}>
+      <TooltipTrigger as="div" className={className ?? ''}>
+        {children}
+      </TooltipTrigger>
+      <TooltipContent
         className={cn(
           contentClassName,
-          `bg-background border-foreground-muted/20 pointer-events-none absolute top-full z-50 mt-1 -translate-y-1 scale-95 rounded border p-2 opacity-0 shadow-lg transition-all duration-150 group-hover/tooltip:translate-y-0 group-hover/tooltip:scale-100 group-hover/tooltip:opacity-100 ${align === 'right' ? 'right-0' : 'left-0'}`
+          // Non-interactive: the tooltip often overlaps the next row's trigger, and
+          // if it caught the pointer, hovering that trigger would never open its tooltip.
+          'pointer-events-none rounded-sm border p-2 text-sm shadow-lg',
+          theme === 'light'
+            ? 'border-gray-200 bg-white text-gray-900'
+            : 'border-foreground-muted/20 bg-surface-raised text-text-primary'
         )}
       >
         {content}
-      </div>
-    </div>
+      </TooltipContent>
+    </AnchorTooltip>
   );
 }

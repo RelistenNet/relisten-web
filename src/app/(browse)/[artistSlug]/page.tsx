@@ -1,53 +1,20 @@
 import RelistenAPI from '@/lib/RelistenAPI';
-import { isMobile } from '@/lib/isMobile';
-import { notFound } from 'next/navigation';
+import { getSegmentParams } from '@timber-js/app/server';
+import { SEGMENT_PATH } from './$segment';
 
-type PageProps = {
-  params: Promise<{
-    artistSlug: string;
-  }>;
-};
-
-export default async function Page({ params }: PageProps) {
-  const { artistSlug } = await params;
-
-  if (await isMobile()) return null;
-
-  const randomShow = await RelistenAPI.fetchRandomShow(artistSlug).catch((err) => {
-    const statusCode = err?.response?.status;
-
-    if (statusCode !== 404) {
-      console.log('failed random show', artistSlug, statusCode);
-    }
-
-    notFound();
-
-    return null;
-  });
-
-  if (!randomShow) return notFound();
-
-  const { display_date } = randomShow ?? {};
-  const [year, month, day] = display_date?.split('-') ?? [];
-
-  if (!year || !month || !day) return notFound();
-
-  // On mobile, redirect to random show for better UX
-  if (await isMobile()) {
-    return null;
-  }
-
+export default function Page() {
   return null;
 }
 
-export const generateMetadata = async (props) => {
-  const params = await props.params;
-  const { artistSlug } = params;
+export const metadata = async () => {
+  const params = getSegmentParams(SEGMENT_PATH);
+  const artistSlug = params?.artistSlug as string | undefined;
+  if (!artistSlug) return {};
 
-  const artists = await RelistenAPI.fetchArtists();
+  const artists = await RelistenAPI.fetchAllArtists();
   const name = artists.find((a) => a.slug === artistSlug)?.name;
 
-  if (!name) return notFound();
+  if (!name) return {};
 
   return {
     title: name,

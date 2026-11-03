@@ -1,16 +1,17 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { format } from 'date-fns';
-import { Metadata } from 'next';
-import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import type { Metadata } from '@timber-js/app/server';
+import { Link } from '@timber-js/app/client';
+import { deny, getSegmentParams } from '@timber-js/app/server';
+import { SEGMENT_PATH } from './$segment';
 
-interface Props {
-  params: Promise<{ artistSlug: string; year: string; month: string }>;
-}
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { artistSlug, year, month } = await params;
-  const artists = await RelistenAPI.fetchArtists();
+export async function metadata(): Promise<Metadata> {
+  const params = getSegmentParams(SEGMENT_PATH);
+  const artistSlug = params?.artistSlug as string | undefined;
+  const year = params?.year as string | undefined;
+  const month = params?.month as string | undefined;
+  if (!artistSlug) return { title: 'Not Found' };
+  const artists = await RelistenAPI.fetchAllArtists();
   const artist = artists?.find((a) => a.slug === artistSlug);
 
   if (!artist) {
@@ -36,25 +37,25 @@ function formatDate(date: string): string {
   return format(new Date(date), 'dd-MMM-yyyy HH:mm');
 }
 
-export default async function MonthPage({ params }: Props) {
-  const { artistSlug, year, month } = await params;
+export default async function MonthPage() {
+  const { artistSlug, year, month } = getSegmentParams(SEGMENT_PATH);
 
   // Fetch artist and shows
-  const artists = await RelistenAPI.fetchArtists();
+  const artists = await RelistenAPI.fetchAllArtists();
   const artist = artists?.find((a) => a.slug === artistSlug);
-  if (!artist) notFound();
+  if (!artist) deny(404);
 
   const artistYears = await RelistenAPI.fetchYears(artist.uuid);
   const yearObj = artistYears?.find((y) => y.year === year);
   const artistShows = await RelistenAPI.fetchShows(artist.uuid, yearObj?.uuid);
-  if (!artistShows) notFound();
+  if (!artistShows) deny(404);
 
   const shows = artistShows.shows || [];
 
   // Filter shows for the specific month
   const monthShows = shows.filter((show) => {
     const showMonth = new Date(show.display_date || '').getMonth() + 1;
-    return showMonth === parseInt(month, 10);
+    return showMonth === parseInt(month || '', 10);
   });
 
   // Sort shows by date
@@ -92,22 +93,46 @@ export default async function MonthPage({ params }: Props) {
               </svg>
             </th>
             <th className="py-1 pr-8 text-left">
-              <a href="?C=N;O=D" className="text-black no-underline hover:underline">
+              <a
+                href="?C=N;O=D"
+                className="
+                  text-black no-underline
+                  hover:underline
+                "
+              >
                 Name
               </a>
             </th>
             <th className="py-1 pr-8 text-left">
-              <a href="?C=M;O=A" className="text-black no-underline hover:underline">
+              <a
+                href="?C=M;O=A"
+                className="
+                  text-black no-underline
+                  hover:underline
+                "
+              >
                 Last modified
               </a>
             </th>
             <th className="py-1 pr-8 text-left">
-              <a href="?C=S;O=A" className="text-black no-underline hover:underline">
+              <a
+                href="?C=S;O=A"
+                className="
+                  text-black no-underline
+                  hover:underline
+                "
+              >
                 Size
               </a>
             </th>
             <th className="py-1 text-left">
-              <a href="?C=D;O=A" className="text-black no-underline hover:underline">
+              <a
+                href="?C=D;O=A"
+                className="
+                  text-black no-underline
+                  hover:underline
+                "
+              >
                 Description
               </a>
             </th>
@@ -150,7 +175,11 @@ export default async function MonthPage({ params }: Props) {
             <td className="py-1 pr-8">
               <Link
                 href={`/${artistSlug}/${year}`}
-                className="text-blue-700 no-underline visited:text-purple-700 hover:underline"
+                className="
+                  text-blue-700 no-underline
+                  visited:text-purple-700
+                  hover:underline
+                "
               >
                 Parent Directory
               </Link>
@@ -201,7 +230,11 @@ export default async function MonthPage({ params }: Props) {
                 <td className="py-1 pr-8">
                   <Link
                     href={`/${artistSlug}/${year}/${month}/${dayStr}`}
-                    className="text-blue-700 no-underline visited:text-purple-700 hover:underline"
+                    className="
+                      text-blue-700 no-underline
+                      visited:text-purple-700
+                      hover:underline
+                    "
                   >
                     {showPath}
                   </Link>
@@ -221,7 +254,7 @@ export default async function MonthPage({ params }: Props) {
 
           {monthShows.length === 0 && (
             <tr>
-              <td colSpan={5} className="pt-4 pb-4 text-center">
+              <td colSpan={5} className="py-4 text-center">
                 No files found for /{artistSlug}/{year}/{month}
               </td>
             </tr>

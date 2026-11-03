@@ -1,17 +1,23 @@
+import { METADATA_BASE } from '@/lib/constants';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { createShowDate } from '@/lib/utils';
-import { notFound } from 'next/navigation';
+import { getSegmentParams } from '@timber-js/app/server';
+import { SEGMENT_PATH } from './$segment';
 
 export default () => null;
 
-export const generateMetadata = async (props) => {
-  const params = await props.params;
-  const { artistSlug, year, month, day } = params;
+export const metadata = async () => {
+  const params = getSegmentParams(SEGMENT_PATH);
+  const artistSlug = params?.artistSlug as string | undefined;
+  const year = params?.year as string | undefined;
+  const month = params?.month as string | undefined;
+  const day = params?.day as string | undefined;
+  if (!artistSlug || !year || !month || !day) return {};
 
-  const artists = await RelistenAPI.fetchArtists();
+  const artists = await RelistenAPI.fetchAllArtists();
   const name = artists?.find((a) => a.slug === artistSlug)?.name;
 
-  if (!name) return notFound();
+  if (!name) return {};
 
   const show = await RelistenAPI.fetchShow(artistSlug, year, [year, month, day].join('-'));
 
@@ -20,7 +26,13 @@ export const generateMetadata = async (props) => {
     description: [show?.venue?.name, show?.venue?.location].filter((x) => x).join(' '),
     openGraph: {
       images: show?.uuid
-        ? [{ url: `/api/og?showUuid=${show.uuid}`, width: 550, height: 550 }]
+        ? [
+            {
+              url: `${METADATA_BASE.origin}/album-art/${show.uuid}.png`,
+              width: 550,
+              height: 550,
+            },
+          ]
         : [],
     },
   };

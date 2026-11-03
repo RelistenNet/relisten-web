@@ -24,14 +24,24 @@ const Column = ({ className, heading, children }: ColumnProps) => {
   // }, []);
 
   return (
-    <Flex ref={ref} className={cn('relisten-column flex-1 break-words', className)} column>
-      <Scroller containerRef={ref} key={heading} />
-      {heading && (
-        <Flex center className="bg-relisten-700/80 min-h-[32px] w-full text-white capitalize">
+    <Flex
+      ref={ref}
+      className={cn('relisten-column flex-1 bg-surface break-words', className)}
+      column
+    >
+      <Scroller containerRef={ref} />
+      {heading?.trim() && (
+        <Flex
+          center
+          className="
+            min-h-[32px] w-full border-b border-hairline bg-column-header text-sm font-medium
+            text-column-header-text capitalize max-lg:hidden
+          "
+        >
           {heading?.replaceAll('-', ' ')}
         </Flex>
       )}
-      <Flex column className="flex-1 overflow-x-hidden overflow-y-auto">
+      <Flex column className="flex-1 overflow-x-hidden lg:overflow-y-auto">
         {children}
       </Flex>
     </Flex>

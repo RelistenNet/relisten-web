@@ -8,8 +8,9 @@ import type { RootState } from '@/redux';
 import Tooltip from '@/components/Tooltip';
 import { formatTimeParam } from '@/lib/timeParam';
 
-export default function EmbedHeader() {
+export default function EmbedHeader({ compact = false }: { compact?: boolean }) {
   const playback = useSelector((state: RootState) => state.playback);
+  const isPhish = playback.artistSlug === 'phish';
 
   const popout = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -29,26 +30,37 @@ export default function EmbedHeader() {
   };
 
   return (
-    <div className="relative z-10 border-b py-2 text-center text-xs font-semibold tracking-wider">
+    <div
+      className={`relative z-10 border-t border-gray-200 text-center font-semibold tracking-wider text-gray-900 ${compact ? 'py-1 text-[10px]' : 'border-b py-2 text-xs'}`}
+    >
       POWERED BY{' '}
-      <a href="https://relisten.net" onClick={popout} className="hover:text-amber-700">
-        RELISTEN.NET
-      </a>{' '}
-      &amp;{' '}
       <a
-        href="https://phish.in"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="hover:text-amber-700"
+        href="https://relisten.net"
+        onClick={popout}
+        className="text-gray-900 hover:text-amber-700"
       >
-        PHISH.IN
+        RELISTEN.NET
       </a>
+      {isPhish && (
+        <>
+          {' '}
+          &amp;{' '}
+          <a
+            href="https://phish.in"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-amber-700"
+          >
+            PHISH.IN
+          </a>
+        </>
+      )}
       <div className="absolute top-1/2 right-1.5 -translate-y-1/2">
-        <Tooltip content="Continue listening to this show" align="right" contentClassName="w-52">
+        <Tooltip content="Continue listening to this show" align="top" contentClassName="w-52">
           <a
             href="https://relisten.net"
             onClick={popout}
-            className="text-foreground-muted hover:text-amber-700"
+            className="text-gray-500 hover:text-amber-700"
             target="_blank"
             rel="noreferrer"
           >

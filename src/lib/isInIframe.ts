@@ -1,9 +1,8 @@
-import { headers } from 'next/headers';
+import { getHeaders } from '@timber-js/app/server';
 
-export function getIsInIframe(): Promise<boolean> {
-  return headers().then((headersList) => {
-    const secFetchDest = headersList.get('sec-fetch-dest');
+export async function getIsInIframe(): Promise<boolean> {
+  const headersList = await getHeaders();
+  const secFetchDest = headersList.get('sec-fetch-dest');
 
-    return secFetchDest === 'iframe';
-  });
+  return secFetchDest === 'iframe';
 }

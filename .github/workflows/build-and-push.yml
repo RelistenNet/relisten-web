@@ -4,13 +4,12 @@ on: workflow_dispatch
 
 permissions:
   contents: read
-  id-token: write
   packages: write
 
 env:
   IMAGE_NAME: relistennet/relisten-web
   REGISTRY: ghcr.io
-  KEEP_GHCR_SHA_VERSIONS: "5"
+  KEEP_GHCR_SHA_VERSIONS: '5'
 
 jobs:
   build_and_publish:
@@ -18,13 +17,13 @@ jobs:
     environment: relisten3
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
       - name: Log in to GHCR
-        uses: docker/login-action@v4
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -41,7 +40,7 @@ jobs:
           echo "package=${IMAGE_NAME#relistennet/}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push image
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           platforms: linux/amd64
@@ -99,17 +98,17 @@ jobs:
           done <<< "$ids"
 
       - name: Connect to Tailscale
-        uses: tailscale/github-action@v4
+        uses: tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c # v4.4.0
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           audience: ${{ secrets.TS_AUDIENCE }}
           ping: 100.99.27.11
           use-cache: 'true'
           tags: tag:ci
-          version: latest
+          version: '1.104.1'
 
       - name: Set up kubectl
-        uses: azure/setup-kubectl@v5
+        uses: azure/setup-kubectl@bda439f5f36b99b262ebdcd3613869bddb064c8e # v5.2.0
         with:
           version: v1.36.2
 

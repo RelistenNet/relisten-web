@@ -1,16 +1,23 @@
 import RelistenAPI from '@/lib/RelistenAPI';
-import { getServerFilters } from '@/lib/serverFilterCookies';
-import ArtistsColumnWithControls from './ArtistsColumnWithControls';
+import { Artist } from '@/types';
+import ArtistsSelectionTab from './ArtistsSelectionTab';
+
+const slim = (artists: Artist[]) =>
+  artists.map((a) => ({
+    id: a.id,
+    name: a.name,
+    slug: a.slug,
+    show_count: a.show_count,
+    source_count: a.source_count,
+    uuid: a.uuid,
+    featured: a.featured,
+    popularity: a.popularity,
+  }));
 
 const ArtistsColumn = async () => {
-  const [artists, initialFilters] = await Promise.all([
-    RelistenAPI.fetchArtists().then((artists) =>
-      artists.filter((artist) => Number(artist.featured) <= 1)
-    ),
-    getServerFilters('root', true),
-  ]);
+  const allArtists = await RelistenAPI.fetchAllArtists();
 
-  return <ArtistsColumnWithControls artists={artists} initialFilters={initialFilters} />;
+  return <ArtistsSelectionTab artistsAll={slim(allArtists)} />;
 };
 
 export default ArtistsColumn;

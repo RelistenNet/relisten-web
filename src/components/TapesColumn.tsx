@@ -5,6 +5,7 @@ import React from 'react';
 import { durationToHHMMSS } from '../lib/utils';
 
 import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
+import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
 import { Source } from '../types';
 import Column from './Column';
 import Flex from './Flex';
@@ -15,10 +16,6 @@ import Tag from './Tag';
 
 const exists = (str = ''): boolean => {
   return !!str && !/unknown/i.test(str);
-};
-
-const cleanFlac = (str = ''): string => {
-  return str ? str.replace(/Flac|Bit/g, '') + '-BIT ' : '';
 };
 
 // TODO: i18n
@@ -51,21 +48,25 @@ const TapesColumn = (props: Props) => {
         <div key={sourceObj.id}>
           <RowHeader>{author(sourceObj) || `Source ${idx + 1} of ${sourcesData.length}`}</RowHeader>
           <Row
-            href={`/${artistSlug}/${year}/${month}/${day}?source=${sourceObj.id}`}
-            isActiveOverride={activeSourceId === sourceObj?.id}
+            href={
+              props.quickHitSegment
+                ? slugSearchParams.href(`/${artistSlug}/${props.quickHitSegment}`, {
+                    slug: props.quickHitSlug,
+                    date: `${year}-${month}-${day}`,
+                  }) + `&source=${sourceObj.id}`
+                : `/${artistSlug}/${year}/${month}/${day}?source=${sourceObj.id}`
+            }
+            active={activeSourceId === sourceObj?.id}
           >
             <div className="w-full">
               <Flex className="mb-1">
                 <div className="min-w-[53px]">{durationToHHMMSS(sourceObj.duration)}</div>
                 {sourceObj.is_soundboard && <Tag>SBD</Tag>}
-                {false && sourceObj.flac_type !== 'NoFlac' && (
-                  <Tag>{cleanFlac(sourceObj.flac_type)}FLAC</Tag>
-                )}
                 {sourceObj.is_remaster && <Tag>REMASTER</Tag>}
               </Flex>
               {Number(sourceObj?.avg_rating) > 0 && (
                 <Flex className="py-1 text-xs">
-                  <div className="text-foreground-muted min-w-[48px] truncate pr-2 whitespace-nowrap">
+                  <div className="min-w-[48px] truncate pr-2 text-foreground-muted">
                     {artistSlug === 'phish' ? 'Dot Net' : 'Rating'}:
                   </div>{' '}
                   <div className="truncate">
@@ -77,7 +78,7 @@ const TapesColumn = (props: Props) => {
               )}
               {exists(sourceObj.taper) && (
                 <Flex className="py-1 text-xs">
-                  <div className="text-foreground-muted min-w-[48px] pr-2 whitespace-nowrap">
+                  <div className="min-w-[48px] pr-2 whitespace-nowrap text-foreground-muted">
                     Taper:
                   </div>{' '}
                   <div className="truncate">{sourceObj.taper}</div>
@@ -85,7 +86,7 @@ const TapesColumn = (props: Props) => {
               )}
               {exists(sourceObj.transferrer) && (
                 <Flex className="py-1 text-xs">
-                  <div className="text-foreground-muted min-w-[48px] truncate pr-2 whitespace-nowrap">
+                  <div className="min-w-[48px] truncate pr-2 text-foreground-muted">
                     Transferrer:
                   </div>{' '}
                   <div className="truncate">{sourceObj.transferrer}</div>
@@ -93,31 +94,25 @@ const TapesColumn = (props: Props) => {
               )}
               {exists(sourceObj.upstream_identifier) && (
                 <Flex className="py-1 text-xs">
-                  <div className="text-foreground-muted min-w-[48px] truncate pr-2 whitespace-nowrap">
-                    SHNID:
-                  </div>{' '}
+                  <div className="min-w-[48px] truncate pr-2 text-foreground-muted">SHNID:</div>{' '}
                   <div className="truncate">{sourceObj.upstream_identifier}</div>
                 </Flex>
               )}
               {exists(sourceObj.source) && (
                 <Flex className="py-1 text-xs">
-                  <div className="text-foreground-muted min-w-[48px] truncate pr-2 whitespace-nowrap">
-                    Source:
-                  </div>{' '}
+                  <div className="min-w-[48px] truncate pr-2 text-foreground-muted">Source:</div>{' '}
                   <div className="truncate">{sourceObj.source}</div>
                 </Flex>
               )}
               {exists(sourceObj.lineage) && (
                 <Flex className="py-1 text-xs">
-                  <div className="text-foreground-muted min-w-[48px] truncate pr-2 whitespace-nowrap">
-                    Lineage:
-                  </div>{' '}
+                  <div className="min-w-[48px] truncate pr-2 text-foreground-muted">Lineage:</div>{' '}
                   <div className="truncate">{sourceObj.lineage}</div>
                 </Flex>
               )}
               {exists(sourceObj.taper_notes) && (
                 <Flex className="py-1 text-xs">
-                  <div className="text-foreground-muted min-w-[48px] truncate pr-2 whitespace-nowrap">
+                  <div className="min-w-[48px] truncate pr-2 text-foreground-muted">
                     Taper Notes:
                   </div>{' '}
                   <TaperNotes notes={sourceObj.taper_notes} />

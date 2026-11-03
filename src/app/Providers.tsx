@@ -3,11 +3,10 @@
 import player from '@/lib/player';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { ReactQueryStreamedHydration } from '@tanstack/react-query-next-experimental';
-import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { PropsWithChildren, useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
 import { store } from '../redux';
+import AdminToolsInit from '@/components/AdminToolsInit';
 
 export default function Providers({ children }: PropsWithChildren) {
   const [queryClient] = useState(
@@ -23,7 +22,16 @@ export default function Providers({ children }: PropsWithChildren) {
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
+      // Guard: player proxy returns undefined for methods when
+      // initGaplessPlayer() hasn't been called yet (no track loaded).
+      if (!player.togglePlayPause) return;
+
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable)
+        return;
+
       if (e.code === 'Space') {
+        e.preventDefault();
         player.togglePlayPause();
       }
       if (e.code === 'ArrowRight') {
@@ -41,9 +49,8 @@ export default function Providers({ children }: PropsWithChildren) {
   return (
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <NuqsAdapter>
-          <ReactQueryStreamedHydration>{children}</ReactQueryStreamedHydration>
-        </NuqsAdapter>
+        <AdminToolsInit />
+        {children}
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </Provider>

@@ -1,8 +1,12 @@
-import Link from 'next/link';
+import { Link } from '@timber-js/app/client';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const About = () => (
   <div className="content">
-    <h1 className="mb-4">Welcome to Relisten.net</h1>
+    <div className="mb-4 flex items-center justify-between gap-4">
+      <h1 className="m-0">Welcome to Relisten.net</h1>
+      <ThemeToggle />
+    </div>
 
     <p>Peruse the various bands and enjoy their extensive live catalogues for free.</p>
 
@@ -55,7 +59,7 @@ const About = () => (
         https://github.com/relistennet
       </a>
       . We maintain a level of direction for our vision, but we do welcome contributions. If you are
-      interested, best to stop by <a href="/discord">our Discord</a> to discuss what you'd like to
+      interested, best to stop by <a href="/discord">our Discord</a> to discuss what you’d like to
       contribute. Or you can always open an issue on Github with questions or bugs.
     </p>
 
@@ -93,7 +97,7 @@ const About = () => (
     <p>
       This site complies with{' '}
       <a href="https://archive.org/post/261115/hotlinking-allowed" target="_blank" rel="noreferrer">
-        Archive.org's policy
+        Archive.org’s policy
       </a>
       .
     </p>

@@ -1,23 +1,28 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import Flex from './Flex';
 
+const DISMISSED_KEY = 'relistenAndroidNotificationDismissed';
+const listeners = new Set<() => void>();
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
 export default function AndroidUpgradeNotification() {
-  const [alertVisible, setAlertVisible] = useState(false);
+  // Hidden on the server and until localStorage says it hasn't been dismissed.
+  const alertVisible = useSyncExternalStore(
+    subscribe,
+    () => !localStorage.getItem(DISMISSED_KEY),
+    () => false
+  );
 
   const dismissAlert = () => {
-    localStorage.setItem('relistenAndroidNotificationDismissed', 'true');
-    setAlertVisible(false);
+    localStorage.setItem(DISMISSED_KEY, 'true');
+    listeners.forEach((listener) => listener());
   };
-
-  useEffect(() => {
-    const androidUpgradeNotificationDismissed = localStorage.getItem(
-      'relistenAndroidNotificationDismissed'
-    );
-
-    setAlertVisible(!androidUpgradeNotificationDismissed);
-  }, []);
 
   return alertVisible ? (
     <Flex column className="border-b-[1px] border-b-[#aeaeae]">

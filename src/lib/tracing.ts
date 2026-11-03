@@ -16,7 +16,7 @@ import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
 import type { Context, SpanKind, Attributes, Link } from '@opentelemetry/api';
 
 const staticExtensions = ['.js', '.css', '.map', '.png', '.jpg', '.svg', '.ico', '.woff', '.woff2'];
-const ignorePaths = ['/api/health', '/api/status', '/_next/static/', '/_next/image'];
+const ignorePaths = ['/api/health', '/api/status'];
 
 function shouldIgnorePath(path: string): boolean {
   if (ignorePaths.some((p) => path.startsWith(p))) return true;
@@ -67,18 +67,40 @@ export function initTracing() {
       url: process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT ?? `${baseUrl}/v1/traces`,
       headers,
     }),
-    metricReaders: [new PeriodicExportingMetricReader({
-      exporter: new OTLPMetricExporter({
-        url: process.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT ?? `${baseUrl}/v1/metrics`,
-        headers,
+    metricReaders: [
+      new PeriodicExportingMetricReader({
+        exporter: new OTLPMetricExporter({
+          url: process.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT ?? `${baseUrl}/v1/metrics`,
+          headers,
+        }),
       }),
-    })],
+    ],
     sampler: new NoiseFilterSampler(
       new ParentBasedSampler({ root: new TraceIdRatioBasedSampler(0.05) })
     ),
     instrumentations: [
       new HttpInstrumentation({
         ignoreIncomingRequestHook: (req) => shouldIgnorePath(req.url ?? ''),
+        applyCustomAttributesOnSpan: (span, req) => {
+          if ('headers' in req && typeof req.headers === 'object') {
+            const headers = req.headers as Record<string, string | string[] | undefined>;
+            const cfIp = headers['cf-connecting-ip'];
+            const realIp = headers['x-real-ip'];
+            const forwarded = headers['x-forwarded-for'];
+            const ip =
+              (typeof cfIp === 'string' ? cfIp : undefined) ??
+              (typeof realIp === 'string' ? realIp : undefined) ??
+              (typeof forwarded === 'string'
+                ? forwarded.split(',')[0]?.trim()
+                : Array.isArray(forwarded)
+                  ? forwarded[0]?.split(',')[0]?.trim()
+                  : undefined);
+            if (ip) {
+              span.setAttribute('net.peer.ip', ip);
+              span.setAttribute('client.address', ip);
+            }
+          }
+        },
       }),
     ],
   });

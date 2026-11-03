@@ -11,7 +11,7 @@ export default function Scroller({
     containerRef?.current
       ?.querySelector(`[data-is-active="true"]`)
       ?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-  }, [containerRef.current]);
+  }, [containerRef]);
 
   return null;
 }
