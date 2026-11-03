@@ -1,5 +1,5 @@
 import { PropsWithChildren } from 'react';
 
 export default function BlogLayout({ children }: PropsWithChildren) {
-  return <div>{children}</div>;
+  return <div className="blog-post">{children}</div>;
 }

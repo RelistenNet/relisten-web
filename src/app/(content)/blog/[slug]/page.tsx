@@ -27,7 +27,7 @@ export default async function BlogPostPage() {
   const { default: MdxComponent } = await loader();
 
   return (
-    <div className="blog-post">
+    <div>
       {post.is_draft && (
         <div
           className="
