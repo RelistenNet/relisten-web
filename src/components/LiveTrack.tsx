@@ -115,7 +115,7 @@ export default function LiveTrack({
 
           {/* Footer with app type and time */}
           <div className="flex items-center justify-between">
-            <span className="text-xs text-foreground-muted capitalize">{app_type_description}</span>
+            <span className="text-xs text-foreground-muted">{app_type_description}</span>
             <span className="text-xs text-foreground-muted">
               <TimeAgo date={created_at} formatter={formatterFn} />
             </span>

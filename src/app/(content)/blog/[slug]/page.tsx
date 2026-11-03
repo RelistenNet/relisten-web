@@ -27,7 +27,7 @@ export default async function BlogPostPage() {
   const { default: MdxComponent } = await loader();
 
   return (
-    <div className="blog-post pt-3 pb-6">
+    <div className="blog-post">
       {post.is_draft && (
         <div
           className="
@@ -95,13 +95,13 @@ export default async function BlogPostPage() {
           &larr; All posts
         </Link>
         <div className="text-right">
-          Have a thought?{' '}
+          Have a thought?
           <a
             href="mailto:team@relisten.net"
-            className="text-foreground/85 underline decoration-foreground/30 underline-offset-4 hover:text-foreground"
+            className="ml-2 text-foreground/85 underline decoration-foreground/30 underline-offset-4 hover:text-foreground"
             rel="nofollow"
           >
-            Email us
+            Please email us!
           </a>
         </div>
       </footer>

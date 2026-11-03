@@ -7,7 +7,7 @@ export default function PagesLayout({ children }: PropsWithChildren) {
     <Flex column className="lg:h-dvh">
       <NavBar />
       <div className="flex-1 px-4 pt-2 lg:overflow-y-auto">
-        <div className="mx-auto max-w-2xl pb-8 has-[.blog-post]:max-w-[36rem]">{children}</div>
+        <div className="mx-auto my-8 max-w-2xl has-[.blog-post]:max-w-xl">{children}</div>
       </div>
     </Flex>
   );
