@@ -1,82 +1,78 @@
+/* oxlint-disable react/no-unknown-property */
 import { ImageResponse } from 'takumi-js/response';
-import { getPost } from '@/lib/blog/getPosts';
+import getPosts, { getPost } from '@/lib/blog/getPosts';
 import { getAuthor } from '@/lib/blog/authors';
+import { CARD_COLORS as C, SpacedText, loadCardFonts } from '@/lib/cardStyle';
 import { format, parseISO } from 'date-fns';
-import getPosts from '@/lib/blog/getPosts';
+import { getSegmentParams } from '@timber-js/app/server';
+import { SEGMENT_PATH } from './$segment';
 
 export const alt = 'Relisten Blog';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
-export default async function OGImage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+/** A spaced uppercase label flanked by hairline rules, as on the album art. */
+function RuledLabel({ text, color, fontSize }: { text: string; color: string; fontSize: number }) {
+  return (
+    <div tw="flex items-center w-full justify-center" style={{ gap: 20 }}>
+      <div tw="flex-1" style={{ height: 1, backgroundColor: C.rule, opacity: 0.5 }} />
+      <div tw="font-bold" style={{ color, fontSize }}>
+        <SpacedText gap={Math.round(fontSize * 0.22)} wordGap={Math.round(fontSize * 0.4)}>
+          {text.toUpperCase()}
+        </SpacedText>
+      </div>
+      <div tw="flex-1" style={{ height: 1, backgroundColor: C.rule, opacity: 0.5 }} />
+    </div>
+  );
+}
+
+function titleSize(title: string) {
+  if (title.length > 60) return 56;
+  if (title.length > 36) return 66;
+  return 80;
+}
+
+export default async function OGImage() {
+  const { slug } = getSegmentParams(SEGMENT_PATH);
   const post = getPost(slug, true);
+  const fonts = await loadCardFonts();
 
-  if (!post) {
-    return new ImageResponse(
-      <div
-        tw="flex h-full w-full items-center justify-center"
-        style={{ background: 'linear-gradient(135deg, #009DC1 0%, #001D24 100%)' }}
-      >
-        <div tw="text-white font-bold" style={{ fontSize: 48 }}>
-          Relisten Blog
-        </div>
-      </div>,
-      size
-    );
-  }
-
-  const postAuthors = post.authors.map(getAuthor);
-  const displayDate = format(parseISO(post.date), 'MMMM d, yyyy');
+  const title = post?.title ?? 'Relisten Blog';
+  const byline = post
+    ? `${post.authors.map((a) => getAuthor(a).name).join(' & ')}  ·  ${format(parseISO(post.date), 'MMMM yyyy')}`
+    : null;
 
   return new ImageResponse(
     <div
-      tw="flex h-full w-full flex-col justify-between p-12"
-      style={{
-        background: 'linear-gradient(135deg, #009DC1 0%, #001D24 100%)',
-      }}
+      tw="flex h-full w-full flex-col items-center relative"
+      style={{ background: C.background, padding: '64px 72px', fontFamily: 'Roboto' }}
     >
-      <div tw="flex flex-col">
+      <RuledLabel text="Relisten.net" color={C.label} fontSize={22} />
+
+      <div tw="flex flex-1 flex-col items-center justify-center w-full" style={{ gap: 20 }}>
         <div
-          tw="text-white font-bold"
+          tw="font-black text-center"
           style={{
-            fontSize: 48,
-            lineHeight: 1.15,
-            letterSpacing: '-0.02em',
+            color: C.headline,
+            fontSize: titleSize(title),
+            lineHeight: 1.08,
+            letterSpacing: '-0.01em',
+            textWrap: 'balance',
+            maxWidth: 1000,
           }}
         >
-          {post.title}
+          {title}
         </div>
-
-        <div
-          tw="text-white/80"
-          style={{
-            fontSize: 24,
-            marginTop: 12,
-          }}
-        >
-          {post.subtitle}
-        </div>
-      </div>
-
-      <div tw="flex items-center justify-between">
-        <div tw="flex items-center">
-          <div tw="flex flex-col">
-            <div tw="text-white" style={{ fontSize: 20 }}>
-              {postAuthors.map((a) => a.name).join(', ')}
-            </div>
-            <div tw="text-white/60" style={{ fontSize: 16, marginTop: 4 }}>
-              {displayDate}
-            </div>
+        {post?.subtitle && (
+          <div tw="text-center" style={{ color: C.label, fontSize: 30 }}>
+            {post.subtitle}
           </div>
-        </div>
-
-        <div tw="text-white font-bold" style={{ fontSize: 24 }}>
-          Relisten.net
-        </div>
+        )}
       </div>
+
+      {byline && <RuledLabel text={byline} color={C.muted} fontSize={18} />}
     </div>,
-    size
+    { ...size, fonts }
   );
 }
 

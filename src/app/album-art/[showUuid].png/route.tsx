@@ -7,26 +7,7 @@ import { defineSearchParams } from '@timber-js/app/search-params';
 import { z } from 'zod/v4';
 import { getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
-
-function SpacedText({
-  children,
-  gap,
-  wordGap,
-}: {
-  children: string;
-  gap: number;
-  wordGap: number;
-}) {
-  return (
-    <div tw="flex items-center justify-center" style={{ gap }}>
-      {children
-        .split('')
-        .map((char, i) =>
-          char === ' ' ? <div key={i} style={{ width: wordGap }} /> : <span key={i}>{char}</span>
-        )}
-    </div>
-  );
-}
+import { SpacedText, loadCardFonts } from '@/lib/cardStyle';
 
 function parseDisplayDate(displayDate: string) {
   const months = [
@@ -63,26 +44,6 @@ const searchParams = defineSearchParams({
   debug: z.coerce.boolean().default(false),
 });
 
-// Pinned fontsource version; fonts are fetched once per process and reused.
-const FONT_BASE = 'https://cdn.jsdelivr.net/fontsource/fonts/roboto@5.3.0';
-
-async function fetchFont(weight: number): Promise<ArrayBuffer> {
-  const res = await fetch(`${FONT_BASE}/latin-${weight}-normal.ttf`);
-  if (!res.ok) throw new Error(`Failed to load Roboto ${weight}: ${res.status}`);
-  return res.arrayBuffer();
-}
-
-let fontsPromise: Promise<[ArrayBuffer, ArrayBuffer, ArrayBuffer]> | undefined;
-
-function loadFonts() {
-  fontsPromise ??= Promise.all([fetchFont(400), fetchFont(700), fetchFont(900)]).catch((err) => {
-    // Don't cache failures; retry on the next request.
-    fontsPromise = undefined;
-    throw err;
-  });
-  return fontsPromise;
-}
-
 export async function GET() {
   const { showUuid } = getSegmentParams(SEGMENT_PATH);
 
@@ -100,7 +61,7 @@ export async function GET() {
 
   if (!show || !show.sources?.length) return new Response('Not Found', { status: 404 });
 
-  const [fontReg, fontBold, fontMegaBold] = await loadFonts();
+  const fonts = await loadCardFonts();
 
   const artist = artists.find((artist) => artist.uuid === show.artist_uuid);
   const artistName = artist?.name ?? 'Unknown Artist';
@@ -249,26 +210,7 @@ export async function GET() {
     {
       width: size,
       height: size,
-      fonts: [
-        {
-          name: 'Roboto',
-          data: fontReg,
-          weight: 400,
-          style: 'normal',
-        },
-        {
-          name: 'Roboto',
-          data: fontBold,
-          weight: 700,
-          style: 'normal',
-        },
-        {
-          name: 'Roboto',
-          data: fontMegaBold,
-          weight: 900,
-          style: 'normal',
-        },
-      ],
+      fonts,
     }
   );
 
