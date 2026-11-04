@@ -2,6 +2,30 @@
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 
+/* Live page feed: a new row grows in from zero height (grid-template-rows 0fr -> 1fr),
+   pushing older rows down; the card clips the ones pushed past its bottom edge. */
+@keyframes live-row-enter {
+  from {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+  to {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+}
+
+.live-row-enter {
+  display: grid;
+  animation: live-row-enter 300ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-row-enter {
+    animation: none;
+  }
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;
