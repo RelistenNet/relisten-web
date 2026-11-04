@@ -61,7 +61,10 @@ export const useSourceData = ({
 
   const sourcesData = sortSources(show?.sources ?? []);
 
-  const activeSourceId = Number(source) || sourcesData[0]?.id;
+  // `?source=` is normally the numeric id; v3 endpoints (e.g. the Live page's
+  // summary) only expose source uuids, so accept either.
+  const sourceByUuid = sourcesData.find((s) => s.uuid && s.uuid === source);
+  const activeSourceId = sourceByUuid?.id ?? (Number(source) || sourcesData[0]?.id);
 
   const activeSourceObj = sourcesData.find((source) => source.id === activeSourceId);
 

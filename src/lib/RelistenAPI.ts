@@ -5,6 +5,7 @@ import { deny } from '@timber-js/app/server';
 import { cache } from 'react';
 import { cache as timberCache } from '@timber-js/app/cache';
 import { SERVER_API_DOMAIN } from './constants';
+import type { ApiLiveSummary } from './live';
 import { sortSources, sortTracksInSources } from './sortSources';
 import type {
   Artist,
@@ -64,6 +65,17 @@ const cachedLiveFetch = timberCache.data(
   {
     ttl: 10,
     key: (endpoint: string) => `live:${endpoint}`,
+    staleWhileRevalidate: true,
+  }
+);
+
+// The summary's window advances once a minute (the API aligns it to whole minutes and
+// caches each window), so refetching more often than every 30s buys nothing.
+const cachedLiveSummaryFetch = timberCache.data(
+  (endpoint: string) => softApiFetch<ApiLiveSummary | null>(endpoint, null),
+  {
+    ttl: 30,
+    key: (endpoint: string) => `live-summary:${endpoint}`,
     staleWhileRevalidate: true,
   }
 );
@@ -245,7 +257,14 @@ export class RelistenAPI {
   });
 
   // Live — never deny(); an empty result just renders the empty state.
-  static fetchLiveHistory = cache(async (limit = 1000): Promise<LiveHistoryItem[]> => {
+  static fetchLiveSummary = cache(async (monthDay: string): Promise<ApiLiveSummary | null> => {
+    // Only the artists list is used: ask for every artist and as few show rows as allowed.
+    return cachedLiveSummaryFetch(
+      safeApiPath`/api/v3/live/summary?minutes=15&sort=plays&artists_limit=100&shows_limit=1&max_per_artist=1&month_day=${monthDay}`
+    );
+  });
+
+  static fetchLiveHistory = cache(async (limit = 30): Promise<LiveHistoryItem[]> => {
     return (await cachedLiveFetch(
       safeApiPath`/api/v2/live/history?limit=${limit}`
     )) as LiveHistoryItem[];
