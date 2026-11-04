@@ -12,6 +12,7 @@
     "start": "timber preview",
     "lint": "oxlint",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
     "prepare": "git config --local core.hooksPath .githooks || true"
@@ -86,7 +87,8 @@
     "tailwindcss": "^4.3.4",
     "typescript": "^7.0.2",
     "vite": "^8.3.5",
-    "vite-plugin-satteri": "^0.3.12"
+    "vite-plugin-satteri": "^0.3.12",
+    "vitest": "^5.1.0"
   },
   "lint-staged": {
     "*": "oxfmt --write --ignore-path .gitignore --no-error-on-unmatched-pattern"

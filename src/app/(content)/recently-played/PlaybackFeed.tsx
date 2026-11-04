@@ -36,6 +36,7 @@ export default function PlaybackFeed({ initialPlays, renderedAt }: Props) {
     const lastSeenId = plays[0]?.id;
     const qs = lastSeenId ? `?lastSeenId=${lastSeenId}&limit=200` : '?limit=30';
     const res = await fetch(`${API_DOMAIN}/api/v2/live/history${qs}`, { signal });
+    if (!res.ok) throw new Error(`live history: HTTP ${res.status}`);
     const incoming = slimPlays(await res.json());
     setPlays((prev) => mergePlays(prev, incoming));
   }, POLL_MS);

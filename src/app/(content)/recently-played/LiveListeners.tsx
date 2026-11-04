@@ -26,10 +26,18 @@ type Props = {
 export default function LiveListeners({ initialSummary, today, feed }: Props) {
   const [summary, setSummary] = useState(initialSummary);
 
-  usePolling(async (signal) => {
-    const res = await fetch(`/api/live/summary?month=${today.month}&day=${today.day}`, { signal });
-    if (res.ok) setSummary(await res.json());
-  }, POLL_MS);
+  // The server render just fetched the summary, so the first poll waits a full interval.
+  usePolling(
+    async (signal) => {
+      const res = await fetch(`/api/live/summary?month=${today.month}&day=${today.day}`, {
+        signal,
+      });
+      if (!res.ok) throw new Error(`live summary: HTTP ${res.status}`);
+      setSummary(await res.json());
+    },
+    POLL_MS,
+    { immediate: false }
+  );
 
   const shown = summary.artists.slice(0, COLLAPSED_ROWS);
   const more = summary.artists.slice(COLLAPSED_ROWS);
