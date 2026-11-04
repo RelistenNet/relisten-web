@@ -15,7 +15,7 @@ const POLL_MS = 10_000;
  * start time, shifted back by a little more than the poll interval, turns those
  * bursts into a steady stream at the pace people are actually pressing play.
  */
-const REPLAY_LAG_MS = 15_000;
+const REPLAY_LAG_MS = 4_000;
 /** Same as the artist list's collapsed length, so rows line up side by side. */
 const ROWS = 10;
 
@@ -50,9 +50,9 @@ export default function PlaybackFeed({ initialPlays, renderedAt }: Props) {
       {/* Phones get the 3 newest so the artist list still starts near the top. */}
       <div
         className="
-        flex flex-1 flex-col divide-y divide-hairline overflow-hidden rounded-lg border border-hairline
-        bg-surface max-lg:[&>*:nth-child(n+4)]:hidden
-      "
+          flex flex-1 flex-col divide-y divide-hairline overflow-hidden rounded-lg border
+          border-hairline bg-surface max-lg:[&>*:nth-child(n+4)]:hidden
+        "
       >
         {rows.map((play) => (
           <PlaybackRow key={play.id} play={play} serverNow={renderedAt} />
