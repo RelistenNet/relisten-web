@@ -50,13 +50,19 @@ export default function PlaybackFeed({ initialPlays, renderedAt }: Props) {
       {/* Phones get the 3 newest so the artist list still starts near the top. */}
       <div
         className="
-        flex-1 divide-y divide-hairline overflow-hidden rounded-lg border border-hairline bg-surface
-        max-lg:[&>*:nth-child(n+4)]:hidden
+        flex flex-1 flex-col divide-y divide-hairline overflow-hidden rounded-lg border border-hairline
+        bg-surface max-lg:[&>*:nth-child(n+4)]:hidden
       "
       >
         {rows.map((play) => (
           <PlaybackRow key={play.id} play={play} serverNow={renderedAt} />
         ))}
+        {/* Fills the space beside the list's "more artists" row, divider included, so both
+            cards end the same way. Only when the feed is stretched to the list's height. */}
+        <div
+          aria-hidden
+          className="hidden flex-1 lg:block lg:group-has-[details[open]]/live:hidden"
+        />
       </div>
     </section>
   );
