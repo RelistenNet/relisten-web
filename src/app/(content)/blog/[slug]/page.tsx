@@ -97,7 +97,7 @@ export default async function BlogPostPage() {
         <div className="text-right">
           Have a thought?
           <a
-            href={`mailto:team@relisten.net?subject=${encodeURIComponent(`Re: ${post.title}`)}`}
+            href={`mailto:team@relisten.net?subject=${encodeURIComponent(`On: ${post.title}`)}`}
             className="ml-2 text-foreground/85 underline decoration-foreground/30 underline-offset-4 hover:text-foreground"
             rel="nofollow"
           >
