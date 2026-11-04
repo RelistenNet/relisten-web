@@ -163,6 +163,23 @@ export function mergePlays(existing: LivePlay[], incoming: LivePlay[]) {
     .slice(0, FEED_BUFFER);
 }
 
+/** Fewer buffered plays than this, or a shorter span, is too little to quote a rate from. */
+const MIN_RATE_PLAYS = 10;
+const MIN_RATE_SPAN_MS = 15_000;
+
+/**
+ * Tracks started per minute, from the feed's buffered plays (newest first). The
+ * buffer holds the latest ~100 plays, about the last minute at current volume.
+ * Null until there's enough to say.
+ */
+export function tracksPerMinute(plays: LivePlay[]): number | null {
+  if (plays.length < MIN_RATE_PLAYS) return null;
+  const spanMs = plays[0].playedAt - plays[plays.length - 1].playedAt;
+  if (spanMs < MIN_RATE_SPAN_MS) return null;
+  // n plays span n - 1 gaps.
+  return ((plays.length - 1) / spanMs) * 60_000;
+}
+
 /**
  * When the next not-yet-revealed play comes due, or null if none is waiting.
  * The feed shows a play once `playedAt + lagMs` has passed; `revealedUntil` is

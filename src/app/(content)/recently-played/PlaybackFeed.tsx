@@ -4,7 +4,14 @@ import { Link } from '@timber-js/app/client';
 import { useEffect, useState } from 'react';
 import TimeAgo from '@/components/TimeAgo';
 import { API_DOMAIN } from '@/lib/constants';
-import { formatShowDate, mergePlays, nextRevealAt, slimPlays, type LivePlay } from '@/lib/live';
+import {
+  formatShowDate,
+  mergePlays,
+  nextRevealAt,
+  slimPlays,
+  tracksPerMinute,
+  type LivePlay,
+} from '@/lib/live';
 import { usePollingState } from '@/lib/usePolling';
 import { splitShowDate } from '@/lib/utils';
 
@@ -43,6 +50,7 @@ export default function PlaybackFeed({ initialPlays, renderedAt }: Props) {
   const rows = useRevealedPlays(plays, renderedAt).slice(0, ROWS);
 
   if (rows.length === 0) return null;
+  const rate = tracksPerMinute(plays);
 
   return (
     <section className="flex flex-1 flex-col">
@@ -51,18 +59,17 @@ export default function PlaybackFeed({ initialPlays, renderedAt }: Props) {
       <div
         className="
           flex flex-1 flex-col divide-y divide-hairline overflow-hidden rounded-lg border
-          border-hairline bg-surface max-lg:[&>*:nth-child(n+4)]:hidden
+          border-hairline bg-surface max-lg:[&>*:nth-child(n+4):not(:last-child)]:hidden
         "
       >
         {rows.map((play) => (
           <PlaybackRow key={play.id} play={play} serverNow={renderedAt} />
         ))}
-        {/* Fills the space beside the list's "more artists" row, divider included, so both
-            cards end the same way. Only when the feed is stretched to the list's height. */}
-        <div
-          aria-hidden
-          className="hidden flex-1 lg:block lg:group-has-[details[open]]/live:hidden"
-        />
+        {/* Footer row: matches the list's "more artists" row, and fills the rest of the
+            card when it's stretched to the list's height. */}
+        <div className="flex-1 px-3 py-2 text-sm text-text-muted tabular-nums">
+          {rate !== null && `~${Math.round(rate)} tracks a minute`}
+        </div>
       </div>
     </section>
   );
@@ -106,9 +113,10 @@ function PlaybackRow({ play, serverNow }: { play: LivePlay; serverNow: number })
           {play.artistName} · {formatShowDate(play.displayDate)}
         </div>
       </div>
-      {/* Real time since the track started (the feed itself runs REPLAY_LAG_MS behind). */}
+      {/* Counted from when the row appears, not when the track started: the feed replays
+          REPLAY_LAG_MS behind, and showing that delay would make a live feed read as stale. */}
       <div className="shrink-0 text-xs text-text-muted tabular-nums">
-        <TimeAgo at={play.playedAt} serverNow={serverNow} />
+        <TimeAgo at={play.playedAt + REPLAY_LAG_MS} serverNow={serverNow} />
       </div>
     </Link>
   );

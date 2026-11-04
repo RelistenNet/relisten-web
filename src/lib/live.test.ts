@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { formatAgo } from '@/components/TimeAgo';
-import { formatListeners, nextRevealAt, toMonthDay, type LivePlay } from './live';
+import { formatListeners, nextRevealAt, toMonthDay, tracksPerMinute, type LivePlay } from './live';
 
 const play = (id: number, playedAt: number): LivePlay => ({
   id,
@@ -45,5 +45,22 @@ describe('formatting', () => {
     expect(formatAgo(59_999)).toBe('59s');
     expect(formatAgo(60_000)).toBe('1m');
     expect(formatAgo(-500)).toBe('0s');
+  });
+});
+
+describe('tracksPerMinute', () => {
+  const at = (secondsAgo: number[]) =>
+    secondsAgo
+      .map((s, i) => play(i, 1_000_000 - s * 1_000))
+      .sort((a, b) => b.playedAt - a.playedAt);
+
+  it('is plays per minute over the buffered span', () => {
+    // 11 plays, one every 6s: 10 gaps over 60s = 10 a minute.
+    expect(tracksPerMinute(at([0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60]))).toBeCloseTo(10);
+  });
+
+  it('is null with too few plays or too short a span', () => {
+    expect(tracksPerMinute(at([0, 1, 2]))).toBeNull();
+    expect(tracksPerMinute(at([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))).toBeNull(); // 10s span
   });
 });
