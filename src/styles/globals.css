@@ -241,6 +241,10 @@
   --input: var(--dark-hairline);
 }
 
+/* Embeds are always light, regardless of OS theme or the theme cookie.
+   The --color-* tokens are computed once at :root (custom properties inherit
+   their resolved value), so overriding --resolved-* alone is not enough —
+   every --color-* token must be re-declared here too. */
 .embed-force-light {
   color-scheme: light;
   --resolved-surface: var(--light-surface);
@@ -253,16 +257,41 @@
   --resolved-text-secondary: var(--light-text-secondary);
   --resolved-text-muted: var(--light-text-muted);
   --resolved-accent: var(--light-accent);
+  --resolved-nav-border: var(--light-nav-border);
+  --resolved-column-header: var(--light-column-header);
+  --resolved-column-header-text: var(--light-column-header-text);
+  --resolved-column-subheader: var(--light-column-subheader);
+  --resolved-column-subheader-text: var(--light-column-subheader-text);
   --color-surface: var(--light-surface);
   --color-surface-raised: var(--light-surface-raised);
   --color-surface-elevated: var(--light-surface-elevated);
+  --color-surface-recessed: var(--light-surface-recessed);
   --color-surface-hover: var(--light-surface-hover);
-  --color-text-primary: var(--light-text-primary);
-  --color-text-muted: var(--light-text-muted);
   --color-hairline: var(--light-hairline);
+  --color-text-primary: var(--light-text-primary);
+  --color-text-secondary: var(--light-text-secondary);
+  --color-text-muted: var(--light-text-muted);
   --color-accent: var(--light-accent);
+  --color-nav-border: var(--light-nav-border);
+  --color-column-header: var(--light-column-header);
+  --color-column-header-text: var(--light-column-header-text);
+  --color-column-subheader: var(--light-column-subheader);
+  --color-column-subheader-text: var(--light-column-subheader-text);
+  --color-foreground: var(--light-text-primary);
+  --color-foreground-muted: var(--light-text-muted);
+  --color-background: var(--light-surface);
+  --color-background-muted: var(--light-surface-recessed);
+  --background: var(--light-surface);
   --foreground: var(--light-text-primary);
+  --popover: #ffffff;
+  --popover-foreground: var(--light-text-primary);
+  --muted: var(--light-surface-elevated);
   --muted-foreground: var(--light-text-muted);
+  --accent: var(--light-surface-elevated);
+  --accent-foreground: var(--light-text-primary);
+  --border: var(--light-hairline);
+  --input: rgba(9, 9, 11, 0.15);
+  color: var(--light-text-primary);
 }
 
 /*

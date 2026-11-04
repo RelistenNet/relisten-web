@@ -231,6 +231,10 @@ function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Qu
       );
     },
     onPlayBlocked: () => {
+      // In embeds/iframes the toast covers most of the player and its "lock icon"
+      // advice refers to the host page's address bar. Just stay paused — the
+      // play button is right there.
+      if (window.location.pathname.startsWith('/embed') || window.self !== window.top) return;
       autoplayToastVisible = true;
       deferToast(() =>
         toast.warning('Autoplay blocked', {
