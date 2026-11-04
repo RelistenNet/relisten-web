@@ -5,6 +5,7 @@ import { deny } from '@timber-js/app/server';
 import { cache } from 'react';
 import { cache as timberCache } from '@timber-js/app/cache';
 import { SERVER_API_DOMAIN } from './constants';
+import { toMonthDay, type ApiLiveSummary, type MonthDay } from './live';
 import { sortSources, sortTracksInSources } from './sortSources';
 import type {
   Artist,
@@ -48,6 +49,28 @@ async function apiFetch<T>(endpoint: string): Promise<T> {
     deny(404);
   }
 }
+
+// Live endpoints. These cached fetchers throw on failure rather than returning a
+// fallback: a thrown call isn't stored, and timber keeps serving the last good
+// entry while it retries. Returning a fallback here would cache the failure.
+const liveFetch = <T>(endpoint: string) => ky(`${SERVER_API_DOMAIN}${endpoint}`).json<T>();
+
+const cachedLiveFetch = timberCache.data((endpoint: string) => liveFetch<unknown[]>(endpoint), {
+  ttl: 10,
+  key: (endpoint: string) => `live:${endpoint}`,
+  staleWhileRevalidate: true,
+});
+
+// The summary's window advances once a minute (the API aligns it to whole minutes and
+// caches each window), so refetching more often than every 30s buys nothing.
+const cachedLiveSummaryFetch = timberCache.data(
+  (endpoint: string) => liveFetch<ApiLiveSummary>(endpoint),
+  {
+    ttl: 30,
+    key: (endpoint: string) => `live-summary:${endpoint}`,
+    staleWhileRevalidate: true,
+  }
+);
 
 const cachedApiFetch = timberCache.data(apiFetch, {
   ttl: 60 * 5, // 5 minutes
@@ -225,12 +248,28 @@ export class RelistenAPI {
     );
   });
 
-  static fetchLiveHistory = cache(async (lastSeenId?: string): Promise<LiveHistoryItem[]> => {
-    return apiFetch<LiveHistoryItem[]>(
-      lastSeenId
-        ? safeApiPath`/api/v2/live/history?lastSeenId=${lastSeenId}`
-        : '/api/v2/live/history'
-    );
+  // Live — never deny(); an empty result just renders the empty state.
+  /** Null when the API is unavailable (and nothing good is cached); callers decide how to degrade. */
+  static fetchLiveSummary = cache(async (today: MonthDay): Promise<ApiLiveSummary | null> => {
+    // Only the artists list is used: ask for every artist and as few show rows as allowed.
+    const endpoint = safeApiPath`/api/v3/live/summary?minutes=15&sort=plays&artists_limit=100&shows_limit=1&max_per_artist=1&month_day=${toMonthDay(today)}`;
+    try {
+      return await cachedLiveSummaryFetch(endpoint);
+    } catch (err) {
+      console.error(`Live summary unavailable: ${endpoint}`, err);
+      return null;
+    }
+  });
+
+  /** Empty when the API is unavailable; the feed fills in from the browser's own polling. */
+  static fetchLiveHistory = cache(async (limit = 30): Promise<LiveHistoryItem[]> => {
+    const endpoint = safeApiPath`/api/v2/live/history?limit=${limit}`;
+    try {
+      return (await cachedLiveFetch(endpoint)) as LiveHistoryItem[];
+    } catch (err) {
+      console.error(`Live history unavailable: ${endpoint}`, err);
+      return [];
+    }
   });
 }
 
