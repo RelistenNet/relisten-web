@@ -5,7 +5,7 @@ import { fromArtistRow, type ArtistListItem, type ArtistRow } from '@/lib/artist
 import { fuzzyMatch, type HighlightRanges } from '@nozbe/microfuzz';
 import { useSegmentParams } from '@timber-js/app/client';
 import { X } from 'lucide-react';
-import { Suspense, use, useMemo, useRef, useState, useTransition } from 'react';
+import { use, useDeferredValue, useMemo, useRef, useState, useTransition } from 'react';
 import ArtistsColumnWithControls from './ArtistsColumnWithControls';
 
 type Tab = 'primary' | 'all';
@@ -20,24 +20,22 @@ type ArtistsSelectionTabProps = {
 const ArtistsSelectionTab = ({ primary, archive }: ArtistsSelectionTabProps) => {
   const primaryArtists = useMemo(() => primary.map(fromArtistRow), [primary]);
 
-  return (
-    <Suspense fallback={<ArtistsTabs primaryArtists={primaryArtists} archiveArtists={null} />}>
-      <WithArchive primaryArtists={primaryArtists} archive={archive} />
-    </Suspense>
+  // The first render (SSR and hydration) sees `null` and shows the primary
+  // list. React then re-renders in the background with the real promise; while
+  // `use()` is still waiting on it, React keeps the current UI instead of
+  // showing a Suspense fallback. So there is one `ArtistsTabs` instance
+  // throughout, and the user's tab, search text and input focus survive the
+  // archive arriving. (A Suspense fallback would be a different instance, and
+  // swapping it out would reset all three.)
+  const deferredArchive = useDeferredValue<Promise<ArtistRow[]> | null>(archive, null);
+  const archiveRows = deferredArchive ? use(deferredArchive) : null;
+  const archiveArtists = useMemo(
+    () => archiveRows && archiveRows.map(fromArtistRow),
+    [archiveRows]
   );
-};
 
-function WithArchive({
-  primaryArtists,
-  archive,
-}: {
-  primaryArtists: ArtistListItem[];
-  archive: Promise<ArtistRow[]>;
-}) {
-  const rows = use(archive);
-  const archiveArtists = useMemo(() => rows.map(fromArtistRow), [rows]);
   return <ArtistsTabs primaryArtists={primaryArtists} archiveArtists={archiveArtists} />;
-}
+};
 
 type ArtistsTabsProps = {
   primaryArtists: ArtistListItem[];
