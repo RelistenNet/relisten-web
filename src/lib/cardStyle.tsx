@@ -64,3 +64,28 @@ export async function loadCardFonts() {
     { name: 'Roboto', data: black, weight: 900 as const, style: 'normal' as const },
   ];
 }
+
+/** A spaced uppercase label flanked by hairline rules. */
+export function RuledLabel({
+  text,
+  color,
+  fontSize,
+  keepCasing,
+}: {
+  text: string;
+  color: string;
+  fontSize: number;
+  keepCasing?: boolean;
+}) {
+  return (
+    <div tw="flex items-center w-full justify-center" style={{ gap: 20 }}>
+      <div tw="flex-1" style={{ height: 1, backgroundColor: CARD_COLORS.rule, opacity: 0.5 }} />
+      <div tw="font-bold" style={{ color, fontSize }}>
+        <SpacedText gap={Math.round(fontSize * 0.22)} wordGap={Math.round(fontSize * 0.4)}>
+          {keepCasing ? text : text.toUpperCase()}
+        </SpacedText>
+      </div>
+      <div tw="flex-1" style={{ height: 1, backgroundColor: CARD_COLORS.rule, opacity: 0.5 }} />
+    </div>
+  );
+}
