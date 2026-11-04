@@ -68,7 +68,7 @@ export function usePolling(
  * `initial` (usually server-rendered). `fetchNext` gets the current value, so
  * it can request only what's new and merge it in.
  */
-export function usePolled<T>(
+export function usePollingState<T>(
   initial: T,
   fetchNext: (signal: AbortSignal, current: T) => Promise<T>,
   intervalMs: number,

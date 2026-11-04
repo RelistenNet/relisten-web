@@ -4,7 +4,7 @@ import { Link } from '@timber-js/app/client';
 import { API_DOMAIN } from '@/lib/constants';
 import { formatShowDate, mergePlays, slimPlays, type LivePlay } from '@/lib/live';
 import { useNow } from '@/lib/useNow';
-import { usePolled } from '@/lib/usePolling';
+import { usePollingState } from '@/lib/usePolling';
 import { splitShowDate } from '@/lib/utils';
 
 const POLL_MS = 10_000;
@@ -30,7 +30,7 @@ export default function PlaybackFeed({ initialPlays, renderedAt }: Props) {
   const now = useNow(TICK_MS, renderedAt);
 
   // The only per-play stream; CORS-open and small per poll, so the browser reads it directly.
-  const plays = usePolled(
+  const plays = usePollingState(
     initialPlays,
     async (signal, current) => {
       const lastSeenId = current[0]?.id;

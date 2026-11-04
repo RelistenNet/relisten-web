@@ -9,7 +9,7 @@ import {
   type LiveSummary,
   type MonthDay,
 } from '@/lib/live';
-import { usePolled } from '@/lib/usePolling';
+import { usePollingState } from '@/lib/usePolling';
 import { simplePluralize, splitShowDate } from '@/lib/utils';
 
 /** The API's summary window only advances once a minute. */
@@ -25,7 +25,7 @@ type Props = {
 
 export default function LiveListeners({ initialSummary, today, feed }: Props) {
   // The server render just fetched the summary, so the first poll waits a full interval.
-  const summary = usePolled(
+  const summary = usePollingState(
     initialSummary,
     async (signal): Promise<LiveSummary> => {
       const res = await fetch(`/api/live/summary?month=${today.month}&day=${today.day}`, {
