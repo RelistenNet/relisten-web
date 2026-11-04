@@ -53,12 +53,13 @@ export default function LiveListeners({ initialSummary, today, feed }: Props) {
 
       {/* Collapsed, the feed stretches to the list's height so the bottoms line up. With
           "more artists" open the list gets long, so the feed keeps its own height and
-          sticks in view instead. */}
+          sticks in view instead. The explicit minmax(0, 1fr) column on phones keeps one-line
+          (truncated) rows from sizing the column to their full text and overflowing the page. */}
       <div
         className="
-        group/live grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-stretch
-        lg:has-[details[open]]:items-start
-      "
+          group/live grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]
+          lg:items-stretch lg:has-[details[open]]:items-start
+        "
       >
         <div
           className="
