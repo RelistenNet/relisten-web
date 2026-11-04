@@ -72,7 +72,7 @@ export default function LiveListeners({ initialSummary, today, feed }: Props) {
 
         <div className="lg:col-start-1 lg:row-start-1">
           {/* Matches the "Just started" heading so both cards start on the same line. */}
-          <h2 className="mb-2 text-sm font-semibold text-text-primary">Listeners by artist</h2>
+          <h2 className="mb-2 text-sm font-semibold text-text-primary">Listeners By Artist</h2>
           {summary.artists.length === 0 ? (
             <p className="rounded-lg border border-hairline bg-surface px-4 py-8 text-center text-sm text-text-muted">
               Nobody is listening right now.
@@ -124,7 +124,7 @@ function ArtistRow({ artist }: { artist: LiveArtist }) {
       prefetch={false}
       className="group flex items-center px-4 py-2 transition-colors duration-150 hover:bg-surface-hover"
     >
-      <div className="mr-4 w-14 shrink-0 text-sm font-semibold text-accent tabular-nums">
+      <div className="mr-2 w-14 shrink-0 text-sm font-semibold text-accent tabular-nums">
         {formatListeners(artist.listeners, { min: 1 })}
       </div>
       <div className="min-w-0 flex-1">
@@ -136,13 +136,13 @@ function ArtistRow({ artist }: { artist: LiveArtist }) {
               {formatListeners(topShow.listeners, { min: 1 })}
             </span>{' '}
             on {formatShowDate(topShow.displayDate)}
+            {topShow.venueName && ` · ${topShow.venueName}`}
             {/* Next to the date it describes, so truncating the venue never hides it. */}
             {topShow.isOnThisDay && (
-              <Tag variant="info" className="py-0">
+              <Tag variant="success" className="py-0 hidden sm:inline-flex">
                 Today in History
               </Tag>
             )}
-            {topShow.venueName && ` · ${topShow.venueName}`}
           </div>
         )}
       </div>

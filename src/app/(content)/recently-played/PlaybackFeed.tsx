@@ -22,7 +22,7 @@ const POLL_MS = 10_000;
  * start time, shifted back by a little more than the poll interval, turns those
  * bursts into a steady stream at the pace people are actually pressing play.
  */
-const REPLAY_LAG_MS = 4_000;
+const REPLAY_LAG_MS = 8_000;
 /** Same as the artist list's collapsed length, so rows line up side by side. */
 const ROWS = 10;
 /**
@@ -62,7 +62,7 @@ export default function PlaybackFeed({ initialPlays, renderedAt }: Props) {
 
   return (
     <section className="flex flex-1 flex-col">
-      <h2 className="mb-2 text-sm font-semibold text-text-primary">Just started</h2>
+      <h2 className="mb-2 text-sm font-semibold text-text-primary">Real-Time</h2>
       <div
         className="
           flex flex-1 flex-col divide-y divide-hairline overflow-hidden rounded-lg border
