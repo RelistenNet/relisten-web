@@ -10,6 +10,7 @@ import { removeLeadingZero, splitShowDate } from './utils';
 
 /** The fields of the v3 live summary this page reads; the response has many more. */
 type ApiLiveSummaryShow = {
+  listened_seconds: number;
   source: TrackSource & { uuid?: string };
 };
 
@@ -33,8 +34,10 @@ export type LiveArtist = {
   artistName: string;
   artistSlug: string;
   listeners: number;
-  /** The show most of this artist's listening time is on. */
+  /** The artist's show with the most listening in the window. */
   topShow: {
+    /** Estimated listeners on this show alone (a share of the artist's total). */
+    listeners: number;
     displayDate: string;
     venueName?: string;
     /** Source uuid; the show page's `?source=` accepts it. */
@@ -83,6 +86,7 @@ export function slimSummary(api: ApiLiveSummary | null, today: MonthDay): LiveSu
         listeners: toListeners(a.listened_seconds, api.window_minutes),
         topShow: source?.display_date
           ? {
+              listeners: toListeners(a.top_show?.listened_seconds ?? 0, api.window_minutes),
               displayDate: source.display_date,
               venueName: getVenue(source)?.name,
               sourceUuid: source.uuid,

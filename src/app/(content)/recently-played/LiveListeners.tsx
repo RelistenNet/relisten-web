@@ -47,8 +47,7 @@ export default function LiveListeners({ initialSummary, today, feed }: Props) {
         {formatListeners(summary.listeners)} listening now
       </h1>
       <p className="mb-5 text-sm text-text-muted">
-        Estimated from tracks started on Relisten in the last{' '}
-        {simplePluralize('minute', summary.windowMinutes)}.
+        Estimated from recently played tracks and their durations
       </p>
 
       {/* Collapsed, the feed stretches to the list's height so the bottoms line up. With
@@ -130,7 +129,11 @@ function ArtistRow({ artist }: { artist: LiveArtist }) {
         <div className="truncate text-sm font-medium text-text-primary">{artist.artistName}</div>
         {topShow && (
           <div className="truncate text-xs text-text-muted">
-            {formatShowDate(topShow.displayDate)}
+            {/* The artist's most-listened show right now, with its share of the listeners. */}
+            <span className="tabular-nums">
+              {formatListeners(topShow.listeners, { min: 1 })}
+            </span>{' '}
+            on {formatShowDate(topShow.displayDate)}
             {topShow.venueName && ` · ${topShow.venueName}`}
             {topShow.isOnThisDay && <span className="text-accent"> · on this day</span>}
           </div>
