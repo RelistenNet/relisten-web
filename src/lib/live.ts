@@ -159,6 +159,16 @@ export function mergePlays(existing: LivePlay[], incoming: LivePlay[]) {
     .slice(0, FEED_BUFFER);
 }
 
+/**
+ * When the next not-yet-revealed play comes due, or null if none is waiting.
+ * The feed shows a play once `playedAt + lagMs` has passed; `revealedUntil` is
+ * the latest start time already shown. Plays are newest first.
+ */
+export function nextRevealAt(plays: LivePlay[], revealedUntil: number, lagMs: number) {
+  const next = plays.findLast((p) => p.playedAt > revealedUntil);
+  return next ? next.playedAt + lagMs : null;
+}
+
 // ---------------------------------------------------------------------------
 // Formatting
 // ---------------------------------------------------------------------------

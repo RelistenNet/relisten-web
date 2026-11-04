@@ -1,9 +1,10 @@
 'use client';
 
 import { Link } from '@timber-js/app/client';
+import { useEffect, useState } from 'react';
+import TimeAgo from '@/components/TimeAgo';
 import { API_DOMAIN } from '@/lib/constants';
-import { formatShowDate, mergePlays, slimPlays, type LivePlay } from '@/lib/live';
-import { useNow } from '@/lib/useNow';
+import { formatShowDate, mergePlays, nextRevealAt, slimPlays, type LivePlay } from '@/lib/live';
 import { usePollingState } from '@/lib/usePolling';
 import { splitShowDate } from '@/lib/utils';
 
@@ -15,7 +16,6 @@ const POLL_MS = 10_000;
  * bursts into a steady stream at the pace people are actually pressing play.
  */
 const REPLAY_LAG_MS = 15_000;
-const TICK_MS = 500;
 /** Same as the artist list's collapsed length, so rows line up side by side. */
 const ROWS = 10;
 
@@ -27,8 +27,6 @@ type Props = {
 };
 
 export default function PlaybackFeed({ initialPlays, renderedAt }: Props) {
-  const now = useNow(TICK_MS, renderedAt);
-
   // The only per-play stream; CORS-open and small per poll, so the browser reads it directly.
   const plays = usePollingState(
     initialPlays,
@@ -42,8 +40,7 @@ export default function PlaybackFeed({ initialPlays, renderedAt }: Props) {
     POLL_MS
   );
 
-  const replayTime = now - REPLAY_LAG_MS;
-  const rows = plays.filter((p) => p.playedAt <= replayTime).slice(0, ROWS);
+  const rows = useRevealedPlays(plays, renderedAt).slice(0, ROWS);
 
   if (rows.length === 0) return null;
 
@@ -58,16 +55,35 @@ export default function PlaybackFeed({ initialPlays, renderedAt }: Props) {
       "
       >
         {rows.map((play) => (
-          <PlaybackRow key={play.id} play={play} replayTime={replayTime} />
+          <PlaybackRow key={play.id} play={play} serverNow={renderedAt} />
         ))}
       </div>
     </section>
   );
 }
 
-function PlaybackRow({ play, replayTime }: { play: LivePlay; replayTime: number }) {
+/**
+ * The plays whose replay time has passed. Re-renders only when the next one
+ * comes due (one timer, set for that moment), not on a fixed tick.
+ */
+function useRevealedPlays(plays: LivePlay[], renderedAt: number) {
+  const [revealedUntil, setRevealedUntil] = useState(renderedAt - REPLAY_LAG_MS);
+  const dueAt = nextRevealAt(plays, revealedUntil, REPLAY_LAG_MS);
+
+  useEffect(() => {
+    if (dueAt === null) return;
+    const id = setTimeout(
+      () => setRevealedUntil(Date.now() - REPLAY_LAG_MS),
+      Math.max(0, dueAt - Date.now())
+    );
+    return () => clearTimeout(id);
+  }, [dueAt]);
+
+  return plays.filter((p) => p.playedAt <= revealedUntil);
+}
+
+function PlaybackRow({ play, serverNow }: { play: LivePlay; serverNow: number }) {
   const { year, month, day } = splitShowDate(play.displayDate);
-  const secondsAgo = Math.max(0, Math.round((replayTime - play.playedAt) / 1000));
 
   return (
     <Link
@@ -84,7 +100,10 @@ function PlaybackRow({ play, replayTime }: { play: LivePlay; replayTime: number 
           {play.artistName} · {formatShowDate(play.displayDate)}
         </div>
       </div>
-      <div className="shrink-0 text-xs text-text-muted tabular-nums">{secondsAgo}s</div>
+      {/* Real time since the track started (the feed itself runs REPLAY_LAG_MS behind). */}
+      <div className="shrink-0 text-xs text-text-muted tabular-nums">
+        <TimeAgo at={play.playedAt} serverNow={serverNow} />
+      </div>
     </Link>
   );
 }
