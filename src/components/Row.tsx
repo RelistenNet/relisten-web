@@ -1,8 +1,14 @@
 'use client';
 
 import cn from '@/lib/cn';
-import { Link, useLinkStatus } from '@timber-js/app/client';
-import React from 'react';
+import {
+  Link,
+  useLinkStatus,
+  usePathname,
+  usePendingNavigation,
+  useRouter,
+} from '@timber-js/app/client';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Flex from './Flex';
 import RowLoading from './RowLoading';
 
@@ -11,6 +17,14 @@ type RowProps = {
   href?: string;
   active?: boolean;
   loading?: boolean;
+  /**
+   * Clicking the row while already on `href` re-fetches the page with
+   * router.refresh() instead of navigating. A same-URL navigation sends the
+   * client state tree, so the server skips slots whose content is unchanged —
+   * which would leave server-randomized content (e.g. the random show on an
+   * artist page) stale.
+   */
+  refreshWhenCurrent?: boolean;
 };
 
 export const unwrapSegment = (val: unknown): string | undefined => {
@@ -22,13 +36,16 @@ function RowLinkContent({
   children,
   isActive,
   loading,
+  refreshing = false,
   ...props
 }: {
   children: React.ReactNode;
   isActive: boolean;
   loading?: boolean;
+  refreshing?: boolean;
 }) {
-  const { isPending } = useLinkStatus();
+  const linkStatus = useLinkStatus();
+  const isPending = linkStatus.isPending || refreshing;
 
   return (
     <Flex
@@ -60,7 +77,41 @@ function RowLinkContent({
   );
 }
 
-const Row = ({ children, href, active = false, loading, ...props }: RowProps) => {
+/**
+ * Mounted only while a row-triggered refresh is in flight, so idle rows don't
+ * subscribe to navigation state. Calls onDone once the refresh has started and
+ * settled (or after a timeout, in case it never reports as pending).
+ */
+function RefreshWatcher({ onDone }: { onDone: () => void }) {
+  const isPending = usePendingNavigation();
+  const sawPending = useRef(false);
+
+  useEffect(() => {
+    if (isPending) sawPending.current = true;
+    else if (sawPending.current) onDone();
+  }, [isPending, onDone]);
+
+  useEffect(() => {
+    const timeout = setTimeout(onDone, 10_000);
+    return () => clearTimeout(timeout);
+  }, [onDone]);
+
+  return null;
+}
+
+const Row = ({
+  children,
+  href,
+  active = false,
+  loading,
+  refreshWhenCurrent = false,
+  ...props
+}: RowProps) => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [refreshing, setRefreshing] = useState(false);
+  const endRefresh = useCallback(() => setRefreshing(false), []);
+
   if (!href) {
     return (
       <Flex
@@ -82,8 +133,28 @@ const Row = ({ children, href, active = false, loading, ...props }: RowProps) =>
   }
 
   return (
-    <Link href={href} prefetch={false} data-is-active={active}>
-      <RowLinkContent isActive={active} loading={loading} {...props}>
+    <Link
+      href={href}
+      prefetch={false}
+      data-is-active={active}
+      onClick={(event) => {
+        if (!refreshWhenCurrent || pathname !== href) return;
+        if (
+          event.button !== 0 ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey
+        ) {
+          return;
+        }
+        event.preventDefault();
+        setRefreshing(true);
+        router.refresh();
+      }}
+    >
+      {refreshing && <RefreshWatcher onDone={endRefresh} />}
+      <RowLinkContent isActive={active} loading={loading} refreshing={refreshing} {...props}>
         {children}
       </RowLinkContent>
     </Link>

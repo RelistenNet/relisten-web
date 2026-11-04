@@ -181,7 +181,11 @@ const ArtistsColumnWithControls = ({
       return <RowHeader>{item.label}</RowHeader>;
     }
     return (
-      <Row href={`/${item.artist.slug}`} active={item.artist.slug === currentArtistSlug}>
+      <Row
+        href={`/${item.artist.slug}`}
+        active={item.artist.slug === currentArtistSlug}
+        refreshWhenCurrent
+      >
         <div>
           <div>
             {item.artist.uuid && highlightRanges?.has(item.artist.uuid) ? (
