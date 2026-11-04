@@ -5,7 +5,7 @@ import { deny } from '@timber-js/app/server';
 import { cache } from 'react';
 import { cache as timberCache } from '@timber-js/app/cache';
 import { SERVER_API_DOMAIN } from './constants';
-import type { ApiLiveSummary } from './live';
+import { toMonthDay, type ApiLiveSummary, type MonthDay } from './live';
 import { sortSources, sortTracksInSources } from './sortSources';
 import type {
   Artist,
@@ -257,10 +257,10 @@ export class RelistenAPI {
   });
 
   // Live — never deny(); an empty result just renders the empty state.
-  static fetchLiveSummary = cache(async (monthDay: string): Promise<ApiLiveSummary | null> => {
+  static fetchLiveSummary = cache(async (today: MonthDay): Promise<ApiLiveSummary | null> => {
     // Only the artists list is used: ask for every artist and as few show rows as allowed.
     return cachedLiveSummaryFetch(
-      safeApiPath`/api/v3/live/summary?minutes=15&sort=plays&artists_limit=100&shows_limit=1&max_per_artist=1&month_day=${monthDay}`
+      safeApiPath`/api/v3/live/summary?minutes=15&sort=plays&artists_limit=100&shows_limit=1&max_per_artist=1&month_day=${toMonthDay(today)}`
     );
   });
 

@@ -1,9 +1,14 @@
 'use client';
 
 import { Link } from '@timber-js/app/client';
-import { useEffect, useState } from 'react';
-import { formatShowDate, type LivePlay } from '@/lib/live';
+import { useState } from 'react';
+import { API_DOMAIN } from '@/lib/constants';
+import { formatShowDate, mergePlays, slimPlays, type LivePlay } from '@/lib/live';
+import { useNow } from '@/lib/useNow';
+import { usePolling } from '@/lib/usePolling';
 import { splitShowDate } from '@/lib/utils';
+
+const POLL_MS = 10_000;
 
 /**
  * Plays reach us in bursts, one batch per poll. Replaying each one at its real
@@ -17,20 +22,25 @@ const ROWS = 10;
 
 type Props = {
   /** Newest first. */
-  plays: LivePlay[];
+  initialPlays: LivePlay[];
   /** Server render time, so the first client render matches the HTML exactly. */
   renderedAt: number;
 };
 
-export default function PlaybackFeed({ plays, renderedAt }: Props) {
-  const [clock, setClock] = useState(renderedAt);
+export default function PlaybackFeed({ initialPlays, renderedAt }: Props) {
+  const [plays, setPlays] = useState(initialPlays);
+  const now = useNow(TICK_MS, renderedAt);
 
-  useEffect(() => {
-    const id = setInterval(() => setClock(Date.now()), TICK_MS);
-    return () => clearInterval(id);
-  }, []);
+  // The only per-play stream; CORS-open and small per poll, so the browser reads it directly.
+  usePolling(async (signal) => {
+    const lastSeenId = plays[0]?.id;
+    const qs = lastSeenId ? `?lastSeenId=${lastSeenId}&limit=200` : '?limit=30';
+    const res = await fetch(`${API_DOMAIN}/api/v2/live/history${qs}`, { signal });
+    const incoming = slimPlays(await res.json());
+    setPlays((prev) => mergePlays(prev, incoming));
+  }, POLL_MS);
 
-  const replayTime = clock - REPLAY_LAG_MS;
+  const replayTime = now - REPLAY_LAG_MS;
   const rows = plays.filter((p) => p.playedAt <= replayTime).slice(0, ROWS);
 
   if (rows.length === 0) return null;

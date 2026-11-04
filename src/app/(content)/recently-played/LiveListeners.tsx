@@ -1,55 +1,38 @@
 'use client';
 
 import { Link } from '@timber-js/app/client';
-import { useState } from 'react';
-import cn from '@/lib/cn';
-import { API_DOMAIN } from '@/lib/constants';
+import { useState, type ReactNode } from 'react';
 import {
   formatListeners,
   formatShowDate,
-  mergePlays,
-  slimPlays,
   type LiveArtist,
-  type LivePlay,
   type LiveSummary,
+  type MonthDay,
 } from '@/lib/live';
 import { usePolling } from '@/lib/usePolling';
-import PlaybackFeed from './PlaybackFeed';
 import { simplePluralize, splitShowDate } from '@/lib/utils';
 
-/** The feed wants new plays quickly; the summary's window only advances once a minute. */
-const FEED_POLL_MS = 10_000;
-const SUMMARY_POLL_MS = 60_000;
+/** The API's summary window only advances once a minute. */
+const POLL_MS = 60_000;
 const COLLAPSED_ROWS = 10;
 
 type Props = {
   initialSummary: LiveSummary;
-  initialPlays: LivePlay[];
-  /** MM-DD in the viewer's timezone, for "on this day". */
-  monthDay: string;
-  /** Server render time, so the first client render matches the HTML exactly. */
-  renderedAt: number;
+  today: MonthDay;
+  /** The "Just started" column, placed beside the list on desktop and above it on phones. */
+  feed: ReactNode;
 };
 
-export default function LiveNow({ initialSummary, initialPlays, monthDay, renderedAt }: Props) {
+export default function LiveListeners({ initialSummary, today, feed }: Props) {
   const [summary, setSummary] = useState(initialSummary);
-  const [plays, setPlays] = useState(initialPlays);
-  const [expanded, setExpanded] = useState(false);
 
   usePolling(async (signal) => {
-    const res = await fetch(`/api/live/summary?month_day=${monthDay}`, { signal });
+    const res = await fetch(`/api/live/summary?month=${today.month}&day=${today.day}`, { signal });
     if (res.ok) setSummary(await res.json());
-  }, SUMMARY_POLL_MS);
+  }, POLL_MS);
 
-  usePolling(async (signal) => {
-    const lastSeenId = plays[0]?.id;
-    const qs = lastSeenId ? `?lastSeenId=${lastSeenId}&limit=200` : '?limit=30';
-    const res = await fetch(`${API_DOMAIN}/api/v2/live/history${qs}`, { signal });
-    const incoming = slimPlays(await res.json());
-    setPlays((prev) => mergePlays(prev, incoming));
-  }, FEED_POLL_MS);
-  const visible = expanded ? summary.artists : summary.artists.slice(0, COLLAPSED_ROWS);
-  const hiddenCount = summary.artists.length - visible.length;
+  const shown = summary.artists.slice(0, COLLAPSED_ROWS);
+  const more = summary.artists.slice(COLLAPSED_ROWS);
 
   return (
     <div className="live-page">
@@ -58,25 +41,25 @@ export default function LiveNow({ initialSummary, initialPlays, monthDay, render
       </h1>
       <p className="mb-5 text-sm text-text-muted">
         Estimated from tracks started on Relisten in the last{' '}
-        {simplePluralize('minute', Math.round(summary.windowMinutes))}.
+        {simplePluralize('minute', summary.windowMinutes)}.
       </p>
 
-      {/* Feed beside the list on desktop; above it (trimmed) on phones, so both sit above the fold. */}
-      {/* Collapsed, the feed stretches to the list's height so the bottoms line up; expanded,
-          the list gets long, so the feed keeps its own height and sticks in view instead. */}
+      {/* Collapsed, the feed stretches to the list's height so the bottoms line up. With
+          "more artists" open the list gets long, so the feed keeps its own height and
+          sticks in view instead. */}
       <div
-        className={cn(
-          'grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]',
-          expanded ? 'lg:items-start' : 'lg:items-stretch'
-        )}
+        className="
+        group/live grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-stretch
+        lg:has-[details[open]]:items-start
+      "
       >
         <div
-          className={cn(
-            'flex flex-col lg:col-start-2 lg:row-start-1',
-            expanded && 'lg:sticky lg:top-4'
-          )}
+          className="
+          flex flex-col lg:col-start-2 lg:row-start-1 lg:group-has-[details[open]]/live:sticky
+          lg:group-has-[details[open]]/live:top-4
+        "
         >
-          <PlaybackFeed plays={plays} renderedAt={renderedAt} />
+          {feed}
         </div>
 
         <div className="lg:col-start-1 lg:row-start-1">
@@ -88,20 +71,26 @@ export default function LiveNow({ initialSummary, initialPlays, monthDay, render
             </p>
           ) : (
             <div className="divide-y divide-hairline overflow-hidden rounded-lg border border-hairline bg-surface">
-              {visible.map((artist) => (
+              {shown.map((artist) => (
                 <ArtistRow key={artist.artistUuid} artist={artist} />
               ))}
-              {hiddenCount > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setExpanded(true)}
-                  className="
-                w-full cursor-pointer px-4 py-2 text-left text-sm text-text-muted transition-colors
-                duration-150 hover:bg-surface-hover hover:text-text-primary
-              "
-                >
-                  {simplePluralize('more artist', hiddenCount)}
-                </button>
+              {more.length > 0 && (
+                <details className="group/more">
+                  <summary
+                    className="
+                    cursor-pointer list-none px-4 py-2 text-sm text-text-muted transition-colors
+                    duration-150 group-open/more:hidden hover:bg-surface-hover
+                    hover:text-text-primary [&::-webkit-details-marker]:hidden
+                  "
+                  >
+                    {simplePluralize('more artist', more.length)}
+                  </summary>
+                  <div className="divide-y divide-hairline">
+                    {more.map((artist) => (
+                      <ArtistRow key={artist.artistUuid} artist={artist} />
+                    ))}
+                  </div>
+                </details>
               )}
             </div>
           )}

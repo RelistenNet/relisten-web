@@ -69,8 +69,9 @@ const getVenue = (source: TrackSource) => {
  * Trims the summary to what the page renders. Each artist's top show carries a
  * full source object (~3 KB), which shouldn't be shipped to the browser.
  */
-export function slimSummary(api: ApiLiveSummary | null, monthDay: string): LiveSummary {
+export function slimSummary(api: ApiLiveSummary | null, today: MonthDay): LiveSummary {
   if (!api) return { listeners: 0, windowMinutes: 0, artists: [] };
+  const monthDay = toMonthDay(today);
 
   const artists = api.artists
     .map((a): LiveArtist => {
@@ -100,9 +101,12 @@ export function slimSummary(api: ApiLiveSummary | null, monthDay: string): LiveS
   };
 }
 
-/** MM-DD, validated, for the summary's `month_day` ("on this day"). */
-export const isMonthDay = (s: unknown): s is string =>
-  typeof s === 'string' && /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(s);
+/** Today in the viewer's timezone, for "on this day". */
+export type MonthDay = { month: number; day: number };
+
+/** "11-03": the API's `month_day` format, and the tail of a show's display_date. */
+export const toMonthDay = ({ month, day }: MonthDay) =>
+  `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
 // ---------------------------------------------------------------------------
 // "Just started" feed (from GET /api/v2/live/history)

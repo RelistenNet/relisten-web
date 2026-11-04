@@ -1,25 +1,28 @@
 import RelistenAPI from '@/lib/RelistenAPI';
 import { mergePlays, slimPlays, slimSummary } from '@/lib/live';
 import { getCurrentMonthDay } from '@/lib/timezone';
-import LiveNow from './LiveNow';
+import LiveListeners from './LiveListeners';
+import PlaybackFeed from './PlaybackFeed';
 
 export default async function Page() {
-  const today = await getCurrentMonthDay();
-  const monthDay = `${today.month}-${today.day}`;
+  const current = await getCurrentMonthDay();
+  const today = { month: Number(current.month), day: Number(current.day) };
 
   const [summary, history] = await Promise.all([
-    RelistenAPI.fetchLiveSummary(monthDay),
+    RelistenAPI.fetchLiveSummary(today),
     RelistenAPI.fetchLiveHistory(30),
   ]);
 
+  // Request-scoped server render: reading the clock once here is intended.
   const renderedAt = Date.now();
 
   return (
-    <LiveNow
-      initialSummary={slimSummary(summary, monthDay)}
-      initialPlays={mergePlays([], slimPlays(history))}
-      monthDay={monthDay}
-      renderedAt={renderedAt}
+    <LiveListeners
+      initialSummary={slimSummary(summary, today)}
+      today={today}
+      feed={
+        <PlaybackFeed initialPlays={mergePlays([], slimPlays(history))} renderedAt={renderedAt} />
+      }
     />
   );
 }
