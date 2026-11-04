@@ -11,22 +11,31 @@ const searchParams = defineSearchParams({
 });
 
 export async function GET() {
-  let today: { month?: number; day?: number } = {};
+  let params: { month?: number; day?: number } = {};
   try {
-    today = searchParams.get();
+    params = searchParams.get();
   } catch {
     // Falls through to the 400 below.
   }
 
-  const { month, day } = today;
+  const { month, day } = params;
   if (!month || !day) {
     // deny() surfaces as a 500 in route handlers, so return the status directly.
     return new Response('month (1-12) and day (1-31) are required', { status: 400 });
   }
 
-  const summary = slimSummary(await RelistenAPI.fetchLiveSummary({ month, day }), { month, day });
+  const today = { month, day };
+  const summary = await RelistenAPI.fetchLiveSummary(today);
+  if (!summary) {
+    // Not a cacheable empty 200: the page would replace its last good data with
+    // "nobody listening". An error lets it keep that data and back off.
+    return new Response('Live summary unavailable', {
+      status: 502,
+      headers: { 'Cache-Control': 'no-store' },
+    });
+  }
 
-  return Response.json(summary, {
+  return Response.json(slimSummary(summary, today), {
     headers: { 'Cache-Control': 'public, max-age=30, stale-while-revalidate=30' },
   });
 }
