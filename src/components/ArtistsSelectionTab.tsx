@@ -1,39 +1,57 @@
 'use client';
 
 import cn from '@/lib/cn';
-import { Artist } from '@/types';
+import { fromArtistRow, type ArtistListItem, type ArtistRow } from '@/lib/artistRows';
 import { fuzzyMatch, type HighlightRanges } from '@nozbe/microfuzz';
 import { useSegmentParams } from '@timber-js/app/client';
 import { X } from 'lucide-react';
-import { useMemo, useRef, useState, useTransition } from 'react';
+import { use, useDeferredValue, useMemo, useRef, useState, useTransition } from 'react';
 import ArtistsColumnWithControls from './ArtistsColumnWithControls';
 
 type Tab = 'primary' | 'all';
 
 type ArtistsSelectionTabProps = {
-  artistsAll: Artist[];
+  /** Primary (featured ≤ 1) artists, sent with the page shell. */
+  primary: ArtistRow[];
+  /** Archive artists, streamed in after the shell. */
+  archive: Promise<ArtistRow[]>;
 };
 
-const ArtistsSelectionTab = ({ artistsAll }: ArtistsSelectionTabProps) => {
+const ArtistsSelectionTab = ({ primary, archive }: ArtistsSelectionTabProps) => {
+  const primaryArtists = useMemo(() => primary.map(fromArtistRow), [primary]);
+
+  // The first render (SSR and hydration) sees `null` and shows the primary
+  // list. React then re-renders in the background with the real promise; while
+  // `use()` is still waiting on it, React keeps the current UI instead of
+  // showing a Suspense fallback. So there is one `ArtistsTabs` instance
+  // throughout, and the user's tab, search text and input focus survive the
+  // archive arriving. (A Suspense fallback would be a different instance, and
+  // swapping it out would reset all three.)
+  const deferredArchive = useDeferredValue<Promise<ArtistRow[]> | null>(archive, null);
+  const archiveRows = deferredArchive ? use(deferredArchive) : null;
+  const archiveArtists = useMemo(
+    () => archiveRows && archiveRows.map(fromArtistRow),
+    [archiveRows]
+  );
+
+  return <ArtistsTabs primaryArtists={primaryArtists} archiveArtists={archiveArtists} />;
+};
+
+type ArtistsTabsProps = {
+  primaryArtists: ArtistListItem[];
+  /** `null` until the archive list has streamed in. */
+  archiveArtists: ArtistListItem[] | null;
+};
+
+function ArtistsTabs({ primaryArtists, archiveArtists }: ArtistsTabsProps) {
   const { artistSlug } = useSegmentParams('/(browse)/[artistSlug]');
 
-  const primaryArtists = useMemo(
-    () => artistsAll.filter((artist) => Number(artist.featured) <= 1),
-    [artistsAll]
-  );
+  // An artist that isn't primary is an archive artist (or doesn't exist, in
+  // which case the tab doesn't matter), so this needs only the primary list.
+  const isArchiveSlug = (slug: string | undefined) =>
+    !!slug && !primaryArtists.some((a) => a.slug === slug);
 
-  const archiveArtists = useMemo(
-    () => artistsAll.filter((artist) => Number(artist.featured) > 1),
-    [artistsAll]
-  );
-
-  const initialTab = useMemo<Tab>(() => {
-    if (!artistSlug) return 'primary';
-    const isArchive = archiveArtists.some((a) => a.slug === artistSlug);
-    return isArchive ? 'all' : 'primary';
-  }, [artistSlug, archiveArtists]);
-
-  const [tab, setTab] = useState<Tab>(initialTab);
+  const [tab, setTab] = useState<Tab>(() => (isArchiveSlug(artistSlug) ? 'all' : 'primary'));
   const [isPending, startTransition] = useTransition();
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -42,37 +60,42 @@ const ArtistsSelectionTab = ({ artistsAll }: ArtistsSelectionTabProps) => {
   const [syncedArtistSlug, setSyncedArtistSlug] = useState(artistSlug);
   if (artistSlug !== syncedArtistSlug) {
     setSyncedArtistSlug(artistSlug);
-    if (initialTab === 'all') setTab('all');
+    if (isArchiveSlug(artistSlug)) setTab('all');
   }
 
   const { artists, highlightRanges } = useMemo(() => {
     const query = searchQuery.trim();
     if (query) {
       const ranges = new Map<string, HighlightRanges>();
-      const scored: { artist: Artist; score: number }[] = [];
-      for (const artist of artistsAll) {
-        const result = fuzzyMatch(artist.name || '', query);
-        if (result) {
-          scored.push({ artist, score: result.score });
-          const [nameRanges] = result.matches;
-          if (artist.uuid && nameRanges) {
-            ranges.set(artist.uuid, nameRanges);
+      const scored: { artist: ArtistListItem; score: number }[] = [];
+      for (const list of [primaryArtists, archiveArtists ?? []]) {
+        for (const artist of list) {
+          const result = fuzzyMatch(artist.name || '', query);
+          if (result) {
+            scored.push({ artist, score: result.score });
+            const [nameRanges] = result.matches;
+            if (artist.slug && nameRanges) {
+              ranges.set(artist.slug, nameRanges);
+            }
           }
         }
       }
       scored.sort((a, b) => a.score - b.score);
       return { artists: scored.map((s) => s.artist), highlightRanges: ranges };
     }
-    const list = tab === 'primary' ? primaryArtists : archiveArtists;
+    const list = tab === 'primary' ? primaryArtists : (archiveArtists ?? []);
     return { artists: list, highlightRanges: new Map<string, HighlightRanges>() };
-  }, [tab, artistsAll, primaryArtists, archiveArtists, searchQuery]);
+  }, [tab, primaryArtists, archiveArtists, searchQuery]);
 
   const TABS: { value: Tab; label: string }[] = useMemo(
     () => [
       { value: 'primary', label: `Primary Artists (${primaryArtists.length})` },
-      { value: 'all', label: `Archive Artists (${archiveArtists.length})` },
+      {
+        value: 'all',
+        label: `Archive Artists (${archiveArtists ? archiveArtists.length : '…'})`,
+      },
     ],
-    [primaryArtists.length, archiveArtists.length]
+    [primaryArtists.length, archiveArtists]
   );
 
   const subHeader = (
@@ -138,6 +161,6 @@ const ArtistsSelectionTab = ({ artistsAll }: ArtistsSelectionTabProps) => {
       onClearSearch={() => setSearchQuery('')}
     />
   );
-};
+}
 
 export default ArtistsSelectionTab;

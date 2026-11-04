@@ -6,7 +6,7 @@ import { useSegmentParams } from '@timber-js/app/client';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import { groupBy } from '../lib/utils';
 import Count from './Count';
-import { Artist } from '../types';
+import type { ArtistListItem } from '@/lib/artistRows';
 import { useFilterState } from '@/hooks/useFilterState';
 import cn from '@/lib/cn';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
@@ -21,7 +21,7 @@ const byObject = {
 
 type Item =
   | { kind: 'header'; key: string; label: string }
-  | { kind: 'artist'; key: string; artist: Artist };
+  | { kind: 'artist'; key: string; artist: ArtistListItem };
 
 const HEADER_ESTIMATE = 28;
 const ROW_ESTIMATE = 45;
@@ -45,7 +45,8 @@ function HighlightText({ text, ranges }: { text: string; ranges: HighlightRanges
 }
 
 type ArtistsColumnWithControlsProps = {
-  artists: Artist[];
+  artists: ArtistListItem[];
+  /** Search highlight ranges, keyed by artist slug. */
   highlightRanges?: Map<string, HighlightRanges>;
   subHeader?: React.ReactNode;
   isPending?: boolean;
@@ -122,7 +123,7 @@ const ArtistsColumnWithControls = ({
         default:
           sorted.sort((a, b) => dir * (a.name || '').localeCompare(b.name || ''));
       }
-      return [type, sorted] as [string, Artist[]];
+      return [type, sorted] as [string, ArtistListItem[]];
     });
   }, [artists, alphaAsc, sortBy]);
 
@@ -147,7 +148,7 @@ const ArtistsColumnWithControls = ({
         label: groupLabel(type),
       });
       for (const artist of groupArtists) {
-        out.push({ kind: 'artist', key: `artist-${artist.uuid}`, artist });
+        out.push({ kind: 'artist', key: `artist-${artist.slug}`, artist });
       }
     }
     return out;
@@ -188,10 +189,10 @@ const ArtistsColumnWithControls = ({
       >
         <div>
           <div>
-            {item.artist.uuid && highlightRanges?.has(item.artist.uuid) ? (
+            {item.artist.slug && highlightRanges?.has(item.artist.slug) ? (
               <HighlightText
                 text={item.artist.name || ''}
-                ranges={highlightRanges.get(item.artist.uuid) ?? []}
+                ranges={highlightRanges.get(item.artist.slug) ?? []}
               />
             ) : (
               item.artist.name
