@@ -9,6 +9,7 @@ import {
   type LiveSummary,
   type MonthDay,
 } from '@/lib/live';
+import Tag from '@/components/Tag';
 import { usePollingState } from '@/lib/usePolling';
 import { simplePluralize, splitShowDate } from '@/lib/utils';
 
@@ -134,8 +135,13 @@ function ArtistRow({ artist }: { artist: LiveArtist }) {
               {formatListeners(topShow.listeners, { min: 1 })}
             </span>{' '}
             on {formatShowDate(topShow.displayDate)}
+            {/* Next to the date it describes, so truncating the venue never hides it. */}
+            {topShow.isOnThisDay && (
+              <Tag variant="info" className="py-0">
+                Today in History
+              </Tag>
+            )}
             {topShow.venueName && ` · ${topShow.venueName}`}
-            {topShow.isOnThisDay && <span className="text-accent"> · on this day</span>}
           </div>
         )}
       </div>
