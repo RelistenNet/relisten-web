@@ -16,6 +16,14 @@ const About = () => (
     </p>
 
     <p>
+      If you're interested in learning more, our{' '}
+      <Link href="/blog/welcome-to-the-relisten-blog">
+        first blog post provides some background
+      </Link>
+      .
+    </p>
+
+    <p>
       This site is powered by{' '}
       <a href="https://archive.org" target="_blank" rel="noreferrer">
         Archive.org
