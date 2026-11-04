@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useEffectEvent, useRef } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { createPoller } from './poller';
 
-type Options = {
+export type PollingOptions = {
   /**
    * Call as soon as the component mounts. Turn off when the server just
    * rendered fresh data; the first call then waits one interval.
@@ -25,7 +25,7 @@ type Options = {
 export function usePolling(
   fn: (signal: AbortSignal) => Promise<void>,
   intervalMs: number,
-  { immediate = true, timeoutMs = 15_000, maxBackoffMs = 5 * 60_000 }: Options = {}
+  { immediate = true, timeoutMs = 15_000, maxBackoffMs = 5 * 60_000 }: PollingOptions = {}
 ) {
   const run = useEffectEvent(fn);
   // Outlives effect re-runs, so changing an option doesn't reset staleness.
@@ -61,4 +61,33 @@ export function usePolling(
     // `immediate` only matters for the first run; it's read through the ref above.
     // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [intervalMs, timeoutMs, maxBackoffMs]);
+}
+
+/**
+ * `usePolling` plus the state it fills: returns the latest value, starting at
+ * `initial` (usually server-rendered). `fetchNext` gets the current value, so
+ * it can request only what's new and merge it in.
+ */
+export function usePolled<T>(
+  initial: T,
+  fetchNext: (signal: AbortSignal, current: T) => Promise<T>,
+  intervalMs: number,
+  options?: PollingOptions
+): T {
+  const [value, setValue] = useState(initial);
+  // The value the next call builds on. Updated as soon as a call resolves, not on
+  // the following render, so a coalesced follow-up call never sees a stale one.
+  const latest = useRef(initial);
+
+  usePolling(
+    async (signal) => {
+      const next = await fetchNext(signal, latest.current);
+      latest.current = next;
+      setValue(next);
+    },
+    intervalMs,
+    options
+  );
+
+  return value;
 }

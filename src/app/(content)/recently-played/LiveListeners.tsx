@@ -1,7 +1,7 @@
 'use client';
 
 import { Link } from '@timber-js/app/client';
-import { useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import {
   formatListeners,
   formatShowDate,
@@ -9,7 +9,7 @@ import {
   type LiveSummary,
   type MonthDay,
 } from '@/lib/live';
-import { usePolling } from '@/lib/usePolling';
+import { usePolled } from '@/lib/usePolling';
 import { simplePluralize, splitShowDate } from '@/lib/utils';
 
 /** The API's summary window only advances once a minute. */
@@ -24,16 +24,15 @@ type Props = {
 };
 
 export default function LiveListeners({ initialSummary, today, feed }: Props) {
-  const [summary, setSummary] = useState(initialSummary);
-
   // The server render just fetched the summary, so the first poll waits a full interval.
-  usePolling(
-    async (signal) => {
+  const summary = usePolled(
+    initialSummary,
+    async (signal): Promise<LiveSummary> => {
       const res = await fetch(`/api/live/summary?month=${today.month}&day=${today.day}`, {
         signal,
       });
       if (!res.ok) throw new Error(`live summary: HTTP ${res.status}`);
-      setSummary(await res.json());
+      return res.json();
     },
     POLL_MS,
     { immediate: false }

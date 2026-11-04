@@ -1,11 +1,10 @@
 'use client';
 
 import { Link } from '@timber-js/app/client';
-import { useState } from 'react';
 import { API_DOMAIN } from '@/lib/constants';
 import { formatShowDate, mergePlays, slimPlays, type LivePlay } from '@/lib/live';
 import { useNow } from '@/lib/useNow';
-import { usePolling } from '@/lib/usePolling';
+import { usePolled } from '@/lib/usePolling';
 import { splitShowDate } from '@/lib/utils';
 
 const POLL_MS = 10_000;
@@ -28,18 +27,20 @@ type Props = {
 };
 
 export default function PlaybackFeed({ initialPlays, renderedAt }: Props) {
-  const [plays, setPlays] = useState(initialPlays);
   const now = useNow(TICK_MS, renderedAt);
 
   // The only per-play stream; CORS-open and small per poll, so the browser reads it directly.
-  usePolling(async (signal) => {
-    const lastSeenId = plays[0]?.id;
-    const qs = lastSeenId ? `?lastSeenId=${lastSeenId}&limit=200` : '?limit=30';
-    const res = await fetch(`${API_DOMAIN}/api/v2/live/history${qs}`, { signal });
-    if (!res.ok) throw new Error(`live history: HTTP ${res.status}`);
-    const incoming = slimPlays(await res.json());
-    setPlays((prev) => mergePlays(prev, incoming));
-  }, POLL_MS);
+  const plays = usePolled(
+    initialPlays,
+    async (signal, current) => {
+      const lastSeenId = current[0]?.id;
+      const qs = lastSeenId ? `?lastSeenId=${lastSeenId}&limit=200` : '?limit=30';
+      const res = await fetch(`${API_DOMAIN}/api/v2/live/history${qs}`, { signal });
+      if (!res.ok) throw new Error(`live history: HTTP ${res.status}`);
+      return mergePlays(current, slimPlays(await res.json()));
+    },
+    POLL_MS
+  );
 
   const replayTime = now - REPLAY_LAG_MS;
   const rows = plays.filter((p) => p.playedAt <= replayTime).slice(0, ROWS);
