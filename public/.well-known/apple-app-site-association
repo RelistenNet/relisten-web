@@ -7,8 +7,113 @@
         ],
         "components": [
           {
+            "/": "/blog",
+            "exclude": true,
+            "comment": "Web-only; opens in Safari"
+          },
+          {
+            "/": "/blog/*",
+            "exclude": true,
+            "comment": "Web-only; opens in Safari"
+          },
+          {
+            "/": "/about",
+            "exclude": true,
+            "comment": "Web-only; opens in Safari"
+          },
+          {
+            "/": "/about/*",
+            "exclude": true,
+            "comment": "Web-only; opens in Safari"
+          },
+          {
+            "/": "/chat",
+            "exclude": true,
+            "comment": "Web-only; opens in Safari"
+          },
+          {
+            "/": "/chat/*",
+            "exclude": true,
+            "comment": "Web-only; opens in Safari"
+          },
+          {
+            "/": "/app",
+            "exclude": true,
+            "comment": "Web-only; opens in Safari"
+          },
+          {
+            "/": "/app/*",
+            "exclude": true,
+            "comment": "Web-only; opens in Safari"
+          },
+          {
+            "/": "/embed",
+            "exclude": true,
+            "comment": "Web-only; opens in Safari"
+          },
+          {
+            "/": "/embed/*",
+            "exclude": true,
+            "comment": "Web-only; opens in Safari"
+          },
+          {
+            "/": "/embed-track",
+            "exclude": true,
+            "comment": "Web-only; opens in Safari"
+          },
+          {
+            "/": "/embed-track/*",
+            "exclude": true,
+            "comment": "Web-only; opens in Safari"
+          },
+          {
+            "/": "/embed-test",
+            "exclude": true,
+            "comment": "Web-only; opens in Safari"
+          },
+          {
+            "/": "/embed-test/*",
+            "exclude": true,
+            "comment": "Web-only; opens in Safari"
+          },
+          {
+            "/": "/admin",
+            "exclude": true,
+            "comment": "Web-only; opens in Safari"
+          },
+          {
+            "/": "/admin/*",
+            "exclude": true,
+            "comment": "Web-only; opens in Safari"
+          },
+          {
+            "/": "/api",
+            "exclude": true,
+            "comment": "Web-only; opens in Safari"
+          },
+          {
+            "/": "/api/*",
+            "exclude": true,
+            "comment": "Web-only; opens in Safari"
+          },
+          {
+            "/": "/album-art",
+            "exclude": true,
+            "comment": "Web-only; opens in Safari"
+          },
+          {
+            "/": "/album-art/*",
+            "exclude": true,
+            "comment": "Web-only; opens in Safari"
+          },
+          {
+            "/": "/privacy_policy.html",
+            "exclude": true,
+            "comment": "Web-only; opens in Safari"
+          },
+          {
             "/": "*",
-            "comment": "Matches all routes"
+            "comment": "Matches all other routes"
           }
         ]
       }

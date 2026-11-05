@@ -1,10 +1,31 @@
 {
   "applinks": {
-    "apps": [ ],
+    "apps": [],
     "details": [
       {
         "appID": "HT7ELV3Q35.com.alecgorge.ios.Listen-to-the-Dead",
         "paths": [
+          "NOT /blog",
+          "NOT /blog/*",
+          "NOT /about",
+          "NOT /about/*",
+          "NOT /chat",
+          "NOT /chat/*",
+          "NOT /app",
+          "NOT /app/*",
+          "NOT /embed",
+          "NOT /embed/*",
+          "NOT /embed-track",
+          "NOT /embed-track/*",
+          "NOT /embed-test",
+          "NOT /embed-test/*",
+          "NOT /admin",
+          "NOT /admin/*",
+          "NOT /api",
+          "NOT /api/*",
+          "NOT /album-art",
+          "NOT /album-art/*",
+          "NOT /privacy_policy.html",
           "*"
         ]
       }
