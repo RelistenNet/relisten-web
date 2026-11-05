@@ -1,7 +1,7 @@
 'use client';
 
-import Tooltip from '@/components/Tooltip';
-import React, { useRef, useState } from 'react';
+import { Popover, PopoverContent, PopoverTrigger } from 'css-anchor-kit';
+import React, { useRef } from 'react';
 
 export interface Props {
   content: React.ReactNode;
@@ -10,15 +10,11 @@ export interface Props {
 }
 
 const ClientFootnote = ({ index, content, children }: Props) => {
-  const [open, setOpen] = useState(false);
   const sidenoteRef = useRef<HTMLSpanElement>(null);
   const body = content || children;
 
-  const onClick = () => {
-    // Taps never fire the kit's hover open, so open explicitly; blur closes it.
-    setOpen(true);
-
-    // Flash the sidenote (xl+) so the eye finds it. Restart the animation on repeat clicks.
+  // Flash the sidenote (xl+) so the eye finds it. Restart the animation on repeat clicks.
+  const flash = () => {
     const el = sidenoteRef.current;
     if (!el) return;
     el.classList.remove('footnote-flash');
@@ -28,28 +24,35 @@ const ClientFootnote = ({ index, content, children }: Props) => {
 
   return (
     <span className="group/footnote inline">
-      <Tooltip
-        as="span"
-        interactive
-        open={open}
-        onOpenChange={setOpen}
-        triggerProps={{ tabIndex: 0, onClick }}
-        contentClassName="tooltip-fade max-w-72 rounded-lg border-hairline bg-surface-raised p-2 text-foreground xl:hidden"
-        content={body}
-      >
-        <sup
+      {/* Below xl: a native `popover="auto"` — tap/click opens, outside tap and Esc close. */}
+      <Popover placement="bottom" offset={4} flip>
+        <PopoverTrigger as="button" onClick={flash} className="cursor-pointer">
+          <sup
+            className="
+              footnote-index relative text-xs
+              after:absolute after:-inset-2 after:content-['']
+            "
+            id={`footnote-${index}`}
+            // The sidenote anchors to this name. It lives on the <sup>, not the
+            // trigger, because the kit owns the trigger's anchor-name.
+            style={{ anchorName: `--fn-${index}` } as React.CSSProperties}
+          >
+            {index}
+          </sup>
+        </PopoverTrigger>
+        <PopoverContent
+          as="span"
+          data-side="bottom"
+          data-align="center"
           className="
-            footnote-index relative cursor-pointer text-xs
-            after:absolute after:-inset-2 after:content-['']
+            anchored-safe tooltip-fade max-w-72 rounded-lg border border-hairline bg-surface-raised
+            p-2 text-sm text-foreground shadow-lg
+            xl:hidden
           "
-          id={`footnote-${index}`}
-          // The sidenote anchors to this name. It lives on the <sup>, not the
-          // tooltip trigger, because the kit owns the trigger's anchor-name.
-          style={{ anchorName: `--fn-${index}` } as React.CSSProperties}
         >
-          {index}
-        </sup>
-      </Tooltip>
+          {body}
+        </PopoverContent>
+      </Popover>
       <span
         className="
             footnote-content hidden border-l-2 border-l-transparent py-0.5 pl-3 transition-colors
