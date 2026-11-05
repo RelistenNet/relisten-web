@@ -2,14 +2,14 @@
 
 import cn from '@/lib/cn';
 import { fromArtistRow, type ArtistListItem, type ArtistRow } from '@/lib/artistRows';
-import { fuzzyMatch, type HighlightRanges } from '@nozbe/microfuzz';
 import { useSegmentParams } from '@timber-js/app/client';
 import { X } from 'lucide-react';
 import { Suspense, use, useMemo, useRef, useState, useTransition } from 'react';
 import { browser } from 'react-dom';
-import ArtistsColumnWithControls from './ArtistsColumnWithControls';
-
-type Tab = 'primary' | 'all';
+import ArtistsColumnWithControls, {
+  type ArchiveLoader,
+  type ArtistsTab,
+} from './ArtistsColumnWithControls';
 
 type ArtistsSelectionTabProps = {
   /** Primary (featured ≤ 1) artists, sent with the page shell. */
@@ -21,7 +21,7 @@ type ArtistsSelectionTabProps = {
  * same request afterwards. Resolves to `null` on failure instead of
  * rejecting, since `use()` would throw a rejection to the error boundary.
  */
-function createArchiveLoader() {
+function createArchiveLoader(): ArchiveLoader {
   let request: Promise<ArtistListItem[] | null> | undefined;
   return () =>
     (request ??= fetch('/api/artists/archive')
@@ -30,21 +30,21 @@ function createArchiveLoader() {
       .catch(() => null));
 }
 
-/** Tab and search state, owned above the Suspense boundary so it survives the swap. */
-type TabsState = {
-  tab: Tab;
-  setTab: (tab: Tab) => void;
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-};
-
+/**
+ * The archive list is fetched and rendered in the browser only. The two
+ * things that need it, the artist list and the archive tab's count, each read
+ * it under their own Suspense boundary, whose fallback (what the server
+ * renders) uses the primary artists alone. Everything interactive (the tabs,
+ * the search input, the sort toggles and the scroll container) sits outside
+ * those boundaries, so the archive arriving never remounts it: focus, caret
+ * and scroll position are kept.
+ */
 const ArtistsSelectionTab = ({ primary }: ArtistsSelectionTabProps) => {
   const primaryArtists = useMemo(() => primary.map(fromArtistRow), [primary]);
   const { artistSlug } = useSegmentParams('/(browse)/[artistSlug]');
 
-  // The loader lives here, not in the suspending child: a component that
-  // suspends on mount loses its state, which would start a new request on
-  // every retry.
+  // Held here, above the boundaries: a component that suspends on mount loses
+  // its state, which would start a new request on every retry.
   const [loadArchive] = useState(createArchiveLoader);
 
   // An artist that isn't primary is an archive artist (or doesn't exist, in
@@ -52,8 +52,10 @@ const ArtistsSelectionTab = ({ primary }: ArtistsSelectionTabProps) => {
   const isArchiveSlug = (slug: string | undefined) =>
     !!slug && !primaryArtists.some((a) => a.slug === slug);
 
-  const [tab, setTab] = useState<Tab>(() => (isArchiveSlug(artistSlug) ? 'all' : 'primary'));
+  const [tab, setTab] = useState<ArtistsTab>(() => (isArchiveSlug(artistSlug) ? 'all' : 'primary'));
+  const [isPending, startTransition] = useTransition();
   const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Switch to the "all" tab when navigating to an archive artist.
   const [syncedArtistSlug, setSyncedArtistSlug] = useState(artistSlug);
@@ -62,89 +64,26 @@ const ArtistsSelectionTab = ({ primary }: ArtistsSelectionTabProps) => {
     if (isArchiveSlug(artistSlug)) setTab('all');
   }
 
-  const state: TabsState = { tab, setTab, searchQuery, setSearchQuery };
-
-  // The server renders the primary list only (the fallback); the archive is
-  // fetched and rendered in the browser.
-  return (
-    <Suspense
-      fallback={<ArtistsTabs primaryArtists={primaryArtists} archiveArtists={null} {...state} />}
-    >
-      <ArtistsTabsWithArchive
-        primaryArtists={primaryArtists}
-        loadArchive={loadArchive}
-        {...state}
-      />
-    </Suspense>
-  );
-};
-
-function ArtistsTabsWithArchive({
-  loadArchive,
-  ...props
-}: Omit<ArtistsTabsProps, 'archiveArtists'> & {
-  loadArchive: () => Promise<ArtistListItem[] | null>;
-}) {
-  use(browser());
-  return <ArtistsTabs {...props} archiveArtists={use(loadArchive())} />;
-}
-
-type ArtistsTabsProps = TabsState & {
-  primaryArtists: ArtistListItem[];
-  /** `null` until the archive list has loaded. */
-  archiveArtists: ArtistListItem[] | null;
-};
-
-function ArtistsTabs({
-  primaryArtists,
-  archiveArtists,
-  tab,
-  setTab,
-  searchQuery,
-  setSearchQuery,
-}: ArtistsTabsProps) {
-  const [isPending, startTransition] = useTransition();
-  const searchInputRef = useRef<HTMLInputElement>(null);
-
-  const { artists, highlightRanges } = useMemo(() => {
-    const query = searchQuery.trim();
-    if (query) {
-      const ranges = new Map<string, HighlightRanges>();
-      const scored: { artist: ArtistListItem; score: number }[] = [];
-      for (const list of [primaryArtists, archiveArtists ?? []]) {
-        for (const artist of list) {
-          const result = fuzzyMatch(artist.name || '', query);
-          if (result) {
-            scored.push({ artist, score: result.score });
-            const [nameRanges] = result.matches;
-            if (artist.slug && nameRanges) {
-              ranges.set(artist.slug, nameRanges);
-            }
-          }
-        }
-      }
-      scored.sort((a, b) => a.score - b.score);
-      return { artists: scored.map((s) => s.artist), highlightRanges: ranges };
-    }
-    const list = tab === 'primary' ? primaryArtists : (archiveArtists ?? []);
-    return { artists: list, highlightRanges: new Map<string, HighlightRanges>() };
-  }, [tab, primaryArtists, archiveArtists, searchQuery]);
-
-  const TABS: { value: Tab; label: string }[] = useMemo(
-    () => [
-      { value: 'primary', label: `Primary Artists (${primaryArtists.length})` },
-      {
-        value: 'all',
-        label: `Archive Artists (${archiveArtists ? archiveArtists.length : '…'})`,
-      },
-    ],
-    [primaryArtists.length, archiveArtists]
-  );
+  const tabs: { value: ArtistsTab; label: React.ReactNode }[] = [
+    { value: 'primary', label: `Primary Artists (${primaryArtists.length})` },
+    {
+      value: 'all',
+      label: (
+        <>
+          Archive Artists (
+          <Suspense fallback="…">
+            <ArchiveCount loadArchive={loadArchive} />
+          </Suspense>
+          )
+        </>
+      ),
+    },
+  ];
 
   const subHeader = (
     <>
       <div className="flex flex-wrap justify-center gap-1.5 border-b border-hairline bg-surface-raised px-2 py-1.5">
-        {TABS.map(({ value, label }) => {
+        {tabs.map(({ value, label }) => {
           const isActive = tab === value;
           const isButtonPending = isPending && !isActive;
 
@@ -197,13 +136,19 @@ function ArtistsTabs({
 
   return (
     <ArtistsColumnWithControls
-      artists={artists}
-      highlightRanges={highlightRanges}
+      primaryArtists={primaryArtists}
+      loadArchive={loadArchive}
+      tab={tab}
+      searchQuery={searchQuery}
       subHeader={subHeader}
       isPending={isPending}
-      onClearSearch={() => setSearchQuery('')}
     />
   );
+};
+
+function ArchiveCount({ loadArchive }: { loadArchive: ArchiveLoader }) {
+  use(browser());
+  return use(loadArchive())?.length ?? '…';
 }
 
 export default ArtistsSelectionTab;
