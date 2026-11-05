@@ -3,6 +3,7 @@ import { Queue, type TrackInfo } from 'gapless';
 import { splitShowDate } from './utils';
 
 import { scrobblePlay } from './scrobble';
+import { createListenTracker } from './listenTracker';
 import { updatePlayback } from '../redux/modules/playback';
 import { API_DOMAIN } from './constants';
 import { sortSources, sortTracksInSources } from './sortSources';
@@ -73,7 +74,6 @@ const updateLocalStorage = ({
 const throttledUpdateLocalStorage = throttle(updateLocalStorage, 1000);
 
 let store: { dispatch: AppDispatch; getState: () => RootState } | undefined;
-let lastScrobbledTrackUuid: string | null = null;
 let restoreController: AbortController | null = null;
 
 let player: Queue | undefined;
@@ -107,6 +107,7 @@ const playerProxy = new Proxy({} as Queue, {
 });
 
 function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Queue {
+  const listens = createListenTracker();
   return new Queue({
     playbackMethod: options?.playbackMethod ?? 'HYBRID',
     onDebug: (msg: string) => console.debug('[gapless]', msg),
@@ -121,15 +122,8 @@ function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Qu
         if (!info.isPaused) {
           dismissAutoplayToast();
         }
-        // Scrobble after 5 seconds of playback
-        if (info.currentTime >= 5) {
-          const { playback } = store.getState();
-          const track = playback.tracks?.[info.index];
-          if (track?.uuid && lastScrobbledTrackUuid !== track.uuid) {
-            lastScrobbledTrackUuid = track.uuid;
-            scrobblePlay(track.uuid);
-          }
-        }
+        const track = store.getState().playback.tracks?.[info.index];
+        if (track?.uuid && listens.progress(track.uuid, info)) scrobblePlay(track.uuid);
       }
       const activeTrackUpdate: Record<string, unknown> = info
         ? {
