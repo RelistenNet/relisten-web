@@ -13,48 +13,10 @@ import {
 } from '@/components/ui/command';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { SearchIcon, MicIcon, MapPinIcon, RouteIcon } from 'lucide-react';
-import { API_DOMAIN } from '@/lib/constants';
+import { EMPTY_SEARCH, type SearchResults } from '@/lib/search';
 import cn from '@/lib/cn';
 
-type SlimArtist = {
-  name: string;
-  slug: string;
-  uuid: string;
-  featured: number;
-};
-
-type SearchSong = {
-  name: string;
-  slug: string;
-  shows_played_at: number;
-  slim_artist: SlimArtist;
-};
-
-type SearchVenue = {
-  name: string;
-  slug: string;
-  location: string;
-  shows_at_venue: number;
-  slim_artist: SlimArtist;
-};
-
-type SearchTour = {
-  name: string;
-  slug: string;
-  shows_on_tour: number;
-  slim_artist: SlimArtist;
-};
-
-type SearchResults = {
-  Artists: SlimArtist[];
-  Shows: unknown[];
-  Songs: SearchSong[];
-  Venues: SearchVenue[];
-  Tours: SearchTour[];
-};
-
-const EMPTY: SearchResults = { Artists: [], Shows: [], Songs: [], Venues: [], Tours: [] };
-const resolvedEmpty = Promise.resolve(EMPTY);
+const resolvedEmpty = Promise.resolve(EMPTY_SEARCH);
 const searchCache = new Map<string, Promise<SearchResults>>();
 
 function fetchSearchResults(query: string): Promise<SearchResults> {
@@ -66,11 +28,11 @@ function fetchSearchResults(query: string): Promise<SearchResults> {
       const oldest = searchCache.keys().next().value;
       if (oldest !== undefined) searchCache.delete(oldest);
     }
-    cached = fetch(`${API_DOMAIN}/api/v2/search?q=${encodeURIComponent(query)}`)
-      .then((res) => (res.ok ? (res.json() as Promise<SearchResults>) : EMPTY))
+    cached = fetch(`/api/search?q=${encodeURIComponent(query)}`)
+      .then((res) => (res.ok ? (res.json() as Promise<SearchResults>) : EMPTY_SEARCH))
       .catch(() => {
         searchCache.delete(query);
-        return EMPTY;
+        return EMPTY_SEARCH;
       });
     searchCache.set(query, cached);
   }
@@ -87,10 +49,10 @@ function SearchResultsList({
   const results = use(fetchSearchResults(query));
 
   const hasResults =
-    results.Artists.length > 0 ||
-    results.Songs.length > 0 ||
-    results.Venues.length > 0 ||
-    results.Tours.length > 0;
+    results.artists.length > 0 ||
+    results.songs.length > 0 ||
+    results.venues.length > 0 ||
+    results.tours.length > 0;
 
   if (!hasResults) {
     return <CommandEmpty>No results found.</CommandEmpty>;
@@ -98,9 +60,9 @@ function SearchResultsList({
 
   return (
     <>
-      {results.Artists.length > 0 && (
+      {results.artists.length > 0 && (
         <CommandGroup heading="Artists">
-          {results.Artists.slice(0, 8).map((artist) => (
+          {results.artists.slice(0, 8).map((artist) => (
             <CommandItem
               key={`artist-${artist.slug}`}
               value={`artist-${artist.slug}`}
@@ -113,24 +75,24 @@ function SearchResultsList({
         </CommandGroup>
       )}
 
-      {results.Artists.length > 0 &&
-        (results.Songs.length > 0 || results.Venues.length > 0 || results.Tours.length > 0) && (
+      {results.artists.length > 0 &&
+        (results.songs.length > 0 || results.venues.length > 0 || results.tours.length > 0) && (
           <CommandSeparator />
         )}
 
-      {results.Songs.length > 0 && (
+      {results.songs.length > 0 && (
         <CommandGroup heading="Songs">
-          {results.Songs.slice(0, 8).map((song) => (
+          {results.songs.slice(0, 8).map((song) => (
             <CommandItem
-              key={`song-${song.slim_artist.slug}-${song.slug}`}
-              value={`song-${song.slim_artist.slug}-${song.slug}`}
-              onSelect={() => onNavigate(`/${song.slim_artist.slug}/songs?slug=${song.slug}`)}
+              key={`song-${song.artist.slug}-${song.slug}`}
+              value={`song-${song.artist.slug}-${song.slug}`}
+              onSelect={() => onNavigate(`/${song.artist.slug}/songs?slug=${song.slug}`)}
             >
               <SearchIcon className="size-4 text-text-muted" />
               <div className="flex flex-col">
                 <span>{song.name}</span>
                 <span className="text-xs text-text-muted">
-                  {song.slim_artist.name} · {song.shows_played_at} shows
+                  {song.artist.name} · {song.show_count} shows
                 </span>
               </div>
             </CommandItem>
@@ -138,25 +100,25 @@ function SearchResultsList({
         </CommandGroup>
       )}
 
-      {results.Songs.length > 0 && (results.Venues.length > 0 || results.Tours.length > 0) && (
+      {results.songs.length > 0 && (results.venues.length > 0 || results.tours.length > 0) && (
         <CommandSeparator />
       )}
 
-      {results.Venues.length > 0 && (
+      {results.venues.length > 0 && (
         <CommandGroup heading="Venues">
-          {results.Venues.slice(0, 8).map((venue) => (
+          {results.venues.slice(0, 8).map((venue) => (
             <CommandItem
-              key={`venue-${venue.slim_artist.slug}-${venue.slug}`}
-              value={`venue-${venue.slim_artist.slug}-${venue.slug}`}
-              onSelect={() => onNavigate(`/${venue.slim_artist.slug}/venues?slug=${venue.slug}`)}
+              key={`venue-${venue.artist.slug}-${venue.slug}`}
+              value={`venue-${venue.artist.slug}-${venue.slug}`}
+              onSelect={() => onNavigate(`/${venue.artist.slug}/venues?slug=${venue.slug}`)}
             >
               <MapPinIcon className="size-4 text-text-muted" />
               <div className="flex flex-col">
                 <span>{venue.name}</span>
                 <span className="text-xs text-text-muted">
-                  {venue.slim_artist.name}
+                  {venue.artist.name}
                   {venue.location ? ` · ${venue.location}` : ''}
-                  {venue.shows_at_venue ? ` · ${venue.shows_at_venue} shows` : ''}
+                  {venue.show_count ? ` · ${venue.show_count} shows` : ''}
                 </span>
               </div>
             </CommandItem>
@@ -164,22 +126,22 @@ function SearchResultsList({
         </CommandGroup>
       )}
 
-      {results.Venues.length > 0 && results.Tours.length > 0 && <CommandSeparator />}
+      {results.venues.length > 0 && results.tours.length > 0 && <CommandSeparator />}
 
-      {results.Tours.length > 0 && (
+      {results.tours.length > 0 && (
         <CommandGroup heading="Tours">
-          {results.Tours.slice(0, 6).map((tour) => (
+          {results.tours.slice(0, 6).map((tour) => (
             <CommandItem
-              key={`tour-${tour.slim_artist.slug}-${tour.slug}`}
-              value={`tour-${tour.slim_artist.slug}-${tour.slug}`}
-              onSelect={() => onNavigate(`/${tour.slim_artist.slug}/tours?slug=${tour.slug}`)}
+              key={`tour-${tour.artist.slug}-${tour.slug}`}
+              value={`tour-${tour.artist.slug}-${tour.slug}`}
+              onSelect={() => onNavigate(`/${tour.artist.slug}/tours?slug=${tour.slug}`)}
             >
               <RouteIcon className="size-4 text-text-muted" />
               <div className="flex flex-col">
                 <span>{tour.name}</span>
                 <span className="text-xs text-text-muted">
-                  {tour.slim_artist.name}
-                  {tour.shows_on_tour ? ` · ${tour.shows_on_tour} shows` : ''}
+                  {tour.artist.name}
+                  {tour.show_count ? ` · ${tour.show_count} shows` : ''}
                 </span>
               </div>
             </CommandItem>

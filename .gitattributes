@@ -1,1 +1,3 @@
 .githooks/* text eol=lf
+src/lib/v4/generated/** linguist-generated
+src/lib/v4/swagger.json linguist-generated

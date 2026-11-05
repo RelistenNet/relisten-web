@@ -23,6 +23,8 @@ type ShowsColumnWithControlsProps = {
   fullDate?: boolean;
   quickHitSegment?: string;
   quickHitSlug?: string;
+  /** No track in these shows is matched to the song (it's only known from setlists). */
+  tracksUnmatched?: boolean;
 };
 
 const ShowsColumnWithControls = ({
@@ -32,6 +34,7 @@ const ShowsColumnWithControls = ({
   fullDate,
   quickHitSegment,
   quickHitSlug,
+  tracksUnmatched,
 }: ShowsColumnWithControlsProps) => {
   const { alphaAsc, sortBy, setSortBy, sbdOnly, toggleFilter, clearFilters } = useFilterState(
     `${artistSlug}:shows`,
@@ -137,7 +140,7 @@ const ShowsColumnWithControls = ({
             : `/${artistSlug}/${year}/${month}/${day}`;
 
           return (
-            <Fragment key={show.uuid}>
+            <Fragment key={show.id}>
               {!fullDate && tourName && tourName !== 'Not Part of a Tour' && (
                 <RowHeader>{tourName}</RowHeader>
               )}
@@ -146,6 +149,7 @@ const ShowsColumnWithControls = ({
                   <Flex className="tabular-nums">
                     {fullDate ? `${year}-${month}-${day}` : `${removeLeadingZero(month)}/${day}`}
                     {show.has_soundboard_source && <Tag>SBD</Tag>}
+                    {tracksUnmatched && <Tag variant="warning">track not matched</Tag>}
                   </Flex>
                   {venue && (
                     <div className="my-0.5 text-xxs leading-3.5 text-foreground-muted">

@@ -1,6 +1,8 @@
 /* oxlint-disable react/no-unknown-property */
 import 'server-only';
 
+import { getArtistDirectory } from '@/lib/v4/artistDirectory';
+import { resolveLegacyShow } from '@/lib/v4/legacy';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { ImageResponse } from 'takumi-js/response';
 import { defineSearchParams } from '@timber-js/app/search-params';
@@ -45,25 +47,28 @@ const searchParams = defineSearchParams({
 });
 
 export async function GET() {
-  const { showUuid } = getSegmentParams(SEGMENT_PATH);
+  const { showId: rawShowId } = getSegmentParams(SEGMENT_PATH);
 
   const params = searchParams.get();
   const size = params.size;
   // Debug overlay is a layout aid; only honor it in development.
   const debug = params.debug && process.env.NODE_ENV === 'development';
 
-  // showUuid is already format-validated by app/schema.ts. Look up the show
+  // The id is already format-validated by app/schema.ts. Look up the show
   // before loading fonts so unknown shows 404 without any font work.
-  const [artists, show] = await Promise.all([
-    RelistenAPI.fetchAllArtists(),
-    RelistenAPI.fetchShowByUUID(showUuid),
+  const showId = rawShowId.startsWith('show_') ? rawShowId : await resolveLegacyShow(rawShowId);
+  if (!showId) return new Response('Not Found', { status: 404 });
+
+  const [directory, show] = await Promise.all([
+    getArtistDirectory(),
+    RelistenAPI.fetchShowById(showId).catch(() => null),
   ]);
 
   if (!show || !show.sources?.length) return new Response('Not Found', { status: 404 });
 
   const fonts = await loadCardFonts();
 
-  const artist = artists.find((artist) => artist.uuid === show.artist_uuid);
+  const artist = show.artist_id ? directory.byId.get(show.artist_id) : undefined;
   const artistName = artist?.name ?? 'Unknown Artist';
   const { month, day, year } = parseDisplayDate(show.display_date || '');
 

@@ -15,7 +15,9 @@
     "test": "vitest run",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
-    "prepare": "git config --local core.hooksPath .githooks || true"
+    "prepare": "git config --local core.hooksPath .githooks || true",
+    "gen:api": "orval",
+    "update:api": "curl -fsS https://api.relisten.net/api-docs/v4/swagger.json | node -e \"process.stdout.write(JSON.stringify(JSON.parse(require('fs').readFileSync(0,'utf8')),null,2)+'\\n')\" > src/lib/v4/swagger.json && orval"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -77,6 +79,7 @@
     "@vitejs/plugin-rsc": "^0.5.39",
     "babel-plugin-react-compiler": "^1.0.0",
     "lint-staged": "17.6.0",
+    "orval": "^8.46.0",
     "oxfmt": "^0.76.0",
     "oxlint": "^1.91.0",
     "oxlint-tailwindcss": "^1.17.1",

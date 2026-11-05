@@ -89,7 +89,7 @@ const YearsColumnWithControls = ({
         processedYears.length > 0 &&
         processedYears.map((yearObj) => (
           <Row
-            key={yearObj.uuid}
+            key={yearObj.id}
             href={`/${artistSlug}/${yearObj.year}`}
             active={yearObj.year === currentYear}
           >

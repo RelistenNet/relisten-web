@@ -12,14 +12,13 @@ const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
   });
 
   const artist = artists?.find((artist) => artist.slug === artistSlug);
-  const artistYears = await RelistenAPI.fetchYears(artist?.uuid);
+  const artistYears = await RelistenAPI.fetchYears(artist?.id);
   const features = artist?.features;
 
   // Trim year objects to only what the UI reads. Drops duration,
-  // avg_duration, avg_rating, artist_uuid, created_at, updated_at.
+  // avg_duration, avg_rating, artist_id, created_at, updated_at.
   const slimYears = (artistYears || []).map((y) => ({
     id: y.id,
-    uuid: y.uuid,
     year: y.year,
     show_count: y.show_count,
     source_count: y.source_count,

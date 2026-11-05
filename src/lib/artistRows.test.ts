@@ -3,8 +3,7 @@ import { fromArtistRow, isPrimaryArtist, toArtistRow } from './artistRows';
 import type { Artist } from '@/types';
 
 const artist: Artist = {
-  id: 1,
-  uuid: '77a58ff9-2e01-c59c-b8eb-cff106049b72',
+  id: 'artist_3qmp7zjbg1rpebhtyfy43096vj',
   name: 'Grateful Dead',
   slug: 'grateful-dead',
   show_count: 2400,

@@ -19,7 +19,7 @@ type Progress = { currentTime: number; isPaused: boolean };
  * loadedmetadata), and the time spent paused would let that jump through.
  */
 export function createListenTracker(now: () => number = () => performance.now() / 1000) {
-  let uuid = '';
+  let current = '';
   let lastTime = 0;
   let lastAt = 0;
   let wasPaused = true;
@@ -27,10 +27,10 @@ export function createListenTracker(now: () => number = () => performance.now() 
   let counted = false;
 
   return {
-    progress(trackUuid: string, { currentTime, isPaused }: Progress): boolean {
+    progress(trackId: string, { currentTime, isPaused }: Progress): boolean {
       const at = now();
-      if (trackUuid !== uuid) {
-        uuid = trackUuid;
+      if (trackId !== current) {
+        current = trackId;
         heard = 0;
         counted = false;
         wasPaused = true;
