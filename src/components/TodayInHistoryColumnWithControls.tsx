@@ -112,11 +112,9 @@ const TodayInHistoryColumnWithControls = ({
                     </div>
                   )}
                 </div>
-                <div className="flex h-full min-w-[20%] flex-col justify-center gap-2 text-right text-xxs text-foreground-muted">
+                <div className="flex min-w-[20%] flex-col self-stretch justify-center gap-2 text-right text-xxs text-foreground-muted">
                   <div>{durationToHHMMSS(avg_duration)}</div>
-                  <div>
-                    <Count unit="tape" value={show.source_count} />
-                  </div>
+                  <Count unit="tape" value={show.source_count} />
                 </div>
               </Row>
             </div>

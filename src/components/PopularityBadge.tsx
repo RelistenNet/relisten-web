@@ -1,4 +1,3 @@
-import { Music } from 'lucide-react';
 import { formatNumber, formatHours } from '@/lib/formatPlays';
 import Tooltip from './Tooltip';
 import type { Popularity } from '@/types';
@@ -16,7 +15,7 @@ export default function PopularityBadge({
 
   return (
     <Tooltip
-      className={cn('flex items-center text-xxs tracking-wide text-foreground-muted', {
+      className={cn('flex items-center gap-1 text-xxs tracking-wide text-foreground-muted', {
         ['justify-end']: align === 'right',
       })}
       align={align}
@@ -46,10 +45,10 @@ export default function PopularityBadge({
         )
       }
     >
-      <div className="flex items-center gap-1 text-right text-foreground-muted">
-        <Music className="size-3" />
-        {formatNumber(plays)}
-      </div>
+      {/* A CSS-mask icon (one element) rather than lucide's <Music> SVG (four):
+          this badge renders on every row of the list columns. */}
+      <span className="icon-music size-3" aria-hidden="true" />
+      {formatNumber(plays)}
     </Tooltip>
   );
 }

@@ -3,7 +3,7 @@
 import { useFilterState } from '@/hooks/useFilterState';
 import type { SlimShow } from '@/lib/slimShow';
 import { useSegmentParams } from '@timber-js/app/client';
-import { useMemo } from 'react';
+import { Fragment, useMemo } from 'react';
 import sortActiveBands from '../lib/sortActiveBands';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
@@ -137,7 +137,7 @@ const ShowsColumnWithControls = ({
             : `/${artistSlug}/${year}/${month}/${day}`;
 
           return (
-            <div key={show.uuid}>
+            <Fragment key={show.uuid}>
               {!fullDate && tourName && tourName !== 'Not Part of a Tour' && (
                 <RowHeader>{tourName}</RowHeader>
               )}
@@ -154,15 +154,13 @@ const ShowsColumnWithControls = ({
                     </div>
                   )}
                 </div>
-                <div className="flex h-full min-w-[20%] flex-col justify-between text-right text-xxs text-foreground-muted">
+                <div className="flex min-w-[20%] flex-col self-stretch justify-between text-right text-xxs text-foreground-muted">
                   <PopularityBadge popularity={show.popularity} align="right" />
                   <div>{durationToHHMMSS(avg_duration)}</div>
-                  <div>
-                    <Count unit="tape" value={show.source_count} />
-                  </div>
+                  <Count unit="tape" value={show.source_count} />
                 </div>
               </Row>
-            </div>
+            </Fragment>
           );
         })}
     </ColumnWithToggleControls>

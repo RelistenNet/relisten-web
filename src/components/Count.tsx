@@ -1,11 +1,24 @@
 import { splitPluralize } from '@/lib/utils';
 
-export default function Count({ unit, value }: { unit: string; value: number | undefined }) {
+/**
+ * "12 tapes": a block with the number emphasized. The unit (and `suffix`) are
+ * bare text in the muted wrapper rather than spans of their own, since list
+ * rows render several of these each.
+ */
+export default function Count({
+  unit,
+  value,
+  suffix,
+}: {
+  unit: string;
+  value: number | undefined;
+  suffix?: string;
+}) {
   const [n, u] = splitPluralize(unit, value ?? 0);
   return (
-    <>
-      <span className="font-medium text-foreground-muted">{n}</span>{' '}
-      <span className="text-text-muted">{u}</span>
-    </>
+    <div className="text-text-muted">
+      <span className="font-medium text-foreground-muted">{n}</span> {u}
+      {suffix && ` ${suffix}`}
+    </div>
   );
 }

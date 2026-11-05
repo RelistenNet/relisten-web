@@ -1,6 +1,6 @@
 'use client';
 
-import React, { type RefObject, Suspense, use, useMemo, useRef, useState } from 'react';
+import React, { Fragment, type RefObject, Suspense, use, useMemo, useRef, useState } from 'react';
 import { browser } from 'react-dom';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import { useSegmentParams } from '@timber-js/app/client';
@@ -311,12 +311,8 @@ function ArtistList({
           )}
         </div>
         <div className="min-w-[20%] text-right text-xs">
-          <div>
-            <Count unit="show" value={item.artist.show_count} />
-          </div>
-          <div>
-            <Count unit="tape" value={item.artist.source_count} />
-          </div>
+          <Count unit="show" value={item.artist.show_count} />
+          <Count unit="tape" value={item.artist.source_count} />
         </div>
       </Row>
     );
@@ -348,7 +344,9 @@ function ArtistList({
               </div>
             );
           })
-        : items.slice(0, 30).map((item) => <div key={item.key}>{renderItem(item)}</div>)}
+        : items
+            .slice(0, 30)
+            .map((item) => <Fragment key={item.key}>{renderItem(item)}</Fragment>)}
     </div>
   );
 }

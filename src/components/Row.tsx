@@ -27,6 +27,17 @@ type RowProps = {
   refreshWhenCurrent?: boolean;
 };
 
+// The row is a single flex box holding the caller's left and right blocks.
+// The active / pending bar is absolutely positioned at the left edge, and
+// ROW_WITH_BAR adds its width (w-2) to the left padding, which is where an
+// in-flow bar used to push the content. That saves a wrapper element per row.
+const ROW_CLASSES = `
+  relative relisten-row min-h-[56px] items-center justify-between border-b border-hairline p-2
+  leading-tight tabular-nums hover:bg-surface-hover lg:min-h-[46px] lg:p-1
+`;
+const ROW_WITH_BAR = 'pl-4 lg:pl-3';
+const ROW_BAR = 'absolute inset-y-0 left-0 w-2';
+
 export const unwrapSegment = (val: unknown): string | undefined => {
   if (Array.isArray(val)) return val[0];
   return val as string | undefined;
@@ -49,16 +60,11 @@ function RowLinkContent({
 
   return (
     <Flex
-      className={cn(
-        `
-          relative relisten-row min-h-[56px] items-stretch border-b border-hairline
-          hover:bg-surface-hover lg:min-h-[46px]
-        `,
-        {
-          'opacity-70': isPending,
-          'bg-accent/10 hover:bg-accent/15': isActive && !isPending,
-        }
-      )}
+      className={cn(ROW_CLASSES, {
+        [ROW_WITH_BAR]: isPending || isActive,
+        'opacity-70': isPending,
+        'bg-accent/10 hover:bg-accent/15': isActive && !isPending,
+      })}
       {...props}
     >
       {loading && <RowLoading />}
@@ -67,12 +73,9 @@ function RowLinkContent({
           {/* <Spinner /> */}
         </div>
       )}
-      {isPending && <div className="w-2 animate-pulse bg-relisten-600/30" />}
-
-      {!isPending && isActive && <div className="w-2 min-w-2 bg-accent" />}
-      <Flex className="w-full flex-1 items-center justify-between p-2 leading-tight tabular-nums lg:p-1">
-        {children}
-      </Flex>
+      {isPending && <div className={`${ROW_BAR} animate-pulse bg-relisten-600/30`} />}
+      {!isPending && isActive && <div className={`${ROW_BAR} bg-accent`} />}
+      {children}
     </Flex>
   );
 }
@@ -115,19 +118,14 @@ const Row = ({
   if (!href) {
     return (
       <Flex
-        className={cn(
-          `
-            relative relisten-row min-h-[56px] items-stretch border-b border-hairline
-            hover:bg-surface-hover lg:min-h-[46px]
-          `,
-          { 'bg-accent/10 hover:bg-accent/15': active }
-        )}
+        className={cn(ROW_CLASSES, {
+          [ROW_WITH_BAR]: active,
+          'bg-accent/10 hover:bg-accent/15': active,
+        })}
       >
         {loading && <RowLoading />}
-        {active && <div className="w-2 min-w-2 bg-accent" />}
-        <Flex className="w-full flex-1 items-center justify-between p-2 leading-tight tabular-nums lg:p-1">
-          {children}
-        </Flex>
+        {active && <div className={`${ROW_BAR} bg-accent`} />}
+        {children}
       </Flex>
     );
   }
