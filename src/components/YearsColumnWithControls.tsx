@@ -95,7 +95,7 @@ const YearsColumnWithControls = ({
           >
             <div>
               <div className="flex items-center gap-1">
-                <div>{yearObj.year}</div>
+                {yearObj.year}
                 {yearObj.has_soundboard_source && (
                   <span className="rounded bg-green-500/20 px-1 text-[10px] text-green-700">
                     SBD
@@ -105,12 +105,8 @@ const YearsColumnWithControls = ({
               <PopularityBadge popularity={yearObj.popularity} />
             </div>
             <div className="min-w-[20%] text-right text-xxs">
-              <div>
-                <Count unit="show" value={yearObj.show_count} />
-              </div>
-              <div>
-                <Count unit="tape" value={yearObj.source_count} />
-              </div>
+              <Count unit="show" value={yearObj.show_count} />
+              <Count unit="tape" value={yearObj.source_count} />
             </div>
           </Row>
         ))}

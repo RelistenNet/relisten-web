@@ -88,11 +88,7 @@ const VenuesColumnWithControls = ({
                 )}
               </div>
               <div className="min-w-[20%] text-right text-xxs">
-                {venue.shows_at_venue != null && (
-                  <div>
-                    <Count unit="show" value={venue.shows_at_venue} />
-                  </div>
-                )}
+                {venue.shows_at_venue != null && <Count unit="show" value={venue.shows_at_venue} />}
               </div>
             </Row>
           </div>
