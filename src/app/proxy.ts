@@ -1,3 +1,4 @@
+import { trace } from '@opentelemetry/api';
 // Bundled at build time so we never fetch from a Host-header-derived origin.
 import privacyPolicyHtml from '../../public/privacy_policy.html?raw';
 
@@ -10,6 +11,7 @@ export default async (req: Request, next: () => Promise<Response>) => {
     req.headers.get('x-real-ip') ??
     req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
     'unknown';
+  if (ip !== 'unknown') trace.getActiveSpan()?.setAttribute('client.address', ip);
   const host = req.headers.get('host') ?? req.headers.get('x-forwarded-host') ?? 'unknown';
   const ua = req.headers.get('user-agent') ?? 'unknown';
 
