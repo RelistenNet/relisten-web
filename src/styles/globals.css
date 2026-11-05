@@ -708,7 +708,71 @@
     opacity: 1;
   }
 
+  /* ── Anchored tooltips: respect the safe area ──
+     Flip and anchor-center test the margin box against the viewport, which
+     viewport-fit=cover stretches under the notch / home indicator. Margins equal
+     to the insets keep the box clear of them. Only the sides that aren't
+     anchored get one (a margin on an anchored side would shift the tooltip off
+     its anchor). !important because css-anchor-kit inlines `margin: 0`;
+     flip-block / flip-inline swap these along with the position. */
+  .anchored-safe {
+    --safe-l: max(0.5rem, env(safe-area-inset-left, 0px));
+    --safe-r: max(0.5rem, env(safe-area-inset-right, 0px));
+    max-width: calc(100vw - var(--safe-l) - var(--safe-r));
+  }
+  .anchored-safe[data-side='bottom'] {
+    margin-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px)) !important;
+  }
+  .anchored-safe[data-side='top'] {
+    margin-top: max(0.5rem, env(safe-area-inset-top, 0px)) !important;
+  }
+  .anchored-safe[data-align='center'] {
+    margin-left: var(--safe-l) !important;
+    margin-right: var(--safe-r) !important;
+  }
+  .anchored-safe[data-align='start'] {
+    margin-right: var(--safe-r) !important;
+  }
+  .anchored-safe[data-align='end'] {
+    margin-left: var(--safe-l) !important;
+  }
+
+  .tooltip-fade {
+    opacity: 0;
+    transition:
+      opacity 200ms ease-in-out,
+      display 200ms allow-discrete,
+      overlay 200ms allow-discrete;
+  }
+  .tooltip-fade:popover-open {
+    opacity: 1;
+  }
+  @starting-style {
+    .tooltip-fade:popover-open {
+      opacity: 0;
+    }
+  }
+
   /* ── Footnotes / Sidenotes ── */
+
+  .footnote-flash {
+    animation: footnote-flash 2.3s ease-out;
+  }
+
+  @keyframes footnote-flash {
+    0% {
+      transform: scale(1);
+      text-shadow: 1px 0 4px rgb(0 186 218 / 0);
+    }
+    13% {
+      transform: scale(1.1);
+      text-shadow: 1px 0 8px rgb(0 186 218 / 0.8);
+    }
+    100% {
+      transform: scale(1);
+      text-shadow: 1px 0 4px rgb(0 186 218 / 0);
+    }
+  }
 
   .footnote-index {
     color: var(--color-accent);
