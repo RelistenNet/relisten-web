@@ -43,7 +43,7 @@ Start the User Service in a second terminal:
 
 ```sh
 cd /path/to/RelistenApi
-dotnet run --project RelistenUserService/RelistenUserService.csproj
+local-dev/accounts.sh dummy
 ```
 
 Start Timber in a third terminal:
@@ -55,7 +55,7 @@ pnpm dev
 
 Open `https://web.relisten.localhost:5173`. Vite uses a strict port, so startup fails if another process owns port 5173. The User Service uses HTTPS on loopback port 5443 and accepts only the configured Development hostnames.
 
-The local profile enables development personas because the User Service runs in the `Development` environment. Development personas are unavailable in other environments.
+Dummy mode offers development personas on `https://localhost:5443`. To use real Google sign-in, stop the User Service and run `local-dev/accounts.sh google` instead. Both modes use `relisten_db`, the same issuer, and the same accounts API. Existing sessions survive a mode change; sign out or choose **Switch account** to select another identity. Development personas are unavailable outside the local `Development` profile.
 
 ## Proxy and credential boundaries
 
@@ -144,9 +144,7 @@ Start the local databases. Then start the User Service with the Google profile:
 
 ```sh
 cd /Users/alecgorge/code/relisten/RelistenApi
-dotnet run \
-  --project RelistenUserService/RelistenUserService.csproj \
-  --launch-profile RelistenUserService.LocalGoogle
+local-dev/accounts.sh google
 ```
 
 Start Timber in another terminal:

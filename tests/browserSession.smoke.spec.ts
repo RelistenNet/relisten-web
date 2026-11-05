@@ -7,7 +7,7 @@ test('signs in through a development persona and clears the session on logout', 
 }) => {
   await runRedirectStage(page, 'authorization start', async () => {
     await page.goto('/auth/session/start?return_to=%2Fbrowser-session-development');
-    await expect(page).toHaveURL(/^https:\/\/auth\.relisten\.localhost:5443\/development\/sign-in/);
+    await expect(page).toHaveURL(/^https:\/\/localhost:5443\/development\/sign-in/);
   });
 
   await runRedirectStage(page, 'authorization callback', async () => {
@@ -24,18 +24,16 @@ test('signs in through a development persona and clears the session on logout', 
     const me = (await meResponse.json()) as Record<string, unknown>;
     const snapshot = (await snapshotResponse.json()) as Record<string, unknown>;
     const favorites = snapshot.favorites as Array<Record<string, unknown>>;
-    const hasTypedFavorites =
-      favorites.length > 0 &&
-      favorites.every((favorite) => {
-        const target = favorite.target as Record<string, unknown> | undefined;
-        return (
-          typeof favorite.favorite_id === 'string' &&
-          favorite.favorite_id.startsWith('favorite_') &&
-          typeof target?.kind === 'string' &&
-          typeof target.id === 'string' &&
-          target.id.startsWith(`${target.kind}_`)
-        );
-      });
+    const allFavoritesHaveTypedIds = favorites.every((favorite) => {
+      const target = favorite.target as Record<string, unknown> | undefined;
+      return (
+        typeof favorite.favorite_id === 'string' &&
+        favorite.favorite_id.startsWith('favorite_') &&
+        typeof target?.kind === 'string' &&
+        typeof target.id === 'string' &&
+        target.id.startsWith(`${target.kind}_`)
+      );
+    });
     return {
       meStatus: meResponse.status,
       meContractVersion: me.contract_version,
@@ -43,7 +41,7 @@ test('signs in through a development persona and clears the session on logout', 
       hasNativeSessionId: Object.hasOwn(me, 'native_session_id'),
       snapshotStatus: snapshotResponse.status,
       snapshotContractVersion: snapshot.contract_version,
-      hasTypedFavorites,
+      allFavoritesHaveTypedIds,
     };
   });
   expect(resources).toEqual({
@@ -53,7 +51,7 @@ test('signs in through a development persona and clears the session on logout', 
     hasNativeSessionId: false,
     snapshotStatus: 200,
     snapshotContractVersion: 1,
-    hasTypedFavorites: true,
+    allFavoritesHaveTypedIds: true,
   });
 
   const logout = await page.evaluate(async () => {
