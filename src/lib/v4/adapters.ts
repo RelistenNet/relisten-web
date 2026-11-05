@@ -69,7 +69,6 @@ export const toYear = (y: YearResource): Year => ({
   duration: opt(y.duration),
   avg_duration: opt(y.avg_duration),
   avg_rating: y.avg_rating,
-  has_soundboard_source: y.has_soundboard_source,
   popularity: toPopularity(y.popularity),
 });
 

@@ -22,7 +22,6 @@ const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
     year: y.year,
     show_count: y.show_count,
     source_count: y.source_count,
-    has_soundboard_source: y.has_soundboard_source,
     popularity: y.popularity,
   }));
 

@@ -94,14 +94,7 @@ const YearsColumnWithControls = ({
             active={yearObj.year === currentYear}
           >
             <div>
-              <div className="flex items-center gap-1">
-                {yearObj.year}
-                {yearObj.has_soundboard_source && (
-                  <span className="rounded bg-green-500/20 px-1 text-[10px] text-green-700">
-                    SBD
-                  </span>
-                )}
-              </div>
+              <div>{yearObj.year}</div>
               <PopularityBadge popularity={yearObj.popularity} />
             </div>
             <div className="min-w-[20%] text-right text-xxs">
