@@ -43,12 +43,17 @@ export const durationToHHMMSS = (duration = 0): string => {
   );
 };
 
+// One shared formatter: `Number#toLocaleString()` builds a new Intl.NumberFormat
+// on every call (~17µs vs ~0.4µs), and list columns call this hundreds of times
+// per render. Same default locale as `toLocaleString()`.
+export const numberFormat = new Intl.NumberFormat();
+
 export const simplePluralize = (str: string, count = 0): string => {
-  return `${count?.toLocaleString()} ${count === 1 ? str : str + 's'}`;
+  return `${numberFormat.format(count ?? 0)} ${count === 1 ? str : str + 's'}`;
 };
 
 export const splitPluralize = (str: string, count = 0): [string, string] => {
-  return [count?.toLocaleString() ?? '0', count === 1 ? str : str + 's'];
+  return [numberFormat.format(count ?? 0), count === 1 ? str : str + 's'];
 };
 
 export const groupBy = function <T>(xs: T[], key: keyof T): Record<string, T[]> {

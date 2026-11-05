@@ -1,5 +1,5 @@
 import type { LiveHistoryItem, TrackSource } from '@/types';
-import { removeLeadingZero, splitShowDate } from './utils';
+import { numberFormat, removeLeadingZero, splitShowDate } from './utils';
 
 // Shared by the server page, the summary route, and the client island, so it
 // must stay free of server-only and browser-only imports.
@@ -207,5 +207,5 @@ export const formatShowDate = (displayDate: string) => {
  */
 export const formatListeners = (n: number, { min = 0 }: { min?: number } = {}) => {
   const rounded = Math.max(min, Math.round(n));
-  return rounded === 0 ? '0' : `~${rounded.toLocaleString()}`;
+  return rounded === 0 ? '0' : `~${numberFormat.format(rounded)}`;
 };
