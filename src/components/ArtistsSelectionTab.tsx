@@ -5,7 +5,7 @@ import { fromArtistRow, type ArtistListItem, type ArtistRow } from '@/lib/artist
 import { fuzzyMatch, type HighlightRanges } from '@nozbe/microfuzz';
 import { useSegmentParams } from '@timber-js/app/client';
 import { X } from 'lucide-react';
-import { use, useDeferredValue, useMemo, useRef, useState, useTransition } from 'react';
+import { startTransition, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import ArtistsColumnWithControls from './ArtistsColumnWithControls';
 
 type Tab = 'primary' | 'all';
@@ -13,27 +13,62 @@ type Tab = 'primary' | 'all';
 type ArtistsSelectionTabProps = {
   /** Primary (featured ≤ 1) artists, sent with the page shell. */
   primary: ArtistRow[];
-  /** Archive artists, streamed in after the shell. */
-  archive: Promise<ArtistRow[]>;
 };
 
-const ArtistsSelectionTab = ({ primary, archive }: ArtistsSelectionTabProps) => {
+// One fetch per page session: the column can remount on navigation, and the
+// list is the same everywhere. A failed fetch is forgotten so the next mount
+// retries it.
+let archiveRequest: Promise<ArtistListItem[]> | null = null;
+
+function loadArchiveArtists(): Promise<ArtistListItem[]> {
+  archiveRequest ??= fetch('/api/artists/archive')
+    .then((res) => {
+      if (!res.ok) throw new Error(`archive artists: HTTP ${res.status}`);
+      return res.json() as Promise<ArtistRow[]>;
+    })
+    .then((rows) => rows.map(fromArtistRow))
+    .catch((err) => {
+      archiveRequest = null;
+      throw err;
+    });
+  return archiveRequest;
+}
+
+/** `null` until the archive list has loaded. Starts loading once the browser is idle. */
+function useArchiveArtists(): ArtistListItem[] | null {
+  const [archive, setArchive] = useState<ArtistListItem[] | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    const load = () =>
+      loadArchiveArtists().then(
+        (artists) => active && startTransition(() => setArchive(artists)),
+        (err) => console.warn(err)
+      );
+
+    if (typeof requestIdleCallback === 'function') {
+      const id = requestIdleCallback(load, { timeout: 1500 });
+      return () => {
+        active = false;
+        cancelIdleCallback(id);
+      };
+    }
+    const id = setTimeout(load, 0);
+    return () => {
+      active = false;
+      clearTimeout(id);
+    };
+  }, []);
+
+  return archive;
+}
+
+const ArtistsSelectionTab = ({ primary }: ArtistsSelectionTabProps) => {
   const primaryArtists = useMemo(() => primary.map(fromArtistRow), [primary]);
+  const archiveArtists = useArchiveArtists();
 
-  // The first render (SSR and hydration) sees `null` and shows the primary
-  // list. React then re-renders in the background with the real promise; while
-  // `use()` is still waiting on it, React keeps the current UI instead of
-  // showing a Suspense fallback. So there is one `ArtistsTabs` instance
-  // throughout, and the user's tab, search text and input focus survive the
-  // archive arriving. (A Suspense fallback would be a different instance, and
-  // swapping it out would reset all three.)
-  const deferredArchive = useDeferredValue<Promise<ArtistRow[]> | null>(archive, null);
-  const archiveRows = deferredArchive ? use(deferredArchive) : null;
-  const archiveArtists = useMemo(
-    () => archiveRows && archiveRows.map(fromArtistRow),
-    [archiveRows]
-  );
-
+  // One `ArtistsTabs` instance throughout, so the user's tab, search text and
+  // input focus survive the archive arriving.
   return <ArtistsTabs primaryArtists={primaryArtists} archiveArtists={archiveArtists} />;
 };
 
