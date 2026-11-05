@@ -5,6 +5,7 @@ import { PropsWithChildren, useEffect } from 'react';
 import { Provider } from 'react-redux';
 import { store } from '../redux';
 import AdminToolsInit from '@/components/AdminToolsInit';
+import { TooltipHost } from '@/components/Tooltip';
 
 export default function Providers({ children }: PropsWithChildren) {
   useEffect(() => {
@@ -36,7 +37,7 @@ export default function Providers({ children }: PropsWithChildren) {
   return (
     <Provider store={store}>
       <AdminToolsInit />
-      {children}
+      <TooltipHost>{children}</TooltipHost>
     </Provider>
   );
 }

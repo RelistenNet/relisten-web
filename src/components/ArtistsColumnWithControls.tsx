@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import React, { type RefObject, Suspense, use, useMemo, useRef, useState } from 'react';
+import { browser } from 'react-dom';
+import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import { useSegmentParams } from '@timber-js/app/client';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import { groupBy } from '../lib/utils';
@@ -11,7 +12,7 @@ import { useFilterState } from '@/hooks/useFilterState';
 import cn from '@/lib/cn';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import PopularityBadge from './PopularityBadge';
-import type { HighlightRanges } from '@nozbe/microfuzz';
+import { fuzzyMatch, type HighlightRanges } from '@nozbe/microfuzz';
 import Row, { unwrapSegment } from './Row';
 import RowHeader from './RowHeader';
 
@@ -44,25 +45,38 @@ function HighlightText({ text, ranges }: { text: string; ranges: HighlightRanges
   return parts;
 }
 
+export type ArtistsTab = 'primary' | 'all';
+
+/** Returns the archive list (`null` if it failed to load); the same promise on every call. */
+export type ArchiveLoader = () => Promise<ArtistListItem[] | null>;
+
 type ArtistsColumnWithControlsProps = {
-  artists: ArtistListItem[];
-  /** Search highlight ranges, keyed by artist slug. */
-  highlightRanges?: Map<string, HighlightRanges>;
+  primaryArtists: ArtistListItem[];
+  loadArchive: ArchiveLoader;
+  tab: ArtistsTab;
+  searchQuery: string;
   subHeader?: React.ReactNode;
   isPending?: boolean;
-  onClearSearch?: () => void;
 };
 
+/**
+ * The column frame: heading, sort toggles, sub-header and scroll container.
+ * Only the list inside it waits on the archive, under its own Suspense
+ * boundary, so none of the frame remounts when the archive arrives.
+ */
 const ArtistsColumnWithControls = ({
-  artists,
-  highlightRanges,
+  primaryArtists,
+  loadArchive,
+  tab,
+  searchQuery,
   subHeader,
   isPending,
-  onClearSearch,
 }: ArtistsColumnWithControlsProps) => {
-  const { alphaAsc, sortBy, setSortBy, clearFilters } = useFilterState('root');
-  const params = useSegmentParams() as Record<string, string | string[] | undefined>;
-  const currentArtistSlug = unwrapSegment(params.artistSlug);
+  const { alphaAsc, sortBy, setSortBy } = useFilterState('root');
+  const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
+  // Row measurements, kept here so the list that replaces the fallback when
+  // the archive arrives lays out exactly like the one it replaces.
+  const measurements = useRef<VirtualItem[]>([]);
 
   const dirIcon = alphaAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
 
@@ -98,6 +112,102 @@ const ArtistsColumnWithControls = ({
       icon: sortBy === 'popularity' ? dirIcon : undefined,
     },
   ];
+
+  const listProps = {
+    primaryArtists,
+    tab,
+    searchQuery,
+    sortBy,
+    alphaAsc,
+    scrollEl,
+    measurements,
+    isPending,
+  };
+
+  return (
+    <ColumnWithToggleControls
+      heading="Artists"
+      toggles={toggles}
+      subHeader={subHeader}
+      scrollContainerRef={setScrollEl}
+    >
+      <Suspense fallback={<ArtistList {...listProps} archiveArtists={null} />}>
+        <ArtistListWithArchive {...listProps} loadArchive={loadArchive} />
+      </Suspense>
+    </ColumnWithToggleControls>
+  );
+};
+
+type ArtistListProps = {
+  primaryArtists: ArtistListItem[];
+  /** `null` until the archive list has loaded (and in the server render). */
+  archiveArtists: ArtistListItem[] | null;
+  tab: ArtistsTab;
+  searchQuery: string;
+  sortBy: ReturnType<typeof useFilterState>['sortBy'];
+  alphaAsc: boolean;
+  scrollEl: HTMLDivElement | null;
+  /** The latest row measurements, shared by successive lists. */
+  measurements: RefObject<VirtualItem[]>;
+  isPending?: boolean;
+};
+
+function ArtistListWithArchive({
+  loadArchive,
+  ...props
+}: Omit<ArtistListProps, 'archiveArtists'> & { loadArchive: ArchiveLoader }) {
+  use(browser());
+  return <ArtistList {...props} archiveArtists={use(loadArchive())} />;
+}
+
+/** The artists to show: the tab's list, or fuzzy matches across both lists while searching. */
+function selectArtists(
+  primaryArtists: ArtistListItem[],
+  archiveArtists: ArtistListItem[] | null,
+  tab: ArtistsTab,
+  searchQuery: string
+) {
+  const query = searchQuery.trim();
+  if (!query) {
+    return {
+      artists: tab === 'primary' ? primaryArtists : (archiveArtists ?? []),
+      highlightRanges: new Map<string, HighlightRanges>(),
+    };
+  }
+  const highlightRanges = new Map<string, HighlightRanges>();
+  const scored: { artist: ArtistListItem; score: number }[] = [];
+  for (const list of [primaryArtists, archiveArtists ?? []]) {
+    for (const artist of list) {
+      const result = fuzzyMatch(artist.name || '', query);
+      if (result) {
+        scored.push({ artist, score: result.score });
+        const [nameRanges] = result.matches;
+        if (artist.slug && nameRanges) highlightRanges.set(artist.slug, nameRanges);
+      }
+    }
+  }
+  scored.sort((a, b) => a.score - b.score);
+  return { artists: scored.map((s) => s.artist), highlightRanges };
+}
+
+function ArtistList({
+  primaryArtists,
+  archiveArtists,
+  tab,
+  searchQuery,
+  sortBy,
+  alphaAsc,
+  scrollEl,
+  measurements,
+  isPending,
+}: ArtistListProps) {
+  const params = useSegmentParams() as Record<string, string | string[] | undefined>;
+  const currentArtistSlug = unwrapSegment(params.artistSlug);
+
+  const { artists, highlightRanges } = useMemo(
+    () => selectArtists(primaryArtists, archiveArtists, tab, searchQuery),
+    [primaryArtists, archiveArtists, tab, searchQuery]
+  );
 
   const processedArtists = useMemo(() => {
     const grouped = groupBy(artists, 'featured');
@@ -154,24 +264,19 @@ const ArtistsColumnWithControls = ({
     return out;
   }, [processedArtists]);
 
-  const totalArtistCount = artists.length;
-  const filteredArtistCount = processedArtists.reduce(
-    (acc, [, groupArtists]) => acc + groupArtists.length,
-    0
-  );
-
-  const handleClearFilters = () => {
-    clearFilters();
-    onClearSearch?.();
-  };
-
-  const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
-
   // TanStack Virtual returns mutable, unmemoizable values; the React Compiler knows and skips them.
   // oxlint-disable-next-line react/incompatible-library
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => scrollEl,
+    // This list remounts when the archive arrives, but the scroll container
+    // doesn't: start from the container's offset (a virtualizer scrolls to
+    // `initialOffset` when it attaches) and from the rows already measured.
+    initialOffset: () => scrollEl?.scrollTop ?? 0,
+    initialMeasurementsCache: measurements.current,
+    onChange: (instance) => {
+      measurements.current = instance.measurementsCache;
+    },
     estimateSize: (i) => (items[i].kind === 'header' ? HEADER_ESTIMATE : ROW_ESTIMATE),
     getItemKey: (i) => items[i].key,
     overscan: 8,
@@ -218,42 +323,34 @@ const ArtistsColumnWithControls = ({
   };
 
   return (
-    <ColumnWithToggleControls
-      heading="Artists"
-      toggles={toggles}
-      filteredCount={filteredArtistCount}
-      totalCount={totalArtistCount}
-      onClearFilters={handleClearFilters}
-      subHeader={subHeader}
-      scrollContainerRef={setScrollEl}
-      height={virtualizer.getTotalSize()}
+    <div
+      className={cn('relative transition-opacity', { 'opacity-40': isPending })}
+      style={{ minHeight: virtualizer.getTotalSize() }}
     >
-      <div className={cn('relative transition-opacity', { 'opacity-40': isPending })}>
-        {scrollEl
-          ? virtualizer.getVirtualItems().map((vi) => {
-              const item = items[vi.index];
-              return (
-                <div
-                  key={item.key}
-                  data-index={vi.index}
-                  ref={virtualizer.measureElement}
-                  style={{
-                    position: 'absolute',
-                    // `top`, not translateY: Firefox ignores ancestor transforms when
-                    // resolving CSS anchor positions, so tooltips in rows land offset.
-                    top: vi.start,
-                    left: 0,
-                    right: 0,
-                  }}
-                >
-                  {renderItem(item)}
-                </div>
-              );
-            })
-          : items.slice(0, 30).map((item) => <div key={item.key}>{renderItem(item)}</div>)}
-      </div>
-    </ColumnWithToggleControls>
+      {scrollEl
+        ? virtualizer.getVirtualItems().map((vi) => {
+            const item = items[vi.index];
+            return (
+              <div
+                key={item.key}
+                data-index={vi.index}
+                ref={virtualizer.measureElement}
+                style={{
+                  position: 'absolute',
+                  // `top`, not translateY: Firefox ignores ancestor transforms when
+                  // resolving CSS anchor positions, so tooltips in rows land offset.
+                  top: vi.start,
+                  left: 0,
+                  right: 0,
+                }}
+              >
+                {renderItem(item)}
+              </div>
+            );
+          })
+        : items.slice(0, 30).map((item) => <div key={item.key}>{renderItem(item)}</div>)}
+    </div>
   );
-};
+}
 
 export default ArtistsColumnWithControls;
