@@ -5,7 +5,8 @@ import { fromArtistRow, type ArtistListItem, type ArtistRow } from '@/lib/artist
 import { fuzzyMatch, type HighlightRanges } from '@nozbe/microfuzz';
 import { useSegmentParams } from '@timber-js/app/client';
 import { X } from 'lucide-react';
-import { startTransition, useEffect, useMemo, useRef, useState, useTransition } from 'react';
+import { Suspense, use, useMemo, useRef, useState, useTransition } from 'react';
+import { browser } from 'react-dom';
 import ArtistsColumnWithControls from './ArtistsColumnWithControls';
 
 type Tab = 'primary' | 'all';
@@ -15,71 +16,36 @@ type ArtistsSelectionTabProps = {
   primary: ArtistRow[];
 };
 
-// One fetch per page session: the column can remount on navigation, and the
-// list is the same everywhere. A failed fetch is forgotten so the next mount
-// retries it.
-let archiveRequest: Promise<ArtistListItem[]> | null = null;
-
-function loadArchiveArtists(): Promise<ArtistListItem[]> {
-  archiveRequest ??= fetch('/api/artists/archive')
-    .then((res) => {
-      if (!res.ok) throw new Error(`archive artists: HTTP ${res.status}`);
-      return res.json() as Promise<ArtistRow[]>;
-    })
-    .then((rows) => rows.map(fromArtistRow))
-    .catch((err) => {
-      archiveRequest = null;
-      throw err;
-    });
-  return archiveRequest;
+/**
+ * A loader for the archive list: fetches on the first call and returns that
+ * same request afterwards. Resolves to `null` on failure instead of
+ * rejecting, since `use()` would throw a rejection to the error boundary.
+ */
+function createArchiveLoader() {
+  let request: Promise<ArtistListItem[] | null> | undefined;
+  return () =>
+    (request ??= fetch('/api/artists/archive')
+      .then((res) => (res.ok ? (res.json() as Promise<ArtistRow[]>) : null))
+      .then((rows) => rows && rows.map(fromArtistRow))
+      .catch(() => null));
 }
 
-/** `null` until the archive list has loaded. Starts loading once the browser is idle. */
-function useArchiveArtists(): ArtistListItem[] | null {
-  const [archive, setArchive] = useState<ArtistListItem[] | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    const load = () =>
-      loadArchiveArtists().then(
-        (artists) => active && startTransition(() => setArchive(artists)),
-        (err) => console.warn(err)
-      );
-
-    if (typeof requestIdleCallback === 'function') {
-      const id = requestIdleCallback(load, { timeout: 1500 });
-      return () => {
-        active = false;
-        cancelIdleCallback(id);
-      };
-    }
-    const id = setTimeout(load, 0);
-    return () => {
-      active = false;
-      clearTimeout(id);
-    };
-  }, []);
-
-  return archive;
-}
+/** Tab and search state, owned above the Suspense boundary so it survives the swap. */
+type TabsState = {
+  tab: Tab;
+  setTab: (tab: Tab) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+};
 
 const ArtistsSelectionTab = ({ primary }: ArtistsSelectionTabProps) => {
   const primaryArtists = useMemo(() => primary.map(fromArtistRow), [primary]);
-  const archiveArtists = useArchiveArtists();
-
-  // One `ArtistsTabs` instance throughout, so the user's tab, search text and
-  // input focus survive the archive arriving.
-  return <ArtistsTabs primaryArtists={primaryArtists} archiveArtists={archiveArtists} />;
-};
-
-type ArtistsTabsProps = {
-  primaryArtists: ArtistListItem[];
-  /** `null` until the archive list has streamed in. */
-  archiveArtists: ArtistListItem[] | null;
-};
-
-function ArtistsTabs({ primaryArtists, archiveArtists }: ArtistsTabsProps) {
   const { artistSlug } = useSegmentParams('/(browse)/[artistSlug]');
+
+  // The loader lives here, not in the suspending child: a component that
+  // suspends on mount loses its state, which would start a new request on
+  // every retry.
+  const [loadArchive] = useState(createArchiveLoader);
 
   // An artist that isn't primary is an archive artist (or doesn't exist, in
   // which case the tab doesn't matter), so this needs only the primary list.
@@ -87,9 +53,7 @@ function ArtistsTabs({ primaryArtists, archiveArtists }: ArtistsTabsProps) {
     !!slug && !primaryArtists.some((a) => a.slug === slug);
 
   const [tab, setTab] = useState<Tab>(() => (isArchiveSlug(artistSlug) ? 'all' : 'primary'));
-  const [isPending, startTransition] = useTransition();
   const [searchQuery, setSearchQuery] = useState('');
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Switch to the "all" tab when navigating to an archive artist.
   const [syncedArtistSlug, setSyncedArtistSlug] = useState(artistSlug);
@@ -97,6 +61,50 @@ function ArtistsTabs({ primaryArtists, archiveArtists }: ArtistsTabsProps) {
     setSyncedArtistSlug(artistSlug);
     if (isArchiveSlug(artistSlug)) setTab('all');
   }
+
+  const state: TabsState = { tab, setTab, searchQuery, setSearchQuery };
+
+  // The server renders the primary list only (the fallback); the archive is
+  // fetched and rendered in the browser.
+  return (
+    <Suspense
+      fallback={<ArtistsTabs primaryArtists={primaryArtists} archiveArtists={null} {...state} />}
+    >
+      <ArtistsTabsWithArchive
+        primaryArtists={primaryArtists}
+        loadArchive={loadArchive}
+        {...state}
+      />
+    </Suspense>
+  );
+};
+
+function ArtistsTabsWithArchive({
+  loadArchive,
+  ...props
+}: Omit<ArtistsTabsProps, 'archiveArtists'> & {
+  loadArchive: () => Promise<ArtistListItem[] | null>;
+}) {
+  use(browser());
+  return <ArtistsTabs {...props} archiveArtists={use(loadArchive())} />;
+}
+
+type ArtistsTabsProps = TabsState & {
+  primaryArtists: ArtistListItem[];
+  /** `null` until the archive list has loaded. */
+  archiveArtists: ArtistListItem[] | null;
+};
+
+function ArtistsTabs({
+  primaryArtists,
+  archiveArtists,
+  tab,
+  setTab,
+  searchQuery,
+  setSearchQuery,
+}: ArtistsTabsProps) {
+  const [isPending, startTransition] = useTransition();
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const { artists, highlightRanges } = useMemo(() => {
     const query = searchQuery.trim();
