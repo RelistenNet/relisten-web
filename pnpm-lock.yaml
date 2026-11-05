@@ -181,8 +181,8 @@ importers:
         specifier: ^5.3.0
         version: 5.3.0
       '@mediabunny/mp3-encoder':
-        specifier: ^1.65.1
-        version: 1.65.1(mediabunny@1.65.1)
+        specifier: ^1.65.2
+        version: 1.65.2(mediabunny@1.65.2)
       '@nozbe/microfuzz':
         specifier: ^1.0.0
         version: 1.0.0
@@ -250,11 +250,11 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0
       lucide-react:
-        specifier: ^1.67.0
-        version: 1.67.0(@types/react@19.3.0)(react@19.3.0)
+        specifier: ^1.68.0
+        version: 1.68.0(@types/react@19.3.0)(react@19.3.0)
       mediabunny:
-        specifier: ^1.65.1
-        version: 1.65.1
+        specifier: ^1.65.2
+        version: 1.65.2
       node-device-detector:
         specifier: ^2.2.7
         version: 2.2.7
@@ -888,8 +888,8 @@ packages:
   '@js-sdsl/ordered-map@4.4.2':
     resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
 
-  '@mediabunny/mp3-encoder@1.65.1':
-    resolution: {integrity: sha512-BfdA3ctJ0MUMnnN2svxK5ViE0yWjZ635DU8Ku+JV8GCTxyxue/kb6DrzqQAdA8lVWNjeKimZoeYWC97M+GyUSA==}
+  '@mediabunny/mp3-encoder@1.65.2':
+    resolution: {integrity: sha512-iuGMybEg07MH7EnDhRXJ0hH80cSJ8ftri+HbTnrE8k/YUu5AcP5l7ZTANh2ZORSsXbWYj/Hu8U/mI8Ctdzb9Rw==}
     peerDependencies:
       mediabunny: ^1.0.0
 
@@ -3282,8 +3282,8 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
-  lucide-react@1.67.0:
-    resolution: {integrity: sha512-z7kd21YNm/Gw3E7mTnq5dTuvV+yc+OEwA//oDENSG1SbZ/NVgKdjxALJFNdGoC0Ji7HaJR2Dha9ev7VUPxy9CQ==}
+  lucide-react@1.68.0:
+    resolution: {integrity: sha512-9i7NKWm2QlOprMhcwkhBOlIt9zB7cp2GIyFY+oMue0EsprolUFxva5rkdBbyfs4k1eejpa0JRnRgVOGiart+Xg==}
     peerDependencies:
       '@types/react': '*'
       react: 19.3.0
@@ -3340,8 +3340,8 @@ packages:
   mdast-util-to-string@4.0.0:
     resolution: {integrity: sha512-0H44vDimn51F0YwvxSJSm0eCDOJTRlmN0R1yBh4HLj9wiV1Dn0QoXGbvFAWj2hSItVTlCmBF1hqKlIyUBVFLPg==}
 
-  mediabunny@1.65.1:
-    resolution: {integrity: sha512-SDyhXooCNd8TYKNLf9jC4o/0I0MTft1pYc5/k4ztkKbGEMvcbYXWrAri5SozEu7DHI8PsG9IfN9XwKmPOg/VkQ==}
+  mediabunny@1.65.2:
+    resolution: {integrity: sha512-goZpibvo/5hkc/56WVNm93Ini+o7K4y8aXA20c/BN1B+m3L5aHQa8MTvO+S1APg/YI8kMILtrX6QCqUtxLW7bA==}
 
   merge-stream@2.0.0:
     resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
@@ -4810,9 +4810,9 @@ snapshots:
 
   '@js-sdsl/ordered-map@4.4.2': {}
 
-  '@mediabunny/mp3-encoder@1.65.1(mediabunny@1.65.1)':
+  '@mediabunny/mp3-encoder@1.65.2(mediabunny@1.65.2)':
     dependencies:
-      mediabunny: 1.65.1
+      mediabunny: 1.65.2
 
   '@modelcontextprotocol/core@2.4.0':
     dependencies:
@@ -6680,7 +6680,7 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  lucide-react@1.67.0(@types/react@19.3.0)(react@19.3.0):
+  lucide-react@1.68.0(@types/react@19.3.0)(react@19.3.0):
     dependencies:
       react: 19.3.0
     optionalDependencies:
@@ -6807,7 +6807,7 @@ snapshots:
     dependencies:
       '@types/mdast': 4.0.4
 
-  mediabunny@1.65.1:
+  mediabunny@1.65.2:
     dependencies:
       '@types/dom-mediacapture-transform': 0.1.12
       '@types/dom-webcodecs': 0.1.13
