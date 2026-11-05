@@ -7,6 +7,7 @@ import {
   type ReactNode,
   type SyntheticEvent,
   createContext,
+  useCallback,
   useContext,
   useId,
   useMemo,
@@ -144,9 +145,19 @@ export default function Tooltip({
       theme,
     });
   const hide = (e: SyntheticEvent<HTMLDivElement>) => api?.hide(e.currentTarget);
+  // A trigger that unmounts while shown gets no pointerleave or blur (e.g. a
+  // list row replaced under the pointer), so dismiss its tooltip on detach.
+  // Stable, so it doesn't detach and reattach on every render.
+  const hideOnDetach = useCallback(
+    (trigger: HTMLDivElement | null) => () => {
+      if (trigger) api?.hide(trigger);
+    },
+    [api]
+  );
 
   return (
     <div
+      ref={hideOnDetach}
       className={className}
       onPointerEnter={(e) => e.pointerType !== 'touch' && show(e)}
       onPointerLeave={hide}
