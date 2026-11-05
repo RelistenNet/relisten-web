@@ -17,7 +17,10 @@ export default async function SongsYearSlot() {
   const { year: y, month: m, day: d } = splitShowDate(date);
   if (!y || !m || !d) return null;
 
-  const show = await RelistenAPI.fetchShow(artistSlug, y, date);
+  const [show, song] = await Promise.all([
+    RelistenAPI.fetchShow(artistSlug, y, date),
+    year === 'songs' ? RelistenAPI.findSong(artistSlug, slug) : undefined,
+  ]);
   if (!show) return null;
 
   return (
@@ -29,6 +32,7 @@ export default async function SongsYearSlot() {
       show={show}
       quickHitSegment={year}
       quickHitSlug={slug}
+      songId={song?.id}
     />
   );
 }

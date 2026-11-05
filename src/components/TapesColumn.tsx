@@ -6,6 +6,8 @@ import { durationToHHMMSS } from '../lib/utils';
 
 import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
+import { toSourceParam } from '@/lib/sourceParam';
+import { matchedTrack } from '@/lib/songMatch';
 import { Source } from '../types';
 import Column from './Column';
 import Flex from './Flex';
@@ -53,8 +55,8 @@ const TapesColumn = (props: Props) => {
                 ? slugSearchParams.href(`/${artistSlug}/${props.quickHitSegment}`, {
                     slug: props.quickHitSlug,
                     date: `${year}-${month}-${day}`,
-                  }) + `&source=${sourceObj.id}`
-                : `/${artistSlug}/${year}/${month}/${day}?source=${sourceObj.id}`
+                  }) + `&source=${toSourceParam(sourceObj.id)}`
+                : `/${artistSlug}/${year}/${month}/${day}?source=${toSourceParam(sourceObj.id)}`
             }
             active={activeSourceId === sourceObj?.id}
           >
@@ -63,6 +65,9 @@ const TapesColumn = (props: Props) => {
                 <div className="min-w-[53px]">{durationToHHMMSS(sourceObj.duration)}</div>
                 {sourceObj.is_soundboard && <Tag>SBD</Tag>}
                 {sourceObj.is_remaster && <Tag>REMASTER</Tag>}
+                {props.songId && !matchedTrack(sourceObj, props.songId) && (
+                  <Tag variant="warning">track not matched</Tag>
+                )}
               </Flex>
               {Number(sourceObj?.avg_rating) > 0 && (
                 <Flex className="py-1 text-xs">

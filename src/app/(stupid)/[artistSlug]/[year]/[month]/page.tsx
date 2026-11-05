@@ -45,9 +45,7 @@ export default async function MonthPage() {
   const artist = artists?.find((a) => a.slug === artistSlug);
   if (!artist) deny(404);
 
-  const artistYears = await RelistenAPI.fetchYears(artist.uuid);
-  const yearObj = artistYears?.find((y) => y.year === year);
-  const artistShows = await RelistenAPI.fetchShows(artist.uuid, yearObj?.uuid);
+  const artistShows = await RelistenAPI.fetchYearShows(artist.id, year);
   if (!artistShows) deny(404);
 
   const shows = artistShows.shows || [];

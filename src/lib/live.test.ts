@@ -7,7 +7,7 @@ const play = (id: number, playedAt: number): LivePlay => ({
   playedAt,
   trackTitle: 't',
   trackSlug: 't',
-  sourceId: 1,
+  sourceParam: '7bbw2e16a0h9ssczd3bwzgv1wp',
   displayDate: '1977-05-08',
   artistName: 'Grateful Dead',
   artistSlug: 'grateful-dead',

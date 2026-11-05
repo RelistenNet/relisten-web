@@ -2,13 +2,7 @@ import type { Show, Tour, Venue } from '@/types';
 
 export type SlimShow = Pick<
   Show,
-  | 'id'
-  | 'uuid'
-  | 'display_date'
-  | 'has_soundboard_source'
-  | 'popularity'
-  | 'source_count'
-  | 'avg_duration'
+  'id' | 'display_date' | 'has_soundboard_source' | 'popularity' | 'source_count' | 'avg_duration'
 > & {
   venue?: Pick<Venue, 'name' | 'location'>;
   tour?: Pick<Tour, 'id' | 'name'>;
@@ -17,7 +11,6 @@ export type SlimShow = Pick<
 export function slimShow(s: Show): SlimShow {
   return {
     id: s.id,
-    uuid: s.uuid,
     display_date: s.display_date,
     has_soundboard_source: s.has_soundboard_source,
     popularity: s.popularity,

@@ -33,9 +33,7 @@ const ShowsColumn = async ({
   });
 
   const artist = artists?.find((a) => a.slug === artistSlug);
-  const artistYears = await RelistenAPI.fetchYears(artist?.uuid);
-  const yearObj = artistYears?.find((y) => y.year === year);
-  const artistShows = await RelistenAPI.fetchShows(artist?.uuid, yearObj?.uuid);
+  const artistShows = await RelistenAPI.fetchYearShows(artist?.id, year);
 
   return (
     <ShowsColumnWithControls

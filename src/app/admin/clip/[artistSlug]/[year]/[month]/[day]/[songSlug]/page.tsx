@@ -1,4 +1,5 @@
 import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
+import { fromSourceParam } from '@/lib/sourceParam';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { createShowDate } from '@/lib/utils';
 import { getSegmentParams } from '@timber-js/app/server';
@@ -18,8 +19,7 @@ export default async function Page() {
   const show = await RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day));
 
   const sources = show?.sources ?? [];
-  const activeSourceId = Number(source) || sources[0]?.id;
-  const activeSource = sources.find((s) => s.id === activeSourceId) ?? sources[0];
+  const activeSource = sources.find((s) => s.id === fromSourceParam(source)) ?? sources[0];
 
   const tracks = activeSource?.sets?.flatMap((set) => set.tracks ?? []) ?? [];
   const track = tracks.find((t) => t.slug === songSlug);

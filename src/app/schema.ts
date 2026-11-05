@@ -28,9 +28,10 @@ export default defineSchema({
     // Not just /^\d{4}$/: also carries quick-hit segments
     // (venues, songs, tours, top, recently-added, today-in-history).
     '[year]': z.string().regex(SLUG),
-    // guid() rather than uuid(): accepts any 8-4-4-4-12 hex without
-    // enforcing RFC version/variant bits.
-    '[showUuid]': z.guid(),
+    // A v4 show id, or a pre-v4 show uuid from social cards cached before v4.
+    // guid() rather than uuid(): accepts any 8-4-4-4-12 hex without enforcing
+    // RFC version/variant bits.
+    '[showId]': z.union([z.string().regex(/^show_[0-7][0-9a-hjkmnp-tv-z]{25}$/), z.guid()]),
     '[slug]': codec.string,
 
     '[...days]': codec.catchAll(slugSegment),

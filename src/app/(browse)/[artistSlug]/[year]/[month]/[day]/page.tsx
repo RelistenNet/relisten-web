@@ -25,10 +25,10 @@ export const metadata = async () => {
     title: [createShowDate(year, month, day), name].join(' | '),
     description: [show?.venue?.name, show?.venue?.location].filter((x) => x).join(' '),
     openGraph: {
-      images: show?.uuid
+      images: show?.id
         ? [
             {
-              url: `${METADATA_BASE.origin}/album-art/${show.uuid}.png`,
+              url: `${METADATA_BASE.origin}/album-art/${show.id}.png`,
               width: 550,
               height: 550,
             },

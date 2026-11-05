@@ -3,12 +3,10 @@
 import { Link } from '@timber-js/app/client';
 import { useEffect, useState } from 'react';
 import TimeAgo from '@/components/TimeAgo';
-import { API_DOMAIN } from '@/lib/constants';
 import {
   formatShowDate,
   mergePlays,
   nextRevealAt,
-  slimPlays,
   tracksPerMinute,
   type LivePlay,
 } from '@/lib/live';
@@ -40,15 +38,15 @@ type Props = {
 };
 
 export default function PlaybackFeed({ initialPlays, renderedAt }: Props) {
-  // The only per-play stream; CORS-open and small per poll, so the browser reads it directly.
+  // Polls our own route: it joins plays with artist slugs (v4 rows carry only ids)
+  // and serves every browser from one cached upstream read.
   const plays = usePollingState(
     initialPlays,
     async (signal, current) => {
-      const lastSeenId = current[0]?.id;
-      const qs = lastSeenId ? `?lastSeenId=${lastSeenId}&limit=200` : '?limit=30';
-      const res = await fetch(`${API_DOMAIN}/api/v2/live/history${qs}`, { signal });
+      const after = current[0]?.id ?? 0;
+      const res = await fetch(`/api/live/history?after=${after}`, { signal });
       if (!res.ok) throw new Error(`live history: HTTP ${res.status}`);
-      return mergePlays(current, slimPlays(await res.json()));
+      return mergePlays(current, (await res.json()) as LivePlay[]);
     },
     POLL_MS
   );
@@ -123,7 +121,7 @@ function PlaybackRow({ play, serverNow }: { play: LivePlay; serverNow: number })
 
   return (
     <Link
-      href={`/${play.artistSlug}/${year}/${month}/${day}/${play.trackSlug}?source=${play.sourceId}`}
+      href={`/${play.artistSlug}/${year}/${month}/${day}/${play.trackSlug}?source=${play.sourceParam}`}
       prefetch={false}
       className="flex items-center gap-3 px-3 py-2 transition-colors duration-150 hover:bg-surface-hover"
     >

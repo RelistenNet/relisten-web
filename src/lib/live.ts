@@ -1,26 +1,29 @@
-import type { LiveHistoryItem, TrackSource } from '@/types';
 import { numberFormat, removeLeadingZero, splitShowDate } from './utils';
 
 // Shared by the server page, the summary route, and the client island, so it
 // must stay free of server-only and browser-only imports.
 
 // ---------------------------------------------------------------------------
-// Listener summary (from GET /api/v3/live/summary)
+// Listener summary (from GET /api/v4/live/summary, joined with the artist directory)
 // ---------------------------------------------------------------------------
 
-/** The fields of the v3 live summary this page reads; the response has many more. */
-type ApiLiveSummaryShow = {
-  listened_seconds: number;
-  source: TrackSource & { uuid?: string };
-};
-
+/**
+ * The live summary as the server hands it over: v4's summary, trimmed and joined
+ * with the artist directory (v4 rows carry only artist ids).
+ */
 type ApiLiveSummaryArtist = {
-  artist_uuid: string;
+  artist_id: string;
   name: string;
   slug: string;
   listened_seconds: number;
   show_count: number;
-  top_show: ApiLiveSummaryShow | null;
+  top_show: {
+    listened_seconds: number;
+    display_date: string;
+    venue_name?: string;
+    /** `?source=` value for the show page. */
+    source_param: string;
+  } | null;
 };
 
 export type ApiLiveSummary = {
@@ -30,7 +33,7 @@ export type ApiLiveSummary = {
 };
 
 export type LiveArtist = {
-  artistUuid: string;
+  artistId: string;
   artistName: string;
   artistSlug: string;
   listeners: number;
@@ -40,8 +43,8 @@ export type LiveArtist = {
     listeners: number;
     displayDate: string;
     venueName?: string;
-    /** Source uuid; the show page's `?source=` accepts it. */
-    sourceUuid?: string;
+    /** `?source=` value for the show page. */
+    sourceParam?: string;
     isOnThisDay: boolean;
   } | null;
   /** How many different shows this artist's listeners are spread across. */
@@ -62,15 +65,8 @@ export type LiveSummary = {
 const toListeners = (listenedSeconds: number, windowMinutes: number) =>
   listenedSeconds / 60 / Math.max(1, windowMinutes);
 
-// Mirrors the artist feature flags: some artists store venues per show, others per source.
-const getVenue = (source: TrackSource) => {
-  if (source.artist?.features?.per_show_venues) return source.show?.venue;
-  return source.venue ?? source.show?.venue;
-};
-
 /**
- * Trims the summary to what the page renders. Each artist's top show carries a
- * full source object (~3 KB), which shouldn't be shipped to the browser.
+ * Trims the summary to what the page renders.
  */
 export function slimSummary(api: ApiLiveSummary | null, today: MonthDay): LiveSummary {
   if (!api) return { listeners: 0, windowMinutes: 0, artists: [] };
@@ -78,19 +74,19 @@ export function slimSummary(api: ApiLiveSummary | null, today: MonthDay): LiveSu
 
   const artists = api.artists
     .map((a): LiveArtist => {
-      const source = a.top_show?.source;
+      const top = a.top_show;
       return {
-        artistUuid: a.artist_uuid,
+        artistId: a.artist_id,
         artistName: a.name,
         artistSlug: a.slug,
         listeners: toListeners(a.listened_seconds, api.window_minutes),
-        topShow: source?.display_date
+        topShow: top
           ? {
-              listeners: toListeners(a.top_show?.listened_seconds ?? 0, api.window_minutes),
-              displayDate: source.display_date,
-              venueName: getVenue(source)?.name,
-              sourceUuid: source.uuid,
-              isOnThisDay: source.display_date.slice(5) === monthDay,
+              listeners: toListeners(top.listened_seconds, api.window_minutes),
+              displayDate: top.display_date,
+              venueName: top.venue_name,
+              sourceParam: top.source_param,
+              isOnThisDay: top.display_date.slice(5) === monthDay,
             }
           : null,
         showCount: a.show_count,
@@ -113,46 +109,25 @@ export const toMonthDay = ({ month, day }: MonthDay) =>
   `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
 // ---------------------------------------------------------------------------
-// "Just started" feed (from GET /api/v2/live/history)
+// "Just started" feed (from GET /api/v4/live/history, via /api/live/history)
 // ---------------------------------------------------------------------------
 
 /** How many recent plays the feed keeps around. */
 const FEED_BUFFER = 100;
 
-/** One track start, trimmed from the ~3.8 KB `live/history` row to what the feed renders. */
+/** One track start, trimmed to what the feed renders. */
 export type LivePlay = {
+  /** The API's play sequence number: increases with every play. */
   id: number;
   playedAt: number;
   trackTitle: string;
   trackSlug: string;
-  sourceId: number;
+  /** `?source=` value for the show page. */
+  sourceParam: string;
   displayDate: string;
   artistName: string;
   artistSlug: string;
 };
-
-export function slimPlay(item: LiveHistoryItem): LivePlay | null {
-  const source = item.track?.source;
-  const track = item.track?.track;
-  const artist = source?.artist;
-  if (!source || !track || !artist?.slug || !source.display_date) return null;
-
-  return {
-    id: item.id,
-    playedAt: Date.parse(item.created_at),
-    trackTitle: track.title ?? '',
-    trackSlug: track.slug ?? '',
-    sourceId: source.id,
-    displayDate: source.display_date,
-    artistName: artist.name ?? artist.slug,
-    artistSlug: artist.slug,
-  };
-}
-
-export function slimPlays(items: LiveHistoryItem[] | unknown): LivePlay[] {
-  if (!Array.isArray(items)) return [];
-  return items.map(slimPlay).filter((p): p is LivePlay => p !== null);
-}
 
 /** Merge new plays into the feed buffer, newest first, without duplicates. */
 export function mergePlays(existing: LivePlay[], incoming: LivePlay[]) {
