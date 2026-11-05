@@ -11,11 +11,13 @@ import {
   ParentBasedSampler,
   TraceIdRatioBasedSampler,
 } from '@opentelemetry/sdk-trace-node';
-import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
 import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
 import type { Context, SpanKind, Attributes, Link } from '@opentelemetry/api';
 
 const staticExtensions = ['.js', '.css', '.map', '.png', '.jpg', '.svg', '.ico', '.woff', '.woff2'];
+// HTTP server spans come from timber itself (`http.server.request`), not
+// @opentelemetry/instrumentation-http: that can't patch node:http inside the
+// bundled ESM server, and its createRequire('forwarded-parse') breaks the bundle.
 const ignorePaths = ['/api/health', '/api/status'];
 
 function shouldIgnorePath(path: string): boolean {
@@ -78,31 +80,6 @@ export function initTracing() {
     sampler: new NoiseFilterSampler(
       new ParentBasedSampler({ root: new TraceIdRatioBasedSampler(0.05) })
     ),
-    instrumentations: [
-      new HttpInstrumentation({
-        ignoreIncomingRequestHook: (req) => shouldIgnorePath(req.url ?? ''),
-        applyCustomAttributesOnSpan: (span, req) => {
-          if ('headers' in req && typeof req.headers === 'object') {
-            const headers = req.headers as Record<string, string | string[] | undefined>;
-            const cfIp = headers['cf-connecting-ip'];
-            const realIp = headers['x-real-ip'];
-            const forwarded = headers['x-forwarded-for'];
-            const ip =
-              (typeof cfIp === 'string' ? cfIp : undefined) ??
-              (typeof realIp === 'string' ? realIp : undefined) ??
-              (typeof forwarded === 'string'
-                ? forwarded.split(',')[0]?.trim()
-                : Array.isArray(forwarded)
-                  ? forwarded[0]?.split(',')[0]?.trim()
-                  : undefined);
-            if (ip) {
-              span.setAttribute('net.peer.ip', ip);
-              span.setAttribute('client.address', ip);
-            }
-          }
-        },
-      }),
-    ],
   });
 
   sdk.start();
