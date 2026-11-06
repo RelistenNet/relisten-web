@@ -3,6 +3,7 @@ import { slimShows } from '@/lib/slimShow';
 import { isImportedSongId } from '@/lib/songMatch';
 import { deny } from '@timber-js/app/server';
 import ShowsColumnWithControls from './ShowsColumnWithControls';
+import { songUrl } from '@/lib/urls';
 
 const SongShowsColumn = async ({
   artistSlug,
@@ -26,6 +27,7 @@ const SongShowsColumn = async ({
       quickHitSegment={quickHitSegment}
       quickHitSlug={slug}
       tracksUnmatched={isImportedSongId(song?.id)}
+      detailHref={songUrl(artistSlug, slug)}
     />
   );
 };

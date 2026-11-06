@@ -2,6 +2,7 @@ import RelistenAPI from '@/lib/RelistenAPI';
 import { slimShows } from '@/lib/slimShow';
 import { deny } from '@timber-js/app/server';
 import ShowsColumnWithControls from './ShowsColumnWithControls';
+import { venueUrl } from '@/lib/urls';
 
 const VenueShowsColumn = async ({
   artistSlug,
@@ -24,6 +25,7 @@ const VenueShowsColumn = async ({
       fullDate
       quickHitSegment={quickHitSegment}
       quickHitSlug={slug}
+      detailHref={venueUrl(slug, artistSlug)}
     />
   );
 };

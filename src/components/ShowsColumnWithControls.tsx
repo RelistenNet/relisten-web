@@ -8,6 +8,7 @@ import sortActiveBands from '../lib/sortActiveBands';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
 import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
+import { Link } from '@timber-js/app/client';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import Count from './Count';
 import Flex from './Flex';
@@ -25,6 +26,8 @@ type ShowsColumnWithControlsProps = {
   quickHitSlug?: string;
   /** No track in these shows is matched to the song (it's only known from setlists). */
   tracksUnmatched?: boolean;
+  /** Link to the full page for this list (song or venue detail page). */
+  detailHref?: string;
 };
 
 const ShowsColumnWithControls = ({
@@ -35,6 +38,7 @@ const ShowsColumnWithControls = ({
   quickHitSegment,
   quickHitSlug,
   tracksUnmatched,
+  detailHref,
 }: ShowsColumnWithControlsProps) => {
   const { alphaAsc, sortBy, setSortBy, sbdOnly, toggleFilter, clearFilters } = useFilterState(
     `${artistSlug}:shows`,
@@ -119,6 +123,13 @@ const ShowsColumnWithControls = ({
       filteredCount={processedShows.length}
       totalCount={shows.length}
       onClearFilters={clearFilters}
+      subHeader={
+        detailHref ? (
+          <Link href={detailHref} className="block px-2 py-1.5 text-xs text-accent hover:underline">
+            Full page: search, sort and filter all shows →
+          </Link>
+        ) : undefined
+      }
     >
       {processedShows &&
         artistSlug &&

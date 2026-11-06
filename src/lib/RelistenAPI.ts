@@ -6,6 +6,7 @@ import { cache as timberCache } from '@timber-js/app/cache';
 import { toMonthDay, type ApiLiveSummary, type LivePlay, type MonthDay } from './live';
 import { sortSources, sortTracksInSources } from './sortSources';
 import { toSourceParam } from './sourceParam';
+import { toShowRow, type ShowRow } from './table/showRows';
 import { EMPTY_SEARCH, type SearchArtist, type SearchItem, type SearchResults } from './search';
 import {
   getApiV4ArtistsArtistIdShowsByDateShowDate,
@@ -14,6 +15,7 @@ import {
   getApiV4ArtistsArtistIdShowsRecentlyAdded,
   getApiV4ArtistsArtistIdShowsTop,
   getApiV4ArtistsArtistIdSongs,
+  getApiV4ArtistsArtistIdSongsBySlugSlug,
   getApiV4ArtistsArtistIdTours,
   getApiV4ArtistsArtistIdVenues,
   getApiV4ArtistsArtistIdVenuesBySlugSlug,
@@ -25,6 +27,7 @@ import {
   getApiV4ImportedSongsImportedSongId,
   getApiV4ImportedVenuesImportedVenueId,
   getApiV4Search,
+  getApiV4VenuesBySlugSlug,
   getApiV4ShowsShowId,
   getApiV4SongsSongId,
   getApiV4ToursTourId,
@@ -170,6 +173,7 @@ const fetchSongsV4 = cachedV4('songs', async (artistId: string): Promise<Song[]>
       return [
         {
           id: e.imported_song.id,
+          canonical_id: e.imported_song.normalized_song_id ?? undefined,
           name: e.imported_song.name ?? undefined,
           slug: e.imported_song.slug ?? undefined,
           shows_played_at: e.imported_song.setlist_show_count,
@@ -181,14 +185,21 @@ const fetchSongsV4 = cachedV4('songs', async (artistId: string): Promise<Song[]>
 });
 
 const fetchSongShowsV4 = cachedV4('song', async (songId: string): Promise<SongWithShows> => {
-  const song = songId.startsWith('imported_song_')
-    ? await unwrap(getApiV4ImportedSongsImportedSongId(songId))
-    : await unwrap(getApiV4SongsSongId(songId));
+  if (songId.startsWith('imported_song_')) {
+    const song = await unwrap(getApiV4ImportedSongsImportedSongId(songId));
+    return {
+      id: song.id,
+      name: song.name ?? undefined,
+      slug: song.slug ?? undefined,
+      shows: toShows(song.shows),
+    };
+  }
+  const song = await unwrap(getApiV4SongsSongId(songId));
   return {
     id: song.id,
     name: song.name ?? undefined,
     slug: song.slug ?? undefined,
-    shows: toShows(song.shows),
+    shows: toShows((song.shows ?? []).map((s) => s.show)),
   };
 });
 
@@ -257,6 +268,161 @@ const fetchTourShowsV4 = cachedV4('tour', async (tourId: string) => {
   const tour = await unwrap(getApiV4ToursTourId(tourId));
   return { ...toTour(tour), shows: toShows(tour.shows) };
 });
+
+// ---------------------------------------------------------------------------
+// Detail pages: a venue's or song's full show list, flattened into table rows.
+// Cached whole; each request filters, sorts, and pages it (see lib/table).
+// ---------------------------------------------------------------------------
+
+export type VenueDetail = {
+  id: string;
+  name: string;
+  location?: string;
+  /** Other names this venue has gone by. */
+  otherNames: string[];
+  artistCount: number;
+  rows: ShowRow[];
+};
+
+export type SongDetail = {
+  id: string;
+  /** The song's current slug; differs from the URL's for a merged song. */
+  slug: string;
+  name: string;
+  /** Times played: one row each. */
+  performances: number;
+  /** Distinct shows; fewer than performances when a song repeats within a show. */
+  shows: number;
+  originalArtist?: string;
+  aliases: string[];
+  /** Setlist-only songs: v4 never matched tracks to these. */
+  imported: boolean;
+  rows: ShowRow[];
+};
+
+const showRows = (shows: ShowSummaryResource[] | null, directory: ArtistDirectory) =>
+  (shows ?? []).flatMap((s) => toShowRow(s, directory) ?? []);
+
+/** `venue` is a canonical venue slug, or an imported venue's id. */
+const fetchVenueDetailV4 = cachedV4('venue-detail', async (venue: string): Promise<VenueDetail> => {
+  const directory = await getArtistDirectory();
+  if (venue.startsWith(IMPORTED_VENUE_PREFIX)) {
+    const iv = await unwrap(getApiV4ImportedVenuesImportedVenueId(pathParam(venue)));
+    return {
+      id: iv.id,
+      name: iv.name ?? 'Unknown venue',
+      location: iv.location ?? undefined,
+      otherNames: iv.past_names ? [iv.past_names] : [],
+      artistCount: 1,
+      rows: showRows(iv.shows, directory),
+    };
+  }
+  const v = await unwrap(getApiV4VenuesBySlugSlug(pathParam(venue)));
+  const rows = showRows(v.shows, directory);
+  return {
+    id: v.id,
+    name: v.name ?? 'Unknown venue',
+    location: venueLocation(v) || undefined,
+    // Spelling variants ("Madison Sqaure Garden") are for matching, not display.
+    otherNames: [
+      ...new Set((v.names ?? []).filter((n) => n.kind !== 'spelling').map((n) => n.name ?? '')),
+    ].filter((n) => n && n !== v.name),
+    artistCount: new Set(rows.map((r) => r.artistSlug)).size,
+    rows,
+  };
+});
+
+const importedSongDetail = async (songId: string): Promise<SongDetail> => {
+  const [song, directory] = await Promise.all([
+    unwrap(getApiV4ImportedSongsImportedSongId(songId)),
+    getArtistDirectory(),
+  ]);
+  const rows = showRows(song.shows, directory);
+  return {
+    id: song.id,
+    slug: song.slug ?? '',
+    name: song.name ?? 'Unknown song',
+    performances: rows.length,
+    shows: rows.length,
+    aliases: [],
+    imported: true,
+    rows,
+  };
+};
+
+/**
+ * A song's page data in one request: the song by slug, with each show's
+ * matching files from its best tape (`include_tracks=top`, ranked like
+ * sortSources). Merged slugs return the surviving song; the page redirects
+ * when the returned slug differs from the URL.
+ */
+const fetchSongBySlugV4 = cachedV4(
+  'song-by-slug',
+  async (artistId: string, songSlug: string): Promise<SongDetail> => {
+    const [song, directory] = await Promise.all([
+      unwrap(
+        getApiV4ArtistsArtistIdSongsBySlugSlug(artistId, pathParam(songSlug), {
+          include_tracks: 'top',
+        })
+      ),
+      getArtistDirectory(),
+    ]);
+    // A row per performance: a song can be played several times in one show
+    // (Tweezer Reprise six times at SPAC 2025-07-27). Each file on the top tape
+    // is one performance.
+    const rows = (song.shows ?? []).flatMap((entry): ShowRow[] => {
+      const row = toShowRow(entry.show, directory);
+      if (!row) return [];
+      const { single_song, multi_song } = entry.timings;
+      // No single-song file on any tape: every file also holds other songs (a
+      // segue), so lengths overstate the song; marked "~".
+      const approx = !single_song && !!multi_song;
+      const files = entry.tracks ?? [];
+      const track = (file: (typeof files)[number]) => ({
+        id: file.id,
+        title: file.title ?? song.name ?? '',
+        slug: file.slug ?? '',
+        mp3Url: file.mp3_url ?? null,
+        duration: file.duration,
+        sourceId: file.source_id,
+      });
+
+      // Played once: the median across every tape is a steadier length than
+      // the one file.
+      if (files.length <= 1) {
+        return [
+          {
+            ...row,
+            track: files[0] ? track(files[0]) : undefined,
+            songDuration: single_song?.median ?? multi_song?.median ?? null,
+            songDurationApprox: approx,
+            trackTitle: files[0]?.title ?? undefined,
+          },
+        ];
+      }
+      return files.map((file, i) => ({
+        ...row,
+        id: `${row.showId}:${file.id}`,
+        track: track(file),
+        songDuration: file.duration,
+        songDurationApprox: approx,
+        trackTitle: file.title ?? undefined,
+        performance: { index: i + 1, of: files.length },
+      }));
+    });
+    return {
+      id: song.id,
+      slug: song.slug ?? songSlug,
+      name: song.name ?? 'Unknown song',
+      performances: rows.length,
+      shows: new Set(rows.map((r) => r.showId)).size,
+      originalArtist: song.original_artist ?? undefined,
+      aliases: song.aliases ?? [],
+      imported: false,
+      rows,
+    };
+  }
+);
 
 // ---------------------------------------------------------------------------
 // Search
@@ -513,6 +679,36 @@ export class RelistenAPI {
   static fetchVenueShows = cache(
     async (artistSlug: string, venue: string): Promise<VenueWithShows> => {
       return orDeny(fetchVenueShowsV4(await artistIdForSlug(artistSlug), venue));
+    }
+  );
+
+  // Detail pages
+  static fetchVenueDetail = cache(async (venue: string): Promise<VenueDetail> => {
+    return orDeny(fetchVenueDetailV4(venue));
+  });
+
+  /**
+   * One request for canonical songs (by slug). Only slugs the API doesn't know
+   * as canonical songs (imported, setlist-only songs) fall back to the songs
+   * list: an imported song linked to a canonical one returns that song (its
+   * slug differs, so the page redirects); otherwise the imported song.
+   */
+  static fetchSongDetail = cache(
+    async (artistSlug: string, songSlug: string): Promise<SongDetail> => {
+      const artistId = await artistIdForSlug(artistSlug);
+      try {
+        return await fetchSongBySlugV4(artistId, songSlug);
+      } catch (err) {
+        if (!(err instanceof RelistenApiError && isMissingStatus(err.status))) throw err;
+      }
+      const songs = await RelistenAPI.fetchSongs(artistSlug);
+      const song = songs.find((s) => s.slug === songSlug);
+      if (!song?.id.startsWith('imported_song_')) deny(404);
+      const canonicalSlug = song.canonical_id
+        ? songs.find((s) => s.id === song.canonical_id)?.slug
+        : undefined;
+      if (canonicalSlug) return orDeny(fetchSongBySlugV4(artistId, canonicalSlug));
+      return orDeny(importedSongDetail(song.id));
     }
   );
 

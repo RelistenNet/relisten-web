@@ -8,6 +8,11 @@
 export interface ImportedSongResource {
   /** @pattern ^imported_song_[0-7][0-9a-hjkmnp-tv-z]{25}$ */
   id: string;
+  /**
+     * @nullable
+     * @pattern ^song_[0-9a-hjkmnp-tv-z]{8}$
+     */
+  normalized_song_id: string | null;
   /** @pattern ^artist_[0-7][0-9a-hjkmnp-tv-z]{25}$ */
   artist_id: string;
   /** @nullable */

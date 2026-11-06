@@ -208,6 +208,8 @@ export type ArtistShows = {
 
 export type Song = {
   id: string;
+  /** Imported (setlist-only) songs linked to a canonical v4 song: that song's id. */
+  canonical_id?: string;
   shows_played_at?: number;
   artist_id?: string;
   name?: string;

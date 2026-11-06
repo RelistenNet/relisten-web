@@ -21,6 +21,7 @@ import type {
   GetApiV4ArtistsArtistIdShowsRecentlyUpdatedParams,
   GetApiV4ArtistsArtistIdShowsTodayParams,
   GetApiV4ArtistsArtistIdShowsTopParams,
+  GetApiV4ArtistsArtistIdSongsBySlugSlugParams,
   GetApiV4ArtistsParams,
   GetApiV4LiveHistoryParams,
   GetApiV4LiveSummaryParams,
@@ -35,6 +36,7 @@ import type {
   GetApiV4ShowsRecentlyPerformedParams,
   GetApiV4ShowsRecentlyUpdatedParams,
   GetApiV4ShowsTodayParams,
+  GetApiV4SongsSongIdParams,
   GetApiV4TrendingArtistsParams,
   GetApiV4TrendingShowsParams,
   GetApiV4TrendingYearsParams,
@@ -2401,6 +2403,77 @@ export const getApiV4ArtistsArtistIdSongs = async (artistId: string, options?: P
 
 
 
+export type getApiV4ArtistsArtistIdSongsBySlugSlugResponse200 = {
+  data: SongWithShowsResource
+  status: 200
+}
+
+export type getApiV4ArtistsArtistIdSongsBySlugSlugResponse304 = {
+  data: void
+  status: 304
+}
+
+export type getApiV4ArtistsArtistIdSongsBySlugSlugResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type getApiV4ArtistsArtistIdSongsBySlugSlugResponse410 = {
+  data: ProblemDetails
+  status: 410
+}
+
+export type getApiV4ArtistsArtistIdSongsBySlugSlugResponse422 = {
+  data: ProblemDetails
+  status: 422
+}
+
+export type getApiV4ArtistsArtistIdSongsBySlugSlugResponse503 = {
+  data: ProblemDetails
+  status: 503
+}
+
+export type getApiV4ArtistsArtistIdSongsBySlugSlugResponseSuccess = (getApiV4ArtistsArtistIdSongsBySlugSlugResponse200) & {
+  headers: Headers;
+};
+export type getApiV4ArtistsArtistIdSongsBySlugSlugResponseError = (getApiV4ArtistsArtistIdSongsBySlugSlugResponse304 | getApiV4ArtistsArtistIdSongsBySlugSlugResponse404 | getApiV4ArtistsArtistIdSongsBySlugSlugResponse410 | getApiV4ArtistsArtistIdSongsBySlugSlugResponse422 | getApiV4ArtistsArtistIdSongsBySlugSlugResponse503) & {
+  headers: Headers;
+};
+
+export type getApiV4ArtistsArtistIdSongsBySlugSlugResponse = (getApiV4ArtistsArtistIdSongsBySlugSlugResponseSuccess | getApiV4ArtistsArtistIdSongsBySlugSlugResponseError)
+
+export const getGetApiV4ArtistsArtistIdSongsBySlugSlugUrl = (artistId: string,
+    slug: string,
+    params?: GetApiV4ArtistsArtistIdSongsBySlugSlugParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v4/artists/${artistId}/songs/by-slug/${slug}?${stringifiedParams}` : `/api/v4/artists/${artistId}/songs/by-slug/${slug}`
+}
+
+export const getApiV4ArtistsArtistIdSongsBySlugSlug = async (artistId: string,
+    slug: string,
+    params?: GetApiV4ArtistsArtistIdSongsBySlugSlugParams, options?: Parameters<typeof relistenFetch>[1]): Promise<getApiV4ArtistsArtistIdSongsBySlugSlugResponse> => {
+
+  return relistenFetch<getApiV4ArtistsArtistIdSongsBySlugSlugResponse>(getGetApiV4ArtistsArtistIdSongsBySlugSlugUrl(artistId,slug,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
 export type getApiV4SongsSongIdResponse200 = {
   data: SongWithShowsResource
   status: 200
@@ -2440,17 +2513,26 @@ export type getApiV4SongsSongIdResponseError = (getApiV4SongsSongIdResponse304 |
 
 export type getApiV4SongsSongIdResponse = (getApiV4SongsSongIdResponseSuccess | getApiV4SongsSongIdResponseError)
 
-export const getGetApiV4SongsSongIdUrl = (songId: string,) => {
+export const getGetApiV4SongsSongIdUrl = (songId: string,
+    params?: GetApiV4SongsSongIdParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/v4/songs/${songId}`
+  return stringifiedParams.length > 0 ? `/api/v4/songs/${songId}?${stringifiedParams}` : `/api/v4/songs/${songId}`
 }
 
-export const getApiV4SongsSongId = async (songId: string, options?: Parameters<typeof relistenFetch>[1]): Promise<getApiV4SongsSongIdResponse> => {
+export const getApiV4SongsSongId = async (songId: string,
+    params?: GetApiV4SongsSongIdParams, options?: Parameters<typeof relistenFetch>[1]): Promise<getApiV4SongsSongIdResponse> => {
 
-  return relistenFetch<getApiV4SongsSongIdResponse>(getGetApiV4SongsSongIdUrl(songId),
+  return relistenFetch<getApiV4SongsSongIdResponse>(getGetApiV4SongsSongIdUrl(songId,params),
   {
     ...options,
     method: 'GET'

@@ -3716,6 +3716,123 @@
         }
       }
     },
+    "/api/v4/artists/{artistId}/songs/by-slug/{slug}": {
+      "get": {
+        "tags": [
+          "CatalogSongs"
+        ],
+        "parameters": [
+          {
+            "name": "artistId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "include_tracks",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "none",
+                "top",
+                "all"
+              ],
+              "type": "string",
+              "default": "none"
+            }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "description": "Revalidate a previously applied response using its ETag.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "ETag": {
+                "description": "Weak validator for the represented JSON; not an ordered revision.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SongWithShowsResource"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not Modified; retain the previously applied response. No body.",
+            "headers": {
+              "ETag": {
+                "description": "Weak validator for the represented JSON; not an ordered revision.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Gone",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v4/songs/{songId}": {
       "get": {
         "tags": [
@@ -3728,6 +3845,19 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "include_tracks",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "none",
+                "top",
+                "all"
+              ],
+              "type": "string",
+              "default": "none"
             }
           },
           {
@@ -5411,6 +5541,7 @@
           "imported_song": {
             "required": [
               "id",
+              "normalized_song_id",
               "artist_id",
               "name",
               "slug",
@@ -5424,6 +5555,11 @@
               "id": {
                 "pattern": "^imported_song_[0-7][0-9a-hjkmnp-tv-z]{25}$",
                 "type": "string"
+              },
+              "normalized_song_id": {
+                "pattern": "^song_[0-9a-hjkmnp-tv-z]{8}$",
+                "type": "string",
+                "nullable": true
               },
               "artist_id": {
                 "pattern": "^artist_[0-7][0-9a-hjkmnp-tv-z]{25}$",
@@ -6033,6 +6169,7 @@
       "ImportedSongResource": {
         "required": [
           "id",
+          "normalized_song_id",
           "artist_id",
           "name",
           "slug",
@@ -6046,6 +6183,11 @@
           "id": {
             "pattern": "^imported_song_[0-7][0-9a-hjkmnp-tv-z]{25}$",
             "type": "string"
+          },
+          "normalized_song_id": {
+            "pattern": "^song_[0-9a-hjkmnp-tv-z]{8}$",
+            "type": "string",
+            "nullable": true
           },
           "artist_id": {
             "pattern": "^artist_[0-7][0-9a-hjkmnp-tv-z]{25}$",
@@ -6082,6 +6224,7 @@
         "required": [
           "shows",
           "id",
+          "normalized_song_id",
           "artist_id",
           "name",
           "slug",
@@ -6102,6 +6245,11 @@
           "id": {
             "pattern": "^imported_song_[0-7][0-9a-hjkmnp-tv-z]{25}$",
             "type": "string"
+          },
+          "normalized_song_id": {
+            "pattern": "^song_[0-9a-hjkmnp-tv-z]{8}$",
+            "type": "string",
+            "nullable": true
           },
           "artist_id": {
             "pattern": "^artist_[0-7][0-9a-hjkmnp-tv-z]{25}$",
@@ -8440,6 +8588,150 @@
         },
         "additionalProperties": false
       },
+      "SongShowResource": {
+        "required": [
+          "show",
+          "timings"
+        ],
+        "type": "object",
+        "properties": {
+          "show": {
+            "$ref": "#/components/schemas/ShowSummaryResource"
+          },
+          "timings": {
+            "$ref": "#/components/schemas/SongShowTimingsResource"
+          },
+          "tracks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SongShowTrackResource"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "SongShowTimingsResource": {
+        "required": [
+          "single_song",
+          "multi_song"
+        ],
+        "type": "object",
+        "properties": {
+          "single_song": {
+            "required": [
+              "source_count",
+              "min",
+              "max",
+              "avg",
+              "median"
+            ],
+            "type": "object",
+            "properties": {
+              "source_count": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "min": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "max": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "avg": {
+                "type": "number",
+                "format": "double"
+              },
+              "median": {
+                "type": "number",
+                "format": "double"
+              }
+            },
+            "additionalProperties": false,
+            "nullable": true
+          },
+          "multi_song": {
+            "required": [
+              "source_count",
+              "min",
+              "max",
+              "avg",
+              "median"
+            ],
+            "type": "object",
+            "properties": {
+              "source_count": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "min": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "max": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "avg": {
+                "type": "number",
+                "format": "double"
+              },
+              "median": {
+                "type": "number",
+                "format": "double"
+              }
+            },
+            "additionalProperties": false,
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SongShowTrackResource": {
+        "required": [
+          "id",
+          "source_id",
+          "show_id",
+          "title",
+          "slug",
+          "duration",
+          "mp3_url"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "pattern": "^track_[0-7][0-9a-hjkmnp-tv-z]{25}$",
+            "type": "string"
+          },
+          "source_id": {
+            "pattern": "^source_[0-7][0-9a-hjkmnp-tv-z]{25}$",
+            "type": "string"
+          },
+          "show_id": {
+            "pattern": "^show_[0-7][0-9a-hjkmnp-tv-z]{25}$",
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "slug": {
+            "type": "string",
+            "nullable": true
+          },
+          "duration": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "mp3_url": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "SongWithShowsResource": {
         "required": [
           "shows",
@@ -8458,7 +8750,7 @@
           "shows": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ShowSummaryResource"
+              "$ref": "#/components/schemas/SongShowResource"
             },
             "nullable": true
           },
@@ -8951,6 +9243,39 @@
           "updated_at": {
             "type": "string",
             "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SourceStatisticsResource": {
+        "required": [
+          "source_count",
+          "min",
+          "max",
+          "avg",
+          "median"
+        ],
+        "type": "object",
+        "properties": {
+          "source_count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "min": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "max": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "avg": {
+            "type": "number",
+            "format": "double"
+          },
+          "median": {
+            "type": "number",
+            "format": "double"
           }
         },
         "additionalProperties": false

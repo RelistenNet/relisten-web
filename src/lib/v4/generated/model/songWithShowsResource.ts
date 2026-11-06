@@ -4,12 +4,12 @@
  * Relisten catalog
  * OpenAPI spec version: v4
  */
-import type { ShowSummaryResource } from './showSummaryResource';
+import type { SongShowResource } from './songShowResource';
 import type { SongWithShowsResourceKind } from './songWithShowsResourceKind';
 
 export interface SongWithShowsResource {
   /** @nullable */
-  shows: ShowSummaryResource[] | null;
+  shows: SongShowResource[] | null;
   /** @pattern ^song_[0-9a-hjkmnp-tv-z]{8}$ */
   id: string;
   /** @pattern ^artist_[0-7][0-9a-hjkmnp-tv-z]{25}$ */

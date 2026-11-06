@@ -25,6 +25,8 @@ export default defineSchema({
     '[day]': z.string().regex(MONTH_OR_DAY),
     '[month]': z.string().regex(MONTH_OR_DAY),
     '[songSlug]': z.string().regex(SLUG),
+    // Canonical venue slugs, or an imported venue's id (imported_venue_…).
+    '[venueSlug]': z.string().regex(/^[a-z0-9_-]+$/i),
     // Not just /^\d{4}$/: also carries quick-hit segments
     // (venues, songs, tours, top, recently-added, today-in-history).
     '[year]': z.string().regex(SLUG),
