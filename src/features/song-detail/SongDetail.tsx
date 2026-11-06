@@ -3,7 +3,8 @@ import { findArtistBySlug } from '@/data/artists';
 import { lengthColumn, playColumn } from './columns';
 import DataTable from '@/ui/table/DataTable';
 import { showColumns, showFilters, showSearchText, showSorts } from '@/ui/shows/columns';
-import StatGrid, { type StatItem } from '@/ui/base/StatGrid';
+import ArtistCover from '@/ui/base/ArtistCover';
+import PageHeader, { type StatItem } from '@/ui/base/PageHeader';
 import YearChart from '@/ui/base/YearChart';
 import { tableHref, tableSearchParams, toTableState, type TableParams } from '@/ui/table/params';
 import { formatShare, formatShowDate, showStats, timeAgo } from '@/ui/shows/stats';
@@ -12,7 +13,7 @@ import { queryTable, type TableSpec } from '@/ui/table/query';
 import type { ShowRow } from '@/ui/shows/rows';
 import { Link } from '@timber-js/app/client';
 import { redirect } from '@timber-js/app/server';
-import { artistSongsUrl, artistUrl, songUrl } from '@/lib/urls';
+import { songUrl } from '@/lib/urls';
 
 // Every show an artist played a song at. Songs are artist-specific in v4.
 
@@ -96,42 +97,23 @@ export default async function SongDetail({
   }
 
   return (
-    <div className="detail-page flex flex-col gap-8">
-      <header className="flex flex-col gap-5">
-        <div className="flex flex-col gap-1">
-          <nav aria-label="Breadcrumb" className="text-base text-text-muted sm:text-sm">
-            <Link href={artistUrl(artistSlug)} className="hover:text-text-primary">
-              {artist?.name ?? artistSlug}
-            </Link>
-            <span aria-hidden> › </span>
-            <Link href={artistSongsUrl(artistSlug)} className="hover:text-text-primary">
-              Songs
-            </Link>
-          </nav>
-          <h1 className="text-3xl font-semibold tracking-tight text-balance text-text-primary">
-            {song.name}
-          </h1>
-          {subtitle.length > 0 && (
-            <p className="text-base text-pretty text-text-muted sm:text-sm">
-              {subtitle.join(' · ')}
-            </p>
-          )}
-          {song.imported && (
-            <p className="text-base text-pretty text-text-muted sm:text-sm">
-              Known from setlists only: no recordings are matched to this song yet.
-            </p>
-          )}
-        </div>
-
-        <StatGrid items={statItems} />
-
+    <div className="detail-page flex flex-col gap-6">
+      <PageHeader
+        cover={artist && <ArtistCover artist={artist} />}
+        title={song.name}
+        meta={[
+          ...subtitle,
+          song.imported && 'Known from setlists only: no recordings are matched to this song yet',
+        ]}
+        stats={statItems}
+      >
         <YearChart
           counts={stats.byYear}
           noun="performance"
           selectedYear={(params as TableParams).year as string | undefined}
           hrefFor={(year) => tableHref(pathname, params, { year })}
         />
-      </header>
+      </PageHeader>
 
       <DataTable
         pathname={pathname}

@@ -5,10 +5,12 @@ import type { Column } from '@/ui/table/types';
 import { tableSearchParams, toTableState } from '@/ui/table/params';
 import { queryTable, type TableSpec } from '@/ui/table/query';
 import { formatShowDate } from '@/ui/shows/stats';
-import { artistToursUrl, artistUrl, tourUrl } from '@/lib/urls';
+import { artistToursUrl, tourUrl } from '@/lib/urls';
 import { numberFormat } from '@/lib/utils';
 import type { TourSummary } from '@/domain/types';
 import { Link } from '@timber-js/app/client';
+import ArtistCover from '@/ui/base/ArtistCover';
+import PageHeader from '@/ui/base/PageHeader';
 import { deny } from '@timber-js/app/server';
 
 // Every tour an artist has played, from the cached tour list.
@@ -71,17 +73,12 @@ export default async function Tours({ artistSlug }: { artistSlug: string }) {
   ];
 
   return (
-    <div className="detail-page flex flex-col gap-8">
-      <header className="flex flex-col gap-1">
-        <nav aria-label="Breadcrumb" className="text-base text-text-muted sm:text-sm">
-          <Link href={artistUrl(artistSlug)} className="hover:text-text-primary">
-            {artist.name}
-          </Link>
-        </nav>
-        <h1 className="text-3xl font-semibold tracking-tight text-balance text-text-primary">
-          Tours
-        </h1>
-      </header>
+    <div className="detail-page flex flex-col gap-6">
+      <PageHeader
+        cover={<ArtistCover artist={artist} />}
+        title="Tours"
+        stats={[{ label: 'Tours', value: numberFormat.format(tours.length) }]}
+      />
       <DataTable
         pathname={artistToursUrl(artistSlug)}
         params={params}

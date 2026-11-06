@@ -1,7 +1,8 @@
 import { loadScopedVenue } from './load';
 import DataTable from '@/ui/table/DataTable';
 import { showColumns, showFilters, showSearchText, showSorts } from '@/ui/shows/columns';
-import StatGrid, { type StatItem } from '@/ui/base/StatGrid';
+import ArtistCover from '@/ui/base/ArtistCover';
+import PageHeader, { type StatItem } from '@/ui/base/PageHeader';
 import YearChart from '@/ui/base/YearChart';
 import { tableHref, tableSearchParams, toTableState, type TableParams } from '@/ui/table/params';
 import { queryTable, type TableSpec } from '@/ui/table/query';
@@ -9,8 +10,9 @@ import type { ShowRow } from '@/ui/shows/rows';
 import { formatShowDate, showStats, timeAgo } from '@/ui/shows/stats';
 import { numberFormat } from '@/lib/utils';
 import { Link } from '@timber-js/app/client';
+import { findArtistBySlug } from '@/data/artists';
 import ArtistScopeSelect from './ArtistScopeSelect';
-import { artistUrl, artistVenuesUrl, venueUrl } from '@/lib/urls';
+import { venueUrl } from '@/lib/urls';
 
 // A venue's shows: across every artist (/venues/msg), or one artist's
 // (/artists/phish/venues/msg). Both come from the same cached venue fetch; the artist
@@ -34,9 +36,10 @@ export default async function VenueDetail({
   venueSlug: string;
   artistSlug?: string;
 }) {
-  const [{ venue, rows, artistName }, params] = await Promise.all([
+  const [{ venue, rows, artistName }, params, artist] = await Promise.all([
     loadScopedVenue(venueSlug, artistSlug),
     searchParams.get(),
+    findArtistBySlug(artistSlug),
   ]);
 
   const pathname = venueUrl(venueSlug, artistSlug);
@@ -76,52 +79,28 @@ export default async function VenueDetail({
   }
 
   return (
-    <div className="detail-page flex flex-col gap-8">
-      <header className="flex flex-col gap-5">
-        <div className="flex flex-col gap-1">
-          <nav aria-label="Breadcrumb" className="text-base text-text-muted sm:text-sm">
-            {artistSlug ? (
-              <>
-                <Link href={artistUrl(artistSlug)} className="hover:text-text-primary">
-                  {artistName}
-                </Link>
-                <span aria-hidden> › </span>
-                <Link href={artistVenuesUrl(artistSlug)} className="hover:text-text-primary">
-                  Venues
-                </Link>
-              </>
-            ) : (
-              'Venue'
-            )}
-          </nav>
-          <h1 className="text-3xl font-semibold tracking-tight text-balance text-text-primary">
-            {artistSlug ? `${artistName} at ${venue.name}` : venue.name}
-          </h1>
-          {(venue.location || venue.otherNames.length > 0) && (
-            <p className="text-base text-pretty text-text-muted sm:text-sm">
-              {[
-                venue.location,
-                venue.otherNames.length > 0 && `Also known as ${venue.otherNames.join(', ')}`,
-              ]
-                .filter(Boolean)
-                .join(' · ')}
-            </p>
-          )}
-        </div>
-
-        {artists.length > 1 && (
-          <ArtistScopeSelect venueSlug={venueSlug} artistSlug={artistSlug} artists={artists} />
-        )}
-
-        <StatGrid items={statItems} />
-
+    <div className="detail-page flex flex-col gap-6">
+      <PageHeader
+        cover={artist && <ArtistCover artist={artist} />}
+        title={artistSlug ? `${artistName} at ${venue.name}` : venue.name}
+        meta={[
+          venue.location,
+          venue.otherNames.length > 0 && `Also known as ${venue.otherNames.join(', ')}`,
+        ]}
+        aside={
+          artists.length > 1 && (
+            <ArtistScopeSelect venueSlug={venueSlug} artistSlug={artistSlug} artists={artists} />
+          )
+        }
+        stats={statItems}
+      >
         <YearChart
           counts={stats.byYear}
           noun="show"
           selectedYear={(params as TableParams).year as string | undefined}
           hrefFor={(year) => tableHref(pathname, params, { year })}
         />
-      </header>
+      </PageHeader>
 
       <DataTable
         pathname={pathname}

@@ -14,10 +14,9 @@ export default async function RecentlyAdded({ artistSlug }: { artistSlug: string
   if (!artist) deny(404);
   return (
     <ArtistShowList
-      artistSlug={artistSlug}
-      artistName={artist.name}
+      artist={artist}
       title="Recently Added"
-      subtitle="Shows most recently added to Relisten."
+      meta={['Shows most recently added to Relisten']}
       rows={rows}
       columns={[showColumns.show, showColumns.added, showColumns.tapes, showColumns.plays]}
       defaultSort={{ id: 'added', dir: 'desc' }}

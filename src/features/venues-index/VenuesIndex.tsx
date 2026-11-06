@@ -3,10 +3,12 @@ import DataTable from '@/ui/table/DataTable';
 import type { Column } from '@/ui/table/types';
 import { tableSearchParams, toTableState } from '@/ui/table/params';
 import { queryTable, type TableSpec } from '@/ui/table/query';
-import { artistUrl, artistVenuesUrl, venueUrl } from '@/lib/urls';
+import { artistVenuesUrl, venueUrl } from '@/lib/urls';
 import { numberFormat } from '@/lib/utils';
 import type { VenueListItem } from '@/domain/types';
 import { Link } from '@timber-js/app/client';
+import ArtistCover from '@/ui/base/ArtistCover';
+import PageHeader from '@/ui/base/PageHeader';
 import { deny } from '@timber-js/app/server';
 import { artistIdForSlug } from '@/data/artists';
 
@@ -67,17 +69,12 @@ export default async function VenuesIndex({ artistSlug }: { artistSlug: string }
   ];
 
   return (
-    <div className="detail-page flex flex-col gap-8">
-      <header className="flex flex-col gap-1">
-        <nav aria-label="Breadcrumb" className="text-base text-text-muted sm:text-sm">
-          <Link href={artistUrl(artistSlug)} className="hover:text-text-primary">
-            {artist.name}
-          </Link>
-        </nav>
-        <h1 className="text-3xl font-semibold tracking-tight text-balance text-text-primary">
-          Venues
-        </h1>
-      </header>
+    <div className="detail-page flex flex-col gap-6">
+      <PageHeader
+        cover={<ArtistCover artist={artist} />}
+        title="Venues"
+        stats={[{ label: 'Venues', value: numberFormat.format(venues.length) }]}
+      />
       <DataTable
         pathname={artistVenuesUrl(artistSlug)}
         params={params}

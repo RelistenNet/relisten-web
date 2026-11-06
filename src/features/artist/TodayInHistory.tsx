@@ -5,6 +5,7 @@ import { showColumns } from '@/ui/shows/columns';
 import TodayDateNav from '@/ui/base/TodayDateNav';
 import { getCurrentMonthDay } from '@/lib/timezone';
 import { artistTodayUrl } from '@/lib/urls';
+import { numberFormat } from '@/lib/utils';
 import { defineSearchParams } from '@timber-js/app/search-params';
 import { deny } from '@timber-js/app/server';
 import { format } from 'date-fns';
@@ -29,29 +30,29 @@ export default async function TodayInHistory({ artistSlug }: { artistSlug: strin
   const month = parsed.month ?? Number(today.month);
   const day = parsed.day ?? Number(today.day);
   const rows = await loadOnDate(artistSlug, month, day);
-  // A leap year, so Feb 29 has a name.
-  const label = format(new Date(2024, month - 1, day), 'MMMM d');
+  const years = rows.map((r) => r.date.slice(0, 4)).sort();
 
   return (
     <ArtistShowList
-      artistSlug={artistSlug}
-      artistName={artist.name}
-      title={`Today In History: ${label}`}
-      subtitle={`${rows.length} ${rows.length === 1 ? 'show' : 'shows'} on ${label} over the years.`}
-      rows={rows}
-      columns={[showColumns.show, showColumns.tapes, showColumns.rating, showColumns.plays]}
-      defaultSort={{ id: 'date', dir: 'asc' }}
-      pathname={artistTodayUrl(artistSlug)}
-      extraParams={parsed.month && parsed.day ? { month, day } : undefined}
-    >
-      <div className="self-start">
+      artist={artist}
+      title="Today In History"
+      stats={[
+        { label: 'Shows', value: numberFormat.format(rows.length) },
+        ...(years.length > 1 ? [{ label: 'Years', value: `${years[0]}–${years.at(-1)}` }] : []),
+      ]}
+      aside={
         <TodayDateNav
           month={String(month)}
           day={String(day)}
           pathname={artistTodayUrl(artistSlug)}
         />
-      </div>
-    </ArtistShowList>
+      }
+      rows={rows}
+      columns={[showColumns.show, showColumns.tapes, showColumns.rating, showColumns.plays]}
+      defaultSort={{ id: 'date', dir: 'asc' }}
+      pathname={artistTodayUrl(artistSlug)}
+      extraParams={parsed.month && parsed.day ? { month, day } : undefined}
+    />
   );
 }
 
