@@ -1,6 +1,6 @@
 'use client';
 
-import { Link, usePathname } from '@timber-js/app/client';
+import { Link, useLinkStatus, usePathname } from '@timber-js/app/client';
 import cn from '@/lib/cn';
 import { DEFAULT_ARTIST_SLUG } from '@/lib/defaultArtist';
 import {
@@ -43,7 +43,10 @@ function tabsFor(artistSlug: string, features?: Partial<ArtistFeatures>): Tab[] 
     },
   ];
   const page = (label: string, href: string): Tab => ({ label, href, isActive: under(href) });
-  if (features?.songs) tabs.push(page('Songs', artistSongsUrl(artistSlug)));
+  // Normalized artists have songs even without the (setlist) songs flag.
+  if (features?.songs || features?.normalization) {
+    tabs.push(page('Songs', artistSongsUrl(artistSlug)));
+  }
   if (features?.perShowVenues || features?.perSourceVenues) {
     tabs.push(page('Venues', artistVenuesUrl(artistSlug)));
   }
@@ -79,16 +82,33 @@ export default function ArtistTabs({
                 href={tab.href}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex items-center border-b-2 px-2 text-text-secondary hover:text-text-primary',
-                  active ? 'border-accent text-text-primary' : 'border-transparent'
+                  'relative flex items-center px-2 text-text-secondary hover:text-text-primary',
+                  active && 'text-text-primary'
                 )}
               >
-                {tab.label}
+                <TabLabel label={tab.label} active={active} />
               </Link>
             </li>
           );
         })}
       </ul>
     </nav>
+  );
+}
+
+/** The tab's label and underline. A clicked tab shows a faded underline until the page arrives. */
+function TabLabel({ label, active }: { label: string; active: boolean }) {
+  const { isPending } = useLinkStatus();
+  return (
+    <>
+      <span className={cn(isPending && 'text-text-primary')}>{label}</span>
+      <span
+        aria-hidden
+        className={cn(
+          'absolute inset-x-0 bottom-0 h-0.5',
+          isPending ? 'bg-accent/50' : active ? 'bg-accent' : 'bg-transparent'
+        )}
+      />
+    </>
   );
 }
