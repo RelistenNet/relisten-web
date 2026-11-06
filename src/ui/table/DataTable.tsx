@@ -3,7 +3,9 @@ import { ArrowDown, ArrowUp } from 'lucide-react';
 import cn from '@/lib/cn';
 import { tableHref, type TableParams } from '@/ui/table/params';
 import { formatSort, type TableResult, type TableSpec } from '@/ui/table/query';
+import Pagination from './Pagination';
 import TablePending from './TablePending';
+import { numberFormat } from '@/lib/utils';
 import TableToolbar from './TableToolbar';
 import type { Column, ToolbarFilter } from './types';
 
@@ -18,7 +20,7 @@ type Props<Row> = {
   result: TableResult<Row>;
   columns: Column<Row>[];
   rowKey: (row: Row) => string;
-  /** "show" → "Showing 1–50 of 332 shows". */
+  /** "show" → "1–25 of 332 shows". */
   noun: string;
   searchPlaceholder: string;
 };
@@ -43,6 +45,33 @@ export default function DataTable<Row>({
   );
   const href = (patch: TableParams) => tableHref(pathname, params, patch);
   const end = result.start + result.rows.length - 1;
+  const summary = (
+    <>
+      {result.total === 0
+        ? `No ${plural(0, noun)} match`
+        : `${result.start}–${end} of ${numberFormat.format(result.total)}`}
+      {result.total > 0 && (
+        // Narrow screens drop the noun so the range fits beside the buttons.
+        <span className="max-sm:hidden"> {plural(result.total, noun)}</span>
+      )}
+      {result.total !== result.totalAll && (
+        <span className="max-sm:hidden">
+          {' '}
+          (filtered from {numberFormat.format(result.totalAll)})
+        </span>
+      )}
+    </>
+  );
+  // The same bar above and below the table.
+  const pager = (label: string) => (
+    <Pagination
+      label={label}
+      page={result.page}
+      pageCount={result.pageCount}
+      hrefFor={(page) => href({ page })}
+      summary={summary}
+    />
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -52,13 +81,8 @@ export default function DataTable<Row>({
         searchPlaceholder={searchPlaceholder}
       />
 
-      <TablePending>
-        <p className="text-base text-text-muted tabular-nums sm:text-sm">
-          {result.total === 0
-            ? `No ${plural(0, noun)} match.`
-            : `Showing ${result.start}–${end} of ${result.total} ${plural(result.total, noun)}`}
-          {result.total !== result.totalAll && ` (filtered from ${result.totalAll})`}
-        </p>
+      <TablePending className="flex flex-col gap-3">
+        {pager('Pagination, top')}
 
         <div className="-mx-4 -my-2 overflow-x-auto">
           <div className="inline-block min-w-full px-4 py-2 align-middle">
@@ -163,75 +187,8 @@ export default function DataTable<Row>({
           </div>
         </div>
 
-        {result.pageCount > 1 && (
-          <Pagination page={result.page} pageCount={result.pageCount} href={href} />
-        )}
+        {pager('Pagination, bottom')}
       </TablePending>
     </div>
-  );
-}
-
-/** Pages to show: first, last, and a window around the current one. */
-function pageList(page: number, pageCount: number) {
-  const pages = new Set([1, pageCount, page - 1, page, page + 1]);
-  const sorted = [...pages].filter((p) => p >= 1 && p <= pageCount).sort((a, b) => a - b);
-  const out: (number | 'gap')[] = [];
-  sorted.forEach((p, i) => {
-    if (i > 0 && p - sorted[i - 1] > 1) out.push('gap');
-    out.push(p);
-  });
-  return out;
-}
-
-function Pagination({
-  page,
-  pageCount,
-  href,
-}: {
-  page: number;
-  pageCount: number;
-  href: (patch: TableParams) => string;
-}) {
-  const linkClass = 'rounded-md px-2.5 py-1 text-text-secondary hover:bg-surface-hover';
-  return (
-    <nav aria-label="Pagination" className="mt-4 flex items-center justify-between gap-4">
-      {page > 1 ? (
-        <Link href={href({ page: page - 1 })} scroll={false} className={linkClass}>
-          Previous
-        </Link>
-      ) : (
-        <span />
-      )}
-      <ul role="list" className="flex items-center gap-1 tabular-nums max-sm:hidden">
-        {pageList(page, pageCount).map((p, i) =>
-          p === 'gap' ? (
-            <li key={`gap-${i}`} className="px-1 text-text-muted">
-              …
-            </li>
-          ) : (
-            <li key={p}>
-              <Link
-                href={href({ page: p })}
-                scroll={false}
-                aria-current={p === page ? 'page' : undefined}
-                className={cn(linkClass, p === page && 'bg-surface-hover text-text-primary')}
-              >
-                {p}
-              </Link>
-            </li>
-          )
-        )}
-      </ul>
-      <p className="text-base text-text-muted tabular-nums sm:hidden">
-        Page {page} of {pageCount}
-      </p>
-      {page < pageCount ? (
-        <Link href={href({ page: page + 1 })} scroll={false} className={linkClass}>
-          Next
-        </Link>
-      ) : (
-        <span />
-      )}
-    </nav>
   );
 }

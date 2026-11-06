@@ -56,7 +56,7 @@ export type TableResult<Row> = {
   totalAll: number;
   page: number;
   pageCount: number;
-  /** The first row's 1-based position, for "Showing 51–100 of 332". */
+  /** The first row's 1-based position, for "51–100 of 332". */
   start: number;
   sort: { id: string; dir: SortDir };
   /** Options for each select filter, counted with every *other* filter applied. */
