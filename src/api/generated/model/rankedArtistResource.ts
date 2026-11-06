@@ -4,7 +4,6 @@
  * Relisten catalog
  * OpenAPI spec version: v4
  */
-import type { ArtistFeaturesResource } from './artistFeaturesResource';
 import type { ArtistProviderResource } from './artistProviderResource';
 import type { RankedArtistResourcePopularity } from './rankedArtistResourcePopularity';
 
@@ -27,7 +26,12 @@ export interface RankedArtistResource {
   popularity: RankedArtistResourcePopularity;
   created_at: string;
   updated_at: string;
-  features: ArtistFeaturesResource;
+  /**
+     * Unsigned 64-bit capability mask as a decimal string. Decode with BigInt in JavaScript; unset bits are false. Ignore unknown bits. Fixed values: Descriptions=1, Eras=2, MultipleSources=4, Reviews=8, Ratings=16, Tours=32, TaperNotes=64, SourceInformation=128, Sets=256, PerShowVenues=512, PerSourceVenues=1024, VenueCoords=2048, Songs=4096, Years=8192, TrackMd5s=16384, ReviewTitles=32768, JamCharts=65536, SetlistDataIncomplete=131072, TrackNames=262144, VenuePastNames=524288, ReviewsHaveRatings=1048576, TrackDurations=2097152, CanHaveFlac=4194304, Normalization=8388608
+     * @maxLength 20
+     * @pattern ^(0|[1-9][0-9]*)$
+     */
+  features: string;
   /** @nullable */
   upstream_sources: ArtistProviderResource[] | null;
 }

@@ -4811,6 +4811,97 @@
         }
       }
     },
+    "/api/v4/venues": {
+      "get": {
+        "tags": [
+          "CatalogVenues"
+        ],
+        "parameters": [
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "description": "Revalidate a previously applied response using its ETag.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "ETag": {
+                "description": "Weak validator for the represented JSON; not an ordered revision.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VenueResource"
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not Modified; retain the previously applied response. No body.",
+            "headers": {
+              "ETag": {
+                "description": "Weak validator for the represented JSON; not an ordered revision.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Gone",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v4/venues/{venueId}": {
       "get": {
         "tags": [
@@ -5201,137 +5292,29 @@
   },
   "components": {
     "schemas": {
-      "ArtistFeaturesResource": {
-        "required": [
-          "descriptions",
-          "eras",
-          "multiple_sources",
-          "reviews",
-          "ratings",
-          "tours",
-          "taper_notes",
-          "source_information",
-          "sets",
-          "per_show_venues",
-          "per_source_venues",
-          "venue_coords",
-          "songs",
-          "years",
-          "track_md5s",
-          "review_titles",
-          "jam_charts",
-          "setlist_data_incomplete",
-          "track_names",
-          "venue_past_names",
-          "reviews_have_ratings",
-          "track_durations",
-          "can_have_flac",
-          "normalization"
-        ],
-        "type": "object",
-        "properties": {
-          "descriptions": {
-            "type": "boolean"
-          },
-          "eras": {
-            "type": "boolean"
-          },
-          "multiple_sources": {
-            "type": "boolean"
-          },
-          "reviews": {
-            "type": "boolean"
-          },
-          "ratings": {
-            "type": "boolean"
-          },
-          "tours": {
-            "type": "boolean"
-          },
-          "taper_notes": {
-            "type": "boolean"
-          },
-          "source_information": {
-            "type": "boolean"
-          },
-          "sets": {
-            "type": "boolean"
-          },
-          "per_show_venues": {
-            "type": "boolean"
-          },
-          "per_source_venues": {
-            "type": "boolean"
-          },
-          "venue_coords": {
-            "type": "boolean"
-          },
-          "songs": {
-            "type": "boolean"
-          },
-          "years": {
-            "type": "boolean"
-          },
-          "track_md5s": {
-            "type": "boolean"
-          },
-          "review_titles": {
-            "type": "boolean"
-          },
-          "jam_charts": {
-            "type": "boolean"
-          },
-          "setlist_data_incomplete": {
-            "type": "boolean"
-          },
-          "track_names": {
-            "type": "boolean"
-          },
-          "venue_past_names": {
-            "type": "boolean"
-          },
-          "reviews_have_ratings": {
-            "type": "boolean"
-          },
-          "track_durations": {
-            "type": "boolean"
-          },
-          "can_have_flac": {
-            "type": "boolean"
-          },
-          "normalization": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false
-      },
       "ArtistProviderResource": {
         "required": [
           "provider",
-          "upstream_identifier",
-          "url",
-          "description",
-          "credit_line"
+          "upstream_identifier"
         ],
         "type": "object",
         "properties": {
           "provider": {
+            "enum": [
+              "archive.org",
+              "phish.in",
+              "phish.net",
+              "setlist.fm",
+              "phantasytour.com",
+              "jerrygarcia.com",
+              "local",
+              "panicstream.com",
+              null
+            ],
             "type": "string",
             "nullable": true
           },
           "upstream_identifier": {
-            "type": "string",
-            "nullable": true
-          },
-          "url": {
-            "type": "string",
-            "nullable": true
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "credit_line": {
             "type": "string",
             "nullable": true
           }
@@ -5449,7 +5432,36 @@
             "format": "date-time"
           },
           "features": {
-            "$ref": "#/components/schemas/ArtistFeaturesResource"
+            "maxLength": 20,
+            "pattern": "^(0|[1-9][0-9]*)$",
+            "type": "string",
+            "description": "Unsigned 64-bit capability mask as a decimal string. Decode with BigInt in JavaScript; unset bits are false. Ignore unknown bits. Fixed values: Descriptions=1, Eras=2, MultipleSources=4, Reviews=8, Ratings=16, Tours=32, TaperNotes=64, SourceInformation=128, Sets=256, PerShowVenues=512, PerSourceVenues=1024, VenueCoords=2048, Songs=4096, Years=8192, TrackMd5s=16384, ReviewTitles=32768, JamCharts=65536, SetlistDataIncomplete=131072, TrackNames=262144, VenuePastNames=524288, ReviewsHaveRatings=1048576, TrackDurations=2097152, CanHaveFlac=4194304, Normalization=8388608",
+            "x-feature-flags": {
+              "Descriptions": "1",
+              "Eras": "2",
+              "MultipleSources": "4",
+              "Reviews": "8",
+              "Ratings": "16",
+              "Tours": "32",
+              "TaperNotes": "64",
+              "SourceInformation": "128",
+              "Sets": "256",
+              "PerShowVenues": "512",
+              "PerSourceVenues": "1024",
+              "VenueCoords": "2048",
+              "Songs": "4096",
+              "Years": "8192",
+              "TrackMd5s": "16384",
+              "ReviewTitles": "32768",
+              "JamCharts": "65536",
+              "SetlistDataIncomplete": "131072",
+              "TrackNames": "262144",
+              "VenuePastNames": "524288",
+              "ReviewsHaveRatings": "1048576",
+              "TrackDurations": "2097152",
+              "CanHaveFlac": "4194304",
+              "Normalization": "8388608"
+            }
           },
           "upstream_sources": {
             "type": "array",
@@ -7123,7 +7135,36 @@
             "format": "date-time"
           },
           "features": {
-            "$ref": "#/components/schemas/ArtistFeaturesResource"
+            "maxLength": 20,
+            "pattern": "^(0|[1-9][0-9]*)$",
+            "type": "string",
+            "description": "Unsigned 64-bit capability mask as a decimal string. Decode with BigInt in JavaScript; unset bits are false. Ignore unknown bits. Fixed values: Descriptions=1, Eras=2, MultipleSources=4, Reviews=8, Ratings=16, Tours=32, TaperNotes=64, SourceInformation=128, Sets=256, PerShowVenues=512, PerSourceVenues=1024, VenueCoords=2048, Songs=4096, Years=8192, TrackMd5s=16384, ReviewTitles=32768, JamCharts=65536, SetlistDataIncomplete=131072, TrackNames=262144, VenuePastNames=524288, ReviewsHaveRatings=1048576, TrackDurations=2097152, CanHaveFlac=4194304, Normalization=8388608",
+            "x-feature-flags": {
+              "Descriptions": "1",
+              "Eras": "2",
+              "MultipleSources": "4",
+              "Reviews": "8",
+              "Ratings": "16",
+              "Tours": "32",
+              "TaperNotes": "64",
+              "SourceInformation": "128",
+              "Sets": "256",
+              "PerShowVenues": "512",
+              "PerSourceVenues": "1024",
+              "VenueCoords": "2048",
+              "Songs": "4096",
+              "Years": "8192",
+              "TrackMd5s": "16384",
+              "ReviewTitles": "32768",
+              "JamCharts": "65536",
+              "SetlistDataIncomplete": "131072",
+              "TrackNames": "262144",
+              "VenuePastNames": "524288",
+              "ReviewsHaveRatings": "1048576",
+              "TrackDurations": "2097152",
+              "CanHaveFlac": "4194304",
+              "Normalization": "8388608"
+            }
           },
           "upstream_sources": {
             "type": "array",
@@ -9841,6 +9882,19 @@
           }
         },
         "additionalProperties": false
+      },
+      "UpstreamProvider": {
+        "enum": [
+          "archive.org",
+          "phish.in",
+          "phish.net",
+          "setlist.fm",
+          "phantasytour.com",
+          "jerrygarcia.com",
+          "local",
+          "panicstream.com"
+        ],
+        "type": "string"
       },
       "VenueCoordinatePrecision": {
         "enum": [

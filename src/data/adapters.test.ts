@@ -236,15 +236,33 @@ describe('toArtist', () => {
     expect(toArtist({ ...apiArtist, slug: null })).toBeNull();
   });
 
-  it('camel-cases feature flags', () => {
-    const flags = Object.fromEntries(
-      Object.keys(must(toFeatures({} as never) ?? {})).map((k) => [k, false])
-    );
-    const features = must(
-      toFeatures({ ...flags, songs: true, per_show_venues: true, tours: false } as never)
-    );
-    expect(features).toMatchObject({ songs: true, perShowVenues: true, tours: false });
-    expect(Object.keys(features).every((k) => !k.includes('_'))).toBe(true);
+  it('decodes the features mask into camel-cased flags', () => {
+    // Tours=32, Songs=4096, PerShowVenues=512, Normalization=8388608
+    const features = must(toFeatures(String(32 + 512 + 4096 + 8388608)));
+    expect(features).toMatchObject({
+      tours: true,
+      songs: true,
+      perShowVenues: true,
+      normalization: true,
+      perSourceVenues: false,
+      descriptions: false,
+    });
+    expect(Object.values(features).filter(Boolean)).toHaveLength(4);
+  });
+
+  it('decodes masks past 2^53 and ignores unknown bits', () => {
+    const features = must(toFeatures('18446744073709551615'));
+    expect(Object.values(features).every(Boolean)).toBe(true);
+    // 2^63 + 1: the high bit is unknown, Descriptions (1) still decodes.
+    expect(must(toFeatures('9223372036854775809')).descriptions).toBe(true);
+    expect(Object.values(must(toFeatures('0'))).some(Boolean)).toBe(false);
+  });
+
+  it('has no features for a malformed or pre-mask value', () => {
+    expect(toFeatures('-1')).toBeUndefined();
+    expect(toFeatures('0x10')).toBeUndefined();
+    expect(toFeatures({ songs: true })).toBeUndefined();
+    expect(toFeatures(null)).toBeUndefined();
   });
 });
 

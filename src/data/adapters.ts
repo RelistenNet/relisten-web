@@ -4,8 +4,8 @@
 // v4 sends `null` for empty values; optional domain fields are `undefined`
 // instead, so nulls become `undefined` here.
 
+import { ArtistFeature, type ArtistFeatureName } from '@/api/generated/artistFeatures';
 import type {
-  ArtistFeaturesResource,
   ArtistResource,
   LinkResource,
   PopularityResource,
@@ -48,37 +48,33 @@ export const toPopularity = (p: PopularityResource | null | undefined): Populari
   return popularity;
 };
 
-export const toFeatures = (
-  f: ArtistFeaturesResource | null | undefined
-): ArtistFeatures | undefined =>
-  f
-    ? {
-        descriptions: f.descriptions,
-        eras: f.eras,
-        multipleSources: f.multiple_sources,
-        reviews: f.reviews,
-        ratings: f.ratings,
-        tours: f.tours,
-        taperNotes: f.taper_notes,
-        sourceInformation: f.source_information,
-        sets: f.sets,
-        perShowVenues: f.per_show_venues,
-        perSourceVenues: f.per_source_venues,
-        venueCoords: f.venue_coords,
-        songs: f.songs,
-        years: f.years,
-        trackMd5s: f.track_md5s,
-        reviewTitles: f.review_titles,
-        jamCharts: f.jam_charts,
-        setlistDataIncomplete: f.setlist_data_incomplete,
-        trackNames: f.track_names,
-        venuePastNames: f.venue_past_names,
-        reviewsHaveRatings: f.reviews_have_ratings,
-        trackDurations: f.track_durations,
-        canHaveFlac: f.can_have_flac,
-        normalization: f.normalization,
-      }
-    : undefined;
+// The domain's feature keys are the API's flag names, camel-cased. A flag added
+// to the API (or one dropped from the domain type) fails this check.
+type FeatureKey = Uncapitalize<ArtistFeatureName>;
+const featureKeysMatch: [FeatureKey, keyof ArtistFeatures] extends [
+  keyof ArtistFeatures,
+  FeatureKey,
+]
+  ? true
+  : never = true;
+void featureKeysMatch;
+
+const FEATURE_BITS = Object.entries(ArtistFeature).map(
+  ([name, bit]) => [(name[0].toLowerCase() + name.slice(1)) as FeatureKey, BigInt(bit)] as const
+);
+
+/**
+ * Decodes the `features` mask: a decimal-string u64, so BigInt (numbers lose
+ * bits past 2^53). Unknown bits are ignored. Anything else, such as a
+ * malformed mask or a response cached before the mask shipped, means no features.
+ */
+export const toFeatures = (mask: unknown): ArtistFeatures | undefined => {
+  if (typeof mask !== 'string' || !/^(0|[1-9][0-9]*)$/.test(mask)) return undefined;
+  const bits = BigInt(mask);
+  const features = {} as ArtistFeatures;
+  for (const [key, bit] of FEATURE_BITS) features[key] = (bits & bit) !== BigInt(0);
+  return features;
+};
 
 /** Null for an artist without a slug: nothing can link to it. A missing name falls back to the slug. */
 export const toArtist = (a: ArtistResource): Artist | null =>

@@ -5,8 +5,8 @@
  * OpenAPI spec version: v4
  */
 
-export * from './artistFeaturesResource';
 export * from './artistProviderResource';
+export * from './artistProviderResourceProvider';
 export * from './artistRankingResource';
 export * from './artistResource';
 export * from './artistResourcePopularity';
@@ -153,6 +153,7 @@ export * from './trackPartResourceSongKind';
 export * from './trackPartState';
 export * from './trackQualifier';
 export * from './trackResource';
+export * from './upstreamProvider';
 export * from './venueCoordinatePrecision';
 export * from './venueEntryKind';
 export * from './venueKind';

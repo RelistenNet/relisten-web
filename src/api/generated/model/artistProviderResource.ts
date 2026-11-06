@@ -4,16 +4,11 @@
  * Relisten catalog
  * OpenAPI spec version: v4
  */
+import type { ArtistProviderResourceProvider } from './artistProviderResourceProvider';
 
 export interface ArtistProviderResource {
   /** @nullable */
-  provider: string | null;
+  provider: ArtistProviderResourceProvider;
   /** @nullable */
   upstream_identifier: string | null;
-  /** @nullable */
-  url: string | null;
-  /** @nullable */
-  description: string | null;
-  /** @nullable */
-  credit_line: string | null;
 }

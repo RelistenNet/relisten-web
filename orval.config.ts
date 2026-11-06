@@ -13,5 +13,6 @@ export default defineConfig({
         mutator: { path: './src/api/fetcher.ts', name: 'relistenFetch' },
       },
     },
+    hooks: { afterAllFilesWrite: 'node scripts/gen-artist-features.mjs' },
   },
 });

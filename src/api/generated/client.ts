@@ -61,6 +61,7 @@ import type {
   TourResource,
   TourWithShowsResource,
   TrackResource,
+  VenueResource,
   VenueWithShowsResource,
   YearResource,
   YearWithShowsResource
@@ -3067,6 +3068,66 @@ export const getGetApiV4ArtistVenuesArtistVenueIdUrl = (artistVenueId: string,) 
 export const getApiV4ArtistVenuesArtistVenueId = async (artistVenueId: string, options?: Parameters<typeof relistenFetch>[1]): Promise<getApiV4ArtistVenuesArtistVenueIdResponse> => {
 
   return relistenFetch<getApiV4ArtistVenuesArtistVenueIdResponse>(getGetApiV4ArtistVenuesArtistVenueIdUrl(artistVenueId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+export type getApiV4VenuesResponse200 = {
+  data: VenueResource[]
+  status: 200
+}
+
+export type getApiV4VenuesResponse304 = {
+  data: void
+  status: 304
+}
+
+export type getApiV4VenuesResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type getApiV4VenuesResponse410 = {
+  data: ProblemDetails
+  status: 410
+}
+
+export type getApiV4VenuesResponse422 = {
+  data: ProblemDetails
+  status: 422
+}
+
+export type getApiV4VenuesResponse503 = {
+  data: ProblemDetails
+  status: 503
+}
+
+export type getApiV4VenuesResponseSuccess = (getApiV4VenuesResponse200) & {
+  headers: Headers;
+};
+export type getApiV4VenuesResponseError = (getApiV4VenuesResponse304 | getApiV4VenuesResponse404 | getApiV4VenuesResponse410 | getApiV4VenuesResponse422 | getApiV4VenuesResponse503) & {
+  headers: Headers;
+};
+
+export type getApiV4VenuesResponse = (getApiV4VenuesResponseSuccess | getApiV4VenuesResponseError)
+
+export const getGetApiV4VenuesUrl = () => {
+
+
+
+
+  return `/api/v4/venues`
+}
+
+export const getApiV4Venues = async ( options?: Parameters<typeof relistenFetch>[1]): Promise<getApiV4VenuesResponse> => {
+
+  return relistenFetch<getApiV4VenuesResponse>(getGetApiV4VenuesUrl(),
   {
     ...options,
     method: 'GET'
