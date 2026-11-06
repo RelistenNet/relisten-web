@@ -283,8 +283,18 @@ export function initGaplessPlayer(nextStore: { dispatch: AppDispatch; getState: 
   if (localStorage.volume) {
     player.setVolume(localStorage.volume);
   }
+}
 
+/**
+ * Restores the last-played track (paused, at its saved position). Call it after
+ * hydration: it fills the playback store, and rendering that state during
+ * hydration would mismatch the server HTML. Skipped when a page already loaded
+ * a track (child effects run before this one).
+ */
+export function restoreLastPlayback() {
+  if (!store || !player) return;
   if (window.location.pathname.startsWith('/embed')) return;
+  if (player.tracks?.length) return;
 
   const restored = restorePlaybackFromStorage();
   if (!restored) return;
