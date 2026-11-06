@@ -30,4 +30,6 @@ export type Column<Row> = {
 /** A filter as the (client) toolbar sees it: serializable, options precomputed. */
 export type ToolbarFilter =
   | { kind: 'select'; id: string; label: string; options: FacetOption[] }
-  | { kind: 'toggle'; id: string; label: string };
+  | { kind: 'toggle'; id: string; label: string }
+  /** Set elsewhere on the page (a year chart): shown only while active, as a removable chip. */
+  | { kind: 'chip'; id: string; label: string; valueLabel?: string };

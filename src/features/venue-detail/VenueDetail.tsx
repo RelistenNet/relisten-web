@@ -117,6 +117,7 @@ export default async function VenueDetail({
         rowKey={(r) => r.id}
         noun="show"
         searchPlaceholder={artistSlug ? 'Search dates' : 'Search artists, dates'}
+        chipFilters={['year']}
       />
     </div>
   );

@@ -53,7 +53,7 @@ export default async function SongDetail({
   const artistShows = artist?.showCount ?? 0;
   const subtitle = [
     song.originalArtist && `Originally by ${song.originalArtist}`,
-    song.aliases.length > 0 && `Also listed as ${song.aliases.join(', ')}`,
+    // song.aliases.length > 0 && `Also listed as ${song.aliases.join(', ')}`,
   ].filter(Boolean);
 
   const statItems: StatItem[] = [
@@ -130,6 +130,7 @@ export default async function SongDetail({
         rowKey={(r) => r.id}
         noun="performance"
         searchPlaceholder="Search venues, cities, dates"
+        chipFilters={['year']}
       />
     </div>
   );

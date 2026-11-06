@@ -33,12 +33,25 @@ type Props = {
   /** "1–25 of 567 shows", at the bar's start. */
   summary: ReactNode;
   label: string;
+  /**
+   * An element id to land on after paging (the bottom bar returns to the top
+   * of the table). Without one, the scroll position stays put.
+   */
+  hash?: string;
 };
 
 const BUTTON =
   'flex h-8 min-w-8 items-center justify-center px-2 tabular-nums not-first:border-l not-first:border-hairline';
 
-export default function Pagination({ page, pageCount, hrefFor, summary, label }: Props) {
+export default function Pagination({
+  page,
+  pageCount,
+  hrefFor: pageHref,
+  summary,
+  label,
+  hash,
+}: Props) {
+  const hrefFor = (p: number) => (hash ? `${pageHref(p)}#${hash}` : pageHref(p));
   const pages = Math.max(pageCount, 1);
   // Every page-number slot fits the widest number, so the group never resizes.
   const slotWidth = { '--slot': `calc(${String(pages).length}ch + 1rem)` } as CSSProperties;
@@ -164,7 +177,8 @@ function PageButton({
   return (
     <Link
       href={hrefFor(page)}
-      scroll={false}
+      // A link with a #hash scrolls to its target; one without keeps the position.
+      scroll={hrefFor(page).includes('#')}
       aria-label={label}
       className={cn(classes, 'hover:bg-surface-hover hover:text-text-primary')}
     >

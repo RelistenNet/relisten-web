@@ -85,6 +85,7 @@ export default async function ArtistShowList({
         rowKey={(r) => r.id}
         noun="show"
         searchPlaceholder="Search venues, cities, dates"
+        chipFilters={yearChart ? ['year'] : undefined}
       />
     </div>
   );
