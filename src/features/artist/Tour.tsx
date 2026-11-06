@@ -26,7 +26,7 @@ export default async function Tour({
   return (
     <ArtistShowList
       artistSlug={artistSlug}
-      artistName={artist.name ?? artistSlug}
+      artistName={artist.name}
       title={tour.name}
       subtitle={`${dates}${tour.rows.length} shows`}
       rows={tour.rows}

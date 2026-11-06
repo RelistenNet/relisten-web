@@ -23,7 +23,7 @@ export default async function Page() {
 
   const tracks = activeSource?.sets?.flatMap((set) => set.tracks ?? []) ?? [];
   const track = tracks.find((t) => t.slug === songSlug);
-  const streamUrl = proxyStreamUrl(track?.mp3_url);
+  const streamUrl = proxyStreamUrl(track?.mp3Url);
 
   if (!track || !streamUrl) {
     return (

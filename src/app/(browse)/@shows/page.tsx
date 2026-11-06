@@ -8,7 +8,7 @@ export default async function ShowsDaySlot() {
 
   if (!show) return null;
 
-  const { year } = splitShowDate(show.display_date);
+  const { year } = splitShowDate(show.date);
 
   return <ShowsColumn artistSlug={DEFAULT_ARTIST_SLUG} year={year} />;
 }

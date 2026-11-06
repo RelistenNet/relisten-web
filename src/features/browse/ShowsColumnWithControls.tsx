@@ -1,7 +1,7 @@
 'use client';
 
 import { useFilterState } from '@/hooks/useFilterState';
-import type { SlimShow } from '@/lib/slimShow';
+import type { ShowSummary } from '@/domain/types';
 import { useSegmentParams } from '@timber-js/app/client';
 import { Fragment, useMemo } from 'react';
 import sortActiveBands from '@/lib/sortActiveBands';
@@ -16,10 +16,16 @@ import Row, { unwrapSegment } from '@/components/Row';
 import RowHeader from '@/components/RowHeader';
 import Tag from '@/components/Tag';
 
+/** A year's show, cut to what this column reads: the list ships in the page's Flight payload. */
+export type BrowseShow = Pick<
+  ShowSummary,
+  'id' | 'date' | 'tourName' | 'tapes' | 'sbd' | 'avgDuration' | 'popularity'
+> & { venue?: { name?: string; location?: string } };
+
 type ShowsColumnWithControlsProps = {
   artistSlug?: string;
   year?: string;
-  shows: SlimShow[];
+  shows: BrowseShow[];
   fullDate?: boolean;
 };
 
@@ -79,7 +85,7 @@ const ShowsColumnWithControls = ({
     let processedShows = [...shows];
 
     if (sbdOnly) {
-      processedShows = processedShows.filter((show) => show.has_soundboard_source);
+      processedShows = processedShows.filter((show) => show.sbd);
     }
 
     if (sortBy === 'popularity') {
@@ -101,7 +107,8 @@ const ShowsColumnWithControls = ({
     return processedShows;
   }, [shows, artistSlug, alphaAsc, sortBy, sbdOnly]);
 
-  const tours = {};
+  // Each tour's header goes above its first show only.
+  const tours: Record<string, true> = {};
 
   return (
     <ColumnWithToggleControls
@@ -114,27 +121,25 @@ const ShowsColumnWithControls = ({
       {processedShows &&
         artistSlug &&
         processedShows.map((show) => {
-          const { year, month, day } = splitShowDate(show.display_date);
-          const { venue, avg_duration, tour } = show;
+          const { year, month, day } = splitShowDate(show.date);
+          const { venue, avgDuration } = show;
           let tourName = '';
 
-          if (tour) {
-            if (!tours[tour.id]) tourName = tour.name ?? '';
-            tours[tour.id] = true;
+          if (show.tourName) {
+            if (!tours[show.tourName]) tourName = show.tourName;
+            tours[show.tourName] = true;
           }
 
           const showHref = `/${artistSlug}/${year}/${month}/${day}`;
 
           return (
             <Fragment key={show.id}>
-              {!fullDate && tourName && tourName !== 'Not Part of a Tour' && (
-                <RowHeader>{tourName}</RowHeader>
-              )}
+              {!fullDate && tourName && <RowHeader>{tourName}</RowHeader>}
               <Row href={showHref} active={month === currentMonth && day === currentDay}>
                 <div>
                   <Flex className="tabular-nums">
                     {fullDate ? `${year}-${month}-${day}` : `${removeLeadingZero(month)}/${day}`}
-                    {show.has_soundboard_source && <Tag>SBD</Tag>}
+                    {show.sbd && <Tag>SBD</Tag>}
                   </Flex>
                   {venue && (
                     <div className="my-0.5 text-xxs leading-3.5 text-foreground-muted">
@@ -145,8 +150,8 @@ const ShowsColumnWithControls = ({
                 </div>
                 <div className="flex min-w-[20%] flex-col self-stretch justify-between text-right text-xxs text-foreground-muted">
                   <PopularityBadge popularity={show.popularity} align="right" />
-                  <div>{durationToHHMMSS(avg_duration)}</div>
-                  <Count unit="tape" value={show.source_count} />
+                  <div>{durationToHHMMSS(avgDuration ?? undefined)}</div>
+                  <Count unit="tape" value={show.tapes} />
                 </div>
               </Row>
             </Fragment>

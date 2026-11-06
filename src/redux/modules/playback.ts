@@ -1,4 +1,19 @@
-import type { GaplessMetadata, Track } from '../../types';
+import type { PlayableTrack } from '@/domain/types';
+
+/** What the gapless queue reports about each queued file (see lib/player). */
+export type GaplessMetadata = {
+  index?: number;
+  playbackType?: string;
+  metadata?: {
+    trackId?: string;
+    [key: string]: unknown;
+  };
+  trackMetadata?: {
+    trackId?: string;
+    [key: string]: unknown;
+  };
+  webAudioLoadingState?: string;
+};
 
 const UPDATE = 'playback/UPDATE' as const;
 const UPDATE_TRACK = 'playback/UPDATE_TRACK' as const;
@@ -24,7 +39,7 @@ export interface PlaybackState {
   currentTrackId?: string;
   paused: boolean;
   activeTrack: ActiveTrack;
-  tracks: Track[];
+  tracks: PlayableTrack[];
   gaplessTracksMetadata: GaplessMetadata[];
 }
 

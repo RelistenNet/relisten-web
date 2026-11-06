@@ -8,7 +8,6 @@ import { splitShowDate } from '@/lib/utils';
 import type { RootState } from '@/redux';
 import { store } from '@/redux';
 import { updatePlayback } from '@/redux/modules/playback';
-import type { Track } from '@/types';
 
 type Props = {
   track: PlayableTrack;
@@ -53,14 +52,7 @@ export default function PlayTrackButton({ track, artistSlug, artistName, date, l
         paused: false,
       })
     );
-    const playerTrack: Track = {
-      id: track.id,
-      slug: track.slug,
-      title: track.title,
-      mp3_url: track.mp3Url,
-      duration: track.duration ?? undefined,
-    };
-    loadTracks([playerTrack], track.slug, { playImmediately: true });
+    loadTracks([track], track.slug, { playImmediately: true });
   };
 
   const Icon = isPlaying ? Pause : Play;

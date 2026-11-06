@@ -2,7 +2,7 @@
 
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/redux';
-import type { Track } from '@/types';
+import type { Track } from '@/domain/types';
 import { durationToHHMMSS } from '@/lib/utils';
 import player from '@/lib/player';
 

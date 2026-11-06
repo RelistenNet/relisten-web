@@ -11,7 +11,7 @@ import {
   artistUrl,
   artistVenuesUrl,
 } from '@/lib/urls';
-import type { Features } from '@/types';
+import type { ArtistFeatures } from '@/domain/types';
 
 // The artist's sections, under the nav bar on every page: the artist in the URL
 // (/grateful-dead/… browse, /artists/grateful-dead/… detail pages), else the
@@ -24,7 +24,7 @@ import type { Features } from '@/types';
 
 type Tab = { label: string; href: string; isActive: (path: string) => boolean };
 
-function tabsFor(artistSlug: string, features?: Partial<Features>): Tab[] {
+function tabsFor(artistSlug: string, features?: Partial<ArtistFeatures>): Tab[] {
   const browse = `/${artistSlug}`;
   const under = (prefix: string) => (path: string) =>
     path === prefix || path.startsWith(`${prefix}/`);
@@ -44,7 +44,7 @@ function tabsFor(artistSlug: string, features?: Partial<Features>): Tab[] {
   ];
   const page = (label: string, href: string): Tab => ({ label, href, isActive: under(href) });
   if (features?.songs) tabs.push(page('Songs', artistSongsUrl(artistSlug)));
-  if (features?.per_show_venues || features?.per_source_venues) {
+  if (features?.perShowVenues || features?.perSourceVenues) {
     tabs.push(page('Venues', artistVenuesUrl(artistSlug)));
   }
   if (features?.tours) tabs.push(page('Tours', artistToursUrl(artistSlug)));
@@ -60,7 +60,7 @@ export default function ArtistTabs({
   features,
 }: {
   artistSlug: string;
-  features?: Partial<Features>;
+  features?: Partial<ArtistFeatures>;
 }) {
   const pathname = usePathname();
   const tabs = tabsFor(artistSlug, features);

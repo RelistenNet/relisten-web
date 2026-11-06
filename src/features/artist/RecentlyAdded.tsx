@@ -15,7 +15,7 @@ export default async function RecentlyAdded({ artistSlug }: { artistSlug: string
   return (
     <ArtistShowList
       artistSlug={artistSlug}
-      artistName={artist.name ?? artistSlug}
+      artistName={artist.name}
       title="Recently Added"
       subtitle="Shows most recently added to Relisten."
       rows={rows}

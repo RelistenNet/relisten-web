@@ -18,9 +18,7 @@ const results = defineResource({
   slim: ([r, directory]): SearchResults => {
     const slimArtist = (artistId: string): SearchArtist | undefined => {
       const a = directory.byId.get(artistId);
-      return a?.slug
-        ? { name: a.name ?? a.slug, slug: a.slug, featured: a.featured ?? 0 }
-        : undefined;
+      return a ? { name: a.name, slug: a.slug, featured: a.featured } : undefined;
     };
     const item = (
       artistId: string,

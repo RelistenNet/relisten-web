@@ -87,7 +87,7 @@ export async function liveSummary(today: MonthDay): Promise<ApiLiveSummary | nul
       ...s,
       artists: s.artists.flatMap((a) => {
         const artist = directory.byId.get(a.artist_id);
-        return artist?.slug ? [{ ...a, name: artist.name ?? artist.slug, slug: artist.slug }] : [];
+        return artist ? [{ ...a, name: artist.name, slug: artist.slug }] : [];
       }),
     };
   } catch (err) {
@@ -107,9 +107,7 @@ export async function livePlays(afterSequence = 0, limit = 30): Promise<LivePlay
       .filter((p) => p.id > afterSequence)
       .flatMap(({ artistId, ...play }) => {
         const artist = directory.byId.get(artistId);
-        return artist?.slug
-          ? [{ ...play, artistName: artist.name ?? artist.slug, artistSlug: artist.slug }]
-          : [];
+        return artist ? [{ ...play, artistName: artist.name, artistSlug: artist.slug }] : [];
       })
       .slice(0, limit);
   } catch (err) {

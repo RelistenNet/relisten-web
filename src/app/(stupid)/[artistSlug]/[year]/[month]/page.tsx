@@ -48,18 +48,16 @@ export default async function MonthPage() {
   const artistShows = await loadYearShows(artist.id, year);
   if (!artistShows) deny(404);
 
-  const shows = artistShows.shows || [];
+  const shows = artistShows;
 
   // Filter shows for the specific month
   const monthShows = shows.filter((show) => {
-    const showMonth = new Date(show.display_date || '').getMonth() + 1;
+    const showMonth = new Date(show.date || '').getMonth() + 1;
     return showMonth === parseInt(month || '', 10);
   });
 
   // Sort shows by date
-  monthShows.sort(
-    (a, b) => new Date(a.display_date || '').getTime() - new Date(b.display_date || '').getTime()
-  );
+  monthShows.sort((a, b) => new Date(a.date || '').getTime() - new Date(b.date || '').getTime());
 
   return (
     <div className="bg-white p-4 font-serif text-black">
@@ -188,7 +186,7 @@ export default async function MonthPage() {
           </tr>
 
           {monthShows.map((show) => {
-            const showDate = new Date(show.display_date || '');
+            const showDate = new Date(show.date || '');
             const dayStr = showDate.getDate().toString().padStart(2, '0');
             const showPath = `${dayStr}/`;
 
@@ -237,10 +235,10 @@ export default async function MonthPage() {
                     {showPath}
                   </Link>
                 </td>
-                <td className="py-1 pr-8 text-center">{formatDate(show.display_date || '')}</td>
+                <td className="py-1 pr-8 text-center">{formatDate(show.date || '')}</td>
                 <td className="py-1 pr-8 text-right">
-                  {show.avg_duration && show.avg_duration > 0
-                    ? formatFileSize(show.avg_duration)
+                  {show.avgDuration && show.avgDuration > 0
+                    ? formatFileSize(show.avgDuration)
                     : '-'}
                 </td>
                 <td className="py-1">

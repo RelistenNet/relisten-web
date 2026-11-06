@@ -1,6 +1,6 @@
 'use client';
 
-import { Year } from '@/types';
+import type { YearSummary } from '@/domain/types';
 import { PropsWithChildren, useMemo } from 'react';
 import { useSegmentParams } from '@timber-js/app/client';
 import { useFilterState } from '@/hooks/useFilterState';
@@ -14,7 +14,7 @@ import Row, { unwrapSegment } from '@/components/Row';
 type YearsColumnWithControlsProps = {
   artistSlug?: string;
   artistName?: string;
-  artistYears: Year[];
+  artistYears: YearSummary[];
 } & PropsWithChildren;
 
 const YearsColumnWithControls = ({
@@ -98,8 +98,8 @@ const YearsColumnWithControls = ({
               <PopularityBadge popularity={yearObj.popularity} />
             </div>
             <div className="min-w-[20%] text-right text-xxs">
-              <Count unit="show" value={yearObj.show_count} />
-              <Count unit="tape" value={yearObj.source_count} />
+              <Count unit="show" value={yearObj.showCount} />
+              <Count unit="tape" value={yearObj.sourceCount} />
             </div>
           </Row>
         ))}

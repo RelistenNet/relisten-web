@@ -49,7 +49,7 @@ export default async function SongDetail({
   const result = queryTable(song.rows, songSpec, toTableState(params, FILTER_IDS));
   const stats = showStats(song.rows);
   const pathname = songUrl(artistSlug, songSlug);
-  const artistShows = artist?.show_count ?? 0;
+  const artistShows = artist?.showCount ?? 0;
   const subtitle = [
     song.originalArtist && `Originally by ${song.originalArtist}`,
     song.aliases.length > 0 && `Also listed as ${song.aliases.join(', ')}`,

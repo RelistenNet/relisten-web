@@ -1,21 +1,24 @@
 import { Link } from '@timber-js/app/client';
+import type { Artist, ShowSummary } from '@/domain/types';
 import { splitShowDate } from '../lib/utils';
-import { Day } from '../types';
 import Flex from './Flex';
 
-const createURL = (obj: Day): string => {
-  const { year, month, day } = splitShowDate(obj.display_date);
+/** A show on the Today page, with its artist (undefined when the directory doesn't know it). */
+export type TodayShow = ShowSummary & { artist?: Pick<Artist, 'name' | 'slug'> };
 
-  return '/' + [obj.artist?.slug, year, month, day].join('/');
+const createURL = (show: TodayShow): string => {
+  const { year, month, day } = splitShowDate(show.date);
+
+  return '/' + [show.artist?.slug, year, month, day].join('/');
 };
 
-export default ({ day }: { day: Day }) => {
-  if (!day) return null;
+export default ({ show }: { show: TodayShow }) => {
+  if (!show) return null;
 
-  const { year } = splitShowDate(day.display_date);
+  const { year } = splitShowDate(show.date);
 
   return (
-    <Link href={createURL(day)} prefetch={false}>
+    <Link href={createURL(show)} prefetch={false}>
       <Flex
         className="
         group w-full cursor-pointer items-center px-4 py-3 transition-colors duration-150
@@ -25,10 +28,10 @@ export default ({ day }: { day: Day }) => {
         <div className="mr-4 w-12 flex-shrink-0 text-sm font-semibold text-accent">{year}</div>
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-medium text-text-primary">
-            {day.venue?.name || 'Unknown Venue'}
+            {show.venue?.name || 'Unknown Venue'}
           </div>
-          {day.venue?.location && (
-            <div className="truncate text-xs text-text-muted">{day.venue.location}</div>
+          {show.venue?.location && (
+            <div className="truncate text-xs text-text-muted">{show.venue.location}</div>
           )}
         </div>
         <div className="ml-4 flex-shrink-0 text-text-muted opacity-0 transition-opacity duration-150 group-hover:opacity-100">

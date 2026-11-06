@@ -1,5 +1,4 @@
-import type { PlayableTrack, ShowSummary, SongDetail } from '@/domain/types';
-import type { Artist } from '@/types';
+import type { Artist, PlayableTrack, ShowSummary, SongDetail } from '@/domain/types';
 import { splitShowDate } from '@/lib/utils';
 
 // Table rows for detail pages: view models built per request from cached
@@ -50,14 +49,14 @@ export type ArtistsById = ReadonlyMap<string, Artist>;
 
 export function showRow(show: ShowSummary, artists: ArtistsById): ShowRow | null {
   const artist = artists.get(show.artistId);
-  if (!artist?.slug) return null;
+  if (!artist) return null;
   const { year, month, day } = splitShowDate(show.date);
   return {
     id: show.id,
     showId: show.id,
     date: show.date,
     year,
-    artistName: artist.name ?? artist.slug,
+    artistName: artist.name,
     artistSlug: artist.slug,
     venueName: show.venue?.name,
     venueSlug: show.venue?.slug,

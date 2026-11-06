@@ -6,7 +6,7 @@ import { durationToHHMMSS } from '@/lib/utils';
 
 import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { toSourceParam } from '@/lib/sourceParam';
-import { Source } from '@/types';
+import type { Source } from '@/domain/types';
 import Column from '@/components/Column';
 import Flex from '@/components/Flex';
 import Row from '@/components/Row';
@@ -54,18 +54,18 @@ const TapesColumn = (props: Props) => {
             <div className="w-full">
               <Flex className="mb-1">
                 <div className="min-w-[53px]">{durationToHHMMSS(sourceObj.duration)}</div>
-                {sourceObj.is_soundboard && <Tag>SBD</Tag>}
-                {sourceObj.is_remaster && <Tag>REMASTER</Tag>}
+                {sourceObj.isSoundboard && <Tag>SBD</Tag>}
+                {sourceObj.isRemaster && <Tag>REMASTER</Tag>}
               </Flex>
-              {Number(sourceObj?.avg_rating) > 0 && (
+              {Number(sourceObj?.avgRating) > 0 && (
                 <Flex className="py-1 text-xs">
                   <div className="min-w-[48px] truncate pr-2 text-foreground-muted">
                     {artistSlug === 'phish' ? 'Dot Net' : 'Rating'}:
                   </div>{' '}
                   <div className="truncate">
-                    {Number(sourceObj.avg_rating).toFixed(2)} /{' '}
-                    {sourceObj.num_ratings || sourceObj.num_reviews}{' '}
-                    {pluralize('rating', sourceObj?.num_ratings || sourceObj?.num_reviews || 0)}
+                    {Number(sourceObj.avgRating).toFixed(2)} /{' '}
+                    {sourceObj.numRatings || sourceObj.numReviews}{' '}
+                    {pluralize('rating', sourceObj?.numRatings || sourceObj?.numReviews || 0)}
                   </div>
                 </Flex>
               )}
@@ -85,10 +85,10 @@ const TapesColumn = (props: Props) => {
                   <div className="truncate">{sourceObj.transferrer}</div>
                 </Flex>
               )}
-              {exists(sourceObj.upstream_identifier) && (
+              {exists(sourceObj.upstreamIdentifier) && (
                 <Flex className="py-1 text-xs">
                   <div className="min-w-[48px] truncate pr-2 text-foreground-muted">SHNID:</div>{' '}
-                  <div className="truncate">{sourceObj.upstream_identifier}</div>
+                  <div className="truncate">{sourceObj.upstreamIdentifier}</div>
                 </Flex>
               )}
               {exists(sourceObj.source) && (
@@ -103,12 +103,12 @@ const TapesColumn = (props: Props) => {
                   <div className="truncate">{sourceObj.lineage}</div>
                 </Flex>
               )}
-              {exists(sourceObj.taper_notes) && (
+              {exists(sourceObj.taperNotes) && (
                 <Flex className="py-1 text-xs">
                   <div className="min-w-[48px] truncate pr-2 text-foreground-muted">
                     Taper Notes:
                   </div>{' '}
-                  <TaperNotes notes={sourceObj.taper_notes} />
+                  <TaperNotes notes={sourceObj.taperNotes} />
                 </Flex>
               )}
             </div>

@@ -68,9 +68,9 @@ export async function GET() {
 
   const fonts = await loadCardFonts();
 
-  const artist = show.artist_id ? directory.byId.get(show.artist_id) : undefined;
+  const artist = show.artistId ? directory.byId.get(show.artistId) : undefined;
   const artistName = artist?.name ?? 'Unknown Artist';
-  const { month, day, year } = parseDisplayDate(show.display_date || '');
+  const { month, day, year } = parseDisplayDate(show.date || '');
 
   const s = (base: number) => Math.round((size / 1024) * base);
 

@@ -5,7 +5,7 @@ import { tableSearchParams, toTableState } from '@/ui/table/params';
 import { queryTable, type TableSpec } from '@/ui/table/query';
 import { artistUrl, artistVenuesUrl, venueUrl } from '@/lib/urls';
 import { numberFormat } from '@/lib/utils';
-import type { Venue } from '@/types';
+import type { VenueListItem } from '@/domain/types';
 import { Link } from '@timber-js/app/client';
 import { deny } from '@timber-js/app/server';
 import { artistIdForSlug } from '@/data/artists';
@@ -15,11 +15,11 @@ import { artistIdForSlug } from '@/data/artists';
 const FILTER_IDS = [] as const;
 const searchParams = tableSearchParams(FILTER_IDS);
 
-const spec: TableSpec<Venue> = {
+const spec: TableSpec<VenueListItem> = {
   sorts: {
     name: (v) => v.name,
     location: (v) => v.location,
-    shows: (v) => v.shows_at_venue,
+    shows: (v) => v.showCount,
   },
   defaultSort: { id: 'shows', dir: 'desc' },
   searchText: (v) => [v.name, v.location].filter(Boolean).join(' '),
@@ -35,15 +35,14 @@ export default async function VenuesIndex({ artistSlug }: { artistSlug: string }
   ]);
   if (!artist) deny(404);
 
-  const rows = venues.filter((v) => v.slug);
-  const result = queryTable(rows, spec, toTableState(params, FILTER_IDS));
-  const columns: Column<Venue>[] = [
+  const result = queryTable(venues, spec, toTableState(params, FILTER_IDS));
+  const columns: Column<VenueListItem>[] = [
     {
       id: 'name',
       label: 'Venue',
       sortable: true,
       cell: (v) => (
-        <Link href={venueUrl(v.slug ?? '', artistSlug)} className="text-accent hover:underline">
+        <Link href={venueUrl(v.slug, artistSlug)} className="text-accent hover:underline">
           {v.name}
         </Link>
       ),
@@ -63,7 +62,7 @@ export default async function VenuesIndex({ artistSlug }: { artistSlug: string }
       firstDir: 'desc',
       align: 'right',
       width: 'w-24',
-      cell: (v) => numberFormat.format(v.shows_at_venue ?? 0),
+      cell: (v) => numberFormat.format(v.showCount),
     },
   ];
 

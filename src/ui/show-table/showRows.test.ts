@@ -1,17 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import { must, tweezerRepriseSong } from '@/data/__fixtures__';
 import { slimSongBySlug } from '@/data/songs';
-import type { ShowSummary, SongDetail } from '@/domain/types';
-import type { Artist } from '@/types';
+import type { Artist, ShowSummary, SongDetail } from '@/domain/types';
 import { showRow, showRows, songRows, type ArtistsById } from './showRows';
 
 const PHISH = 'artist_6aaf982021nrst0m68ew1djerc';
 
+const artist = (id: string, name: string, slug: string): Artist => ({
+  id,
+  name,
+  slug,
+  featured: 1,
+  showCount: 0,
+  sourceCount: 0,
+  popularity: null,
+});
+
 const artists: ArtistsById = new Map<string, Artist>([
-  ['artist_gd', { id: 'artist_gd', name: 'Grateful Dead', slug: 'grateful-dead' }],
-  [PHISH, { id: PHISH, name: 'Phish', slug: 'phish' }],
-  ['artist_noname', { id: 'artist_noname', slug: 'no-name' }],
-  ['artist_noslug', { id: 'artist_noslug', name: 'No Slug' }],
+  ['artist_gd', artist('artist_gd', 'Grateful Dead', 'grateful-dead')],
+  [PHISH, artist(PHISH, 'Phish', 'phish')],
 ]);
 
 const summary = (overrides: Partial<ShowSummary> = {}): ShowSummary => ({
@@ -50,16 +57,8 @@ describe('showRow', () => {
     });
   });
 
-  it('names the artist by slug when it has no name', () => {
-    expect(showRow(summary({ artistId: 'artist_noname' }), artists)).toMatchObject({
-      artistName: 'no-name',
-      href: '/no-name/1977/05/08',
-    });
-  });
-
-  it('is null for an unknown artist, or one without a slug', () => {
+  it('is null for an unknown artist (the directory drops artists without a slug)', () => {
     expect(showRow(summary({ artistId: 'artist_missing' }), artists)).toBeNull();
-    expect(showRow(summary({ artistId: 'artist_noslug' }), artists)).toBeNull();
   });
 
   it('leaves venue fields empty without a venue', () => {

@@ -4,10 +4,10 @@ import { splitShowDate } from './utils';
 
 import { scrobblePlay } from './scrobble';
 import { createListenTracker } from './listenTracker';
-import { updatePlayback } from '../redux/modules/playback';
+import { updatePlayback, type GaplessMetadata } from '../redux/modules/playback';
 import { proxyStreamUrl } from './proxyStreamUrl';
 import { toSourceParam } from './sourceParam';
-import type { GaplessMetadata, Source, Track } from '../types';
+import type { PlayableTrack, Source } from '@/domain/types';
 import { toast } from 'sonner';
 import type { RootState, AppDispatch } from '../redux';
 import { replaceUrl } from '@timber-js/app/client';
@@ -384,7 +384,7 @@ function restorePlaybackFromStorage(): {
             title: localStorage.lastPlayedTrackTitle || songSlug.replace(/-/g, ' '),
             slug: songSlug,
           },
-        ] as Track[],
+        ] as PlayableTrack[],
       })
     );
 
@@ -415,7 +415,7 @@ export function resetPlayer() {
 }
 
 export function loadTracks(
-  tracks: Track[],
+  tracks: PlayableTrack[],
   songSlug: string | undefined,
   { playImmediately = true, seekTime = 0 }: { playImmediately?: boolean; seekTime?: number } = {}
 ) {
@@ -432,7 +432,7 @@ export function loadTracks(
   resetPlayer();
 
   for (const track of tracks) {
-    const url = proxyStreamUrl(window.FLAC ? track.flac_url || track.mp3_url : track.mp3_url);
+    const url = proxyStreamUrl(window.FLAC ? track.flacUrl || track.mp3Url : track.mp3Url);
     if (!url) continue;
     player.addTrack(url, {
       skipHEAD: /phish\.in/.test(String(url)),

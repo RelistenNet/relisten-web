@@ -2,7 +2,7 @@ import 'server-only';
 
 import { loadArtists } from '@/features/browse/load';
 import { isPrimaryArtist, toArtistRow, type ArtistRow } from '@/lib/artistRows';
-import type { Artist } from '@/types';
+import type { Artist } from '@/domain/types';
 
 type ArtistColumnRows = {
   primary: ArtistRow[];

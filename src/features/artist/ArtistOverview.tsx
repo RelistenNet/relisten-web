@@ -19,8 +19,8 @@ export default async function ArtistOverview({ artistSlug }: { artistSlug: strin
 
   const years = [...showStats(rows).byYear.keys()].sort();
   const statItems: StatItem[] = [
-    { label: 'Shows', value: numberFormat.format(artist.show_count ?? rows.length) },
-    { label: 'Tapes', value: numberFormat.format(artist.source_count ?? 0) },
+    { label: 'Shows', value: numberFormat.format(artist.showCount) },
+    { label: 'Tapes', value: numberFormat.format(artist.sourceCount) },
   ];
   if (years.length) {
     statItems.push({
@@ -33,8 +33,8 @@ export default async function ArtistOverview({ artistSlug }: { artistSlug: strin
   return (
     <ArtistShowList
       artistSlug={artistSlug}
-      artistName={artist.name ?? artistSlug}
-      title={artist.name ?? artistSlug}
+      artistName={artist.name}
+      title={artist.name}
       breadcrumb="Artist"
       rows={rows}
       columns={[showColumns.show, showColumns.tapes, showColumns.rating, showColumns.plays]}

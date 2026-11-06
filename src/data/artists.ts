@@ -9,8 +9,8 @@ import {
   getApiV4ArtistsArtistIdVenues,
   getApiV4ArtistsArtistIdYears,
 } from '@/api/generated/client';
-import type { Artist, Song, Tour, Venue, Year } from '@/types';
-import { toArtist, toTour, toYear, venueLocation } from './adapters';
+import type { Artist, SongListItem, TourSummary, VenueListItem, YearSummary } from '@/domain/types';
+import { toArtist, toTourSummary, toYearSummary, venueLocation } from './adapters';
 import { defineResource, MINUTES } from './resource';
 
 // Artists and their per-artist lists (years, songs, venues, tours).
@@ -25,7 +25,7 @@ function index(artists: Artist[]): ArtistDirectory {
   const bySlug = new Map<string, Artist>();
   const byId = new Map<string, Artist>();
   for (const artist of artists) {
-    if (artist.slug) bySlug.set(artist.slug, artist);
+    bySlug.set(artist.slug, artist);
     byId.set(artist.id, artist);
   }
   return { artists, bySlug, byId };
@@ -39,7 +39,7 @@ const directory = defineResource({
   name: 'artist-directory',
   ttl: 5 * MINUTES,
   load: () => unwrap(getApiV4Artists({ include_autocreated: true })),
-  slim: (artists) => index(artists.map(toArtist)),
+  slim: (artists) => index(artists.flatMap((a) => toArtist(a) ?? [])),
 });
 
 export const getArtistDirectory = () => directory.get();
@@ -61,41 +61,43 @@ export const years = defineResource({
   name: 'years',
   ttl: 5 * MINUTES,
   load: (artistId: string) => unwrap(getApiV4ArtistsArtistIdYears(artistId)),
-  slim: (list): Year[] => list.map(toYear),
+  slim: (list): YearSummary[] => list.flatMap((y) => toYearSummary(y) ?? []),
 });
 
 export const tours = defineResource({
   name: 'tours',
   ttl: 5 * MINUTES,
   load: (artistId: string) => unwrap(getApiV4ArtistsArtistIdTours(artistId)),
-  slim: (list): Tour[] => list.map(toTour),
+  slim: (list): TourSummary[] => list.flatMap((t) => toTourSummary(t) ?? []),
 });
 
-/** Songs: v4 mixes matched songs with songs only known from imported setlists. */
+/** Songs: v4 mixes matched songs with songs only known from imported setlists. Slugless songs can't be linked, so they're dropped. */
 export const songs = defineResource({
   name: 'songs',
   ttl: 5 * MINUTES,
   load: (artistId: string) => unwrap(getApiV4ArtistsArtistIdSongs(artistId)),
-  slim: (entries): Song[] =>
-    entries.flatMap((e): Song[] => {
+  slim: (entries): SongListItem[] =>
+    entries.flatMap((e): SongListItem[] => {
       if (e.song) {
+        if (!e.song.slug) return [];
         return [
           {
             id: e.song.id,
+            slug: e.song.slug,
             name: e.song.name ?? undefined,
-            slug: e.song.slug ?? undefined,
-            shows_played_at: e.song.matched_show_count,
+            showCount: e.song.matched_show_count,
           },
         ];
       }
       if (e.imported_song) {
+        if (!e.imported_song.slug) return [];
         return [
           {
             id: e.imported_song.id,
-            canonical_id: e.imported_song.normalized_song_id ?? undefined,
+            slug: e.imported_song.slug,
             name: e.imported_song.name ?? undefined,
-            slug: e.imported_song.slug ?? undefined,
-            shows_played_at: e.imported_song.setlist_show_count,
+            showCount: e.imported_song.setlist_show_count,
+            canonicalId: e.imported_song.normalized_song_id ?? undefined,
           },
         ];
       }
@@ -106,24 +108,24 @@ export const songs = defineResource({
 /**
  * Venues an artist played. Canonical venues link by slug; venues known only
  * from imported setlists link by id (their slugs can collide with canonical ones).
+ * Slugless canonical venues can't be linked, so they're dropped.
  */
 export const venues = defineResource({
   name: 'venues',
   ttl: 5 * MINUTES,
   load: (artistId: string) => unwrap(getApiV4ArtistsArtistIdVenues(artistId)),
-  slim: (entries): Venue[] =>
-    entries.flatMap((e): Venue[] => {
+  slim: (entries): VenueListItem[] =>
+    entries.flatMap((e): VenueListItem[] => {
       const av = e.artist_venue;
       if (av) {
+        if (!av.venue.slug) return [];
         return [
           {
             id: av.id,
+            slug: av.venue.slug,
             name: av.venue.name ?? undefined,
-            slug: av.venue.slug ?? undefined,
             location: venueLocation(av.venue),
-            shows_at_venue: av.artist_show_count,
-            latitude: null,
-            longitude: null,
+            showCount: av.artist_show_count,
           },
         ];
       }
@@ -132,12 +134,10 @@ export const venues = defineResource({
         return [
           {
             id: iv.id,
-            name: iv.name ?? undefined,
             slug: iv.id,
+            name: iv.name ?? undefined,
             location: iv.location ?? undefined,
-            shows_at_venue: iv.show_count,
-            latitude: null,
-            longitude: null,
+            showCount: iv.show_count,
           },
         ];
       }

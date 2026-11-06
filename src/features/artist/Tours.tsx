@@ -7,7 +7,7 @@ import { queryTable, type TableSpec } from '@/ui/table/query';
 import { formatShowDate } from '@/ui/show-table/showStats';
 import { artistToursUrl, artistUrl, tourUrl } from '@/lib/urls';
 import { numberFormat } from '@/lib/utils';
-import type { Tour } from '@/types';
+import type { TourSummary } from '@/domain/types';
 import { Link } from '@timber-js/app/client';
 import { deny } from '@timber-js/app/server';
 
@@ -16,11 +16,11 @@ import { deny } from '@timber-js/app/server';
 const FILTER_IDS = [] as const;
 const searchParams = tableSearchParams(FILTER_IDS);
 
-const spec: TableSpec<Tour> = {
+const spec: TableSpec<TourSummary> = {
   sorts: {
     name: (t) => t.name,
-    start: (t) => t.start_date,
-    shows: (t) => t.shows_on_tour,
+    start: (t) => t.startDate,
+    shows: (t) => t.showCount,
   },
   defaultSort: { id: 'start', dir: 'desc' },
   searchText: (t) => t.name ?? '',
@@ -38,15 +38,14 @@ export default async function Tours({ artistSlug }: { artistSlug: string }) {
   ]);
   if (!artist) deny(404);
 
-  const rows = tours.filter((t) => t.slug);
-  const result = queryTable(rows, spec, toTableState(params, FILTER_IDS));
-  const columns: Column<Tour>[] = [
+  const result = queryTable(tours, spec, toTableState(params, FILTER_IDS));
+  const columns: Column<TourSummary>[] = [
     {
       id: 'name',
       label: 'Tour',
       sortable: true,
       cell: (t) => (
-        <Link href={tourUrl(artistSlug, t.slug ?? '')} className="text-accent hover:underline">
+        <Link href={tourUrl(artistSlug, t.slug)} className="text-accent hover:underline">
           {t.name}
         </Link>
       ),
@@ -58,7 +57,7 @@ export default async function Tours({ artistSlug }: { artistSlug: string }) {
       firstDir: 'desc',
       width: 'w-64',
       hideBelow: 'sm',
-      cell: (t) => `${day(t.start_date)} – ${day(t.end_date)}`,
+      cell: (t) => `${day(t.startDate)} – ${day(t.endDate)}`,
     },
     {
       id: 'shows',
@@ -67,7 +66,7 @@ export default async function Tours({ artistSlug }: { artistSlug: string }) {
       firstDir: 'desc',
       align: 'right',
       width: 'w-24',
-      cell: (t) => numberFormat.format(t.shows_on_tour ?? 0),
+      cell: (t) => numberFormat.format(t.showCount),
     },
   ];
 

@@ -41,8 +41,8 @@ export const slimSongBySlug = (
       id: file.id,
       title: file.title ?? song.name ?? '',
       slug: file.slug ?? '',
+      duration: file.duration ?? undefined,
       mp3Url: file.mp3_url ?? null,
-      duration: file.duration,
       sourceId: file.source_id,
     });
     // Played once: the median across every tape is steadier than one file.
@@ -118,8 +118,8 @@ export async function songDetail(artistSlug: string, songSlug: string): Promise<
   const list = await songs.orDeny(artistId);
   const song = list.find((s) => s.slug === songSlug);
   if (!song?.id.startsWith('imported_song_')) deny(404);
-  const canonicalSlug = song.canonical_id
-    ? list.find((s) => s.id === song.canonical_id)?.slug
+  const canonicalSlug = song.canonicalId
+    ? list.find((s) => s.id === song.canonicalId)?.slug
     : undefined;
   if (canonicalSlug) return songBySlug.orDeny(artistId, canonicalSlug);
   return denyIfMissing(importedSong.get(song.id));

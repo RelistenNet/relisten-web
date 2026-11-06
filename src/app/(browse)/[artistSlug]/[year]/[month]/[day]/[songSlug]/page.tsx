@@ -54,7 +54,7 @@ export const metadata = async () => {
     openGraph: {
       audio: [
         {
-          url: proxyStreamUrl(song?.mp3_url),
+          url: proxyStreamUrl(song?.mp3Url),
         },
       ],
       images: show?.id

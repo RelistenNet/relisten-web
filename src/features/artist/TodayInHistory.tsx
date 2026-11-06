@@ -35,7 +35,7 @@ export default async function TodayInHistory({ artistSlug }: { artistSlug: strin
   return (
     <ArtistShowList
       artistSlug={artistSlug}
-      artistName={artist.name ?? artistSlug}
+      artistName={artist.name}
       title={`Today In History: ${label}`}
       subtitle={`${rows.length} ${rows.length === 1 ? 'show' : 'shows'} on ${label} over the years.`}
       rows={rows}

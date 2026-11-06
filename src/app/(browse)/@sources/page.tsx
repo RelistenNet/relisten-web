@@ -8,7 +8,7 @@ export default async function SourcesDaySlot() {
 
   if (!show) return null;
 
-  const { year, month, day } = splitShowDate(show.display_date);
+  const { year, month, day } = splitShowDate(show.date);
 
   return (
     <TapesColumn artistSlug={DEFAULT_ARTIST_SLUG} year={year} month={month} day={day} show={show} />

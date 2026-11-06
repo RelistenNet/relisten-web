@@ -1,6 +1,6 @@
 import { formatNumber, formatHours } from '@/lib/formatPlays';
 import Tooltip from './Tooltip';
-import type { Popularity } from '@/types';
+import type { Popularity } from '@/domain/types';
 import cn from '@/lib/cn';
 
 export default function PopularityBadge({

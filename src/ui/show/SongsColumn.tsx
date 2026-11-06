@@ -6,7 +6,8 @@ import { durationToHHMMSS, removeLeadingZero } from '@/lib/utils';
 import { RawParams } from '@/types/params';
 import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { useSelector } from 'react-redux';
-import { GaplessMetadata, Set, Source, Tape } from '@/types';
+import type { ShowDetail, Source, SourceSet } from '@/domain/types';
+import type { GaplessMetadata } from '@/redux/modules/playback';
 import type { RootState } from '@/redux';
 import Column from '@/components/Column';
 import Row from '@/components/Row';
@@ -17,7 +18,7 @@ import { fromSourceParam, toSourceParam } from '@/lib/sourceParam';
 import { useAdminTools } from '@/hooks/useAdminTools';
 import { Link } from '@timber-js/app/client';
 
-const getSetTime = (set: Set): string =>
+const getSetTime = (set: SourceSet): string =>
   durationToHHMMSS(
     set.tracks?.reduce((memo, next) => {
       return memo + (next?.duration ?? 0);
@@ -25,7 +26,7 @@ const getSetTime = (set: Set): string =>
   );
 
 export type Props = Pick<RawParams, 'artistSlug' | 'year' | 'month' | 'day'> & {
-  show?: Partial<Tape>;
+  show?: Pick<ShowDetail, 'sources'>;
   routePrefix?: string;
 };
 
@@ -161,7 +162,7 @@ const SongsColumn = (props: Props) => {
       {activeSourceObj &&
         activeSourceObj.links &&
         activeSourceObj.links.map((link) => (
-          <a href={link.url} target="_blank" key={link.id} rel="noreferrer">
+          <a href={link.url} target="_blank" key={link.url} rel="noreferrer">
             <Row>{link.label}</Row>
           </a>
         ))}

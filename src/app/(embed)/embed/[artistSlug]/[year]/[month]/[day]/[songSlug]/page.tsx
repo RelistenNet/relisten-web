@@ -82,7 +82,7 @@ export async function metadata() {
     openGraph: {
       audio: [
         {
-          url: proxyStreamUrl(song?.mp3_url),
+          url: proxyStreamUrl(song?.mp3Url),
         },
       ],
     },

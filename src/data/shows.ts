@@ -11,42 +11,30 @@ import {
   getApiV4ShowsOnDate,
   getApiV4ShowsShowId,
 } from '@/api/generated/client';
-import { sortSources, sortTracksInSources } from '@/lib/sortSources';
-import type { ArtistShows, Tape } from '@/types';
-import { toArtistShows, toTape } from './adapters';
 import { defineResource, MINUTES, pathParam } from './resource';
-import { toShowSummaries } from './summaries';
+import { toBrowseShowSummaries, toShowDetail, toShowSummaries } from './summaries';
 
 // Shows: full shows (tapes, sets, tracks) for show pages, and slim summaries for
 // lists and tables.
-
-/** Sources in display order, tracks in play order. Cached values are shared: sort before caching. */
-const sorted = (tape: Tape): Tape => {
-  if (tape.sources?.length) {
-    tape.sources = sortSources(tape.sources);
-    sortTracksInSources(tape.sources);
-  }
-  return tape;
-};
 
 export const showByDate = defineResource({
   name: 'show-by-date',
   ttl: 5 * MINUTES,
   load: (artistId: string, date: string) =>
     unwrap(getApiV4ArtistsArtistIdShowsByDateShowDate(artistId, pathParam(date))),
-  slim: (show) => sorted(toTape(show)),
+  slim: toShowDetail,
 });
 
 export const showById = defineResource({
   name: 'show',
   ttl: 5 * MINUTES,
   load: (showId: string) => unwrap(getApiV4ShowsShowId(showId)),
-  slim: (show) => sorted(toTape(show)),
+  slim: toShowDetail,
 });
 
 /** Uncached on purpose: every call should be a different show. */
 export const randomShow = async (artistId: string) =>
-  sorted(toTape(await unwrap(getApiV4ArtistsArtistIdShowsRandom(artistId))));
+  toShowDetail(await unwrap(getApiV4ArtistsArtistIdShowsRandom(artistId)));
 
 /** One year's shows, for the browse view's shows column. */
 export const yearShows = defineResource({
@@ -54,7 +42,7 @@ export const yearShows = defineResource({
   ttl: 5 * MINUTES,
   load: (artistId: string, year: number) =>
     unwrap(getApiV4ArtistsArtistIdYearsByNumberYear(artistId, year)),
-  slim: (year): ArtistShows => toArtistShows(year),
+  slim: (year) => toBrowseShowSummaries(year.shows),
 });
 
 /** Every show an artist played (2,000+ for the Grateful Dead); tables page it. */

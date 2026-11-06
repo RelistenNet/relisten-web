@@ -6,7 +6,7 @@ import { createShowDate } from '@/lib/utils';
 import { deny, getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 import { contextSearchParamsLoader } from './search-params';
-import type { Track } from '@/types';
+import type { Track } from '@/domain/types';
 
 export default async function SingleTrackEmbedPage() {
   const { artistSlug, year, month, day, songSlug } = getSegmentParams(SEGMENT_PATH);
@@ -83,7 +83,7 @@ export async function metadata() {
     openGraph: {
       audio: [
         {
-          url: proxyStreamUrl(song?.mp3_url),
+          url: proxyStreamUrl(song?.mp3Url),
         },
       ],
     },

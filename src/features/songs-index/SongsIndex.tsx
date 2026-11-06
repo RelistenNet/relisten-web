@@ -5,7 +5,7 @@ import { tableSearchParams, toTableState } from '@/ui/table/params';
 import { queryTable, type TableSpec } from '@/ui/table/query';
 import { artistSongsUrl, artistUrl, songUrl } from '@/lib/urls';
 import { numberFormat } from '@/lib/utils';
-import type { Song } from '@/types';
+import type { SongListItem } from '@/domain/types';
 import { Link } from '@timber-js/app/client';
 import { deny } from '@timber-js/app/server';
 import { artistIdForSlug } from '@/data/artists';
@@ -15,8 +15,8 @@ import { artistIdForSlug } from '@/data/artists';
 const FILTER_IDS = ['recorded'] as const;
 const searchParams = tableSearchParams(FILTER_IDS);
 
-const spec: TableSpec<Song> = {
-  sorts: { name: (s) => s.name, shows: (s) => s.shows_played_at },
+const spec: TableSpec<SongListItem> = {
+  sorts: { name: (s) => s.name, shows: (s) => s.showCount },
   defaultSort: { id: 'shows', dir: 'desc' },
   searchText: (s) => s.name ?? '',
   filters: [
@@ -39,15 +39,14 @@ export default async function SongsIndex({ artistSlug }: { artistSlug: string })
   ]);
   if (!artist) deny(404);
 
-  const rows = songs.filter((s) => s.slug);
-  const result = queryTable(rows, spec, toTableState(params, FILTER_IDS));
-  const columns: Column<Song>[] = [
+  const result = queryTable(songs, spec, toTableState(params, FILTER_IDS));
+  const columns: Column<SongListItem>[] = [
     {
       id: 'name',
       label: 'Song',
       sortable: true,
       cell: (s) => (
-        <Link href={songUrl(artistSlug, s.slug ?? '')} className="text-accent hover:underline">
+        <Link href={songUrl(artistSlug, s.slug)} className="text-accent hover:underline">
           {s.name}
         </Link>
       ),
@@ -59,7 +58,7 @@ export default async function SongsIndex({ artistSlug }: { artistSlug: string })
       firstDir: 'desc',
       align: 'right',
       width: 'w-24',
-      cell: (s) => numberFormat.format(s.shows_played_at ?? 0),
+      cell: (s) => numberFormat.format(s.showCount),
     },
   ];
 

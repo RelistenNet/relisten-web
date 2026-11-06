@@ -228,7 +228,7 @@ function ArtistList({
           });
           break;
         case 'tapes':
-          sorted.sort((a, b) => dir * ((b.source_count ?? 0) - (a.source_count ?? 0)));
+          sorted.sort((a, b) => dir * (b.sourceCount - a.sourceCount));
           break;
         default:
           sorted.sort((a, b) => dir * (a.name || '').localeCompare(b.name || ''));
@@ -311,8 +311,8 @@ function ArtistList({
           )}
         </div>
         <div className="min-w-[20%] text-right text-xs">
-          <Count unit="show" value={item.artist.show_count} />
-          <Count unit="tape" value={item.artist.source_count} />
+          <Count unit="show" value={item.artist.showCount} />
+          <Count unit="tape" value={item.artist.sourceCount} />
         </div>
       </Row>
     );
