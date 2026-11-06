@@ -3,7 +3,7 @@ import 'server-only';
 import { cache } from 'react';
 import { getArtistDirectory } from '@/data/artists';
 import { songDetail } from '@/data/songs';
-import { songRows } from '@/ui/show-table/showRows';
+import { songRows } from '@/ui/shows/rows';
 
 /** A song's page: its details, and a table row per time it was played. */
 export const loadSong = cache(async (artistSlug: string, songSlug: string) => {

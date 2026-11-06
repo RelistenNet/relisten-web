@@ -4,7 +4,7 @@ import { deny } from '@timber-js/app/server';
 import { cache } from 'react';
 import { getArtistDirectory } from '@/data/artists';
 import { venueDetail } from '@/data/venues';
-import { showRows } from '@/ui/show-table/showRows';
+import { showRows } from '@/ui/shows/rows';
 
 /** A venue's page: its details, and a table row per show there (all artists). */
 export const loadVenue = cache(async (venue: string) => {

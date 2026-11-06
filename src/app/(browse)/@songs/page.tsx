@@ -1,5 +1,5 @@
 import { loadRandomShow } from '@/features/browse/load';
-import SongsColumn from '@/ui/show/SongsColumn';
+import TrackList from '@/ui/shows/TrackList';
 import { DEFAULT_ARTIST_SLUG } from '@/lib/defaultArtist';
 import { splitShowDate } from '@/lib/utils';
 
@@ -11,6 +11,6 @@ export default async function SongsDaySlot() {
   const { year, month, day } = splitShowDate(show.date);
 
   return (
-    <SongsColumn artistSlug={DEFAULT_ARTIST_SLUG} year={year} month={month} day={day} show={show} />
+    <TrackList artistSlug={DEFAULT_ARTIST_SLUG} year={year} month={month} day={day} show={show} />
   );
 }

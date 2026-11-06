@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { must, tweezerRepriseSong } from '@/data/__fixtures__';
 import { slimSongBySlug } from '@/data/songs';
 import type { Artist, ShowSummary, SongDetail } from '@/domain/types';
-import { showRow, showRows, songRows, type ArtistsById } from './showRows';
+import { showRow, showRows, songRows, type ArtistsById } from './rows';
 
 const PHISH = 'artist_6aaf982021nrst0m68ew1djerc';
 

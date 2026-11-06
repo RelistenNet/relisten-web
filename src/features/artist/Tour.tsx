@@ -1,8 +1,8 @@
 import { loadTour } from './load';
 import { findArtistBySlug } from '@/data/artists';
-import ArtistShowList from '@/ui/show-table/ArtistShowList';
-import { showColumns } from '@/ui/show-table/showColumns';
-import { formatShowDate } from '@/ui/show-table/showStats';
+import ArtistShowList from './ArtistShowList';
+import { showColumns } from '@/ui/shows/columns';
+import { formatShowDate } from '@/ui/shows/stats';
 import { tourUrl } from '@/lib/urls';
 import { deny } from '@timber-js/app/server';
 

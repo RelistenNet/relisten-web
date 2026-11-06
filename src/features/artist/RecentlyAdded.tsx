@@ -1,7 +1,7 @@
 import { loadRecentlyAdded } from './load';
 import { findArtistBySlug } from '@/data/artists';
-import ArtistShowList from '@/ui/show-table/ArtistShowList';
-import { showColumns } from '@/ui/show-table/showColumns';
+import ArtistShowList from './ArtistShowList';
+import { showColumns } from '@/ui/shows/columns';
 import { artistRecentlyAddedUrl } from '@/lib/urls';
 import { deny } from '@timber-js/app/server';
 

@@ -11,7 +11,7 @@ import Column from '@/ui/base/Column';
 import Flex from '@/ui/base/Flex';
 import Row from '@/ui/base/Row';
 import RowHeader from '@/ui/base/RowHeader';
-import { Props, useSourceData } from '@/ui/show/SongsColumn';
+import { Props, useSourceData } from '@/ui/shows/TrackList';
 import Tag from '@/ui/base/Tag';
 
 const exists = (str = ''): boolean => {

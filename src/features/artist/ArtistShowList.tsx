@@ -1,11 +1,11 @@
 import DataTable from '@/ui/table/DataTable';
-import { showFilters, showSearchText, showSorts } from '@/ui/show-table/showColumns';
+import { showFilters, showSearchText, showSorts } from '@/ui/shows/columns';
 import type { Column } from '@/ui/table/types';
 import { tableHref, tableSearchParams, toTableState, type TableParams } from '@/ui/table/params';
-import { showStats } from '@/ui/show-table/showStats';
-import YearChart from '@/ui/detail/YearChart';
+import { showStats } from '@/ui/shows/stats';
+import YearChart from '@/ui/base/YearChart';
 import { queryTable, type SortDir, type TableSpec } from '@/ui/table/query';
-import type { ShowRow } from '@/ui/show-table/showRows';
+import type { ShowRow } from '@/ui/shows/rows';
 import { artistUrl } from '@/lib/urls';
 import { Link } from '@timber-js/app/client';
 import type { ReactNode } from 'react';

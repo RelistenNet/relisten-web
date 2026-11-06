@@ -1,9 +1,9 @@
 import { loadArtistShows } from './load';
 import { findArtistBySlug } from '@/data/artists';
-import ArtistShowList from '@/ui/show-table/ArtistShowList';
-import StatGrid, { type StatItem } from '@/ui/detail/StatGrid';
-import { showColumns } from '@/ui/show-table/showColumns';
-import { showStats } from '@/ui/show-table/showStats';
+import ArtistShowList from './ArtistShowList';
+import StatGrid, { type StatItem } from '@/ui/base/StatGrid';
+import { showColumns } from '@/ui/shows/columns';
+import { showStats } from '@/ui/shows/stats';
 import { artistUrl } from '@/lib/urls';
 import { numberFormat } from '@/lib/utils';
 import { deny } from '@timber-js/app/server';

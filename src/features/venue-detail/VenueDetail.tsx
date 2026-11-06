@@ -1,12 +1,12 @@
 import { loadScopedVenue } from './load';
 import DataTable from '@/ui/table/DataTable';
-import { showColumns, showFilters, showSearchText, showSorts } from '@/ui/show-table/showColumns';
-import StatGrid, { type StatItem } from '@/ui/detail/StatGrid';
-import YearChart from '@/ui/detail/YearChart';
+import { showColumns, showFilters, showSearchText, showSorts } from '@/ui/shows/columns';
+import StatGrid, { type StatItem } from '@/ui/base/StatGrid';
+import YearChart from '@/ui/base/YearChart';
 import { tableHref, tableSearchParams, toTableState, type TableParams } from '@/ui/table/params';
 import { queryTable, type TableSpec } from '@/ui/table/query';
-import type { ShowRow } from '@/ui/show-table/showRows';
-import { formatShowDate, showStats, timeAgo } from '@/ui/show-table/showStats';
+import type { ShowRow } from '@/ui/shows/rows';
+import { formatShowDate, showStats, timeAgo } from '@/ui/shows/stats';
 import { numberFormat } from '@/lib/utils';
 import { Link } from '@timber-js/app/client';
 import ArtistScopeSelect from './ArtistScopeSelect';

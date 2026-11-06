@@ -1,6 +1,6 @@
 import { loadArtists, loadShow } from '@/features/browse/load';
 import PlayerManager from '@/player/PlayerManager';
-import SongsColumn from '@/ui/show/SongsColumn';
+import TrackList from '@/ui/shows/TrackList';
 import { proxyStreamUrl } from '@/player/proxyStreamUrl';
 import { createShowDate } from '@/lib/utils';
 import { deny, getSegmentParams } from '@timber-js/app/server';
@@ -32,7 +32,7 @@ export default async function EmbedSongPage() {
   return (
     <div className="flex h-full">
       <div className="w-full shrink-0 overflow-y-auto border-r px-2">
-        <SongsColumn
+        <TrackList
           artistSlug={artistSlug}
           year={year}
           month={month}

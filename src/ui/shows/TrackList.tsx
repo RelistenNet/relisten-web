@@ -79,7 +79,7 @@ export const useSourceData = ({
   };
 };
 
-const SongsColumn = (props: Props) => {
+const TrackList = (props: Props) => {
   const [{ source: sourceId }] = sourceSearchParamsLoader.useQueryStates();
   const { gaplessTracksMetadata, isActiveSourcePlaying, activeSourceObj, activePlaybackTrackId } =
     useSourceData({
@@ -174,4 +174,4 @@ const SongsColumn = (props: Props) => {
   );
 };
 
-export default SongsColumn;
+export default TrackList;

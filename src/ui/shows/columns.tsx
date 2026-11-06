@@ -1,9 +1,9 @@
 import { Link } from '@timber-js/app/client';
-import type { ShowRow } from './showRows';
+import type { ShowRow } from './rows';
 import type { TableFilter, TableSpec } from '@/ui/table/query';
 import { numberFormat } from '@/lib/utils';
 import Tag from '@/ui/base/Tag';
-import { formatShowDate } from './showStats';
+import { formatShowDate } from './stats';
 import type { Column } from '@/ui/table/types';
 import { venueUrl } from '@/lib/urls';
 

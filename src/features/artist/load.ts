@@ -5,7 +5,7 @@ import { artistIdForSlug, getArtistDirectory, tours } from '@/data/artists';
 import { artistOnDate, artistShows, recentlyAdded } from '@/data/shows';
 import { tourDetail } from '@/data/tours';
 import type { ShowSummary } from '@/domain/types';
-import { showRows } from '@/ui/show-table/showRows';
+import { showRows } from '@/ui/shows/rows';
 
 // Data for the artist pages: cached domain data from src/data, turned into
 // table rows per request.

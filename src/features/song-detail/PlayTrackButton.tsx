@@ -3,7 +3,7 @@
 import { Pause, Play } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import player, { loadTracks } from '@/player/player';
-import type { PlayableTrack } from '@/ui/show-table/showRows';
+import type { PlayableTrack } from '@/ui/shows/rows';
 import { splitShowDate } from '@/lib/utils';
 import type { RootState } from '@/redux';
 import { store } from '@/redux';

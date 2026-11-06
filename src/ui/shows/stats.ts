@@ -1,5 +1,5 @@
 import { format, formatDistanceToNowStrict } from 'date-fns';
-import type { ShowRow } from './showRows';
+import type { ShowRow } from './rows';
 
 // Summary numbers for a detail page header, from its full (unfiltered) rows.
 

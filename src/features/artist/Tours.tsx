@@ -4,7 +4,7 @@ import DataTable from '@/ui/table/DataTable';
 import type { Column } from '@/ui/table/types';
 import { tableSearchParams, toTableState } from '@/ui/table/params';
 import { queryTable, type TableSpec } from '@/ui/table/query';
-import { formatShowDate } from '@/ui/show-table/showStats';
+import { formatShowDate } from '@/ui/shows/stats';
 import { artistToursUrl, artistUrl, tourUrl } from '@/lib/urls';
 import { numberFormat } from '@/lib/utils';
 import type { TourSummary } from '@/domain/types';

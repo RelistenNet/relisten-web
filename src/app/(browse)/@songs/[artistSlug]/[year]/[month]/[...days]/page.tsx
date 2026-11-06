@@ -1,5 +1,5 @@
 import { loadShow } from '@/features/browse/load';
-import SongsColumn from '@/ui/show/SongsColumn';
+import TrackList from '@/ui/shows/TrackList';
 import { createShowDate } from '@/lib/utils';
 import { getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
@@ -11,7 +11,5 @@ export default async function SongsDaySlot() {
 
   if (!show) return null;
 
-  return (
-    <SongsColumn artistSlug={artistSlug} year={year} month={month} day={days[0]} show={show} />
-  );
+  return <TrackList artistSlug={artistSlug} year={year} month={month} day={days[0]} show={show} />;
 }
