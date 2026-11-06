@@ -50,7 +50,7 @@ const TodayMetadata = async ({
       <div>
         {simplePluralize(
           'tape',
-          data?.reduce((memo, next) => memo + (next.source_count ?? 0), 0)
+          data?.reduce((memo, next) => memo + next.tapes, 0)
         )}
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { API_DOMAIN, SERVER_API_DOMAIN } from '../constants';
+import { API_DOMAIN, SERVER_API_DOMAIN } from '@/lib/constants';
 
 /**
  * Orval mutator: every generated v4 call goes through here. Paths come in

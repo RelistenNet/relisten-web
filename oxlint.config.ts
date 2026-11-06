@@ -22,6 +22,28 @@ export default defineConfig({
       },
     },
     {
+      // Layering: only the data layer talks to the API. Everything else goes
+      // through src/data (or the RelistenAPI facade) and uses src/domain types.
+      files: ['src/**/*.{ts,tsx}'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              {
+                group: ['@/api', '@/api/*'],
+                message: 'Only src/data imports the API client; use src/data and src/domain types.',
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      files: ['src/data/**', 'src/api/**'],
+      rules: { 'no-restricted-imports': 'off' },
+    },
+    {
       // takumi (ImageResponse) renders JSX with a `tw` prop for Tailwind classes.
       files: ['src/app/album-art/**/*.tsx', 'src/app/**/opengraph-image.tsx'],
       rules: { 'react/no-unknown-property': ['error', { ignore: ['tw'] }] },

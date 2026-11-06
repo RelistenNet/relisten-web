@@ -17,7 +17,7 @@
     "format:check": "oxfmt --check .",
     "prepare": "git config --local core.hooksPath .githooks || true",
     "gen:api": "orval",
-    "update:api": "curl -fsS https://api.relisten.net/api-docs/v4/swagger.json | node -e \"process.stdout.write(JSON.stringify(JSON.parse(require('fs').readFileSync(0,'utf8')),null,2)+'\\n')\" > src/lib/v4/swagger.json && orval"
+    "update:api": "curl -fsS https://api.relisten.net/api-docs/v4/swagger.json | node -e \"process.stdout.write(JSON.stringify(JSON.parse(require('fs').readFileSync(0,'utf8')),null,2)+'\\n')\" > src/api/swagger.json && orval"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

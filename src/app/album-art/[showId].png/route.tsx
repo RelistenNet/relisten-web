@@ -1,8 +1,8 @@
 /* oxlint-disable react/no-unknown-property */
 import 'server-only';
 
-import { getArtistDirectory } from '@/lib/v4/artistDirectory';
-import { resolveLegacyShow } from '@/lib/v4/legacy';
+import { getArtistDirectory } from '@/data/artists';
+import { resolveLegacyShow } from '@/data/legacy';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { ImageResponse } from 'takumi-js/response';
 import { defineSearchParams } from '@timber-js/app/search-params';

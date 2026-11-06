@@ -2,7 +2,7 @@ import { defineSearchParams } from '@timber-js/app/search-params';
 import { z } from 'zod/v4';
 import RelistenAPI from '@/lib/RelistenAPI';
 import { fromSourceParam, isLegacySourceParam } from '@/lib/sourceParam';
-import { resolveLegacySource } from '@/lib/v4/legacy';
+import { resolveLegacySource } from '@/data/legacy';
 
 // Restores the player after a reload: the browser saved the show's URL parts and
 // `?source=`, and gets back just the source to load. Server-side because v4

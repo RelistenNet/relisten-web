@@ -1,7 +1,7 @@
 import { deny, redirect, type MiddlewareContext } from '@timber-js/app/server';
 import { isLegacySourceParam, toSourceParam } from '@/lib/sourceParam';
-import { findArtistBySlug } from '@/lib/v4/artistDirectory';
-import { resolveLegacySource } from '@/lib/v4/legacy';
+import { findArtistBySlug } from '@/data/artists';
+import { resolveLegacySource } from '@/data/legacy';
 import {
   artistRecentlyAddedUrl,
   artistSongsUrl,

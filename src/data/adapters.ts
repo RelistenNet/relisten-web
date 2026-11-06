@@ -17,7 +17,7 @@ import type {
   VenueResource,
   YearResource,
   YearWithShowsResource,
-} from './generated/model';
+} from '@/api/generated/model';
 import type {
   Artist,
   ArtistShows,
@@ -85,14 +85,15 @@ export const IMPORTED_VENUE_PREFIX = 'imported_venue_';
 
 /**
  * The show's venue. Prefers the canonical venue (artist_venue); falls back to
- * the imported one. `slug` is the venue page's `?slug=` value (see venueParam).
+ * the imported one. `slug` is the venue page's slug (an imported venue's id when it has no canonical one).
  */
 export const showVenue = (s: Pick<ShowSummaryResource, 'artist_venue' | 'imported_venue'>) => {
   const normalized = s.artist_venue?.venue;
   const imported = s.imported_venue;
-  if (!normalized && !imported) return undefined;
+  const id = normalized?.id ?? imported?.id;
+  if (!id) return undefined;
   const venue: Venue = {
-    id: normalized?.id ?? imported!.id,
+    id,
     name: opt(normalized?.name ?? imported?.name),
     location: normalized ? venueLocation(normalized) : opt(imported?.location),
     slug: normalized?.slug ?? imported?.id,
@@ -136,19 +137,16 @@ export const toShow = (s: ShowSummaryResource): Show => ({
 export const toShows = (shows: ShowSummaryResource[] | null | undefined): Show[] =>
   (shows ?? []).map(toShow);
 
+// Only what the player and track lists read; md5s and set/artist ids aren't used.
 export const toTrack = (t: TrackResource): Track => ({
   id: t.id,
   source_id: t.source_id,
-  source_set_id: t.source_set_id,
-  artist_id: t.artist_id,
   track_position: t.track_position,
   duration: opt(t.duration),
   title: opt(t.title),
   slug: opt(t.slug),
   mp3_url: t.mp3_url,
-  mp3_md5: t.mp3_md5,
   flac_url: t.flac_url,
-  flac_md5: t.flac_md5,
 });
 
 const toSet = (s: SourceSetResource): Set => ({

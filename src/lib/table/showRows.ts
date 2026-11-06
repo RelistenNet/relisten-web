@@ -1,19 +1,14 @@
-import type { ShowSummaryResource } from '../v4/generated/model';
-import { showVenue } from '../v4/adapters';
-import type { ArtistDirectory } from '../v4/artistDirectory';
+import type { PlayableTrack, ShowSummary, SongDetail } from '@/domain/types';
+import type { Artist } from '@/types';
 import { splitShowDate } from '../utils';
 
-/** One file of a song performance, with what the player needs to play it. */
-export type PlayableTrack = {
-  id: string;
-  title: string;
-  slug: string;
-  mp3Url: string | null;
-  duration: number | null;
-  sourceId: string;
-};
+// Table rows for detail pages: view models built per request from cached
+// domain data (src/data) plus the artist directory. Cheap for a few thousand
+// rows, and it keeps per-row strings like links and artist names out of the cache.
 
-/** One show as a detail-page table row: flat, so sorting and search are cheap. */
+export type { PlayableTrack };
+
+/** One show (or, on song pages, one performance) as a table row. */
 export type ShowRow = {
   /** Unique per row: the show id, or show + track on song pages (a row per performance). */
   id: string;
@@ -36,49 +31,64 @@ export type ShowRow = {
   plays30d: number;
   /** When the show first appeared on Relisten (ISO). */
   addedAt: string;
-  /** When a tape of the show was last added or updated (ISO). */
-  updatedAt: string;
   /** The show page. */
   href: string;
-  /** Song pages only: this performance's file, playable in place. */
-  track?: PlayableTrack;
   /** Song pages only: this performance's length, in seconds. */
   songDuration?: number | null;
-  /**
-   * Song pages only: the length comes from files that also hold other songs
-   * (a segue like "Scarlet > Fire"), so it overstates the song itself.
-   */
+  /** Song pages only: the length is from files that also hold other songs (a segue). */
   songDurationApprox?: boolean;
   /** Song pages only: the matched file's full title ("Scarlet Begonias > Fire on the Mountain"). */
   trackTitle?: string;
+  /** Song pages only: this performance's file, playable in place. */
+  track?: PlayableTrack;
   /** Song pages only, when the song was played more than once in the show: which one. */
   performance?: { index: number; of: number };
 };
 
-export function toShowRow(show: ShowSummaryResource, directory: ArtistDirectory): ShowRow | null {
-  const artist = directory.byId.get(show.artist_id);
-  const date = show.display_date;
-  if (!artist?.slug || !date) return null;
-  const { year, month, day } = splitShowDate(date);
-  const venue = showVenue(show);
+/** Artists by id, from the artist directory. */
+export type ArtistsById = ReadonlyMap<string, Artist>;
+
+export function showRow(show: ShowSummary, artists: ArtistsById): ShowRow | null {
+  const artist = artists.get(show.artistId);
+  if (!artist?.slug) return null;
+  const { year, month, day } = splitShowDate(show.date);
   return {
     id: show.id,
     showId: show.id,
-    date,
+    date: show.date,
     year,
     artistName: artist.name ?? artist.slug,
     artistSlug: artist.slug,
-    venueName: venue?.name,
-    venueSlug: venue?.slug,
-    location: venue?.location,
-    tourName:
-      show.tour?.name && show.tour.name !== 'Not Part of a Tour' ? show.tour.name : undefined,
-    tapes: show.source_count,
-    sbd: show.has_soundboard_source,
-    rating: show.avg_rating > 0 ? show.avg_rating : null,
-    plays30d: show.popularity?.windows?.['30d']?.plays ?? 0,
-    addedAt: show.created_at,
-    updatedAt: show.most_recent_source_updated_at,
+    venueName: show.venue?.name,
+    venueSlug: show.venue?.slug,
+    location: show.venue?.location,
+    tourName: show.tourName,
+    tapes: show.tapes,
+    sbd: show.sbd,
+    rating: show.rating,
+    plays30d: show.plays30d,
+    addedAt: show.addedAt,
     href: `/${artist.slug}/${year}/${month}/${day}`,
   };
 }
+
+export const showRows = (shows: ShowSummary[], artists: ArtistsById): ShowRow[] =>
+  shows.flatMap((show) => showRow(show, artists) ?? []);
+
+/** A song's performances as rows: one per time played. */
+export const songRows = (song: SongDetail, artists: ArtistsById): ShowRow[] =>
+  song.performances.flatMap((p) => {
+    const row = showRow(p.show, artists);
+    if (!row) return [];
+    return [
+      {
+        ...row,
+        id: p.repeat ? `${row.showId}:${p.track?.id}` : row.showId,
+        track: p.track,
+        trackTitle: p.track?.title,
+        songDuration: p.duration,
+        songDurationApprox: p.durationApprox,
+        performance: p.repeat,
+      },
+    ];
+  });

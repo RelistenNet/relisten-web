@@ -1,10 +1,10 @@
 import 'server-only';
 
 import { cache as timberCache } from '@timber-js/app/cache';
-import { postApiV4CatalogResolve } from './generated/client';
-import type { CatalogReferenceKind, CatalogReferenceScheme } from './generated/model';
-import { unwrap } from './fetcher';
-import { LEGACY_SOURCE_INTEGER } from '../sourceParam';
+import { postApiV4CatalogResolve } from '@/api/generated/client';
+import type { CatalogReferenceKind, CatalogReferenceScheme } from '@/api/generated/model';
+import { unwrap } from '@/api/fetcher';
+import { LEGACY_SOURCE_INTEGER } from '@/lib/sourceParam';
 
 // Pre-v4 ids still live in shared links (`?source=2173898`), social cards
 // (`/album-art/<show uuid>.png`), and players' saved state. These map them to v4
