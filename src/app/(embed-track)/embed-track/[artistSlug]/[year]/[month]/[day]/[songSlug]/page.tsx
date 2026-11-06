@@ -1,7 +1,7 @@
 import { loadArtists, loadShow } from '@/features/browse/load';
-import PlayerManager from '@/components/PlayerManager';
-import EmbedTrackList from '@/components/EmbedTrackList';
-import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
+import PlayerManager from '@/player/PlayerManager';
+import EmbedTrackList from '@/features/embed/EmbedTrackList';
+import { proxyStreamUrl } from '@/player/proxyStreamUrl';
 import { createShowDate } from '@/lib/utils';
 import { deny, getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';

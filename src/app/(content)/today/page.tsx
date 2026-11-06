@@ -1,8 +1,8 @@
 import { loadArtists } from '@/features/browse/load';
 import { loadTodayShows, type TodayShow } from '@/features/today/load';
-import TodayDateNav from '@/components/TodayDateNav';
-import TodayIndex from '@/components/TodayIndex';
-import TodayTrack from '@/components/TodayTrack';
+import TodayDateNav from '@/ui/base/TodayDateNav';
+import TodayIndex from '@/features/today/TodayIndex';
+import TodayTrack from '@/features/today/TodayTrack';
 import { getCurrentMonthDay } from '@/lib/timezone';
 import slugify from 'slugify';
 import { searchParams } from './params';

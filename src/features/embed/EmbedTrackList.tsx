@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '@/redux';
 import type { Track } from '@/domain/types';
 import { durationToHHMMSS } from '@/lib/utils';
-import player from '@/lib/player';
+import player from '@/player/player';
 
 interface EmbedTrackListProps {
   tracks: Track[];

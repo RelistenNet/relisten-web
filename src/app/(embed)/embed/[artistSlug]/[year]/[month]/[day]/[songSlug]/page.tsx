@@ -1,7 +1,7 @@
 import { loadArtists, loadShow } from '@/features/browse/load';
-import PlayerManager from '@/components/PlayerManager';
+import PlayerManager from '@/player/PlayerManager';
 import SongsColumn from '@/ui/show/SongsColumn';
-import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
+import { proxyStreamUrl } from '@/player/proxyStreamUrl';
 import { createShowDate } from '@/lib/utils';
 import { deny, getSegmentParams } from '@timber-js/app/server';
 import { playImmediatelySearchParamsLoader } from '@/lib/searchParams/playImmediatelySearchParam';

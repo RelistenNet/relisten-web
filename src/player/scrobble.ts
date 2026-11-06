@@ -1,4 +1,4 @@
-import { API_DOMAIN } from './constants';
+import { API_DOMAIN } from '@/lib/constants';
 
 /** Records a play of a v4 track id (`track_…`). Fire and forget. */
 export function scrobblePlay(trackId: string): void {

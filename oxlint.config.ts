@@ -80,9 +80,30 @@ export default defineConfig({
                 message: 'Only src/data imports the API client; use src/data and src/domain types.',
               },
               {
-                group: ['@/features/**', '@/data/**'],
+                group: ['@/features/**', '@/data/**', '@/shell/**', '@/player/**'],
                 message:
-                  'src/ui is shared: it takes data as props and never imports features or src/data.',
+                  'src/ui is shared: it takes data as props and never imports features, src/data, the shell, or the player.',
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      // The player is a service features use; it never depends on a feature or the shell.
+      files: ['src/player/**'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              {
+                group: ['@/api', '@/api/**'],
+                message: 'Only src/data imports the API client; use src/data and src/domain types.',
+              },
+              {
+                group: ['@/features/**', '@/shell/**'],
+                message: 'The player is a service: it never imports features or the shell.',
               },
             ],
           },

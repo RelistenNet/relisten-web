@@ -1,5 +1,5 @@
 import { loadShow } from '@/features/browse/load';
-import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
+import { proxyStreamUrl } from '@/player/proxyStreamUrl';
 import { fromSourceParam } from '@/lib/sourceParam';
 import { createShowDate } from '@/lib/utils';
 import { getSegmentParams } from '@timber-js/app/server';

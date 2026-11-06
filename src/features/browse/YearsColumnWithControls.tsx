@@ -6,10 +6,10 @@ import { useSegmentParams } from '@timber-js/app/client';
 import { useFilterState } from '@/hooks/useFilterState';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import sortActiveBands from '@/lib/sortActiveBands';
-import Count from '@/components/Count';
-import ColumnWithToggleControls from '@/components/ColumnWithToggleControls';
-import PopularityBadge from '@/components/PopularityBadge';
-import Row, { unwrapSegment } from '@/components/Row';
+import Count from '@/ui/base/Count';
+import ColumnWithToggleControls from '@/ui/base/ColumnWithToggleControls';
+import PopularityBadge from '@/ui/base/PopularityBadge';
+import Row, { unwrapSegment } from '@/ui/base/Row';
 
 type YearsColumnWithControlsProps = {
   artistSlug?: string;

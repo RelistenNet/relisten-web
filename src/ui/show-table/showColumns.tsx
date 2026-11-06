@@ -2,7 +2,7 @@ import { Link } from '@timber-js/app/client';
 import type { ShowRow } from './showRows';
 import type { TableFilter, TableSpec } from '@/ui/table/query';
 import { numberFormat } from '@/lib/utils';
-import Tag from '@/components/Tag';
+import Tag from '@/ui/base/Tag';
 import { formatShowDate } from './showStats';
 import type { Column } from '@/ui/table/types';
 import { venueUrl } from '@/lib/urls';

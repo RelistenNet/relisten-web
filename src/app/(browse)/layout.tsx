@@ -1,6 +1,6 @@
 import BrowseContainer from '@/features/browse/BrowseContainer';
-import Flex from '@/components/Flex';
-import NavBar from '@/components/NavBar';
+import Flex from '@/ui/base/Flex';
+import NavBar from '@/shell/NavBar';
 import { ReactNode } from 'react';
 import { Toaster } from 'sonner';
 import MobileBrowseNav from '@/features/browse/MobileBrowseNav';

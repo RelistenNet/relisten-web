@@ -1,12 +1,12 @@
 import { loadArtists } from '@/features/browse/load';
 import { Link } from '@timber-js/app/client';
-import Flex from './Flex';
+import Flex from '@/ui/base/Flex';
 import Menu from './Menu';
-import Player from './Player';
-import * as Popover from '@/components/Popover';
+import Player from '@/player/PlayerBar';
+import * as Popover from '@/ui/base/Popover';
 import MainNavHeader from './MainNavHeader';
 import AndroidUpgradeNotification from './AndroidUpgradeNotification';
-import BlogNavLink from './blog/BlogNavLink';
+import BlogNavLink from '@/features/blog/BlogNavLink';
 // import GlobalSearch from './GlobalSearch';
 import { EllipsisIcon, MenuIcon } from 'lucide-react';
 import ArtistTabs from './ArtistTabs';

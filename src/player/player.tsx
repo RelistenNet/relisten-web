@@ -1,15 +1,15 @@
 import { Queue, type TrackInfo } from 'gapless';
 
-import { splitShowDate } from './utils';
+import { splitShowDate } from '@/lib/utils';
 
 import { scrobblePlay } from './scrobble';
 import { createListenTracker } from './listenTracker';
-import { updatePlayback, type GaplessMetadata } from '../redux/modules/playback';
+import { updatePlayback, type GaplessMetadata } from '@/redux/modules/playback';
 import { proxyStreamUrl } from './proxyStreamUrl';
-import { toSourceParam } from './sourceParam';
+import { toSourceParam } from '@/lib/sourceParam';
 import type { PlayableTrack, Source } from '@/domain/types';
 import { toast } from 'sonner';
-import type { RootState, AppDispatch } from '../redux';
+import type { RootState, AppDispatch } from '@/redux';
 import { replaceUrl } from '@timber-js/app/client';
 
 function detectMobileDevice(): boolean {

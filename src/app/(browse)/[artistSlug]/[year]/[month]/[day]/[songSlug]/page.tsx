@@ -1,7 +1,7 @@
 import { loadArtists, loadShow } from '@/features/browse/load';
 import { METADATA_BASE } from '@/lib/constants';
-import PlayerManager from '@/components/PlayerManager';
-import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
+import PlayerManager from '@/player/PlayerManager';
+import { proxyStreamUrl } from '@/player/proxyStreamUrl';
 import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { createShowDate } from '@/lib/utils';
 import { deny, getSegmentParams } from '@timber-js/app/server';

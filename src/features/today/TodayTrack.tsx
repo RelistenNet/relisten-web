@@ -1,7 +1,7 @@
 import { Link } from '@timber-js/app/client';
 import type { Artist, ShowSummary } from '@/domain/types';
-import { splitShowDate } from '../lib/utils';
-import Flex from './Flex';
+import { splitShowDate } from '@/lib/utils';
+import Flex from '@/ui/base/Flex';
 
 /** A show on the Today page, with its artist (undefined when the directory doesn't know it). */
 export type TodayShow = ShowSummary & { artist?: Pick<Artist, 'name' | 'slug'> };

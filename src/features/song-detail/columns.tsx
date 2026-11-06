@@ -1,4 +1,4 @@
-import Tooltip from '@/components/Tooltip';
+import Tooltip from '@/ui/base/Tooltip';
 import { durationToHHMMSS } from '@/lib/utils';
 import type { ShowRow } from '@/ui/show-table/showRows';
 import type { Column } from '@/ui/table/types';

@@ -4,7 +4,7 @@ import { simplePluralize } from '@/lib/utils';
 import { RawParams } from '@/types/params';
 import { format } from 'date-fns';
 import { Suspense } from 'react';
-import Row from '@/components/Row';
+import Row from '@/ui/base/Row';
 import { artistTodayUrl } from '@/lib/urls';
 
 const TodayInHistoryRow = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {

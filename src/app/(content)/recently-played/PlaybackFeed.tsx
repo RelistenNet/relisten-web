@@ -2,7 +2,7 @@
 
 import { Link } from '@timber-js/app/client';
 import { useEffect, useState } from 'react';
-import TimeAgo from '@/components/TimeAgo';
+import TimeAgo from '@/ui/base/TimeAgo';
 import {
   formatShowDate,
   mergePlays,

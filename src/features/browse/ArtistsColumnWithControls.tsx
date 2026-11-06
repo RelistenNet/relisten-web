@@ -6,15 +6,15 @@ import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import { useSegmentParams } from '@timber-js/app/client';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import { groupBy } from '@/lib/utils';
-import Count from '@/components/Count';
+import Count from '@/ui/base/Count';
 import type { ArtistListItem } from '@/lib/artistRows';
 import { useFilterState } from '@/hooks/useFilterState';
 import cn from '@/lib/cn';
-import ColumnWithToggleControls from '@/components/ColumnWithToggleControls';
-import PopularityBadge from '@/components/PopularityBadge';
+import ColumnWithToggleControls from '@/ui/base/ColumnWithToggleControls';
+import PopularityBadge from '@/ui/base/PopularityBadge';
 import { fuzzyMatch, type HighlightRanges } from '@nozbe/microfuzz';
-import Row, { unwrapSegment } from '@/components/Row';
-import RowHeader from '@/components/RowHeader';
+import Row, { unwrapSegment } from '@/ui/base/Row';
+import RowHeader from '@/ui/base/RowHeader';
 
 const byObject = {
   phish: 'Phish.in',

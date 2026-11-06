@@ -1,4 +1,4 @@
-import Row from './Row';
+import Row from '@/ui/base/Row';
 
 // TODO: replace this with shadcn/radix
 

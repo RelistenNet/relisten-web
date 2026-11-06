@@ -7,12 +7,12 @@ import { durationToHHMMSS } from '@/lib/utils';
 import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { toSourceParam } from '@/lib/sourceParam';
 import type { Source } from '@/domain/types';
-import Column from '@/components/Column';
-import Flex from '@/components/Flex';
-import Row from '@/components/Row';
-import RowHeader from '@/components/RowHeader';
+import Column from '@/ui/base/Column';
+import Flex from '@/ui/base/Flex';
+import Row from '@/ui/base/Row';
+import RowHeader from '@/ui/base/RowHeader';
 import { Props, useSourceData } from '@/ui/show/SongsColumn';
-import Tag from '@/components/Tag';
+import Tag from '@/ui/base/Tag';
 
 const exists = (str = ''): boolean => {
   return !!str && !/unknown/i.test(str);

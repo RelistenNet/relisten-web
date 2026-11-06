@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import 'server-only';
 
-import FootnotesFooter from '@/components/blog/FootnotesFooter';
+import FootnotesFooter from '@/features/blog/FootnotesFooter';
 import { getAuthor } from '@/lib/blog/authors';
 import getPosts, { getPost } from '@/lib/blog/getPosts';
 import { Link } from '@timber-js/app/client';

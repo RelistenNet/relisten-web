@@ -1,7 +1,7 @@
 'use client';
 
 import { Link } from '@timber-js/app/client';
-import Flex from './Flex';
+import Flex from '@/ui/base/Flex';
 import SecondaryNavBar from './SecondaryNavHeader';
 import { usePathname, useRouter } from '@timber-js/app/client';
 

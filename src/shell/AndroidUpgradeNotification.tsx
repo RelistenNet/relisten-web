@@ -1,7 +1,7 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
-import Flex from './Flex';
+import Flex from '@/ui/base/Flex';
 
 const DISMISSED_KEY = 'relistenAndroidNotificationDismissed';
 const listeners = new Set<() => void>();

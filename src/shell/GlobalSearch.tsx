@@ -10,8 +10,8 @@ import {
   CommandGroup,
   CommandItem,
   CommandSeparator,
-} from '@/components/ui/command';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+} from '@/ui/base/shadcn/command';
+import { Popover, PopoverTrigger, PopoverContent } from '@/ui/base/shadcn/popover';
 import { SearchIcon, MicIcon, MapPinIcon, RouteIcon } from 'lucide-react';
 import { EMPTY_SEARCH, type SearchResults } from '@/lib/search';
 import { songUrl, tourUrl, venueUrl } from '@/lib/urls';

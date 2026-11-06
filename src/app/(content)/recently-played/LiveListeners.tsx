@@ -9,7 +9,7 @@ import {
   type LiveSummary,
   type MonthDay,
 } from '@/lib/live';
-import Tag from '@/components/Tag';
+import Tag from '@/ui/base/Tag';
 import { usePollingState } from '@/lib/usePolling';
 import { simplePluralize, splitShowDate } from '@/lib/utils';
 

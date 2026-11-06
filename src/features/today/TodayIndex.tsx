@@ -4,7 +4,7 @@ import cn from '@/lib/cn';
 import { todayIndexSearchParams } from '@/lib/searchParams/todayIndexSearchParams';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
-import TodayDateNav from './TodayDateNav';
+import TodayDateNav from '@/ui/base/TodayDateNav';
 
 export type TodayIndexItem = {
   name: string;

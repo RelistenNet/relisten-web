@@ -1,7 +1,7 @@
-import EmbedHeader from '@/components/EmbedHeader';
-import Flex from '@/components/Flex';
-import Player from '@/components/Player';
-import TooltipThemeProvider from '@/components/TooltipThemeProvider';
+import EmbedHeader from '@/features/embed/EmbedHeader';
+import Flex from '@/ui/base/Flex';
+import Player from '@/player/PlayerBar';
+import TooltipThemeProvider from '@/ui/base/TooltipThemeProvider';
 import { ReactNode } from 'react';
 import { Toaster } from 'sonner';
 

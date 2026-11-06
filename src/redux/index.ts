@@ -1,6 +1,6 @@
 import reducers from './modules';
 import { configureStore } from '@reduxjs/toolkit';
-import { initGaplessPlayer } from '@/lib/player';
+import { initGaplessPlayer } from '@/player/player';
 
 declare global {
   interface Window {

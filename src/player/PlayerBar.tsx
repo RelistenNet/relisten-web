@@ -7,9 +7,9 @@ import { browser } from 'react-dom';
 import type { RootState } from '@/redux';
 import { FastForwardIcon, ListMusicIcon, PauseIcon, PlayIcon, RewindIcon } from 'lucide-react';
 import { useSelector } from 'react-redux';
-import player from '../lib/player';
-import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
-import Flex from './Flex';
+import player from './player';
+import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '@/lib/utils';
+import Flex from '@/ui/base/Flex';
 
 function PlayerInner() {
   use(browser());

@@ -2,7 +2,7 @@ import { loadOnDate } from './load';
 import { findArtistBySlug } from '@/data/artists';
 import ArtistShowList from '@/ui/show-table/ArtistShowList';
 import { showColumns } from '@/ui/show-table/showColumns';
-import TodayDateNav from '@/components/TodayDateNav';
+import TodayDateNav from '@/ui/base/TodayDateNav';
 import { getCurrentMonthDay } from '@/lib/timezone';
 import { artistTodayUrl } from '@/lib/urls';
 import { defineSearchParams } from '@timber-js/app/search-params';

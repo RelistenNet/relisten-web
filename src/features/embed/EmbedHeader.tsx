@@ -2,10 +2,10 @@
 
 import { ExternalLinkIcon } from 'lucide-react';
 import { useSelector } from 'react-redux';
-import player from '@/lib/player';
+import player from '@/player/player';
 import { splitShowDate } from '@/lib/utils';
 import type { RootState } from '@/redux';
-import Tooltip from '@/components/Tooltip';
+import Tooltip from '@/ui/base/Tooltip';
 import { formatTimeParam } from '@/lib/timeParam';
 
 export default function EmbedHeader({ compact = false }: { compact?: boolean }) {

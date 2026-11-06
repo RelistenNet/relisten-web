@@ -1,7 +1,7 @@
 'use client';
 
 import { Props, useSourceData } from '@/ui/show/SongsColumn';
-import player, { loadTracks } from '@/lib/player';
+import player, { loadTracks } from './player';
 import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { tSearchParamsLoader } from '@/lib/searchParams/tSearchParam';
 import { createShowDate } from '@/lib/utils';

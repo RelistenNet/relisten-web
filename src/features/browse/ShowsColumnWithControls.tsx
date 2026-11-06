@@ -8,13 +8,13 @@ import sortActiveBands from '@/lib/sortActiveBands';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '@/lib/utils';
 import { Link } from '@timber-js/app/client';
-import ColumnWithToggleControls from '@/components/ColumnWithToggleControls';
-import Count from '@/components/Count';
-import Flex from '@/components/Flex';
-import PopularityBadge from '@/components/PopularityBadge';
-import Row, { unwrapSegment } from '@/components/Row';
-import RowHeader from '@/components/RowHeader';
-import Tag from '@/components/Tag';
+import ColumnWithToggleControls from '@/ui/base/ColumnWithToggleControls';
+import Count from '@/ui/base/Count';
+import Flex from '@/ui/base/Flex';
+import PopularityBadge from '@/ui/base/PopularityBadge';
+import Row, { unwrapSegment } from '@/ui/base/Row';
+import RowHeader from '@/ui/base/RowHeader';
+import Tag from '@/ui/base/Tag';
 
 /** A year's show, cut to what this column reads: the list ships in the page's Flight payload. */
 export type BrowseShow = Pick<

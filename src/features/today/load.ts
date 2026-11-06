@@ -3,7 +3,7 @@ import 'server-only';
 import { cache } from 'react';
 import { getArtistDirectory } from '@/data/artists';
 import { onDate } from '@/data/shows';
-import type { TodayShow } from '@/components/TodayTrack';
+import type { TodayShow } from './TodayTrack';
 
 export type { TodayShow };
 
