@@ -1,6 +1,6 @@
 import type { PlayableTrack, ShowSummary, SongDetail } from '@/domain/types';
 import type { Artist } from '@/types';
-import { splitShowDate } from '../utils';
+import { splitShowDate } from '@/lib/utils';
 
 // Table rows for detail pages: view models built per request from cached
 // domain data (src/data) plus the artist directory. Cheap for a few thousand

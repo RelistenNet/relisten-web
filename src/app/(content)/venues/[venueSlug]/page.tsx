@@ -1,4 +1,4 @@
-import VenueDetail, { venueMetadata } from '@/components/detail/VenueDetail';
+import VenueDetail, { venueMetadata } from '@/features/venue-detail/VenueDetail';
 import { getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 

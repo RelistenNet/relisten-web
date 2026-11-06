@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from '@timber-js/app/client';
 import { useEffect, useRef, useState } from 'react';
-import { tableHref, type TableParams } from '@/lib/table/params';
+import { tableHref, type TableParams } from '@/ui/table/params';
 import type { ToolbarFilter } from './types';
 
 const SEARCH_DEBOUNCE_MS = 300;

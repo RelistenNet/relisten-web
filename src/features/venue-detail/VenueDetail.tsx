@@ -1,20 +1,14 @@
-import DataTable from '@/components/table/DataTable';
-import {
-  showColumns,
-  showFilters,
-  showSearchText,
-  showSorts,
-} from '@/components/table/showColumns';
-import StatGrid, { type StatItem } from '@/components/detail/StatGrid';
-import YearChart from '@/components/detail/YearChart';
-import RelistenAPI from '@/lib/RelistenAPI';
-import { tableHref, tableSearchParams, toTableState, type TableParams } from '@/lib/table/params';
-import { queryTable, type TableSpec } from '@/lib/table/query';
-import type { ShowRow } from '@/lib/table/showRows';
-import { formatShowDate, showStats, timeAgo } from '@/lib/table/showStats';
+import { loadScopedVenue } from './load';
+import DataTable from '@/ui/table/DataTable';
+import { showColumns, showFilters, showSearchText, showSorts } from '@/ui/show-table/showColumns';
+import StatGrid, { type StatItem } from '@/ui/detail/StatGrid';
+import YearChart from '@/ui/detail/YearChart';
+import { tableHref, tableSearchParams, toTableState, type TableParams } from '@/ui/table/params';
+import { queryTable, type TableSpec } from '@/ui/table/query';
+import type { ShowRow } from '@/ui/show-table/showRows';
+import { formatShowDate, showStats, timeAgo } from '@/ui/show-table/showStats';
 import { numberFormat } from '@/lib/utils';
 import { Link } from '@timber-js/app/client';
-import { deny } from '@timber-js/app/server';
 import ArtistScopeSelect from './ArtistScopeSelect';
 import { artistUrl, artistVenuesUrl, venueUrl } from '@/lib/urls';
 
@@ -33,14 +27,6 @@ const venueSpec: TableSpec<ShowRow> = {
   pageSize: 25,
 };
 
-async function loadVenue(venueSlug: string, artistSlug?: string) {
-  const venue = await RelistenAPI.fetchVenueDetail(venueSlug);
-  const rows = artistSlug ? venue.rows.filter((r) => r.artistSlug === artistSlug) : venue.rows;
-  // An artist who never played here (or doesn't exist) has no page here.
-  if (artistSlug && rows.length === 0) deny(404);
-  return { venue, rows, artistName: rows[0]?.artistName };
-}
-
 export default async function VenueDetail({
   venueSlug,
   artistSlug,
@@ -49,7 +35,7 @@ export default async function VenueDetail({
   artistSlug?: string;
 }) {
   const [{ venue, rows, artistName }, params] = await Promise.all([
-    loadVenue(venueSlug, artistSlug),
+    loadScopedVenue(venueSlug, artistSlug),
     searchParams.get(),
   ]);
 
@@ -166,7 +152,7 @@ function DateLink({ row }: { row: ShowRow }) {
 }
 
 export async function venueMetadata(venueSlug: string, artistSlug?: string) {
-  const loaded = await loadVenue(venueSlug, artistSlug).catch(() => null);
+  const loaded = await loadScopedVenue(venueSlug, artistSlug).catch(() => null);
   if (!loaded) return {};
   const { venue, artistName } = loaded;
   const place = [venue.name, venue.location].filter(Boolean).join(', ');

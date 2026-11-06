@@ -6,29 +6,17 @@ import * as artistData from '@/data/artists';
 import { livePlays, liveSummary } from '@/data/live';
 import { search } from '@/data/search';
 import * as shows from '@/data/shows';
-import { songDetail } from '@/data/songs';
-import { tourDetail } from '@/data/tours';
-import { venueDetail } from '@/data/venues';
 import type { ShowSummary } from '@/domain/types';
-import type { Artist, ArtistShows, Day, Song, Tape, Tour, Venue, Year } from '@/types';
-import { showRows, songRows, type ShowRow } from './table/showRows';
+import type { Artist, ArtistShows, Day, Tape, Year } from '@/types';
 
-// The app's entry point to catalog data: a thin facade over the data layer
-// (src/data), keeping the shapes existing pages read. Detail pages get table
-// rows here, built per request from cached domain data.
+// The browse view's, live pages', and search's entry point to catalog data: a
+// thin facade over the data layer (src/data), keeping the shapes those pages
+// read. Detail pages live in src/features and load from src/data directly.
+// This shrinks as the browse view moves to features too.
 
 const YEAR = /^\d{4}$/;
 
 const artistsById = async () => (await getArtistDirectory()).byId;
-
-export type VenueDetailRows = {
-  id: string;
-  name: string;
-  location?: string;
-  otherNames: string[];
-  artistCount: number;
-  rows: ShowRow[];
-};
 
 export class RelistenAPI {
   // Artists: from the cached directory.
@@ -92,75 +80,6 @@ export class RelistenAPI {
       source_count: s.tapes,
       has_soundboard_source: s.sbd,
     }));
-  });
-
-  // Per-artist lists
-  static fetchTours = cache(async (artistSlug?: string): Promise<Tour[]> =>
-    artistSlug ? artistData.tours.orDeny(await artistIdForSlug(artistSlug)) : []
-  );
-
-  static fetchSongs = cache(async (artistSlug?: string): Promise<Song[]> =>
-    artistSlug ? artistData.songs.orDeny(await artistIdForSlug(artistSlug)) : []
-  );
-
-  static fetchVenues = cache(async (artistSlug?: string): Promise<Venue[]> =>
-    artistSlug ? artistData.venues.orDeny(await artistIdForSlug(artistSlug)) : []
-  );
-
-  // Detail pages: rows built per request from cached domain data.
-  static fetchVenueDetail = cache(async (venue: string): Promise<VenueDetailRows> => {
-    const [detail, byId] = await Promise.all([venueDetail(venue), artistsById()]);
-    const rows = showRows(detail.shows, byId);
-    return {
-      id: detail.id,
-      name: detail.name,
-      location: detail.location,
-      otherNames: detail.otherNames,
-      artistCount: new Set(rows.map((r) => r.artistSlug)).size,
-      rows,
-    };
-  });
-
-  static fetchSongDetail = cache(async (artistSlug: string, songSlug: string) => {
-    const [song, byId] = await Promise.all([songDetail(artistSlug, songSlug), artistsById()]);
-    const rows = songRows(song, byId);
-    return {
-      ...song,
-      /** Times played: one row each. */
-      performances: rows.length,
-      /** Distinct shows; fewer than performances when a song repeats within a show. */
-      shows: new Set(rows.map((r) => r.showId)).size,
-      rows,
-    };
-  });
-
-  static fetchTourDetail = cache(async (artistSlug: string, tourSlug: string) => {
-    const [tour, byId] = await Promise.all([tourDetail(artistSlug, tourSlug), artistsById()]);
-    return { ...tour, rows: showRows(tour.shows, byId) };
-  });
-
-  static fetchAllShowRows = cache(async (artistSlug: string) => {
-    const [list, byId] = await Promise.all([
-      shows.artistShows.orDeny(await artistIdForSlug(artistSlug)),
-      artistsById(),
-    ]);
-    return showRows(list, byId);
-  });
-
-  static fetchRecentlyAddedRows = cache(async (artistSlug: string) => {
-    const [list, byId] = await Promise.all([
-      shows.recentlyAdded.orDeny(await artistIdForSlug(artistSlug)),
-      artistsById(),
-    ]);
-    return showRows(list, byId);
-  });
-
-  static fetchOnDateRows = cache(async (artistSlug: string, month: number, day: number) => {
-    const [list, byId] = await Promise.all([
-      RelistenAPI.fetchTodayInHistory(artistSlug, month, day),
-      artistsById(),
-    ]);
-    return showRows(list, byId);
   });
 
   static search = cache(search);

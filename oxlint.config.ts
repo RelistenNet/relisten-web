@@ -31,7 +31,7 @@ export default defineConfig({
           {
             patterns: [
               {
-                group: ['@/api', '@/api/*'],
+                group: ['@/api', '@/api/**'],
                 message: 'Only src/data imports the API client; use src/data and src/domain types.',
               },
             ],
@@ -41,6 +41,57 @@ export default defineConfig({
     },
     {
       files: ['src/data/**', 'src/api/**'],
+      rules: { 'no-restricted-imports': 'off' },
+    },
+    {
+      // A feature never imports another feature (it imports its own files
+      // relatively). Shared code moves down into src/ui or src/domain; a page
+      // showing two features composes them in its route.
+      files: ['src/features/**'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              {
+                group: ['@/api', '@/api/**'],
+                message: 'Only src/data imports the API client; use src/data and src/domain types.',
+              },
+              {
+                group: ['@/features/**', '../**'],
+                message:
+                  'Features do not import other features: move shared code to src/ui or src/domain, or compose in the route.',
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      // Shared UI stays independent of any feature or data source.
+      files: ['src/ui/**'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              {
+                group: ['@/api', '@/api/**'],
+                message: 'Only src/data imports the API client; use src/data and src/domain types.',
+              },
+              {
+                group: ['@/features/**', '@/data/**'],
+                message:
+                  'src/ui is shared: it takes data as props and never imports features or src/data.',
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      // Tests assemble fixtures across layers (API responses → domain → rows).
+      files: ['src/**/*.test.ts', 'src/**/__fixtures__/**'],
       rules: { 'no-restricted-imports': 'off' },
     },
     {

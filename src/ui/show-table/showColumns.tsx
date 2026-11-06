@@ -1,12 +1,10 @@
 import { Link } from '@timber-js/app/client';
-import type { ShowRow } from '@/lib/table/showRows';
-import type { TableFilter, TableSpec } from '@/lib/table/query';
-import { durationToHHMMSS, numberFormat } from '@/lib/utils';
+import type { ShowRow } from './showRows';
+import type { TableFilter, TableSpec } from '@/ui/table/query';
+import { numberFormat } from '@/lib/utils';
 import Tag from '@/components/Tag';
-import { formatShowDate } from '@/lib/table/showStats';
-import Tooltip from '@/components/Tooltip';
-import PlayTrackButton from './PlayTrackButton';
-import type { Column } from './types';
+import { formatShowDate } from './showStats';
+import type { Column } from '@/ui/table/types';
 import { venueUrl } from '@/lib/urls';
 
 // Columns, sorts, and filters shared by every table of shows (venue pages, song
@@ -27,31 +25,6 @@ export const showColumns = {
         {r.sbd && <Tag>SBD</Tag>}
       </span>
     ),
-  },
-  /** Song pages: plays this performance's track. */
-  play: {
-    id: 'play',
-    width: 'w-14',
-    label: 'Play',
-    srOnlyLabel: true,
-    // "3 of 6" under the button when the song was played more than once in the show.
-    cell: (r) =>
-      r.track ? (
-        <div className="flex flex-col items-center">
-          <PlayTrackButton
-            track={r.track}
-            artistSlug={r.artistSlug}
-            artistName={r.artistName}
-            date={r.date}
-            label={`Play ${r.date}${r.performance ? ` (${r.performance.index} of ${r.performance.of})` : ''}`}
-          />
-          {r.performance && (
-            <div className="text-xs text-text-muted">
-              {r.performance.index} of {r.performance.of}
-            </div>
-          )}
-        </div>
-      ) : null,
   },
   /** Date, venue, and location in one cell, sortable by date or venue. */
   show: {
@@ -97,31 +70,6 @@ export const showColumns = {
         {r.artistName}
       </Link>
     ),
-  },
-  length: {
-    id: 'length',
-    width: 'w-24',
-    label: 'Length',
-    sortable: true,
-    firstDir: 'desc',
-    align: 'right',
-    // "~": measured from files that also hold other songs (a segue), so it runs long.
-    // The tooltip names the whole file, so it's clear what the "~" length covers.
-    cell: (r) => {
-      if (!r.songDuration) return '—';
-      const length = durationToHHMMSS(Math.round(r.songDuration));
-      if (!r.songDurationApprox) return length;
-      return (
-        <Tooltip
-          content={r.trackTitle ?? 'Measured from a file that includes other songs'}
-          align="left"
-        >
-          <span tabIndex={0} className="cursor-help underline decoration-dotted underline-offset-4">
-            ~{length}
-          </span>
-        </Tooltip>
-      );
-    },
   },
   added: {
     id: 'added',

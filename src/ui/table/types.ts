@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { FacetOption } from '@/lib/table/query';
+import type { FacetOption } from '@/ui/table/query';
 
 export type Column<Row> = {
   id: string;

@@ -1,8 +1,8 @@
 import { Link } from '@timber-js/app/client';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import cn from '@/lib/cn';
-import { tableHref, type TableParams } from '@/lib/table/params';
-import { formatSort, type TableResult, type TableSpec } from '@/lib/table/query';
+import { tableHref, type TableParams } from '@/ui/table/params';
+import { formatSort, type TableResult, type TableSpec } from '@/ui/table/query';
 import TablePending from './TablePending';
 import TableToolbar from './TableToolbar';
 import type { Column, ToolbarFilter } from './types';
