@@ -1,11 +1,10 @@
 import { loadArtists, loadYears } from './load';
-import { RawParams } from '@/types/params';
 import { deny } from '@timber-js/app/server';
 import YearsColumnWithControls from './YearsColumnWithControls';
 import TodayInHistoryRow from './TodayInHistoryRow';
 import RowHeader from '@/ui/base/RowHeader';
 
-const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
+const YearsColumn = async ({ artistSlug }: { artistSlug: string }) => {
   const artists = await loadArtists().catch(() => {
     deny(404);
   });

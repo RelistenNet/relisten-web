@@ -1,13 +1,12 @@
 import { loadOnDate } from './load';
 import { getCurrentMonthDay } from '@/lib/timezone';
 import { simplePluralize } from '@/lib/utils';
-import { RawParams } from '@/types/params';
 import { format } from 'date-fns';
 import { Suspense } from 'react';
 import Row from '@/ui/base/Row';
 import { artistTodayUrl } from '@/lib/urls';
 
-const TodayInHistoryRow = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
+const TodayInHistoryRow = async ({ artistSlug }: { artistSlug?: string }) => {
   const currentMonthDay = await getCurrentMonthDay();
 
   return (

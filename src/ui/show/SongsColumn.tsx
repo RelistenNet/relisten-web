@@ -3,7 +3,6 @@
 import { Fragment } from 'react';
 import { durationToHHMMSS, removeLeadingZero } from '@/lib/utils';
 
-import { RawParams } from '@/types/params';
 import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { useSelector } from 'react-redux';
 import type { ShowDetail, Source, SourceSet } from '@/domain/types';
@@ -25,7 +24,12 @@ const getSetTime = (set: SourceSet): string =>
     }, 0)
   );
 
-export type Props = Pick<RawParams, 'artistSlug' | 'year' | 'month' | 'day'> & {
+export type Props = {
+  artistSlug?: string;
+  year?: string;
+  month?: string;
+  day?: string;
+} & {
   show?: Pick<ShowDetail, 'sources'>;
   routePrefix?: string;
 };
