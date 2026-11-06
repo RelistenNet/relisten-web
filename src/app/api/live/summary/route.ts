@@ -1,6 +1,6 @@
+import { liveSummary } from '@/data/live';
 import { defineSearchParams } from '@timber-js/app/search-params';
 import { z } from 'zod/v4';
-import RelistenAPI from '@/lib/RelistenAPI';
 import { slimSummary } from '@/lib/live';
 
 // The Live page polls this instead of the API directly: the raw summary carries
@@ -25,7 +25,7 @@ export async function GET() {
   }
 
   const today = { month, day };
-  const summary = await RelistenAPI.fetchLiveSummary(today);
+  const summary = await liveSummary(today);
   if (!summary) {
     // Not a cacheable empty 200: the page would replace its last good data with
     // "nobody listening". An error lets it keep that data and back off.

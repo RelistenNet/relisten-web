@@ -5,16 +5,16 @@ import { browser } from 'react-dom';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import { useSegmentParams } from '@timber-js/app/client';
 import { ArrowUp, ArrowDown } from 'lucide-react';
-import { groupBy } from '../lib/utils';
-import Count from './Count';
+import { groupBy } from '@/lib/utils';
+import Count from '@/components/Count';
 import type { ArtistListItem } from '@/lib/artistRows';
 import { useFilterState } from '@/hooks/useFilterState';
 import cn from '@/lib/cn';
-import ColumnWithToggleControls from './ColumnWithToggleControls';
-import PopularityBadge from './PopularityBadge';
+import ColumnWithToggleControls from '@/components/ColumnWithToggleControls';
+import PopularityBadge from '@/components/PopularityBadge';
 import { fuzzyMatch, type HighlightRanges } from '@nozbe/microfuzz';
-import Row, { unwrapSegment } from './Row';
-import RowHeader from './RowHeader';
+import Row, { unwrapSegment } from '@/components/Row';
+import RowHeader from '@/components/RowHeader';
 
 const byObject = {
   phish: 'Phish.in',
@@ -344,9 +344,7 @@ function ArtistList({
               </div>
             );
           })
-        : items
-            .slice(0, 30)
-            .map((item) => <Fragment key={item.key}>{renderItem(item)}</Fragment>)}
+        : items.slice(0, 30).map((item) => <Fragment key={item.key}>{renderItem(item)}</Fragment>)}
     </div>
   );
 }

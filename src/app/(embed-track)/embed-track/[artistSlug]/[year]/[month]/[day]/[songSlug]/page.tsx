@@ -1,7 +1,7 @@
+import { loadArtists, loadShow } from '@/features/browse/load';
 import PlayerManager from '@/components/PlayerManager';
 import EmbedTrackList from '@/components/EmbedTrackList';
 import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
-import RelistenAPI from '@/lib/RelistenAPI';
 import { createShowDate } from '@/lib/utils';
 import { deny, getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
@@ -14,8 +14,8 @@ export default async function SingleTrackEmbedPage() {
   if (!year || !month || !day || !songSlug) return deny(404);
 
   const [show, artists] = await Promise.all([
-    RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day)),
-    RelistenAPI.fetchAllArtists(),
+    loadShow(artistSlug, createShowDate(year, month, day)),
+    loadArtists(),
   ]);
 
   if (!show) deny(404);
@@ -55,7 +55,7 @@ export default async function SingleTrackEmbedPage() {
 
 export async function metadata() {
   const params = getSegmentParams(SEGMENT_PATH);
-  const artists = await RelistenAPI.fetchAllArtists();
+  const artists = await loadArtists();
   const artistSlug = params?.artistSlug as string | undefined;
   const year = params?.year as string | undefined;
   const month = params?.month as string | undefined;
@@ -64,9 +64,9 @@ export async function metadata() {
 
   const name = artists?.find((a) => a.slug === artistSlug)?.name;
 
-  if (!name || !year || !month || !day) return {};
+  if (!artistSlug || !name || !year || !month || !day) return {};
 
-  const show = await RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day));
+  const show = await loadShow(artistSlug, createShowDate(year, month, day));
 
   const songs = show?.sources
     ?.map((source) => source?.sets?.map((set) => set?.tracks).flat())

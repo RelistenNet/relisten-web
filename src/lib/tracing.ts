@@ -81,7 +81,7 @@ export function initTracing() {
     sampler: new NoiseFilterSampler(
       new ParentBasedSampler({ root: new TraceIdRatioBasedSampler(0.05) })
     ),
-    // Outgoing fetch() (ky -> RelistenAPI) runs on undici, which publishes to
+    // Outgoing fetch() (the v4 client in src/api) runs on undici, which publishes to
     // diagnostics_channel, so this works inside the bundled server. It also
     // injects traceparent so relistenapi spans join the same trace.
     instrumentations: [new UndiciInstrumentation({ requireParentforSpans: true })],

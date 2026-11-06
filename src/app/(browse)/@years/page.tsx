@@ -1,4 +1,4 @@
-import YearsColumn from '@/components/YearsColumn';
+import YearsColumn from '@/features/browse/YearsColumn';
 
 export default async function YearsArtistSlot() {
   const artistSlug = 'grateful-dead';

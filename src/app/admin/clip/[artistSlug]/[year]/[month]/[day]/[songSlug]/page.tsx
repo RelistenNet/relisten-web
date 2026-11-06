@@ -1,6 +1,6 @@
+import { loadShow } from '@/features/browse/load';
 import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
 import { fromSourceParam } from '@/lib/sourceParam';
-import RelistenAPI from '@/lib/RelistenAPI';
 import { createShowDate } from '@/lib/utils';
 import { getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
@@ -16,7 +16,7 @@ export default async function Page() {
 
   const { source } = sourceSearchParamsLoader.get();
 
-  const show = await RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day));
+  const show = await loadShow(artistSlug, createShowDate(year, month, day));
 
   const sources = show?.sources ?? [];
   const activeSource = sources.find((s) => s.id === fromSourceParam(source)) ?? sources[0];

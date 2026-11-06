@@ -1,4 +1,4 @@
-import RelistenAPI from '@/lib/RelistenAPI';
+import { loadArtists } from '@/features/browse/load';
 import { getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 
@@ -11,7 +11,7 @@ export const metadata = async () => {
   const artistSlug = params?.artistSlug as string | undefined;
   if (!artistSlug) return {};
 
-  const artists = await RelistenAPI.fetchAllArtists();
+  const artists = await loadArtists();
   const name = artists.find((a) => a.slug === artistSlug)?.name;
 
   if (!name) return {};

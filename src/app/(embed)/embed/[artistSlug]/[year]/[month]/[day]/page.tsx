@@ -1,4 +1,4 @@
-import RelistenAPI from '@/lib/RelistenAPI';
+import { loadShow } from '@/features/browse/load';
 import { deny, getSegmentParams, redirect } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 
@@ -14,7 +14,7 @@ export default async function EmbedShowPage() {
   }
 
   const displayDate = [year, month, day].join('-');
-  const show = await RelistenAPI.fetchShow(artistSlug, year, displayDate);
+  const show = await loadShow(artistSlug, displayDate);
 
   if (!show) {
     deny(404);

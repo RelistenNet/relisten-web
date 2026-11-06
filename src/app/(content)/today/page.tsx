@@ -1,7 +1,8 @@
+import { loadArtists } from '@/features/browse/load';
+import { loadTodayShows } from '@/features/today/load';
 import TodayDateNav from '@/components/TodayDateNav';
 import TodayIndex from '@/components/TodayIndex';
 import TodayTrack from '@/components/TodayTrack';
-import RelistenAPI from '@/lib/RelistenAPI';
 import { getCurrentMonthDay } from '@/lib/timezone';
 import { Day } from '@/types';
 import slugify from 'slugify';
@@ -14,8 +15,8 @@ export default async function Page() {
   const day = parsed.day ?? currentMonthDay.day;
 
   const [data, allArtists] = await Promise.all([
-    RelistenAPI.fetchTodayShows(month, day),
-    RelistenAPI.fetchAllArtists(),
+    loadTodayShows(Number(month), Number(day)),
+    loadArtists(),
   ]);
 
   const artistMeta = new Map(

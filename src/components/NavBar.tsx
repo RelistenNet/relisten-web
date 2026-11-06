@@ -1,9 +1,9 @@
+import { loadArtists } from '@/features/browse/load';
 import { Link } from '@timber-js/app/client';
 import Flex from './Flex';
 import Menu from './Menu';
 import Player from './Player';
 import * as Popover from '@/components/Popover';
-import RelistenAPI from '@/lib/RelistenAPI';
 import MainNavHeader from './MainNavHeader';
 import AndroidUpgradeNotification from './AndroidUpgradeNotification';
 import BlogNavLink from './blog/BlogNavLink';
@@ -27,7 +27,7 @@ export const getUserAgent = async () => {
 
 export default async function NavBar() {
   const [artists, userAgent, isInIframe] = await Promise.all([
-    RelistenAPI.fetchAllArtists(),
+    loadArtists(),
     getUserAgent(),
     getIsInIframe(),
   ]);

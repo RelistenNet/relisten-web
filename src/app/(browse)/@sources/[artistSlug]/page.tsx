@@ -1,5 +1,5 @@
-import TapesColumn from '@/components/TapesColumn';
-import RelistenAPI from '@/lib/RelistenAPI';
+import { loadRandomShow } from '@/features/browse/load';
+import TapesColumn from '@/features/browse/TapesColumn';
 import { splitShowDate } from '@/lib/utils';
 import { getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
@@ -8,7 +8,7 @@ export default async function SourcesDaySlot() {
   const { artistSlug } = getSegmentParams(SEGMENT_PATH);
 
   // Fetch show data
-  const show = await RelistenAPI.fetchRandomShow(artistSlug);
+  const show = await loadRandomShow(artistSlug);
 
   if (!show) return null;
 

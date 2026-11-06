@@ -1,5 +1,5 @@
+import { loadArtists, loadShow } from '@/features/browse/load';
 import { METADATA_BASE } from '@/lib/constants';
-import RelistenAPI from '@/lib/RelistenAPI';
 import { createShowDate } from '@/lib/utils';
 import { getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
@@ -14,12 +14,12 @@ export const metadata = async () => {
   const day = params?.day as string | undefined;
   if (!artistSlug || !year || !month || !day) return {};
 
-  const artists = await RelistenAPI.fetchAllArtists();
+  const artists = await loadArtists();
   const name = artists?.find((a) => a.slug === artistSlug)?.name;
 
   if (!name) return {};
 
-  const show = await RelistenAPI.fetchShow(artistSlug, year, [year, month, day].join('-'));
+  const show = await loadShow(artistSlug, [year, month, day].join('-'));
 
   return {
     title: [createShowDate(year, month, day), name].join(' | '),

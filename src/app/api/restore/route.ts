@@ -1,6 +1,6 @@
+import { loadArtist, loadShow } from '@/features/browse/load';
 import { defineSearchParams } from '@timber-js/app/search-params';
 import { z } from 'zod/v4';
-import RelistenAPI from '@/lib/RelistenAPI';
 import { fromSourceParam, isLegacySourceParam } from '@/lib/sourceParam';
 import { resolveLegacySource } from '@/data/legacy';
 
@@ -28,11 +28,11 @@ export async function GET() {
     return new Response('artist and date (YYYY-MM-DD) are required', { status: 400 });
   }
 
-  const artist = await RelistenAPI.findArtist(params.artist);
+  const artist = await loadArtist(params.artist);
   if (!artist) return new Response('Not Found', { status: 404 });
 
   const [show, legacySourceId] = await Promise.all([
-    RelistenAPI.fetchShow(params.artist, undefined, params.date).catch(() => null),
+    loadShow(params.artist, params.date).catch(() => null),
     isLegacySourceParam(params.source) ? resolveLegacySource(artist.id, params.source) : null,
   ]);
   if (!show?.sources?.length) return new Response('Not Found', { status: 404 });

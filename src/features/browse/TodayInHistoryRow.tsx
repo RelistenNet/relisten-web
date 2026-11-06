@@ -1,10 +1,10 @@
-import RelistenAPI from '@/lib/RelistenAPI';
+import { loadOnDate } from './load';
 import { getCurrentMonthDay } from '@/lib/timezone';
 import { simplePluralize } from '@/lib/utils';
 import { RawParams } from '@/types/params';
 import { format } from 'date-fns';
 import { Suspense } from 'react';
-import Row from './Row';
+import Row from '@/components/Row';
 import { artistTodayUrl } from '@/lib/urls';
 
 const TodayInHistoryRow = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
@@ -42,7 +42,7 @@ const TodayMetadata = async ({
 }) => {
   if (!artistSlug) return null;
 
-  const data = await RelistenAPI.fetchTodayInHistory(artistSlug, month, day);
+  const data = await loadOnDate(artistSlug, Number(month), Number(day));
 
   return (
     <div className="animate-fade-in">

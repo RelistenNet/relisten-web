@@ -1,17 +1,17 @@
-import RelistenAPI from '@/lib/RelistenAPI';
+import { loadArtists, loadYears } from './load';
 import { RawParams } from '@/types/params';
 import { deny } from '@timber-js/app/server';
 import YearsColumnWithControls from './YearsColumnWithControls';
 import TodayInHistoryRow from './TodayInHistoryRow';
-import RowHeader from './RowHeader';
+import RowHeader from '@/components/RowHeader';
 
 const YearsColumn = async ({ artistSlug }: Pick<RawParams, 'artistSlug'>) => {
-  const artists = await RelistenAPI.fetchAllArtists().catch(() => {
+  const artists = await loadArtists().catch(() => {
     deny(404);
   });
 
   const artist = artists?.find((artist) => artist.slug === artistSlug);
-  const artistYears = await RelistenAPI.fetchYears(artist?.id);
+  const artistYears = await (artist ? loadYears(artist.id) : []);
 
   // Trim year objects to only what the UI reads. Drops duration,
   // avg_duration, avg_rating, artist_id, created_at, updated_at.

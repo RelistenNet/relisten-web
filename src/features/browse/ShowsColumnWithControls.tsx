@@ -4,17 +4,17 @@ import { useFilterState } from '@/hooks/useFilterState';
 import type { SlimShow } from '@/lib/slimShow';
 import { useSegmentParams } from '@timber-js/app/client';
 import { Fragment, useMemo } from 'react';
-import sortActiveBands from '../lib/sortActiveBands';
+import sortActiveBands from '@/lib/sortActiveBands';
 import { ArrowUp, ArrowDown } from 'lucide-react';
-import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
+import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '@/lib/utils';
 import { Link } from '@timber-js/app/client';
-import ColumnWithToggleControls from './ColumnWithToggleControls';
-import Count from './Count';
-import Flex from './Flex';
-import PopularityBadge from './PopularityBadge';
-import Row, { unwrapSegment } from './Row';
-import RowHeader from './RowHeader';
-import Tag from './Tag';
+import ColumnWithToggleControls from '@/components/ColumnWithToggleControls';
+import Count from '@/components/Count';
+import Flex from '@/components/Flex';
+import PopularityBadge from '@/components/PopularityBadge';
+import Row, { unwrapSegment } from '@/components/Row';
+import RowHeader from '@/components/RowHeader';
+import Tag from '@/components/Tag';
 
 type ShowsColumnWithControlsProps = {
   artistSlug?: string;

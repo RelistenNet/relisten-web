@@ -1,16 +1,13 @@
-import RelistenAPI from '@/lib/RelistenAPI';
+import { loadArtist, loadYearShows } from './load';
 import { slimShows } from '@/lib/slimShow';
 import { RawParams } from '@/types/params';
 import { deny } from '@timber-js/app/server';
 import ShowsColumnWithControls from './ShowsColumnWithControls';
 
 const ShowsColumn = async ({ artistSlug, year }: Pick<RawParams, 'artistSlug' | 'year'>) => {
-  const artists = await RelistenAPI.fetchAllArtists().catch(() => {
-    deny(404);
-  });
-
-  const artist = artists?.find((a) => a.slug === artistSlug);
-  const artistShows = await RelistenAPI.fetchYearShows(artist?.id, year);
+  const artist = await loadArtist(artistSlug);
+  if (!artist) deny(404);
+  const artistShows = year ? await loadYearShows(artist.id, year) : undefined;
 
   return (
     <ShowsColumnWithControls

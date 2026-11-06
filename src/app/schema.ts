@@ -4,7 +4,7 @@ import { codec } from '@timber-js/app/codec';
 import type { Codec } from '@timber-js/app/codec';
 
 // Segment params flow into backend API URLs, so keep them to a strict
-// character set. Anything else is a 404 before it reaches RelistenAPI.
+// character set. Anything else is a 404 before it reaches the data layer (src/data).
 const SLUG = /^[a-z0-9-]+$/i;
 const MONTH_OR_DAY = /^[\dx]{1,2}$/i;
 

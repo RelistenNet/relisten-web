@@ -1,17 +1,17 @@
 'use client';
 
 import { Fragment } from 'react';
-import { durationToHHMMSS, removeLeadingZero } from '../lib/utils';
+import { durationToHHMMSS, removeLeadingZero } from '@/lib/utils';
 
 import { RawParams } from '@/types/params';
 import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { useSelector } from 'react-redux';
-import { GaplessMetadata, Set, Source, Tape } from '../types';
+import { GaplessMetadata, Set, Source, Tape } from '@/types';
 import type { RootState } from '@/redux';
-import Column from './Column';
-import Row from './Row';
-import RowHeader from './RowHeader';
-import Tag from './Tag';
+import Column from '@/components/Column';
+import Row from '@/components/Row';
+import RowHeader from '@/components/RowHeader';
+import Tag from '@/components/Tag';
 import { sortSources } from '@/lib/sortSources';
 import { fromSourceParam, toSourceParam } from '@/lib/sourceParam';
 import { useAdminTools } from '@/hooks/useAdminTools';

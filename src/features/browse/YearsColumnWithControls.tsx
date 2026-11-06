@@ -5,11 +5,11 @@ import { PropsWithChildren, useMemo } from 'react';
 import { useSegmentParams } from '@timber-js/app/client';
 import { useFilterState } from '@/hooks/useFilterState';
 import { ArrowUp, ArrowDown } from 'lucide-react';
-import sortActiveBands from '../lib/sortActiveBands';
-import Count from './Count';
-import ColumnWithToggleControls from './ColumnWithToggleControls';
-import PopularityBadge from './PopularityBadge';
-import Row, { unwrapSegment } from './Row';
+import sortActiveBands from '@/lib/sortActiveBands';
+import Count from '@/components/Count';
+import ColumnWithToggleControls from '@/components/ColumnWithToggleControls';
+import PopularityBadge from '@/components/PopularityBadge';
+import Row, { unwrapSegment } from '@/components/Row';
 
 type YearsColumnWithControlsProps = {
   artistSlug?: string;

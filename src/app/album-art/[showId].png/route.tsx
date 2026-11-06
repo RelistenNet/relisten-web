@@ -1,9 +1,9 @@
+import { showById } from '@/data/shows';
 /* oxlint-disable react/no-unknown-property */
 import 'server-only';
 
 import { getArtistDirectory } from '@/data/artists';
 import { resolveLegacyShow } from '@/data/legacy';
-import RelistenAPI from '@/lib/RelistenAPI';
 import { ImageResponse } from 'takumi-js/response';
 import { defineSearchParams } from '@timber-js/app/search-params';
 import { z } from 'zod/v4';
@@ -61,7 +61,7 @@ export async function GET() {
 
   const [directory, show] = await Promise.all([
     getArtistDirectory(),
-    RelistenAPI.fetchShowById(showId).catch(() => null),
+    showById.orDeny(showId).catch(() => null),
   ]);
 
   if (!show || !show.sources?.length) return new Response('Not Found', { status: 404 });

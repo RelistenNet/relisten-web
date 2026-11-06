@@ -1,4 +1,4 @@
-import ShowsColumn from '@/components/ShowsColumn';
+import ShowsColumn from '@/features/browse/ShowsColumn';
 import { getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 

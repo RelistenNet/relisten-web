@@ -1,4 +1,4 @@
-import YearsColumn from '@/components/YearsColumn';
+import YearsColumn from '@/features/browse/YearsColumn';
 import { getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 

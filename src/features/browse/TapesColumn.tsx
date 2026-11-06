@@ -2,17 +2,17 @@
 
 import React from 'react';
 
-import { durationToHHMMSS } from '../lib/utils';
+import { durationToHHMMSS } from '@/lib/utils';
 
 import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { toSourceParam } from '@/lib/sourceParam';
-import { Source } from '../types';
-import Column from './Column';
-import Flex from './Flex';
-import Row from './Row';
-import RowHeader from './RowHeader';
-import { Props, useSourceData } from './SongsColumn';
-import Tag from './Tag';
+import { Source } from '@/types';
+import Column from '@/components/Column';
+import Flex from '@/components/Flex';
+import Row from '@/components/Row';
+import RowHeader from '@/components/RowHeader';
+import { Props, useSourceData } from '@/ui/show/SongsColumn';
+import Tag from '@/components/Tag';
 
 const exists = (str = ''): boolean => {
   return !!str && !/unknown/i.test(str);

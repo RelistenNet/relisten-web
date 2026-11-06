@@ -1,10 +1,10 @@
-import SongsColumn from '@/components/SongsColumn';
+import { loadRandomShow } from '@/features/browse/load';
+import SongsColumn from '@/ui/show/SongsColumn';
 import { DEFAULT_ARTIST_SLUG } from '@/lib/defaultArtist';
-import RelistenAPI from '@/lib/RelistenAPI';
 import { splitShowDate } from '@/lib/utils';
 
 export default async function SongsDaySlot() {
-  const show = await RelistenAPI.fetchRandomShow(DEFAULT_ARTIST_SLUG);
+  const show = await loadRandomShow(DEFAULT_ARTIST_SLUG);
 
   if (!show) return null;
 
