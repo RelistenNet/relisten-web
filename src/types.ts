@@ -119,8 +119,6 @@ export type Features = {
 
 export type Track = {
   id: string;
-  /** v4 songs this track was matched to (more than one for a segue/medley track). */
-  song_ids?: string[];
   source_id?: string;
   source_set_id?: string;
   artist_id?: string;

@@ -1,38 +1,5 @@
-import SongsColumn from '@/components/SongsColumn';
-import RelistenAPI from '@/lib/RelistenAPI';
-import { isQuickHitSegment } from '@/lib/quickHitSegments';
-import { splitShowDate } from '@/lib/utils';
-import { getSegmentParams } from '@timber-js/app/server';
-import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
-import { SEGMENT_PATH } from './$segment';
-
-export default async function SongsYearSlot() {
-  const { artistSlug, year } = getSegmentParams(SEGMENT_PATH);
-
-  if (!isQuickHitSegment(year)) return null;
-
-  const { date, slug } = await slugSearchParams.get();
-  if (!date) return null;
-
-  const { year: y, month: m, day: d } = splitShowDate(date);
-  if (!y || !m || !d) return null;
-
-  const [show, song] = await Promise.all([
-    RelistenAPI.fetchShow(artistSlug, y, date),
-    year === 'songs' ? RelistenAPI.findSong(artistSlug, slug) : undefined,
-  ]);
-  if (!show) return null;
-
-  return (
-    <SongsColumn
-      artistSlug={artistSlug}
-      year={y}
-      month={m}
-      day={d}
-      show={show}
-      quickHitSegment={year}
-      quickHitSlug={slug}
-      songId={song?.id}
-    />
-  );
+// A year is selected but no show yet: nothing to show in this column. The page
+// exists so /{artist}/{year} matches this slot.
+export default function EmptyYearSlot() {
+  return null;
 }

@@ -1,0 +1,104 @@
+import DataTable from '@/components/table/DataTable';
+import type { Column } from '@/components/table/types';
+import RelistenAPI from '@/lib/RelistenAPI';
+import { tableSearchParams, toTableState } from '@/lib/table/params';
+import { queryTable, type TableSpec } from '@/lib/table/query';
+import { formatShowDate } from '@/lib/table/showStats';
+import { artistToursUrl, artistUrl, tourUrl } from '@/lib/urls';
+import { numberFormat } from '@/lib/utils';
+import type { Tour } from '@/types';
+import { Link } from '@timber-js/app/client';
+import { deny, getSegmentParams } from '@timber-js/app/server';
+import { SEGMENT_PATH } from './$segment';
+
+// Every tour an artist has played, from the cached tour list.
+
+const FILTER_IDS = [] as const;
+const searchParams = tableSearchParams(FILTER_IDS);
+
+const spec: TableSpec<Tour> = {
+  sorts: {
+    name: (t) => t.name,
+    start: (t) => t.start_date,
+    shows: (t) => t.shows_on_tour,
+  },
+  defaultSort: { id: 'start', dir: 'desc' },
+  searchText: (t) => t.name ?? '',
+  filters: [],
+  pageSize: 25,
+};
+
+const day = (iso?: string) => (iso ? formatShowDate(iso.slice(0, 10)) : '—');
+
+export default async function ArtistToursPage() {
+  const { artistSlug } = getSegmentParams(SEGMENT_PATH);
+  const [artist, tours, params] = await Promise.all([
+    RelistenAPI.findArtist(artistSlug),
+    RelistenAPI.fetchTours(artistSlug),
+    searchParams.get(),
+  ]);
+  if (!artist) deny(404);
+
+  const rows = tours.filter((t) => t.slug);
+  const result = queryTable(rows, spec, toTableState(params, FILTER_IDS));
+  const columns: Column<Tour>[] = [
+    {
+      id: 'name',
+      label: 'Tour',
+      sortable: true,
+      cell: (t) => (
+        <Link href={tourUrl(artistSlug, t.slug ?? '')} className="text-accent hover:underline">
+          {t.name}
+        </Link>
+      ),
+    },
+    {
+      id: 'start',
+      label: 'Dates',
+      sortable: true,
+      firstDir: 'desc',
+      width: 'w-64',
+      hideBelow: 'sm',
+      cell: (t) => `${day(t.start_date)} – ${day(t.end_date)}`,
+    },
+    {
+      id: 'shows',
+      label: 'Shows',
+      sortable: true,
+      firstDir: 'desc',
+      align: 'right',
+      width: 'w-24',
+      cell: (t) => numberFormat.format(t.shows_on_tour ?? 0),
+    },
+  ];
+
+  return (
+    <div className="detail-page flex flex-col gap-8">
+      <header className="flex flex-col gap-1">
+        <nav aria-label="Breadcrumb" className="text-base text-text-muted sm:text-sm">
+          <Link href={artistUrl(artistSlug)} className="hover:text-text-primary">
+            {artist.name}
+          </Link>
+        </nav>
+        <h1 className="text-3xl font-semibold tracking-tight text-balance text-text-primary">
+          Tours
+        </h1>
+      </header>
+      <DataTable
+        pathname={artistToursUrl(artistSlug)}
+        params={params}
+        spec={spec}
+        result={result}
+        columns={columns}
+        rowKey={(t) => t.id}
+        noun="tour"
+        searchPlaceholder="Search tours"
+      />
+    </div>
+  );
+}
+
+export const metadata = async () => {
+  const artist = await RelistenAPI.findArtist(getSegmentParams(SEGMENT_PATH).artistSlug);
+  return artist ? { title: `Tours | ${artist.name}` } : {};
+};

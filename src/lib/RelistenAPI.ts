@@ -9,16 +9,15 @@ import { toSourceParam } from './sourceParam';
 import { toShowRow, type ShowRow } from './table/showRows';
 import { EMPTY_SEARCH, type SearchArtist, type SearchItem, type SearchResults } from './search';
 import {
+  getApiV4ArtistsArtistIdShows,
   getApiV4ArtistsArtistIdShowsByDateShowDate,
   getApiV4ArtistsArtistIdShowsOnDate,
   getApiV4ArtistsArtistIdShowsRandom,
   getApiV4ArtistsArtistIdShowsRecentlyAdded,
-  getApiV4ArtistsArtistIdShowsTop,
   getApiV4ArtistsArtistIdSongs,
   getApiV4ArtistsArtistIdSongsBySlugSlug,
   getApiV4ArtistsArtistIdTours,
   getApiV4ArtistsArtistIdVenues,
-  getApiV4ArtistsArtistIdVenuesBySlugSlug,
   getApiV4ArtistsArtistIdYears,
   getApiV4ArtistsArtistIdYearsByNumberYear,
   getApiV4LiveHistory,
@@ -29,7 +28,6 @@ import {
   getApiV4Search,
   getApiV4VenuesBySlugSlug,
   getApiV4ShowsShowId,
-  getApiV4SongsSongId,
   getApiV4ToursTourId,
 } from './v4/generated/client';
 import type { ShowSummaryResource } from './v4/generated/model';
@@ -45,20 +43,7 @@ import {
   venueLocation,
 } from './v4/adapters';
 import { findArtistBySlug, getArtistDirectory, type ArtistDirectory } from './v4/artistDirectory';
-import type {
-  Artist,
-  ArtistShows,
-  Day,
-  Show,
-  Song,
-  SongWithShows,
-  Tape,
-  Tour,
-  TourWithShows,
-  Venue,
-  VenueWithShows,
-  Year,
-} from '@/types';
+import type { Artist, ArtistShows, Day, Show, Song, Tape, Tour, Venue, Year } from '@/types';
 
 /**
  * Cross-request cache for a v4 read: 5 minutes, served stale while it refreshes.
@@ -143,14 +128,6 @@ const fetchOnDateV4 = cachedV4('on-date', async (month: number, day: number) =>
   unwrap(getApiV4ShowsOnDate({ month, day }))
 );
 
-const fetchTopShowsV4 = cachedV4('top', async (artistId: string) =>
-  toShows(await unwrap(getApiV4ArtistsArtistIdShowsTop(artistId)))
-);
-
-const fetchRecentlyAddedV4 = cachedV4('recently-added', async (artistId: string) =>
-  toShows(await unwrap(getApiV4ArtistsArtistIdShowsRecentlyAdded(artistId)))
-);
-
 const fetchToursV4 = cachedV4('tours', async (artistId: string) =>
   (await unwrap(getApiV4ArtistsArtistIdTours(artistId))).map(toTour)
 );
@@ -182,25 +159,6 @@ const fetchSongsV4 = cachedV4('songs', async (artistId: string): Promise<Song[]>
     }
     return [];
   });
-});
-
-const fetchSongShowsV4 = cachedV4('song', async (songId: string): Promise<SongWithShows> => {
-  if (songId.startsWith('imported_song_')) {
-    const song = await unwrap(getApiV4ImportedSongsImportedSongId(songId));
-    return {
-      id: song.id,
-      name: song.name ?? undefined,
-      slug: song.slug ?? undefined,
-      shows: toShows(song.shows),
-    };
-  }
-  const song = await unwrap(getApiV4SongsSongId(songId));
-  return {
-    id: song.id,
-    name: song.name ?? undefined,
-    slug: song.slug ?? undefined,
-    shows: toShows((song.shows ?? []).map((s) => s.show)),
-  };
 });
 
 const fetchVenuesV4 = cachedV4('venues', async (artistId: string): Promise<Venue[]> => {
@@ -236,37 +194,6 @@ const fetchVenuesV4 = cachedV4('venues', async (artistId: string): Promise<Venue
     }
     return [];
   });
-});
-
-/** `venue` is a canonical venue slug, or an imported venue's id (see IMPORTED_VENUE_PREFIX). */
-const fetchVenueShowsV4 = cachedV4(
-  'venue',
-  async (artistId: string, venue: string): Promise<VenueWithShows> => {
-    if (venue.startsWith(IMPORTED_VENUE_PREFIX)) {
-      const iv = await unwrap(getApiV4ImportedVenuesImportedVenueId(pathParam(venue)));
-      if (iv.artist_id !== artistId) throw new RelistenApiError(404);
-      return {
-        id: iv.id,
-        name: iv.name ?? undefined,
-        slug: iv.id,
-        location: iv.location ?? undefined,
-        shows: toShows(iv.shows),
-      };
-    }
-    const av = await unwrap(getApiV4ArtistsArtistIdVenuesBySlugSlug(artistId, pathParam(venue)));
-    return {
-      id: av.id,
-      name: av.venue.name ?? undefined,
-      slug: av.venue.slug ?? undefined,
-      location: venueLocation(av.venue),
-      shows: toShows(av.shows),
-    };
-  }
-);
-
-const fetchTourShowsV4 = cachedV4('tour', async (tourId: string) => {
-  const tour = await unwrap(getApiV4ToursTourId(tourId));
-  return { ...toTour(tour), shows: toShows(tour.shows) };
 });
 
 // ---------------------------------------------------------------------------
@@ -329,6 +256,61 @@ const fetchVenueDetailV4 = cachedV4('venue-detail', async (venue: string): Promi
     ].filter((n) => n && n !== v.name),
     artistCount: new Set(rows.map((r) => r.artistSlug)).size,
     rows,
+  };
+});
+
+// ---------------------------------------------------------------------------
+// Artist show lists as table rows (top, recently added, on a date, a tour).
+// ---------------------------------------------------------------------------
+
+const RECENTLY_ADDED_LIMIT = 200;
+
+const rowsFor = async (shows: Promise<ShowSummaryResource[]>) => {
+  const [list, directory] = await Promise.all([shows, getArtistDirectory()]);
+  return showRows(list, directory);
+};
+
+/** Every show an artist played: large (2,000+ for the Grateful Dead), so tables page it. */
+const fetchAllShowRowsV4 = cachedV4('all-show-rows', async (artistId: string) =>
+  rowsFor(unwrap(getApiV4ArtistsArtistIdShows(artistId)))
+);
+
+const fetchRecentlyAddedRowsV4 = cachedV4('recently-added-rows', async (artistId: string) =>
+  rowsFor(
+    unwrap(
+      getApiV4ArtistsArtistIdShowsRecentlyAdded(artistId, {
+        limit: RECENTLY_ADDED_LIMIT,
+        sort_by: 'created_at',
+      })
+    )
+  )
+);
+
+const fetchOnDateRowsV4 = cachedV4(
+  'on-date-rows',
+  async (artistId: string, month: number, day: number) =>
+    rowsFor(unwrap(getApiV4ArtistsArtistIdShowsOnDate(artistId, { month, day })))
+);
+
+export type TourDetail = {
+  id: string;
+  name: string;
+  startDate?: string;
+  endDate?: string;
+  rows: ShowRow[];
+};
+
+const fetchTourDetailV4 = cachedV4('tour-detail', async (tourId: string): Promise<TourDetail> => {
+  const [tour, directory] = await Promise.all([
+    unwrap(getApiV4ToursTourId(tourId)),
+    getArtistDirectory(),
+  ]);
+  return {
+    id: tour.id,
+    name: tour.name ?? 'Unknown tour',
+    startDate: tour.start_date?.slice(0, 10),
+    endDate: tour.end_date?.slice(0, 10),
+    rows: showRows(tour.shows, directory),
   };
 });
 
@@ -620,32 +602,11 @@ export class RelistenAPI {
     }
   );
 
-  // Top Shows (sorted by rating)
-  static fetchTopShows = cache(async (artistSlug?: string): Promise<Show[]> => {
-    if (!artistSlug) return [];
-    return orDeny(fetchTopShowsV4(await artistIdForSlug(artistSlug)));
-  });
-
-  static fetchRecentlyAdded = cache(async (artistSlug?: string): Promise<Show[]> => {
-    if (!artistSlug) return [];
-    return orDeny(fetchRecentlyAddedV4(await artistIdForSlug(artistSlug)));
-  });
-
   // Tours (v4)
   static fetchTours = cache(async (artistSlug?: string): Promise<Tour[]> => {
     if (!artistSlug) return [];
     return orDeny(fetchToursV4(await artistIdForSlug(artistSlug)));
   });
-
-  /** Tour slugs are unchanged in v4; the tour list (cached) maps slug → id. */
-  static fetchTourShows = cache(
-    async (artistSlug: string, tourSlug: string): Promise<TourWithShows> => {
-      const tours = await RelistenAPI.fetchTours(artistSlug);
-      const tour = tours.find((t) => t.slug === tourSlug);
-      if (!tour) deny(404);
-      return orDeny(fetchTourShowsV4(tour.id));
-    }
-  );
 
   // Songs (v4). Slugs are v4's; pre-v4 slugs for merged/renamed songs 404.
   static fetchSongs = cache(async (artistSlug?: string): Promise<Song[]> => {
@@ -653,34 +614,11 @@ export class RelistenAPI {
     return orDeny(fetchSongsV4(await artistIdForSlug(artistSlug)));
   });
 
-  /** The song for a slug, from the (cached) song list; undefined if unknown. */
-  static findSong = cache(async (artistSlug: string, songSlug: string | undefined) => {
-    if (!songSlug) return undefined;
-    const songs = await RelistenAPI.fetchSongs(artistSlug);
-    return songs.find((s) => s.slug === songSlug);
-  });
-
-  /** The song list (cached, and already loaded for the songs column) maps slug → id. */
-  static fetchSongShows = cache(
-    async (artistSlug: string, songSlug: string): Promise<SongWithShows> => {
-      const songs = await RelistenAPI.fetchSongs(artistSlug);
-      const song = songs.find((s) => s.slug === songSlug);
-      if (!song) deny(404);
-      return orDeny(fetchSongShowsV4(song.id));
-    }
-  );
-
   // Venues
   static fetchVenues = cache(async (artistSlug?: string): Promise<Venue[]> => {
     if (!artistSlug) return [];
     return orDeny(fetchVenuesV4(await artistIdForSlug(artistSlug)));
   });
-
-  static fetchVenueShows = cache(
-    async (artistSlug: string, venue: string): Promise<VenueWithShows> => {
-      return orDeny(fetchVenueShowsV4(await artistIdForSlug(artistSlug), venue));
-    }
-  );
 
   // Detail pages
   static fetchVenueDetail = cache(async (venue: string): Promise<VenueDetail> => {
@@ -711,6 +649,27 @@ export class RelistenAPI {
       return orDeny(importedSongDetail(song.id));
     }
   );
+
+  // Artist show lists (detail pages)
+  static fetchAllShowRows = cache(async (artistSlug: string) =>
+    orDeny(fetchAllShowRowsV4(await artistIdForSlug(artistSlug)))
+  );
+
+  static fetchRecentlyAddedRows = cache(async (artistSlug: string) =>
+    orDeny(fetchRecentlyAddedRowsV4(await artistIdForSlug(artistSlug)))
+  );
+
+  static fetchOnDateRows = cache(async (artistSlug: string, month: number, day: number) =>
+    orDeny(fetchOnDateRowsV4(await artistIdForSlug(artistSlug), month, day))
+  );
+
+  /** Tour slugs are stable in v4; the cached tour list maps slug → id. */
+  static fetchTourDetail = cache(async (artistSlug: string, tourSlug: string) => {
+    const tours = await RelistenAPI.fetchTours(artistSlug);
+    const tour = tours.find((t) => t.slug === tourSlug);
+    if (!tour) deny(404);
+    return orDeny(fetchTourDetailV4(tour.id));
+  });
 
   /** Empty for queries under two characters, and when the API is unavailable. */
   static search = cache(async (q: string): Promise<SearchResults> => {

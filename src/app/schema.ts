@@ -25,10 +25,11 @@ export default defineSchema({
     '[day]': z.string().regex(MONTH_OR_DAY),
     '[month]': z.string().regex(MONTH_OR_DAY),
     '[songSlug]': z.string().regex(SLUG),
+    '[tourSlug]': z.string().regex(SLUG),
     // Canonical venue slugs, or an imported venue's id (imported_venue_…).
     '[venueSlug]': z.string().regex(/^[a-z0-9_-]+$/i),
-    // Not just /^\d{4}$/: also carries quick-hit segments
-    // (venues, songs, tours, top, recently-added, today-in-history).
+    // Not just /^\d{4}$/: the old section URLs (/gd/top, /gd/songs, …) must still
+    // match so the browse middleware can redirect them to their detail pages.
     '[year]': z.string().regex(SLUG),
     // A v4 show id, or a pre-v4 show uuid from social cards cached before v4.
     // guid() rather than uuid(): accepts any 8-4-4-4-12 hex without enforcing

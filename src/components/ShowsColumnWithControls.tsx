@@ -7,7 +7,6 @@ import { Fragment, useMemo } from 'react';
 import sortActiveBands from '../lib/sortActiveBands';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '../lib/utils';
-import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
 import { Link } from '@timber-js/app/client';
 import ColumnWithToggleControls from './ColumnWithToggleControls';
 import Count from './Count';
@@ -22,12 +21,6 @@ type ShowsColumnWithControlsProps = {
   year?: string;
   shows: SlimShow[];
   fullDate?: boolean;
-  quickHitSegment?: string;
-  quickHitSlug?: string;
-  /** No track in these shows is matched to the song (it's only known from setlists). */
-  tracksUnmatched?: boolean;
-  /** Link to the full page for this list (song or venue detail page). */
-  detailHref?: string;
 };
 
 const ShowsColumnWithControls = ({
@@ -35,20 +28,14 @@ const ShowsColumnWithControls = ({
   year,
   shows,
   fullDate,
-  quickHitSegment,
-  quickHitSlug,
-  tracksUnmatched,
-  detailHref,
 }: ShowsColumnWithControlsProps) => {
   const { alphaAsc, sortBy, setSortBy, sbdOnly, toggleFilter, clearFilters } = useFilterState(
     `${artistSlug}:shows`,
     'alpha'
   );
   const params = useSegmentParams() as Record<string, string | string[] | undefined>;
-  const [{ date: activeDate }] = slugSearchParams.useQueryStates();
-  const dateParts = activeDate?.split('-');
-  const currentMonth = dateParts?.[1] ?? unwrapSegment(params.month);
-  const currentDay = dateParts?.[2] ?? unwrapSegment(params.day);
+  const currentMonth = unwrapSegment(params.month);
+  const currentDay = unwrapSegment(params.day);
 
   const dirIcon = alphaAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
 
@@ -123,13 +110,6 @@ const ShowsColumnWithControls = ({
       filteredCount={processedShows.length}
       totalCount={shows.length}
       onClearFilters={clearFilters}
-      subHeader={
-        detailHref ? (
-          <Link href={detailHref} className="block px-2 py-1.5 text-xs text-accent hover:underline">
-            Full page: search, sort and filter all shows →
-          </Link>
-        ) : undefined
-      }
     >
       {processedShows &&
         artistSlug &&
@@ -143,12 +123,7 @@ const ShowsColumnWithControls = ({
             tours[tour.id] = true;
           }
 
-          const showHref = quickHitSegment
-            ? slugSearchParams.href(`/${artistSlug}/${quickHitSegment}`, {
-                slug: quickHitSlug,
-                date: `${year}-${month}-${day}`,
-              })
-            : `/${artistSlug}/${year}/${month}/${day}`;
+          const showHref = `/${artistSlug}/${year}/${month}/${day}`;
 
           return (
             <Fragment key={show.id}>
@@ -160,7 +135,6 @@ const ShowsColumnWithControls = ({
                   <Flex className="tabular-nums">
                     {fullDate ? `${year}-${month}-${day}` : `${removeLeadingZero(month)}/${day}`}
                     {show.has_soundboard_source && <Tag>SBD</Tag>}
-                    {tracksUnmatched && <Tag variant="warning">track not matched</Tag>}
                   </Flex>
                   {venue && (
                     <div className="my-0.5 text-xxs leading-3.5 text-foreground-muted">

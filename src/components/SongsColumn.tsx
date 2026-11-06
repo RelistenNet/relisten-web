@@ -14,8 +14,6 @@ import RowHeader from './RowHeader';
 import Tag from './Tag';
 import { sortSources } from '@/lib/sortSources';
 import { fromSourceParam, toSourceParam } from '@/lib/sourceParam';
-import { pickSource } from '@/lib/songMatch';
-import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
 import { useAdminTools } from '@/hooks/useAdminTools';
 import { Link } from '@timber-js/app/client';
 
@@ -29,10 +27,6 @@ const getSetTime = (set: Set): string =>
 export type Props = Pick<RawParams, 'artistSlug' | 'year' | 'month' | 'day'> & {
   show?: Partial<Tape>;
   routePrefix?: string;
-  quickHitSegment?: string;
-  quickHitSlug?: string;
-  /** The song in focus (songs quick hit): picks the tape that has it by default. */
-  songId?: string;
 };
 
 interface SourceData {
@@ -52,7 +46,6 @@ export const useSourceData = ({
   day,
   show,
   source,
-  songId,
 }: Props & { source: string }): SourceData => {
   // The store holds the full v4 source id (`source_…`).
   const activePlaybackSourceId = useSelector(({ playback }: RootState) => playback.source);
@@ -65,9 +58,9 @@ export const useSourceData = ({
 
   const sourcesData = sortSources(show?.sources ?? []);
 
-  // `?source=` is the v4 source id without its prefix. Without one, default to the
-  // top-sorted source (that has the song in focus, if there is one).
-  const activeSourceObj = pickSource(sourcesData, fromSourceParam(source), songId);
+  // `?source=` is the v4 source id without its prefix; default to the top-sorted source.
+  const wantedSourceId = fromSourceParam(source);
+  const activeSourceObj = sourcesData.find((s) => s.id === wantedSourceId) ?? sourcesData[0];
 
   return {
     gaplessTracksMetadata,
@@ -135,15 +128,7 @@ const SongsColumn = (props: Props) => {
                   )}
                   <Row
                     key={track.id}
-                    href={
-                      props.quickHitSegment
-                        ? slugSearchParams.href(`/${props.artistSlug}/${props.quickHitSegment}`, {
-                            slug: props.quickHitSlug,
-                            date: `${props.year}-${props.month}-${props.day}`,
-                            track: track.slug,
-                          }) + `&source=${toSourceParam(activeSourceObj.id)}`
-                        : `${props.routePrefix || ''}/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${toSourceParam(activeSourceObj.id)}`
-                    }
+                    href={`${props.routePrefix || ''}/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${toSourceParam(activeSourceObj.id)}`}
                     active={trackIsActive}
                   >
                     <div>

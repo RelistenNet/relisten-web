@@ -34,6 +34,10 @@ export type ShowRow = {
   rating: number | null;
   /** Plays over the last 30 days. */
   plays30d: number;
+  /** When the show first appeared on Relisten (ISO). */
+  addedAt: string;
+  /** When a tape of the show was last added or updated (ISO). */
+  updatedAt: string;
   /** The show page. */
   href: string;
   /** Song pages only: this performance's file, playable in place. */
@@ -73,6 +77,8 @@ export function toShowRow(show: ShowSummaryResource, directory: ArtistDirectory)
     sbd: show.has_soundboard_source,
     rating: show.avg_rating > 0 ? show.avg_rating : null,
     plays30d: show.popularity?.windows?.['30d']?.plays ?? 0,
+    addedAt: show.created_at,
+    updatedAt: show.most_recent_source_updated_at,
     href: `/${artist.slug}/${year}/${month}/${day}`,
   };
 }

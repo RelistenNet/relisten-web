@@ -1,30 +1,17 @@
 'use client';
 
 import { useSelectedLayoutSegments } from '@timber-js/app/client';
-import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
-import { isQuickHitSegment } from '@/lib/quickHitSegments';
 import cn from '@/lib/cn';
 import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
-function getActiveColumn(segments: string[], hasSlug: boolean, hasDate: boolean): number {
+/** Which column the URL puts in front on mobile: artists, years, shows, or a show. */
+function getActiveColumn(segments: string[]): number {
   const depth = segments.length;
   if (depth <= 0) return 0;
   if (depth === 1) return 1;
-  if (depth === 2 && isQuickHitSegment(segments[1])) {
-    if (hasDate) return 3;
-    if (hasSlug) return 2;
-    return 1;
-  }
   if (depth <= 3) return 2;
   return 3;
-}
-
-function getContentKey(segments: string[], hasSlug: boolean): string {
-  if (segments.length >= 2 && isQuickHitSegment(segments[1]) && !hasSlug) {
-    return segments[1];
-  }
-  return '';
 }
 
 const MOBILE_MQ = '(max-width: 1023px)';
@@ -38,15 +25,10 @@ export default function BrowseContainer({
 }) {
   const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
   const segments = useSelectedLayoutSegments();
-  const [{ slug, date }] = slugSearchParams.useQueryStates();
-  const hasSlug = !!slug;
-  const hasDate = !!date;
-  const activeColumn = getActiveColumn(segments, hasSlug, hasDate);
-  const contentKey = getContentKey(segments, hasSlug);
+  const activeColumn = getActiveColumn(segments);
 
   const [displayedColumn, setDisplayedColumn] = useState(activeColumn);
   const prevColumn = useRef(activeColumn);
-  const prevContentKey = useRef(contentKey);
   const isTraversalNav = useRef(false);
 
   useEffect(() => {
@@ -68,14 +50,10 @@ export default function BrowseContainer({
   }, []);
 
   useLayoutEffect(() => {
-    const columnChanged = activeColumn !== prevColumn.current;
-    const contentChanged = contentKey !== prevContentKey.current;
+    if (activeColumn === prevColumn.current) return;
 
     const prevCol = prevColumn.current;
     prevColumn.current = activeColumn;
-    prevContentKey.current = contentKey;
-
-    if (!columnChanged && !contentChanged) return;
 
     const isMobile = window.matchMedia(MOBILE_MQ).matches;
 
@@ -85,12 +63,8 @@ export default function BrowseContainer({
       return;
     }
 
-    if (columnChanged) {
-      const direction = activeColumn > prevCol ? 'forward' : 'back';
-      document.documentElement.setAttribute('data-nav-direction', direction);
-    } else {
-      document.documentElement.setAttribute('data-nav-direction', 'swap');
-    }
+    const direction = activeColumn > prevCol ? 'forward' : 'back';
+    document.documentElement.setAttribute('data-nav-direction', direction);
 
     const transition = document.startViewTransition(() => {
       flushSync(() => setDisplayedColumn(activeColumn));
@@ -99,7 +73,7 @@ export default function BrowseContainer({
     transition.finished.then(() => {
       document.documentElement.removeAttribute('data-nav-direction');
     });
-  }, [activeColumn, contentKey]);
+  }, [activeColumn]);
 
   return (
     <div

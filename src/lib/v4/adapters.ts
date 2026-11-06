@@ -149,9 +149,6 @@ export const toTrack = (t: TrackResource): Track => ({
   mp3_md5: t.mp3_md5,
   flac_url: t.flac_url,
   flac_md5: t.flac_md5,
-  song_ids: (t.normalization?.parts ?? []).flatMap((p) =>
-    p.state === 'matched' && p.song ? [p.song.id] : []
-  ),
 });
 
 const toSet = (s: SourceSetResource): Set => ({

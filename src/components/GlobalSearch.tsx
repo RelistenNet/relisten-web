@@ -14,6 +14,7 @@ import {
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { SearchIcon, MicIcon, MapPinIcon, RouteIcon } from 'lucide-react';
 import { EMPTY_SEARCH, type SearchResults } from '@/lib/search';
+import { songUrl, tourUrl, venueUrl } from '@/lib/urls';
 import cn from '@/lib/cn';
 
 const resolvedEmpty = Promise.resolve(EMPTY_SEARCH);
@@ -86,7 +87,7 @@ function SearchResultsList({
             <CommandItem
               key={`song-${song.artist.slug}-${song.slug}`}
               value={`song-${song.artist.slug}-${song.slug}`}
-              onSelect={() => onNavigate(`/${song.artist.slug}/songs?slug=${song.slug}`)}
+              onSelect={() => onNavigate(songUrl(song.artist.slug, song.slug))}
             >
               <SearchIcon className="size-4 text-text-muted" />
               <div className="flex flex-col">
@@ -110,7 +111,7 @@ function SearchResultsList({
             <CommandItem
               key={`venue-${venue.artist.slug}-${venue.slug}`}
               value={`venue-${venue.artist.slug}-${venue.slug}`}
-              onSelect={() => onNavigate(`/${venue.artist.slug}/venues?slug=${venue.slug}`)}
+              onSelect={() => onNavigate(venueUrl(venue.slug, venue.artist.slug))}
             >
               <MapPinIcon className="size-4 text-text-muted" />
               <div className="flex flex-col">
@@ -134,7 +135,7 @@ function SearchResultsList({
             <CommandItem
               key={`tour-${tour.artist.slug}-${tour.slug}`}
               value={`tour-${tour.artist.slug}-${tour.slug}`}
-              onSelect={() => onNavigate(`/${tour.artist.slug}/tours?slug=${tour.slug}`)}
+              onSelect={() => onNavigate(tourUrl(tour.artist.slug, tour.slug))}
             >
               <RouteIcon className="size-4 text-text-muted" />
               <div className="flex flex-col">

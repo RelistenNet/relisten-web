@@ -3,6 +3,7 @@ import type { ShowRow } from '@/lib/table/showRows';
 import type { TableFilter, TableSpec } from '@/lib/table/query';
 import { durationToHHMMSS, numberFormat } from '@/lib/utils';
 import Tag from '@/components/Tag';
+import { formatShowDate } from '@/lib/table/showStats';
 import Tooltip from '@/components/Tooltip';
 import PlayTrackButton from './PlayTrackButton';
 import type { Column } from './types';
@@ -122,6 +123,14 @@ export const showColumns = {
       );
     },
   },
+  added: {
+    id: 'added',
+    width: 'w-32',
+    label: 'Added',
+    sortable: true,
+    firstDir: 'desc',
+    cell: (r) => formatShowDate(r.addedAt.slice(0, 10)),
+  },
   tapes: {
     id: 'tapes',
     width: 'w-20',
@@ -158,6 +167,7 @@ export const showSorts: TableSpec<ShowRow>['sorts'] = {
   artist: (r) => r.artistName,
   venue: (r) => r.venueName,
   length: (r) => r.songDuration,
+  added: (r) => r.addedAt,
   tapes: (r) => r.tapes,
   rating: (r) => r.rating,
   plays: (r) => r.plays30d,
