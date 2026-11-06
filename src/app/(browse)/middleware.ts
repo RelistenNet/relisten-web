@@ -2,17 +2,7 @@ import { deny, redirect, type MiddlewareContext } from '@timber-js/app/server';
 import { isLegacySourceParam, toSourceParam } from '@/lib/sourceParam';
 import { findArtistBySlug } from '@/data/artists';
 import { resolveLegacySource } from '@/data/legacy';
-import {
-  artistRecentlyAddedUrl,
-  artistSongsUrl,
-  artistTodayUrl,
-  artistToursUrl,
-  artistTopShowsUrl,
-  artistVenuesUrl,
-  songUrl,
-  tourUrl,
-  venueUrl,
-} from '@/lib/urls';
+import { movedQuickHitUrl } from '@/lib/movedSectionUrl';
 
 const VALID_SEGMENT = /^[a-zA-Z0-9-]+$/;
 
@@ -51,46 +41,5 @@ export default async function middleware(ctx: MiddlewareContext): Promise<Respon
     if (sourceId) url.searchParams.set('source', toSourceParam(sourceId));
     else url.searchParams.delete('source');
     redirect(`${url.pathname}${url.search}`, { permanent: Boolean(sourceId) });
-  }
-}
-
-/**
- * Where an old browse section URL lives now, or null if it isn't one:
- *   /gd/top → /artists/gd?sort=-rating              /gd/songs → /artists/gd/songs
- *   /gd/songs?slug=x → the song page       /gd/today-in-history/5/8 → ?month=5&day=8
- *   /gd/songs?slug=x&date=1977-05-08[&track=t] → that show (on that track)
- */
-function movedQuickHitUrl(artist: string, segments: string[], query: URLSearchParams) {
-  const section = segments[1];
-  const slug = query.get('slug');
-  const date = query.get('date');
-  const track = query.get('track');
-
-  switch (section) {
-    case 'top':
-      return artistTopShowsUrl(artist);
-    case 'recently-added':
-      return artistRecentlyAddedUrl(artist);
-    case 'today-in-history':
-      return artistTodayUrl(
-        artist,
-        segments[2] ?? query.get('month') ?? undefined,
-        segments[3] ?? query.get('day') ?? undefined
-      );
-    case 'songs':
-    case 'venues':
-    case 'tours': {
-      // A show was open in the section: go to the show itself.
-      if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
-        const show = `/${artist}/${date.replaceAll('-', '/')}`;
-        const source = query.get('source');
-        return `${track ? `${show}/${track}` : show}${source ? `?source=${source}` : ''}`;
-      }
-      if (section === 'songs') return slug ? songUrl(artist, slug) : artistSongsUrl(artist);
-      if (section === 'venues') return slug ? venueUrl(slug, artist) : artistVenuesUrl(artist);
-      return slug ? tourUrl(artist, slug) : artistToursUrl(artist);
-    }
-    default:
-      return null;
   }
 }
