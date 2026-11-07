@@ -1,5 +1,8 @@
 'use client';
 
+import { href } from '@timber-js/app/routes';
+import { liveSummarySearchParams } from '@/lib/searchParams/apiSearchParams';
+import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
 import { Link } from '@timber-js/app/client';
 import type { ReactNode } from 'react';
 import {
@@ -9,7 +12,7 @@ import {
   type LiveSummary,
   type MonthDay,
 } from '@/lib/live';
-import Tag from '@/components/Tag';
+import Tag from '@/ui/base/Tag';
 import { usePollingState } from '@/lib/usePolling';
 import { simplePluralize, splitShowDate } from '@/lib/utils';
 
@@ -29,9 +32,15 @@ export default function LiveListeners({ initialSummary, today, feed }: Props) {
   const summary = usePollingState(
     initialSummary,
     async (signal): Promise<LiveSummary> => {
-      const res = await fetch(`/api/live/summary?month=${today.month}&day=${today.day}`, {
-        signal,
-      });
+      const res = await fetch(
+        liveSummarySearchParams.href('/api/live/summary', {
+          month: Number(today.month),
+          day: Number(today.day),
+        }),
+        {
+          signal,
+        }
+      );
       if (!res.ok) throw new Error(`live summary: HTTP ${res.status}`);
       return res.json();
     },
@@ -109,10 +118,13 @@ export default function LiveListeners({ initialSummary, today, feed }: Props) {
 }
 
 const artistHref = ({ artistSlug, topShow }: LiveArtist) => {
-  if (!topShow) return `/${artistSlug}`;
+  if (!topShow) return href('/[artistSlug]', { artistSlug });
   const { year, month, day } = splitShowDate(topShow.displayDate);
-  const source = topShow.sourceParam ? `?source=${topShow.sourceParam}` : '';
-  return `/${artistSlug}/${year}/${month}/${day}${source}`;
+  return href(
+    '/[artistSlug]/[year]/[month]/[day]',
+    { artistSlug, year, month, day },
+    sourceQuery(topShow.sourceParam)
+  );
 };
 
 function ArtistRow({ artist }: { artist: LiveArtist }) {

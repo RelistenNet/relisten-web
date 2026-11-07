@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatAgo } from '@/components/TimeAgo';
+import { formatAgo } from '@/ui/base/TimeAgo';
 import { formatListeners, nextRevealAt, toMonthDay, tracksPerMinute, type LivePlay } from './live';
 
 const play = (id: number, playedAt: number): LivePlay => ({

@@ -1,0 +1,335 @@
+{
+  "sources": [
+    {
+      "sets": [
+        {
+          "tracks": [
+            {
+              "id": "track_4rc5e1za2bvsrnnr0edzzj8rfs",
+              "source_id": "source_7bbw2e16a0h9ssczd3bwzgv1wp",
+              "source_set_id": "source_set_4wwshjstjt5j2hn95aze9cfshb",
+              "show_id": "show_0g9jbeawcz6sqvebcdadr9s070",
+              "artist_id": "artist_3qmp7zjbg1rpebhtyfy43096vj",
+              "track_position": 1,
+              "duration": 381,
+              "title": "Minglewood Blues",
+              "slug": "minglewood-blues",
+              "mp3_url": "https://archive.org/download/gd77-05-08.sbd.hicks.4982.sbeok.shnf/gd77-05-08eaton-d1t01.mp3",
+              "mp3_md5": "96d1fc48cae5e3bdd62c383d5b458a43",
+              "flac_url": null,
+              "flac_md5": null,
+              "created_at": "2018-10-14T07:00:12.401786Z",
+              "updated_at": "2005-11-13T05:18:39Z"
+            },
+            {
+              "id": "track_55z7a4qtqec6d5cssxwz7z8cvb",
+              "source_id": "source_7bbw2e16a0h9ssczd3bwzgv1wp",
+              "source_set_id": "source_set_4wwshjstjt5j2hn95aze9cfshb",
+              "show_id": "show_0g9jbeawcz6sqvebcdadr9s070",
+              "artist_id": "artist_3qmp7zjbg1rpebhtyfy43096vj",
+              "track_position": 2,
+              "duration": 532,
+              "title": "Loser",
+              "slug": "loser",
+              "mp3_url": "https://archive.org/download/gd77-05-08.sbd.hicks.4982.sbeok.shnf/gd77-05-08eaton-d1t02.mp3",
+              "mp3_md5": "736288d5d3584ddad9c37a3eeb03c609",
+              "flac_url": null,
+              "flac_md5": null,
+              "created_at": "2018-10-14T07:00:12.401786Z",
+              "updated_at": "2005-11-13T05:18:39Z"
+            }
+          ],
+          "id": "source_set_4wwshjstjt5j2hn95aze9cfshb",
+          "source_id": "source_7bbw2e16a0h9ssczd3bwzgv1wp",
+          "artist_id": "artist_3qmp7zjbg1rpebhtyfy43096vj",
+          "index": 0,
+          "is_encore": false,
+          "name": "Set",
+          "created_at": "2026-08-20T09:24:20.497389Z",
+          "updated_at": "2005-11-13T05:18:39Z"
+        }
+      ],
+      "links": [
+        {
+          "source_id": "source_7bbw2e16a0h9ssczd3bwzgv1wp",
+          "provider": "archive.org",
+          "for_reviews": true,
+          "for_ratings": true,
+          "for_source": true,
+          "url": "https://archive.org/details/gd77-05-08.sbd.hicks.4982.sbeok.shnf",
+          "label": "View on archive.org",
+          "created_at": "2026-08-20T09:24:20.497389Z",
+          "updated_at": "2026-08-20T09:24:20.497389Z"
+        }
+      ],
+      "id": "source_7bbw2e16a0h9ssczd3bwzgv1wp",
+      "artist_id": "artist_3qmp7zjbg1rpebhtyfy43096vj",
+      "show_id": "show_0g9jbeawcz6sqvebcdadr9s070",
+      "display_date": "1977-05-08",
+      "is_soundboard": true,
+      "is_remaster": false,
+      "has_jamcharts": false,
+      "avg_rating": 9.567009925842285,
+      "num_reviews": 300,
+      "num_ratings": null,
+      "avg_rating_weighted": 7.758251667022705,
+      "duration": 10802.0,
+      "upstream_identifier": "gd77-05-08.sbd.hicks.4982.sbeok.shnf",
+      "description": "Minglewood Blues, Loser, El Paso, They Love Each Other, Jack Straw, Deal, Lazy Lightning-> Supplication, Brown Eyed Women, Mama Tried, Row Jimmy, Dancin' In The Streets Scarlet Begonias-> Fire On The Mountain, Estimated Prophet, Saint Stephen-> Not Fade Away-> Saint Stephen-> Morning Dew, E: One Mor\u2026",
+      "taper_notes": "freshly remastered Betty Board with AUD splices, by Rob Eaton;\n\nBetty Board Portion -- Master 7\" Nagra reels 1/2 track @ 7.5ips>Sony PCM 501. Playback on Sony PCM 701>DAT (Digital Transfer) -- Rob Eaton DBX Decoding (Spring '99) Playback on Panasonic 4100 DAT>DB 924 D/A>Dolby 361's w/dbx K9-22 Cards\u2026",
+      "source": "Matrix (see notes)",
+      "taper": "Steve Maizner",
+      "transferrer": "Rob Eaton",
+      "lineage": "",
+      "flac_type": "NoFlac",
+      "review_count": 300,
+      "created_at": "2026-08-20T09:24:20.497389Z",
+      "updated_at": "2005-11-13T05:18:39Z",
+      "imported_venue": {
+        "show_count": 0,
+        "id": "imported_venue_1cqrn1e9c2y9yt07ytms0axfar",
+        "artist_id": "artist_3qmp7zjbg1rpebhtyfy43096vj",
+        "latitude": null,
+        "longitude": null,
+        "name": "Barton Hall, Cornell University",
+        "location": "Ithaca, NY",
+        "upstream_identifier": "Barton Hall, Cornell UniversityIthaca, NY",
+        "slug": "barton-hall-cornell-university",
+        "past_names": null,
+        "created_at": "2017-12-16T09:30:48.177462Z",
+        "updated_at": "2017-05-09T01:54:41Z"
+      }
+    },
+    {
+      "sets": [
+        {
+          "tracks": [
+            {
+              "id": "track_0p1g80rxd9cnm7xw8jnv6tqjqy",
+              "source_id": "source_44hnyeravdzbq7cree9ayhhjr1",
+              "source_set_id": "source_set_5nwbacfgadkpbacwmw5yt6gwg1",
+              "show_id": "show_0g9jbeawcz6sqvebcdadr9s070",
+              "artist_id": "artist_3qmp7zjbg1rpebhtyfy43096vj",
+              "track_position": 1,
+              "duration": 325,
+              "title": "Minglewood Blues",
+              "slug": "minglewood-blues",
+              "mp3_url": "https://archive.org/download/gd77-05-08.maizner.hicks.5002.sbeok.shnf/gd77-05-08aud-d1t01.mp3",
+              "mp3_md5": "c52825a26e7853311299a281802697c5",
+              "flac_url": null,
+              "flac_md5": null,
+              "created_at": "2017-12-16T09:32:01.433599Z",
+              "updated_at": "2005-11-13T05:19:29Z"
+            },
+            {
+              "id": "track_6qnghsdmsgnx042ct37cew6qyc",
+              "source_id": "source_44hnyeravdzbq7cree9ayhhjr1",
+              "source_set_id": "source_set_5nwbacfgadkpbacwmw5yt6gwg1",
+              "show_id": "show_0g9jbeawcz6sqvebcdadr9s070",
+              "artist_id": "artist_3qmp7zjbg1rpebhtyfy43096vj",
+              "track_position": 2,
+              "duration": 474,
+              "title": "Loser",
+              "slug": "loser",
+              "mp3_url": "https://archive.org/download/gd77-05-08.maizner.hicks.5002.sbeok.shnf/gd77-05-08aud-d1t02.mp3",
+              "mp3_md5": "0ea35860f465cb5f08e99173293be424",
+              "flac_url": null,
+              "flac_md5": null,
+              "created_at": "2017-12-16T09:32:01.43623Z",
+              "updated_at": "2005-11-13T05:19:29Z"
+            }
+          ],
+          "id": "source_set_5nwbacfgadkpbacwmw5yt6gwg1",
+          "source_id": "source_44hnyeravdzbq7cree9ayhhjr1",
+          "artist_id": "artist_3qmp7zjbg1rpebhtyfy43096vj",
+          "index": 0,
+          "is_encore": false,
+          "name": "Set",
+          "created_at": "2026-04-01T09:53:45.236998Z",
+          "updated_at": "2005-11-13T05:19:29Z"
+        }
+      ],
+      "links": [
+        {
+          "source_id": "source_44hnyeravdzbq7cree9ayhhjr1",
+          "provider": "archive.org",
+          "for_reviews": true,
+          "for_ratings": true,
+          "for_source": true,
+          "url": "https://archive.org/details/gd77-05-08.maizner.hicks.5002.sbeok.shnf",
+          "label": "View on archive.org",
+          "created_at": "2026-04-01T09:53:45.236998Z",
+          "updated_at": "2026-04-01T09:53:45.236998Z"
+        }
+      ],
+      "id": "source_44hnyeravdzbq7cree9ayhhjr1",
+      "artist_id": "artist_3qmp7zjbg1rpebhtyfy43096vj",
+      "show_id": "show_0g9jbeawcz6sqvebcdadr9s070",
+      "display_date": "1977-05-08",
+      "is_soundboard": false,
+      "is_remaster": false,
+      "has_jamcharts": false,
+      "avg_rating": 9.44347858428955,
+      "num_reviews": 117,
+      "num_ratings": null,
+      "avg_rating_weighted": 7.71999454498291,
+      "duration": 10059.0,
+      "upstream_identifier": "gd77-05-08.maizner.hicks.5002.sbeok.shnf",
+      "description": "Minglewood Blues, Loser, El Paso, They Love Each Other, Jack Straw, Deal, Lazy Lightning-> Supplication, Brown Eyed Women, Mama Tried, Row Jimmy, Dancin' In The Streets Scarlet Begonias-> Fire On The Mountain, Estimated Prophet, Saint Stephen-> Not Fade Away-> Saint Stephen-> Morning Dew, E: One Mor\u2026",
+      "taper_notes": "Lineage: -- Steve Maizner's Sony ECM-990>Sony TC-152 aud master>First Gen Reel>played directly to hard drive by Karen Hicks",
+      "source": "Audience - Sony ECM-990",
+      "taper": "Steve Maizner",
+      "transferrer": "Karen Hicks",
+      "lineage": "Sony ECM-990 > Sony TC-152 (aud master) > First Gen Reel > played directly to hard drive",
+      "flac_type": "NoFlac",
+      "review_count": 117,
+      "created_at": "2026-04-01T09:53:45.236998Z",
+      "updated_at": "2005-11-13T05:19:29Z",
+      "imported_venue": {
+        "show_count": 0,
+        "id": "imported_venue_1cqrn1e9c2y9yt07ytms0axfar",
+        "artist_id": "artist_3qmp7zjbg1rpebhtyfy43096vj",
+        "latitude": null,
+        "longitude": null,
+        "name": "Barton Hall, Cornell University",
+        "location": "Ithaca, NY",
+        "upstream_identifier": "Barton Hall, Cornell UniversityIthaca, NY",
+        "slug": "barton-hall-cornell-university",
+        "past_names": null,
+        "created_at": "2017-12-16T09:30:48.177462Z",
+        "updated_at": "2017-05-09T01:54:41Z"
+      }
+    }
+  ],
+  "id": "show_0g9jbeawcz6sqvebcdadr9s070",
+  "artist_id": "artist_3qmp7zjbg1rpebhtyfy43096vj",
+  "year_id": "year_6be0p5zv0g67nkdka2x9yxa312",
+  "tour_id": "tour_1r2gytwbpcrw4gp84eb2r10qwc",
+  "date": "1977-05-08T00:00:00Z",
+  "display_date": "1977-05-08",
+  "avg_rating": 9.56701,
+  "avg_duration": 12267.0,
+  "most_recent_source_updated_at": "2021-05-03T00:00:50Z",
+  "has_soundboard_source": true,
+  "has_streamable_flac_source": true,
+  "source_count": 23,
+  "popularity": {
+    "momentum_score": 0.7837,
+    "trend_ratio": 0.8164,
+    "windows": {
+      "48h": {
+        "plays": 378,
+        "hours": 62.7431,
+        "hot_score": 19.4422
+      },
+      "7d": {
+        "plays": 867,
+        "hours": 144.3669,
+        "hot_score": 29.4449
+      },
+      "30d": {
+        "plays": 5954,
+        "hours": 936.7253,
+        "hot_score": 77.1622
+      }
+    }
+  },
+  "created_at": "2018-10-23T07:00:49.513477Z",
+  "updated_at": "2026-10-15T08:10:38.100931Z",
+  "imported_venue": {
+    "show_count": 3,
+    "id": "imported_venue_19z7vw041a93fmvx8370hnc6g9",
+    "artist_id": "artist_3qmp7zjbg1rpebhtyfy43096vj",
+    "latitude": null,
+    "longitude": null,
+    "name": "Barton Hall, Cornell University",
+    "location": "Ithaca, NY, USA",
+    "upstream_identifier": "jerrygarcia.com_Barton Hall, Cornell University::Ithaca, NY, USA",
+    "slug": "barton-hall-cornell-university",
+    "past_names": null,
+    "created_at": "2025-12-21T21:50:01.167991Z",
+    "updated_at": "2021-06-15T21:53:21Z"
+  },
+  "artist_venue": {
+    "id": "artist_venue_7h8efxd9",
+    "artist_id": "artist_3qmp7zjbg1rpebhtyfy43096vj",
+    "artist_show_count": 3,
+    "created_at": "2026-11-05T21:08:30.1686Z",
+    "updated_at": "2026-11-05T21:08:30.1686Z",
+    "venue": {
+      "id": "venue_bvhfka1g",
+      "slug": "barton-hall",
+      "global_show_count": 4,
+      "name": "Barton Hall",
+      "kind": "site",
+      "parent_id": null,
+      "city": "Ithaca",
+      "region": "NY",
+      "country": "US",
+      "latitude": null,
+      "longitude": null,
+      "coordinate_precision": null,
+      "names": [
+        {
+          "name": "Barton Hall",
+          "kind": "official"
+        },
+        {
+          "name": "Barton Hall, Cornell University",
+          "kind": "spelling"
+        },
+        {
+          "name": "Barton Hall, Cornell Uuniveristy",
+          "kind": "spelling"
+        }
+      ]
+    }
+  },
+  "year": {
+    "popularity": {
+      "momentum_score": 0.94,
+      "trend_ratio": 2.0974,
+      "windows": {
+        "48h": {
+          "plays": 15453,
+          "hours": 1970.2528,
+          "hot_score": 124.3101
+        },
+        "7d": {
+          "plays": 28256,
+          "hours": 3800.9889,
+          "hot_score": 168.0952
+        },
+        "30d": {
+          "plays": 124055,
+          "hours": 16919.2275,
+          "hot_score": 352.2144
+        }
+      }
+    },
+    "id": "year_6be0p5zv0g67nkdka2x9yxa312",
+    "artist_id": "artist_3qmp7zjbg1rpebhtyfy43096vj",
+    "show_count": 64,
+    "source_count": 419,
+    "has_soundboard_source": true,
+    "duration": 4089294,
+    "avg_duration": 12024.919,
+    "avg_rating": 9.319952,
+    "year": "1977",
+    "created_at": "2018-10-23T07:01:01.785875Z",
+    "updated_at": "2025-10-20T11:03:27Z"
+  },
+  "tour": {
+    "id": "tour_1r2gytwbpcrw4gp84eb2r10qwc",
+    "artist_id": "artist_3qmp7zjbg1rpebhtyfy43096vj",
+    "show_count": 30,
+    "start_date": "1977-04-22T00:00:00Z",
+    "end_date": "1977-06-09T00:00:00Z",
+    "name": "Spring 1977",
+    "slug": "spring-1977",
+    "upstream_identifier": "Spring 1977",
+    "created_at": "2017-12-16T10:41:03.491586Z",
+    "updated_at": "2017-05-17T13:14:44Z"
+  },
+  "era": null
+}

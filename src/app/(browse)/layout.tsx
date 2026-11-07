@@ -1,9 +1,9 @@
-import BrowseContainer from '@/components/BrowseContainer';
-import Flex from '@/components/Flex';
-import NavBar from '@/components/NavBar';
+import BrowseContainer from '@/features/browse/BrowseContainer';
+import Flex from '@/ui/base/Flex';
+import NavBar from '@/shell/NavBar';
 import { ReactNode } from 'react';
 import { Toaster } from 'sonner';
-import MobileBrowseNav from '@/components/MobileBrowseNav';
+import MobileBrowseNav from '@/features/browse/MobileBrowseNav';
 
 export default function BrowseLayout({
   children,

@@ -1,7 +1,7 @@
+import { loadArtists, loadShow } from '@/features/browse/load';
 import { METADATA_BASE } from '@/lib/constants';
-import PlayerManager from '@/components/PlayerManager';
-import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
-import RelistenAPI from '@/lib/RelistenAPI';
+import PlayerManager from '@/player/PlayerManager';
+import { proxyStreamUrl } from '@/player/proxyStreamUrl';
 import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { createShowDate } from '@/lib/utils';
 import { deny, getSegmentParams } from '@timber-js/app/server';
@@ -15,8 +15,8 @@ export default async function Page() {
   const params = { artistSlug, year, month, day };
 
   const [show, artists] = await Promise.all([
-    RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day)),
-    RelistenAPI.fetchAllArtists(),
+    loadShow(artistSlug, createShowDate(year, month, day)),
+    loadArtists(),
   ]);
 
   // A missing show already 404s in fetchShow; also 404 when no source has this song.
@@ -34,13 +34,13 @@ export default async function Page() {
 export const metadata = async () => {
   const { artistSlug, year, month, day, songSlug } = getSegmentParams(SEGMENT_PATH);
 
-  const artists = await RelistenAPI.fetchAllArtists();
+  const artists = await loadArtists();
 
   const name = artists?.find((a) => a.slug === artistSlug)?.name;
 
   if (!name || !year || !month || !day) return {};
 
-  const show = await RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day));
+  const show = await loadShow(artistSlug, createShowDate(year, month, day));
 
   const songs = show?.sources
     ?.map((source) => source?.sets?.map((set) => set?.tracks).flat())
@@ -54,7 +54,7 @@ export const metadata = async () => {
     openGraph: {
       audio: [
         {
-          url: proxyStreamUrl(song?.mp3_url),
+          url: proxyStreamUrl(song?.mp3Url),
         },
       ],
       images: show?.id

@@ -1,5 +1,5 @@
 import { Link } from '@timber-js/app/client';
-import ThemeToggle from '@/components/ThemeToggle';
+import ThemeToggle from '@/shell/ThemeToggle';
 
 const About = () => (
   <div className="content">

@@ -1,5 +1,5 @@
-import NavBar from '@/components/NavBar';
-import Flex from '@/components/Flex';
+import NavBar from '@/shell/NavBar';
+import Flex from '@/ui/base/Flex';
 import { PropsWithChildren } from 'react';
 
 export default function LiveLayout({ children }: PropsWithChildren) {

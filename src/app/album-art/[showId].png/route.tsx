@@ -1,9 +1,9 @@
+import { showById } from '@/data/shows';
 /* oxlint-disable react/no-unknown-property */
 import 'server-only';
 
-import { getArtistDirectory } from '@/lib/v4/artistDirectory';
-import { resolveLegacyShow } from '@/lib/v4/legacy';
-import RelistenAPI from '@/lib/RelistenAPI';
+import { getArtistDirectory } from '@/data/artists';
+import { resolveLegacyShow } from '@/data/legacy';
 import { ImageResponse } from 'takumi-js/response';
 import { defineSearchParams } from '@timber-js/app/search-params';
 import { z } from 'zod/v4';
@@ -43,7 +43,7 @@ const searchParams = defineSearchParams({
   // Small allow-list so each show has at most a few distinct renders.
   // Anything else falls back to the default.
   size: z.enum(['256', '512', '1024']).default('1024').transform(Number),
-  debug: z.coerce.boolean().default(false),
+  debug: z.stringbool().default(false),
 });
 
 export async function GET() {
@@ -61,16 +61,16 @@ export async function GET() {
 
   const [directory, show] = await Promise.all([
     getArtistDirectory(),
-    RelistenAPI.fetchShowById(showId).catch(() => null),
+    showById.orDeny(showId).catch(() => null),
   ]);
 
   if (!show || !show.sources?.length) return new Response('Not Found', { status: 404 });
 
   const fonts = await loadCardFonts();
 
-  const artist = show.artist_id ? directory.byId.get(show.artist_id) : undefined;
+  const artist = show.artistId ? directory.byId.get(show.artistId) : undefined;
   const artistName = artist?.name ?? 'Unknown Artist';
-  const { month, day, year } = parseDisplayDate(show.display_date || '');
+  const { month, day, year } = parseDisplayDate(show.date || '');
 
   const s = (base: number) => Math.round((size / 1024) * base);
 

@@ -1,8 +1,11 @@
 'use client';
 
+import { href } from '@timber-js/app/routes';
+import { liveHistorySearchParams } from '@/lib/searchParams/apiSearchParams';
+import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
 import { Link } from '@timber-js/app/client';
 import { useEffect, useState } from 'react';
-import TimeAgo from '@/components/TimeAgo';
+import TimeAgo from '@/ui/base/TimeAgo';
 import {
   formatShowDate,
   mergePlays,
@@ -44,7 +47,9 @@ export default function PlaybackFeed({ initialPlays, renderedAt }: Props) {
     initialPlays,
     async (signal, current) => {
       const after = current[0]?.id ?? 0;
-      const res = await fetch(`/api/live/history?after=${after}`, { signal });
+      const res = await fetch(liveHistorySearchParams.href('/api/live/history', { after }), {
+        signal,
+      });
       if (!res.ok) throw new Error(`live history: HTTP ${res.status}`);
       return mergePlays(current, (await res.json()) as LivePlay[]);
     },
@@ -121,7 +126,11 @@ function PlaybackRow({ play, serverNow }: { play: LivePlay; serverNow: number })
 
   return (
     <Link
-      href={`/${play.artistSlug}/${year}/${month}/${day}/${play.trackSlug}?source=${play.sourceParam}`}
+      href={href(
+        '/[artistSlug]/[year]/[month]/[day]/[songSlug]',
+        { artistSlug: play.artistSlug, year, month, day, songSlug: play.trackSlug },
+        sourceQuery(play.sourceParam)
+      )}
       prefetch={false}
       className="flex items-center gap-3 px-3 py-2 transition-colors duration-150 hover:bg-surface-hover"
     >

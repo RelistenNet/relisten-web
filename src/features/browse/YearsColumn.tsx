@@ -1,0 +1,27 @@
+import { loadArtists, loadYears } from './load';
+import { deny } from '@timber-js/app/server';
+import YearsColumnWithControls from './YearsColumnWithControls';
+import TodayInHistoryRow from './TodayInHistoryRow';
+import RowHeader from '@/ui/base/RowHeader';
+
+const YearsColumn = async ({ artistSlug }: { artistSlug: string }) => {
+  const artists = await loadArtists().catch(() => {
+    deny(404);
+  });
+
+  const artist = artists?.find((artist) => artist.slug === artistSlug);
+  const artistYears = await (artist ? loadYears(artist.id) : []);
+
+  return (
+    <YearsColumnWithControls
+      artistSlug={artistSlug}
+      artistName={artist?.name}
+      artistYears={artistYears || []}
+    >
+      <TodayInHistoryRow key="today" artistSlug={artistSlug} />
+      <RowHeader key="years-header">Years</RowHeader>
+    </YearsColumnWithControls>
+  );
+};
+
+export default YearsColumn;

@@ -1,6 +1,6 @@
 import type { MDXComponents } from 'mdx/types';
-import Footnote from './components/blog/Footnote';
-import PieChart from './components/blog/PieChart';
+import Footnote from '@/features/blog/Footnote';
+import PieChart from '@/features/blog/PieChart';
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {

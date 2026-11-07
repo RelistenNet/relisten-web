@@ -1,3 +1,4 @@
+import { href } from '@timber-js/app/routes';
 import getPosts from '@/lib/blog/getPosts';
 import { getAuthor } from '@/lib/blog/authors';
 import { format, parseISO } from 'date-fns';
@@ -26,7 +27,7 @@ export default function BlogIndex() {
           return (
             <Link
               key={post.slug}
-              href={`/blog/${post.slug}`}
+              href={href('/blog/[slug]', { slug: post.slug })}
               className="group block hover:no-underline"
             >
               <h2

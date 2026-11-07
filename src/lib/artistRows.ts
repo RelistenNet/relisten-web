@@ -1,4 +1,4 @@
-import type { Artist, Popularity } from '@/types';
+import type { Artist, Popularity } from '@/domain/types';
 
 /**
  * The artist as the artists column uses it: only the fields that
@@ -7,7 +7,7 @@ import type { Artist, Popularity } from '@/types';
  */
 export type ArtistListItem = Pick<
   Artist,
-  'slug' | 'name' | 'featured' | 'show_count' | 'source_count' | 'popularity'
+  'slug' | 'name' | 'featured' | 'showCount' | 'sourceCount' | 'popularity'
 >;
 
 /**
@@ -18,7 +18,7 @@ export type ArtistListItem = Pick<
  * nested popularity windows: no repeated key names, and arrays of primitives
  * are much cheaper for Flight to serialize and for SSR to decode.
  *
- *   [slug, name, featured, show_count, source_count,
+ *   [slug, name, featured, showCount, sourceCount,
  *    plays48h, hours48h, plays7d, hours7d, plays30d, hours30d]
  *
  * The six window values are present only when the artist has popularity
@@ -40,11 +40,11 @@ const roundHours = (h: number) => (h < 1 ? Math.round(h * 600) / 600 : Math.roun
 
 export function toArtistRow(artist: ArtistListItem): ArtistRow {
   const row: ArtistRow = [
-    artist.slug ?? '',
-    artist.name ?? '',
-    Number(artist.featured ?? 0),
-    artist.show_count ?? 0,
-    artist.source_count ?? 0,
+    artist.slug,
+    artist.name,
+    Number(artist.featured),
+    artist.showCount,
+    artist.sourceCount,
   ];
   const windows = artist.popularity?.windows;
   if (windows) {
@@ -57,18 +57,18 @@ export function toArtistRow(artist: ArtistListItem): ArtistRow {
 }
 
 export function fromArtistRow(row: ArtistRow): ArtistListItem {
-  const [slug, name, featured, show_count, source_count] = row;
+  const [slug, name, featured, showCount, sourceCount] = row;
   let popularity: Popularity | null = null;
   if (row.length > 5) {
     const windows: NonNullable<Popularity['windows']> = {};
     WINDOWS.forEach((w, i) => {
       const plays = row[5 + i * 2] as number | null;
       const hours = row[6 + i * 2] as number | null;
-      if (plays != null && hours != null) windows[w] = { plays, hours, hot_score: 0 };
+      if (plays != null && hours != null) windows[w] = { plays, hours, hotScore: 0 };
     });
     popularity = { windows };
   }
-  return { slug, name, featured, show_count, source_count, popularity };
+  return { slug, name, featured, showCount, sourceCount, popularity };
 }
 
 /** Primary (featured ≤ 1) artists are shown first and sent with the page shell. */

@@ -4,7 +4,7 @@ import { codec } from '@timber-js/app/codec';
 import type { Codec } from '@timber-js/app/codec';
 
 // Segment params flow into backend API URLs, so keep them to a strict
-// character set. Anything else is a 404 before it reaches RelistenAPI.
+// character set. Anything else is a 404 before it reaches the data layer (src/data).
 const SLUG = /^[a-z0-9-]+$/i;
 const MONTH_OR_DAY = /^[\dx]{1,2}$/i;
 
@@ -25,8 +25,11 @@ export default defineSchema({
     '[day]': z.string().regex(MONTH_OR_DAY),
     '[month]': z.string().regex(MONTH_OR_DAY),
     '[songSlug]': z.string().regex(SLUG),
-    // Not just /^\d{4}$/: also carries quick-hit segments
-    // (venues, songs, tours, top, recently-added, today-in-history).
+    '[tourSlug]': z.string().regex(SLUG),
+    // Canonical venue slugs, or an imported venue's id (imported_venue_…).
+    '[venueSlug]': z.string().regex(/^[a-z0-9_-]+$/i),
+    // Not just /^\d{4}$/: the old section URLs (/gd/top, /gd/songs, …) must still
+    // match so the browse middleware can redirect them to their detail pages.
     '[year]': z.string().regex(SLUG),
     // A v4 show id, or a pre-v4 show uuid from social cards cached before v4.
     // guid() rather than uuid(): accepts any 8-4-4-4-12 hex without enforcing

@@ -22,6 +22,100 @@ export default defineConfig({
       },
     },
     {
+      // Layering: only the data layer talks to the API. Everything else goes
+      // through src/data (or the RelistenAPI facade) and uses src/domain types.
+      files: ['src/**/*.{ts,tsx}'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              {
+                group: ['@/api', '@/api/**'],
+                message: 'Only src/data imports the API client; use src/data and src/domain types.',
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      files: ['src/data/**', 'src/api/**'],
+      rules: { 'no-restricted-imports': 'off' },
+    },
+    {
+      // A feature never imports another feature (it imports its own files
+      // relatively). Shared code moves down into src/ui or src/domain; a page
+      // showing two features composes them in its route.
+      files: ['src/features/**'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              {
+                group: ['@/api', '@/api/**'],
+                message: 'Only src/data imports the API client; use src/data and src/domain types.',
+              },
+              {
+                group: ['@/features/**', '../**'],
+                message:
+                  'Features do not import other features: move shared code to src/ui or src/domain, or compose in the route.',
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      // Shared UI stays independent of any feature or data source.
+      files: ['src/ui/**'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              {
+                group: ['@/api', '@/api/**'],
+                message: 'Only src/data imports the API client; use src/data and src/domain types.',
+              },
+              {
+                group: ['@/features/**', '@/data/**', '@/shell/**', '@/player/**'],
+                message:
+                  'src/ui is shared: it takes data as props and never imports features, src/data, the shell, or the player.',
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      // The player is a service features use; it never depends on a feature or the shell.
+      files: ['src/player/**'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              {
+                group: ['@/api', '@/api/**'],
+                message: 'Only src/data imports the API client; use src/data and src/domain types.',
+              },
+              {
+                group: ['@/features/**', '@/shell/**'],
+                message: 'The player is a service: it never imports features or the shell.',
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      // Tests assemble fixtures across layers (API responses → domain → rows).
+      files: ['src/**/*.test.ts', 'src/**/__fixtures__/**'],
+      rules: { 'no-restricted-imports': 'off' },
+    },
+    {
       // takumi (ImageResponse) renders JSX with a `tw` prop for Tailwind classes.
       files: ['src/app/album-art/**/*.tsx', 'src/app/**/opengraph-image.tsx'],
       rules: { 'react/no-unknown-property': ['error', { ignore: ['tw'] }] },

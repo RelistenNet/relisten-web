@@ -1,22 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import { fromArtistRow, isPrimaryArtist, toArtistRow } from './artistRows';
-import type { Artist } from '@/types';
+import type { Artist } from '@/domain/types';
 
 const artist: Artist = {
   id: 'artist_3qmp7zjbg1rpebhtyfy43096vj',
   name: 'Grateful Dead',
   slug: 'grateful-dead',
-  show_count: 2400,
-  source_count: 17000,
+  showCount: 2400,
+  sourceCount: 17000,
   featured: 1,
-  created_at: '2014-01-01T00:00:00Z',
   popularity: {
-    momentum_score: 3.2,
-    trend_ratio: 1.1,
+    momentumScore: 3.2,
+    trendRatio: 1.1,
     windows: {
-      '48h': { plays: 120, hours: 0.4, hot_score: 9 },
-      '7d': { plays: 900, hours: 61.7, hot_score: 8 },
-      '30d': { plays: 4100, hours: 288.2, hot_score: 7 },
+      '48h': { plays: 120, hours: 0.4, hotScore: 9 },
+      '7d': { plays: 900, hours: 61.7, hotScore: 8 },
+      '30d': { plays: 4100, hours: 288.2, hotScore: 7 },
     },
   },
 };
@@ -28,13 +27,13 @@ describe('artist rows', () => {
       slug: 'grateful-dead',
       name: 'Grateful Dead',
       featured: 1,
-      show_count: 2400,
-      source_count: 17000,
+      showCount: 2400,
+      sourceCount: 17000,
       popularity: {
         windows: {
-          '48h': { plays: 120, hours: 0.4, hot_score: 0 },
-          '7d': { plays: 900, hours: 62, hot_score: 0 },
-          '30d': { plays: 4100, hours: 288, hot_score: 0 },
+          '48h': { plays: 120, hours: 0.4, hotScore: 0 },
+          '7d': { plays: 900, hours: 62, hotScore: 0 },
+          '30d': { plays: 4100, hours: 288, hotScore: 0 },
         },
       },
     });
@@ -54,9 +53,9 @@ describe('artist rows', () => {
   });
 
   it('keeps a missing window missing', () => {
-    const windows = { '30d': { plays: 5, hours: 2, hot_score: 1 } };
+    const windows = { '30d': { plays: 5, hours: 2, hotScore: 1 } };
     const item = fromArtistRow(toArtistRow({ ...artist, popularity: { windows } }));
-    expect(item.popularity?.windows).toEqual({ '30d': { plays: 5, hours: 2, hot_score: 0 } });
+    expect(item.popularity?.windows).toEqual({ '30d': { plays: 5, hours: 2, hotScore: 0 } });
   });
 
   it('treats featured 0 and 1 as primary', () => {
