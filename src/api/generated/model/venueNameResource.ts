@@ -4,10 +4,10 @@
  * Relisten catalog
  * OpenAPI spec version: v4
  */
-import type { VenueNameKind } from './venueNameKind';
+import type { VenueNameResourceKind } from './venueNameResourceKind';
 
 export interface VenueNameResource {
   /** @nullable */
   name: string | null;
-  kind: VenueNameKind;
+  kind: VenueNameResourceKind;
 }

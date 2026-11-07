@@ -162,8 +162,12 @@ export type VenueListItem = {
   slug: string;
   name?: string;
   location?: string;
-  /** The artist's shows there. */
+  /** Shows there: the artist's, on an artist's list; every artist's, on the full list. */
   showCount: number;
+  /** ISO country code, on the full list (its country filter). */
+  country?: string;
+  /** Official and short names ("MSG"), on the full list, for search. */
+  otherNames?: string[];
 };
 
 /** A row of an artist's tour list. */

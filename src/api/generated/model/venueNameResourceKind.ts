@@ -5,11 +5,10 @@
  * OpenAPI spec version: v4
  */
 
-export type VenueNameKind = typeof VenueNameKind[keyof typeof VenueNameKind];
+export type VenueNameResourceKind = typeof VenueNameResourceKind[keyof typeof VenueNameResourceKind];
 
 
-export const VenueNameKind = {
+export const VenueNameResourceKind = {
   official: 'official',
   short: 'short',
-  spelling: 'spelling',
 } as const;

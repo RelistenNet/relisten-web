@@ -1,43 +1,68 @@
-import { findArtistBySlug, venues } from '@/data/artists';
+import { artistIdForSlug, findArtistBySlug, venues } from '@/data/artists';
+import { allVenues } from '@/data/venues';
 import DataTable from '@/ui/table/DataTable';
 import type { Column } from '@/ui/table/types';
 import { tableSearchParams, toTableState } from '@/ui/table/params';
 import { queryTable, type TableSpec } from '@/ui/table/query';
-import { artistVenuesUrl, venueUrl } from '@/lib/urls';
+import { artistVenuesUrl, venuesUrl, venueUrl } from '@/lib/urls';
 import { numberFormat } from '@/lib/utils';
 import type { VenueListItem } from '@/domain/types';
 import { Link } from '@timber-js/app/client';
 import ArtistCover from '@/ui/base/ArtistCover';
-import PageHeader from '@/ui/base/PageHeader';
+import PageHeader, { type StatItem } from '@/ui/base/PageHeader';
 import { deny } from '@timber-js/app/server';
-import { artistIdForSlug } from '@/data/artists';
 
-// Every venue an artist has played, from the cached venue list.
+// Venues as a table: every venue an artist played (/artists/phish/venues), or
+// every venue across all artists (/venues), each from its cached list.
 
-const FILTER_IDS = [] as const;
+const FILTER_IDS = ['country'] as const;
 const searchParams = tableSearchParams(FILTER_IDS);
 
-const spec: TableSpec<VenueListItem> = {
+const countryNames = new Intl.DisplayNames(['en'], { type: 'region' });
+const countryName = (code: string) => {
+  try {
+    return countryNames.of(code) ?? code;
+  } catch {
+    return code;
+  }
+};
+
+const baseSpec: TableSpec<VenueListItem> = {
   sorts: {
     name: (v) => v.name,
     location: (v) => v.location,
     shows: (v) => v.showCount,
   },
   defaultSort: { id: 'shows', dir: 'desc' },
-  searchText: (v) => [v.name, v.location].filter(Boolean).join(' '),
+  // Other names too, so "MSG" finds Madison Square Garden.
+  searchText: (v) => [v.name, v.location, ...(v.otherNames ?? [])].filter(Boolean).join(' '),
   filters: [],
   pageSize: 25,
 };
 
-export default async function VenuesIndex({ artistSlug }: { artistSlug: string }) {
-  const [artist, venues, params] = await Promise.all([
-    findArtistBySlug(artistSlug),
-    venuesForArtist(artistSlug),
+const allVenuesSpec: TableSpec<VenueListItem> = {
+  ...baseSpec,
+  filters: [
+    {
+      kind: 'select',
+      id: 'country',
+      label: 'Country',
+      value: (v) => v.country ?? null,
+      optionLabel: countryName,
+    },
+  ],
+};
+
+export default async function VenuesIndex({ artistSlug }: { artistSlug?: string }) {
+  const [artist, list, params] = await Promise.all([
+    artistSlug ? findArtistBySlug(artistSlug) : undefined,
+    artistSlug ? venuesForArtist(artistSlug) : allVenues.get(),
     searchParams.get(),
   ]);
-  if (!artist) deny(404);
+  if (artistSlug && !artist) deny(404);
 
-  const result = queryTable(venues, spec, toTableState(params, FILTER_IDS));
+  const spec = artistSlug ? baseSpec : allVenuesSpec;
+  const result = queryTable(list, spec, toTableState(params, FILTER_IDS));
   const columns: Column<VenueListItem>[] = [
     {
       id: 'name',
@@ -68,15 +93,28 @@ export default async function VenuesIndex({ artistSlug }: { artistSlug: string }
     },
   ];
 
+  const stats: StatItem[] = [{ label: 'Venues', value: numberFormat.format(list.length) }];
+  if (!artistSlug) {
+    const countries = new Set(list.map((v) => v.country).filter(Boolean));
+    stats.push(
+      {
+        label: 'Shows',
+        value: numberFormat.format(list.reduce((n, v) => n + v.showCount, 0)),
+      },
+      { label: 'Countries', value: numberFormat.format(countries.size) }
+    );
+  }
+
   return (
     <div className="detail-page flex flex-col gap-6">
       <PageHeader
-        cover={<ArtistCover artist={artist} />}
+        cover={artist && <ArtistCover artist={artist} />}
         title="Venues"
-        stats={[{ label: 'Venues', value: numberFormat.format(venues.length) }]}
+        meta={artistSlug ? undefined : ['Across all artists']}
+        stats={stats}
       />
       <DataTable
-        pathname={artistVenuesUrl(artistSlug)}
+        pathname={artistSlug ? artistVenuesUrl(artistSlug) : venuesUrl}
         params={params}
         spec={spec}
         result={result}
@@ -89,7 +127,8 @@ export default async function VenuesIndex({ artistSlug }: { artistSlug: string }
   );
 }
 
-export async function venuesIndexMetadata({ artistSlug }: { artistSlug: string }) {
+export async function venuesIndexMetadata({ artistSlug }: { artistSlug?: string }) {
+  if (!artistSlug) return { title: 'Venues' };
   const artist = await findArtistBySlug(artistSlug);
   return artist ? { title: `Venues | ${artist.name}` } : {};
 }

@@ -24,6 +24,9 @@ export const artistTodayUrl = (
 export const songUrl = (artistSlug: string, songSlug: string) =>
   `/artists/${artistSlug}/songs/${songSlug}`;
 
+/** Every venue, across all artists. */
+export const venuesUrl = '/venues';
+
 /** A venue's page: all artists, or one artist's shows there. */
 export const venueUrl = (venueSlug: string, artistSlug?: string) =>
   artistSlug ? `/artists/${artistSlug}/venues/${venueSlug}` : `/venues/${venueSlug}`;

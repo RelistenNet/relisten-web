@@ -9917,14 +9917,6 @@
         ],
         "type": "string"
       },
-      "VenueNameKind": {
-        "enum": [
-          "official",
-          "short",
-          "spelling"
-        ],
-        "type": "string"
-      },
       "VenueNameResource": {
         "required": [
           "name",
@@ -9937,10 +9929,17 @@
             "nullable": true
           },
           "kind": {
-            "$ref": "#/components/schemas/VenueNameKind"
+            "$ref": "#/components/schemas/VenueNameResourceKind"
           }
         },
         "additionalProperties": false
+      },
+      "VenueNameResourceKind": {
+        "enum": [
+          "official",
+          "short"
+        ],
+        "type": "string"
       },
       "VenueResource": {
         "required": [

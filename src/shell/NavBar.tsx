@@ -108,6 +108,9 @@ export default async function NavBar() {
             <Link className="nav-btn whitespace-nowrap" href="/recently-played" prefetch={false}>
               Live
             </Link>
+            <Link className="nav-btn" href="/venues" prefetch={false}>
+              Venues
+            </Link>
             <Link className="nav-btn" href="/chat" prefetch={false}>
               Chat
             </Link>
