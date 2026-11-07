@@ -43,8 +43,9 @@ function tabsFor(artistSlug: string, features?: Partial<ArtistFeatures>): Tab[] 
     },
   ];
   const page = (label: string, href: string): Tab => ({ label, href, isActive: under(href) });
-  // Normalized artists have songs even without the (setlist) songs flag.
-  if (features?.songs || features?.normalization) {
+  // Songs come from normalization; the older setlist songs flag can be set on
+  // artists with no songs, so it doesn't count.
+  if (features?.normalization) {
     tabs.push(page('Songs', artistSongsUrl(artistSlug)));
   }
   if (features?.perShowVenues || features?.perSourceVenues) {
