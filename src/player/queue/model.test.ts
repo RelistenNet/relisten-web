@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   addToQueue,
+  refreshContext,
+  restoreOnto,
   advanceTo,
   compose,
   contextOrder,
@@ -28,7 +30,6 @@ const item = (key: string, trackId = key): QueueItem => ({
   trackId,
   sourceId: 'src',
   showId: 'show',
-  artistId: 'gd',
   artistSlug: 'grateful-dead',
   artistName: 'Grateful Dead',
   date: '1977-05-08',
@@ -112,10 +113,61 @@ describe('playContext', () => {
     expect(composed(s)[0]).toBe('d3');
   });
 
+  it('playing the current entry of the same context again changes nothing', () => {
+    // The URL follows playback; the page then reports the track already playing.
+    let s = setShuffle(playContext(emptyQueue, show(20), 'c3'), 11);
+    s = advanceTo(s, composed(s)[1]);
+    const current = s.current?.key;
+    const order = composed(s);
+    const again = playContext(s, show(20, 'fresh'), `fresh${current?.slice(1)}`, { seed: 99 });
+    expect(again.current?.key).toBe(current);
+    expect(again.shuffle).toEqual(s.shuffle);
+    expect(composed(again)).toEqual(order);
+  });
+
   it('throws if a context key collides with Next up', () => {
     const s = addToQueue(playing(), [item('n1')]);
     const clash: QueueContext = { ...show(1, 'z', showRef('show-2')), items: [item('n1')] };
     expect(() => playContext(s, clash, 'n1')).toThrow(/duplicate key "n1"/);
+  });
+});
+
+describe('refreshContext', () => {
+  it('fills in the full list behind a one-item placeholder without moving current', () => {
+    const ref = showRef('song-ish');
+    const placeholder: QueueContext = { ref, label: 'Dark Star', items: [item('p1', 't3')] };
+    let s = addToQueue(playContext(emptyQueue, placeholder, 'p1'), [item('n1')]);
+    s = refreshContext(s, {
+      ref,
+      label: 'Dark Star',
+      items: ['t1', 't2', 't3', 't4'].map((t) => item(`f-${t}`, t)),
+    });
+    expect(s.current?.key).toBe('p1'); // kept: gapless doesn't skip a beat
+    expect(composed(s)).toEqual(['f-t1', 'f-t2', 'p1', 'n1', 'f-t4']);
+  });
+
+  it('ignores a different context', () => {
+    const s = playing();
+    expect(refreshContext(s, show(2, 'x', showRef('other')))).toBe(s);
+  });
+});
+
+describe('restoreOnto', () => {
+  const saved = () =>
+    setRepeat(setShuffle(addToQueue(playing(), [item('n1'), item('n2')]), 5), 'all');
+
+  it('restores the saved queue when the page started nothing', () => {
+    expect(restoreOnto(emptyQueue, saved())).toEqual(saved());
+  });
+
+  it('keeps what the page started, and carries over Next up, repeat and shuffle', () => {
+    const page = playContext(emptyQueue, show(3, 'p', showRef('show-2')), 'p2');
+    const s = restoreOnto(page, saved());
+    expect(s.current?.key).toBe('p2');
+    expect(keys(s.upNext)).toEqual(['n1', 'n2']);
+    expect(s.repeat).toBe('all');
+    expect(s.shuffle).toEqual({ seed: 5, anchorKey: 'p2' });
+    expect(composed(s).slice(0, 3)).toEqual(['p2', 'n1', 'n2']);
   });
 });
 
@@ -291,13 +343,13 @@ describe('sameRef', () => {
   it('compares by value, ignoring key order and undefined fields', () => {
     const a: ContextRef = {
       kind: 'song',
-      artistId: 'gd',
+      artistSlug: 'gd',
       songSlug: 'dark-star',
       params: { year: '1972', sort: 'date' },
     };
     const b: ContextRef = {
       kind: 'song',
-      artistId: 'gd',
+      artistSlug: 'gd',
       songSlug: 'dark-star',
       params: { sort: 'date', year: '1972' },
     };

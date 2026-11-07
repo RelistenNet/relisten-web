@@ -225,6 +225,9 @@ importers:
       '@timber-js/app':
         specifier: 0.2.0-alpha.233
         version: 0.2.0-alpha.233(@content-collections/core@0.15.3(typescript@7.0.2))(@content-collections/vite@0.3.1(@content-collections/core@0.15.3(typescript@7.0.2))(vite@8.3.6(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)))(@vitejs/plugin-react@6.2.1(@rolldown/plugin-babel@0.3.0(@babel/core@7.29.7(supports-color@9.4.0))(@babel/runtime@7.29.7)(rolldown@1.2.16)(vite@8.3.6(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)))(babel-plugin-react-compiler@1.0.0)(oxc-transform-react@0.156.0)(vite@8.3.6(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)))(@vitejs/plugin-rsc@0.5.39(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vite@8.3.6(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)))(nuqs@2.10.2(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(satteri@0.11.6)(vite-plugin-satteri@0.3.12(satteri@0.11.6)(vite@8.3.6(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)))(vite@8.3.6(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))(zod@4.6.7)
+      '@xstate/react':
+        specifier: 6.1.0
+        version: 6.1.0(@types/react@19.3.0)(react@19.3.0)(xstate@5.33.3)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -241,8 +244,8 @@ importers:
         specifier: ^4.4.0
         version: 4.4.0
       gapless:
-        specifier: 4.4.3
-        version: 4.4.3
+        specifier: 5.0.0-alpha.0
+        version: 5.0.0-alpha.0
       isomorphic-fetch:
         specifier: 3.0.0
         version: 3.0.0
@@ -300,6 +303,9 @@ importers:
       ua-parser-js:
         specifier: ^2.0.10
         version: 2.0.10
+      xstate:
+        specifier: ^5.33.3
+        version: 5.33.3
       zod:
         specifier: ^4.6.7
         version: 4.6.7
@@ -2872,6 +2878,15 @@ packages:
   '@vitest/spy@5.1.0':
     resolution: {integrity: sha512-2DPO5OMHWKrBngC+fCmTQqemNF0gidRhp3lxbBmRhW+M1XJrfgPpqNqWVevXtn2f2ufD5ZaR1B6B641aAlcX5A==}
 
+  '@xstate/react@6.1.0':
+    resolution: {integrity: sha512-ep9F0jGTI63B/jE8GHdMpUqtuz7yRebNaKv8EMUaiSi29NOglywc2X2YSOV/ygbIK+LtmgZ0q9anoEA2iBSEOw==}
+    peerDependencies:
+      react: 19.3.0
+      xstate: ^5.28.0
+    peerDependenciesMeta:
+      xstate:
+        optional: true
+
   acorn@8.19.0:
     resolution: {integrity: sha512-oJlA3XiRm7Cyk6qFD2Jn8ak9B7jSy0qy00ADO3+8dpT0LSjFihQYv4C02LFCSYJV3Q37xYwwRy5m+IpIiUzqWw==}
     engines: {node: '>=0.4.0'}
@@ -3322,8 +3337,8 @@ packages:
   fuzzysort@3.1.0:
     resolution: {integrity: sha512-sR9BNCjBg6LNgwvxlBd0sBABvQitkLzoVY9MYYROQVX/FvfJ4Mai9LsGhDgd8qYdds0bY77VzYd5iuB+v5rwQQ==}
 
-  gapless@4.4.3:
-    resolution: {integrity: sha512-oSwoZWJzcZjYsrTH67EivLlR6gNfZZxSga91uYF727n9tz4mZi+9tZRJiclHEeQn5zVnUTF0r3HDjyeXyFqhbQ==}
+  gapless@5.0.0-alpha.0:
+    resolution: {integrity: sha512-x7lw2eR55vjW+HLs7Egg1338WsaUHQWbpmhbZvp4VMFKu7UGtdzuFKAefrVOgYSmigRXg1q7v9pvxTzRByGd6Q==}
 
   gensync@1.0.0-beta.2:
     resolution: {integrity: sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg==}
@@ -4606,6 +4621,15 @@ packages:
       '@types/react':
         optional: true
 
+  use-isomorphic-layout-effect@1.2.1:
+    resolution: {integrity: sha512-tpZZ+EX0gaghDAiFR37hj5MgY6ZN55kLiPkJsKxBMZ6GZdOSPJXiOzPM984oPYZ5AnehYx5WQp1+ME8I/P/pRA==}
+    peerDependencies:
+      '@types/react': '*'
+      react: 19.3.0
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+
   use-sidecar@1.1.3:
     resolution: {integrity: sha512-Fedw0aZvkhynoPYlA5WXrMCAMm+nSWdZt6lzJQ7Ok8S6Q+VsHmHpRWndVRJ8Be0ZbkfPc5LRYH+5XrzXcEeLRQ==}
     engines: {node: '>=10'}
@@ -4768,8 +4792,8 @@ packages:
     resolution: {integrity: sha512-Hl0ZOAs672vg+06kfujwRhoS6/jehvULrlFkuF2dRu6pHgA8U06h3xqNIqNNU1LTXPcedxByAR4GS6pwQK0mgA==}
     engines: {node: '>=20'}
 
-  xstate@5.33.2:
-    resolution: {integrity: sha512-8tC7yXgeCvpT8gKEeEje6ikJJG1wpnoLiXe+HfECW8m10ubMd3QxKOwWA8KxPJVBcLwfdRoMKYxIBGYKmo37/A==}
+  xstate@5.33.3:
+    resolution: {integrity: sha512-AnDRjS/GyKHmbA1PyhVCYBqYsA7EGe3KGgeD0ht3NFsXzoz7leX/HQDFX9QlHFJ/ltLHPsgChJYwPzRvB/0b4g==}
 
   y18n@5.0.8:
     resolution: {integrity: sha512-0pfFzegeDWJHJIAmTLRP2DwHjdF5s7jo9tuztdQxAhINCdvS+3nGINqPd00AphqJR/0LhANUS6/+7SCb98YOfA==}
@@ -6805,6 +6829,16 @@ snapshots:
 
   '@vitest/spy@5.1.0': {}
 
+  '@xstate/react@6.1.0(@types/react@19.3.0)(react@19.3.0)(xstate@5.33.3)':
+    dependencies:
+      react: 19.3.0
+      use-isomorphic-layout-effect: 1.2.1(@types/react@19.3.0)(react@19.3.0)
+      use-sync-external-store: 1.7.0(react@19.3.0)
+    optionalDependencies:
+      xstate: 5.33.3
+    transitivePeerDependencies:
+      - '@types/react'
+
   acorn@8.19.0: {}
 
   ajv-draft-04@1.0.0(ajv@8.20.0):
@@ -7236,9 +7270,9 @@ snapshots:
 
   fuzzysort@3.1.0: {}
 
-  gapless@4.4.3:
+  gapless@5.0.0-alpha.0:
     dependencies:
-      xstate: 5.33.2
+      xstate: 5.33.3
 
   gensync@1.0.0-beta.2: {}
 
@@ -8651,6 +8685,12 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.3.0
 
+  use-isomorphic-layout-effect@1.2.1(@types/react@19.3.0)(react@19.3.0):
+    dependencies:
+      react: 19.3.0
+    optionalDependencies:
+      '@types/react': 19.3.0
+
   use-sidecar@1.1.3(@types/react@19.3.0)(react@19.3.0):
     dependencies:
       detect-node-es: 1.1.0
@@ -8759,7 +8799,7 @@ snapshots:
       is-wsl: 3.1.1
       powershell-utils: 0.1.0
 
-  xstate@5.33.2: {}
+  xstate@5.33.3: {}
 
   y18n@5.0.8: {}
 

@@ -18,7 +18,6 @@ export type QueueItem = {
   trackId: string;
   sourceId: string;
   showId: string;
-  artistId: string;
   artistSlug: string;
   artistName: string;
   /** YYYY-MM-DD */
@@ -34,9 +33,9 @@ export type QueueItem = {
 export type ContextRef =
   | { kind: 'show'; showId: string; sourceId: string }
   /** `params` are the song table's URL state (q, sort, filters), without the page. */
-  | { kind: 'song'; artistId: string; songSlug: string; params: Record<string, string> }
+  | { kind: 'song'; artistSlug: string; songSlug: string; params: Record<string, string> }
   | { kind: 'playlist'; playlistId: string }
-  | { kind: 'tour'; artistId: string; tourSlug: string }
+  | { kind: 'tour'; artistSlug: string; tourSlug: string }
   | { kind: 'venue'; venueSlug: string };
 
 export type QueueContext = {
@@ -125,6 +124,11 @@ export function view(state: QueueState) {
  * kept. If `ctx.ref` is the context already playing, existing entries keep
  * their keys (matched by trackId), so gapless keeps their decoded audio and
  * just jumps. With shuffle on, the order re-anchors at the start entry.
+ *
+ * Playing the current context from the current entry changes nothing but the
+ * items (see refreshContext). That's what happens when the URL follows
+ * playback and the page reports the track that's already playing; re-anchoring
+ * there would bring already-played shuffled entries back.
  */
 export function playContext(
   state: QueueState,
@@ -133,9 +137,11 @@ export function playContext(
   opts: { seed?: number } = {}
 ): QueueState {
   const prev = state.context;
-  const items = prev && sameRef(prev.ref, ctx.ref) ? reuseKeys(prev.items, ctx.items) : ctx.items;
+  const same = !!prev && sameRef(prev.ref, ctx.ref);
+  const items = same ? reuseKeys(prev.items, ctx.items) : ctx.items;
   const startIndex = ctx.items.findIndex((i) => i.key === startKey);
   const start = items[startIndex] ?? items[0];
+  if (same && start && start.key === state.current?.key) return refreshContext(state, ctx);
   assertUnique([...items, ...state.upNext]);
   if (!start) return { ...state, context: { ...ctx, items }, cursor: null };
 
@@ -146,6 +152,43 @@ export function playContext(
     cursor: start.key,
     shuffle: state.shuffle ? { seed: opts.seed ?? state.shuffle.seed, anchorKey: start.key } : null,
   };
+}
+
+/**
+ * Replace the items of the context that's playing (fetched again, or the full
+ * list arriving after a one-item placeholder), keeping keys by trackId so
+ * nothing in gapless is interrupted. A different context is ignored.
+ */
+export function refreshContext(state: QueueState, ctx: QueueContext): QueueState {
+  const prev = state.context;
+  if (!prev || !sameRef(prev.ref, ctx.ref)) return state;
+  const items = reuseKeys(prev.items, ctx.items);
+  assertUnique([...items, ...state.upNext]);
+  const current =
+    state.current?.from === 'context'
+      ? (() => {
+          const item = items.find((i) => i.key === state.current?.key);
+          return item ? { ...state.current, item } : state.current;
+        })()
+      : state.current;
+  return { ...state, context: { ...ctx, items }, current };
+}
+
+/**
+ * Combine a saved queue (after a reload) with what the page has already
+ * started. If the page played a context first, it wins; the saved Next up,
+ * repeat and shuffle mode carry over. Otherwise the saved queue is restored.
+ */
+export function restoreOnto(page: QueueState, saved: QueueState): QueueState {
+  if (!page.context && !page.current) return saved;
+  const taken = new Set(compose(page).map((i) => i.key));
+  let merged: QueueState = {
+    ...page,
+    upNext: [...page.upNext, ...saved.upNext.filter((i) => !taken.has(i.key))],
+    repeat: saved.repeat,
+  };
+  if (saved.shuffle && !page.shuffle) merged = setShuffle(merged, saved.shuffle.seed);
+  return merged;
 }
 
 /** Add to the front of Next up. With nothing current, the first item becomes current. */
