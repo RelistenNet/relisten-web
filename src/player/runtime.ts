@@ -202,6 +202,10 @@ function followPlayback(item: QueueItem): void {
 /** Start playback (every play goes through here: transport, prompts, autoplay). */
 export function startPlayback(): void {
   engine?.play();
+  // Asking to play makes this the tab that last started playback, even if
+  // it was already playing (another tab may have taken the saved queue
+  // since). Not while booting (hydratePlayer claims then) or in embeds.
+  if (playerActor.getSnapshot().matches('ready')) storage?.claim();
 }
 
 // ---- hydration ----------------------------------------------------------------

@@ -188,7 +188,7 @@ Crawlers render pages, and headless browsers often allow autoplay. So a page loa
 
 ### Song pages
 
-A song context needs every matching row, but the page renders one page of the table, and sending all rows would make the page payload heavy. So **play** on a row plays that row at once, as a one-item `song` context, using the URL already on the page. `/api/queue?artist=…&song=…&q=…&sort=…&year=…&sbd=…` then returns the whole filtered list, in table order, and `REFRESH_CONTEXT` applies it. The playing entry keeps its key, matched by track id, so nothing restarts. The route and the page share `features/song-detail/spec.ts`, so they filter and sort identically.
+A song row's play button queues **the performances on screen**, in table order, starting at that row. The page already has them: `SongDetail` passes the visible rows' items to a `SongQueueProvider` around the table, and `PlayTrackButton` reads it. There's no request. The queue's ref includes the table's URL state, including the page, so another row on the same page reuses the queue and keeps its loaded audio. Another page or filter is another queue.
 
 ### Callers
 
@@ -218,7 +218,6 @@ A song context needs every matching row, but the page renders one page of the ta
 - **Items store their `mp3Url`.** That's one URL, about 120 bytes per item, so a 400-track queue is roughly 50 KB. They're archive.org and phish.in file URLs, which don't change. A broken one fails like any bad URL ("error loading your audio").
 - **`proxyStreamUrl` is applied when the entry is built,** so proxying can change without touching saved queues.
 - **No FLAC.** The console-only `window.FLAC` preference was dropped along with stored FLAC URLs.
-- **`/api/queue` serves song pages only** (see Song pages): the full filtered list, with each item's `mp3Url`.
 - **Saved queues are version 2.** Version 1 queues had no URLs; they're ignored.
 
 ## gapless status (2026-11-07: #31 merged; published as `gapless@5.0.0-alpha.0` on the `alpha` tag)
@@ -282,7 +281,7 @@ Repeat, `snapshot`/`restore` and `onChange` came in the next commit (above).
    - Published as `5.0.0-alpha.0`. The demo doesn't use the new API yet.
 2. **relisten-web model:** `model.ts`: types, `compose`, the operations and the seeded shuffle, with unit tests. No UI.
 3. **relisten-web plumbing (one PR):**
-   - the player machine, engine, position actor, `storage.ts` and `/api/queue` (song lists);
+   - the player machine, engine, position actor and `storage.ts`;
    - move `PlayerManager`, `PlayTrackButton`, `PlayerBar`, the embeds and restore onto it;
    - remove Redux.
    - Playwright checks: reload restores the queue paused at the saved position, and playing a show keeps Next up.
