@@ -180,7 +180,12 @@ type QueueState = {
 Crawlers render pages, and headless browsers often allow autoplay. So a page load must not fetch audio files from audio.relisten.net:
 
 - **gapless starts with preloading off** (`preloadNumTracks: 0`). The engine turns it on (2 tracks) at the first progress frame that's actually playing. A paused queue, whether restored after a reload or set up by a track page, downloads nothing.
-- **A track page autoplays only after the visitor has interacted with the document** (`navigator.userActivation.hasBeenActive`; see `src/player/autoplay.ts`). Otherwise `playShow` queues the tape paused and shows a "Ready to play" prompt. Embeds are exempt: the host page grants autoplay through the iframe's `allow` attribute. Every other command (song-row play, Play next, the queue panel) comes from a click.
+- **A track page autoplays only for someone who has interacted with it, or a returning listener** (`src/player/autoplay.ts`). The browser's autoplay policy can't be used: headless Chromium allows autoplay by default, and Chromium has no `getAutoplayPolicy`, so the only way to ask is to call `play()`, which downloads the audio.
+  - **Interacted:** `navigator.userActivation.hasBeenActive`.
+  - **Returning listener:** someone who once started playback by interacting gets `relisten.listened` in localStorage, and later page loads autoplay for them, unless `navigator.webdriver` is set. Crawlers start with empty storage and can't set it without interacting.
+  - **Otherwise** `playShow` queues the tape paused and shows "Ready to play". If the browser blocks an autoplay anyway, gapless reports it and "Autoplay blocked" appears.
+  - **Embeds are exempt:** the host page grants autoplay through the iframe's `allow` attribute.
+  - Every other command (song-row play, Play next, the queue panel) comes from a click.
 
 ### Song pages
 

@@ -22,6 +22,7 @@ import { scrobblePlay } from './scrobble';
 import { dismissAutoplayToast, showAudioError, showPlayPrompt } from './toasts';
 import { queueSearchParams, MAX_QUEUE_SHOWS } from '@/lib/searchParams/queueSearchParams';
 import { createUrlResolver } from './queue/resolver';
+import { rememberListener } from './autoplay';
 import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
 import { trackHref, type TrackRoute } from '@/ui/shows/trackHref';
 import { splitShowDate } from '@/lib/utils';
@@ -126,6 +127,8 @@ if (isBrowser) {
       },
       onPlayingChange: (playing) => {
         playbackActor.send({ type: 'PLAYING', playing });
+        // Someone who started playback by interacting autoplays next time.
+        if (playing) rememberListener();
         // The tab that starts playback owns the saved queue.
         if (playing && playerActor.getSnapshot().matches('ready')) storage?.claim();
       },
