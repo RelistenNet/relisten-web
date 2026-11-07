@@ -124,9 +124,15 @@ export function createQueueStorage({
       flushPosition();
     },
 
-    /** This tab started playback: it owns the saved queue from now on. */
+    /**
+     * This tab started playback: it owns the saved queue from now on. Anything
+     * it saved while another tab owned storage is written now, so the queue
+     * and the position stored next to it are both this tab's.
+     */
     claim() {
       write(OWNER_KEY, { tabId: thisTab(), at: new Date(now()).toISOString() });
+      flushQueue();
+      flushPosition();
     },
 
     isOwner,

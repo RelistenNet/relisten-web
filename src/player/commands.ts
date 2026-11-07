@@ -18,7 +18,7 @@ import {
 } from './queue/items';
 import type { ContextRef, RepeatMode } from './queue/model';
 import { canAutoplay } from './autoplay';
-import { addUrls, getEngine, playerActor } from './runtime';
+import { addUrls, getEngine, playerActor, startPlayback } from './runtime';
 import { showPlayPrompt } from './toasts';
 
 const newSeed = () => Math.floor(Math.random() * 2 ** 31);
@@ -65,8 +65,8 @@ export function playShow({
   const engine = getEngine();
   if (startTime && startTime > 0) engine?.seek(startTime);
   if (!play) return;
-  if (canAutoplay()) engine?.play();
-  else showPlayPrompt({ blockedByBrowser: false, playNow: () => getEngine()?.play() });
+  if (canAutoplay()) startPlayback();
+  else showPlayPrompt({ blockedByBrowser: false, playNow: startPlayback });
 }
 
 /**
@@ -97,7 +97,7 @@ export function playSongRow({
     startKey: item.key,
     seed: newSeed(),
   });
-  getEngine()?.play();
+  startPlayback();
 
   void fetch(
     queueSearchParams.href('/api/queue', { artist: row.artistSlug, song: songSlug, ...params })
@@ -129,7 +129,7 @@ export function addToQueue(items: ItemData[], urls: UrlMap): void {
 /** Play an entry of the queue (the queue panel). */
 export function jumpTo(key: string, play = true): void {
   playerActor.send({ type: 'JUMP_TO', key });
-  if (play) getEngine()?.play();
+  if (play) startPlayback();
 }
 
 /** Play a track of the playing context by its track id (an embed's track list). */
@@ -149,9 +149,14 @@ export const setRepeat = (repeat: RepeatMode) => playerActor.send({ type: 'SET_R
 
 // ---- transport ------------------------------------------------------------------
 
-export const play = () => getEngine()?.play();
+export const play = startPlayback;
 export const pause = () => getEngine()?.pause();
-export const togglePlayPause = () => getEngine()?.toggle();
+export function togglePlayPause(): void {
+  const engine = getEngine();
+  if (!engine) return;
+  if (engine.isPlaying || engine.wantsPlay) engine.pause();
+  else startPlayback();
+}
 export const next = () => getEngine()?.next();
 export const previous = () => getEngine()?.previous();
 export const seek = (time: number) => getEngine()?.seek(time);

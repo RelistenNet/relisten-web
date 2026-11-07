@@ -21,6 +21,7 @@ import { createListenTracker } from './listenTracker';
 import { scrobblePlay } from './scrobble';
 import { dismissAutoplayToast, showAudioError, showPlayPrompt } from './toasts';
 import { queueSearchParams, MAX_QUEUE_SHOWS } from '@/lib/searchParams/queueSearchParams';
+import { createUrlResolver } from './queue/resolver';
 import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
 import { trackHref, type TrackRoute } from '@/ui/shows/trackHref';
 import { splitShowDate } from '@/lib/utils';
@@ -130,8 +131,7 @@ if (isBrowser) {
       },
       onStatus: (statuses) => playbackActor.send({ type: 'STATUS', statuses }),
       onError: () => showAudioError(),
-      onPlayBlocked: () =>
-        showPlayPrompt({ blockedByBrowser: true, playNow: () => engine?.play() }),
+      onPlayBlocked: () => showPlayPrompt({ blockedByBrowser: true, playNow: startPlayback }),
     }
   );
 
@@ -165,7 +165,7 @@ if (isBrowser) {
 
     const list = compose(queue);
     syncEngine(queue, list);
-    void resolveMissing(queue, list);
+    void resolver.kick();
 
     const current = queue.current?.item ?? null;
     if (current && current.key !== lastCurrent) followPlayback(current);
@@ -220,41 +220,32 @@ function followPlayback(item: QueueItem): void {
 
 // ---- fetching what's missing --------------------------------------------------
 
-const inFlight = new Set<string>();
-const failedAt = new Map<string, number>();
-const RETRY_MS = 30_000;
+const resolver = createUrlResolver({
+  has: (trackId) => urls.has(trackId),
+  add: addUrls,
+  fetchUrls: async (shows) => {
+    const res = await fetch(queueSearchParams.href('/api/queue', { shows: shows.join(',') }));
+    if (!res.ok) throw new Error(`/api/queue ${res.status}`);
+    return ((await res.json()) as { urls: UrlMap }).urls;
+  },
+  latest: () => {
+    const queue = playerActor.getSnapshot().context.queue;
+    return { list: compose(queue), current: queue.current?.item ?? null };
+  },
+  // Rebuild the entries from the queue as it is now, with the new URLs.
+  onResolved: () => syncEngine(playerActor.getSnapshot().context.queue),
+  batchSize: MAX_QUEUE_SHOWS,
+});
 
-/** Fetch stream URLs for queued tracks that don't have them (after a reload). */
-async function resolveMissing(queue: QueueState, list: QueueItem[]): Promise<void> {
-  const missing = list.filter((i) => !urls.has(i.trackId));
-  if (!missing.length) return;
-
-  // The current entry's show first, then the rest, in queue order.
-  const current = queue.current?.item;
-  const order = current && !urls.has(current.trackId) ? [current, ...missing] : missing;
-  const shows = [...new Set(order.map((i) => i.showId))].filter((id) => {
-    if (inFlight.has(id)) return false;
-    const failed = failedAt.get(id);
-    return !failed || Date.now() - failed > RETRY_MS;
-  });
-
-  for (let i = 0; i < shows.length; i += MAX_QUEUE_SHOWS) {
-    const batch = shows.slice(i, i + MAX_QUEUE_SHOWS);
-    batch.forEach((id) => inFlight.add(id));
-    try {
-      const res = await fetch(queueSearchParams.href('/api/queue', { shows: batch.join(',') }));
-      if (!res.ok) throw new Error(String(res.status));
-      const body = (await res.json()) as { urls: UrlMap };
-      addUrls(body.urls);
-      batch.forEach((id) => failedAt.delete(id));
-    } catch {
-      batch.forEach((id) => failedAt.set(id, Date.now()));
-    } finally {
-      batch.forEach((id) => inFlight.delete(id));
-    }
-    // Rebuild the entries from the queue as it is now, with the new URLs.
-    syncEngine(playerActor.getSnapshot().context.queue);
-  }
+/**
+ * Start playback. If the current entry has no URL yet (a reload, a failed
+ * request), the engine waits for it, and the URLs are fetched again now:
+ * the listener asked, so don't wait out the retry backoff.
+ */
+export function startPlayback(): void {
+  if (!engine) return;
+  engine.play();
+  if (engine.wantsPlay) void resolver.kick({ force: true });
 }
 
 // ---- hydration ----------------------------------------------------------------

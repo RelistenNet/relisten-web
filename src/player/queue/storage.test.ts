@@ -91,6 +91,24 @@ describe('queue storage', () => {
     expect(s.loadQueue()?.repeat).toBe('one');
   });
 
+  it('taking over ownership writes the queue and position saved while not the owner', () => {
+    const storage = memoryStorage();
+    const a = createQueueStorage({ storage, tabId: 'a' });
+    const b = createQueueStorage({ storage, tabId: 'b' });
+    a.claim();
+    a.saveQueue(queue('one'));
+    vi.advanceTimersByTime(250);
+    // b edits its queue and plays on while a owns storage: held back…
+    b.saveQueue(queue('all'));
+    b.savePosition({ key: 'b-track', time: 42 });
+    vi.advanceTimersByTime(1000);
+    expect(a.loadQueue()?.repeat).toBe('one');
+    // …then b starts playback: its queue and position must land together.
+    b.claim();
+    expect(a.loadQueue()?.repeat).toBe('all');
+    expect(a.loadPosition()).toMatchObject({ key: 'b-track', time: 42 });
+  });
+
   it('flush writes pending changes immediately', () => {
     const storage = memoryStorage();
     const s = createQueueStorage({ storage, tabId: 'a' });
