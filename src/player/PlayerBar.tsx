@@ -6,9 +6,10 @@ import { Link } from '@timber-js/app/client';
 import React, { Suspense, use, useRef, useState } from 'react';
 import { browser } from 'react-dom';
 
-import { FastForwardIcon, ListMusicIcon, PauseIcon, PlayIcon, RewindIcon } from 'lucide-react';
+import { FastForwardIcon, PauseIcon, PlayIcon, RewindIcon } from 'lucide-react';
 import { next, previous, seek, setVolume as setPlayerVolume, togglePlayPause } from './commands';
 import { useCurrentItem, useIsPlaying, usePlayback } from './hooks';
+import QueueButton from './QueuePanel';
 import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '@/lib/utils';
 import Flex from '@/ui/base/Flex';
 
@@ -204,19 +205,7 @@ function PlayerInner() {
           </div>
         </div>
       )}
-      {activeTrack && (
-        <Link
-          href={showHref}
-          className="
-            flex w-[40px] cursor-pointer items-center justify-center self-center text-text-muted
-            active:text-text-primary max-lg:hidden
-          "
-        >
-          <div>
-            <ListMusicIcon size={22} />
-          </div>
-        </Link>
-      )}
+      {activeTrack && <QueueButton />}
     </Flex>
   );
 }

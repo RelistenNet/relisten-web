@@ -3,6 +3,8 @@ import { durationToHHMMSS } from '@/lib/utils';
 import type { ShowRow } from '@/ui/shows/rows';
 import type { Column } from '@/ui/table/types';
 import PlayTrackButton from './PlayTrackButton';
+import QueueMenu from '@/player/QueueMenu';
+import { songRowItem } from '@/player/queue/items';
 
 // Columns only song pages have: playing a performance in place, and its length.
 
@@ -53,4 +55,14 @@ export const lengthColumn: Column<ShowRow> = {
       </Tooltip>
     );
   },
+};
+
+/** Play next / Add to queue for a performance. */
+export const queueColumn: Column<ShowRow> = {
+  id: 'queue',
+  width: 'w-12',
+  label: 'Queue',
+  srOnlyLabel: true,
+  align: 'right',
+  cell: (r) => <QueueMenu item={songRowItem(r)} />,
 };
