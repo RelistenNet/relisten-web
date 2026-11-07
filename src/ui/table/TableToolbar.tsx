@@ -5,7 +5,7 @@ import { SearchIcon, XIcon } from 'lucide-react';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { tableHref, type TableParams } from '@/ui/table/params';
 import cn from '@/lib/cn';
-import { useMarkOwnNavigation, useMarkStale } from './TablePending';
+import { useMarkStale } from './TablePending';
 import type { ToolbarFilter } from './types';
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -85,11 +85,8 @@ export default function TableToolbar({ params, filters, searchPlaceholder }: Pro
   // The rows on screen don't match the query until its results render.
   useMarkStale(status === 'waiting' || status === 'searching');
 
-  const markOwnNavigation = useMarkOwnNavigation();
-  const go = (patch: TableParams) => {
-    markOwnNavigation?.();
+  const go = (patch: TableParams) =>
     router.push(tableHref(pathname, params, patch), { scroll: false });
-  };
 
   return (
     // Without JS, the search box still works as a plain GET form.
