@@ -278,4 +278,7 @@ export function hydratePlayer(): void {
     });
   }
   playerActor.send({ type: 'HYDRATE', saved });
+  // Playback that started while booting (a track page that autoplayed) skipped
+  // claiming storage; this tab is the one that last started playback.
+  if (engine?.isPlaying) storage?.claim();
 }
