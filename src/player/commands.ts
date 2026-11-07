@@ -5,19 +5,11 @@
 // ---------------------------------------------------------------------------
 
 import type { Source } from '@/domain/types';
-import {
-  showContext,
-  songRowItem,
-  withKeys,
-  type ContextPayload,
-  type ItemData,
-} from './queue/items';
-import type { ContextRef, RepeatMode } from './queue/model';
+import { showContext } from './queue/items';
+import type { QueueItem } from './queue/model';
 import { canAutoplay } from './autoplay';
 import { getEngine, playbackActor, playerActor, startPlayback } from './runtime';
 import { showPlayPrompt } from './toasts';
-
-const newSeed = () => Math.floor(Math.random() * 2 ** 31);
 
 /**
  * Play a tape from one of its tracks (a show page, or an embed). Next up is
@@ -47,16 +39,10 @@ export function playShow({
   /** Seconds into the track (a `?t=` link). */
   startTime?: number;
 }): void {
-  const payload = showContext({ show, source, artistSlug, artistName, trackSlugs });
-  const items = withKeys(payload.items);
-  const start = items.find((i) => i.trackSlug === trackSlug) ?? items[0];
+  const ctx = showContext({ show, source, artistSlug, artistName, trackSlugs });
+  const start = ctx.items.find((i) => i.trackSlug === trackSlug) ?? ctx.items[0];
   if (!start) return;
-  playerActor.send({
-    type: 'PLAY_CONTEXT',
-    ctx: { ref: payload.ref, label: payload.label, items },
-    startKey: start.key,
-    seed: newSeed(),
-  });
+  playerActor.send({ type: 'PLAY_CONTEXT', ctx, startKey: start.key });
   const engine = getEngine();
   if (startTime && startTime > 0) engine?.seek(startTime);
   if (!play) return;
@@ -66,45 +52,26 @@ export function playShow({
 
 /**
  * Play a song page's visible performances, in table order, from one of them.
- * Another row on the same page (same filters, sort and page) reuses the
- * queue, so its loaded audio is kept.
+ * Tracks already in the queue keep their keys, so their loaded audio is kept.
  */
 export function playSongRows({
   items,
   label,
   startTrackId,
-  ref,
 }: {
-  items: ItemData[];
+  items: QueueItem[];
   label: string;
   startTrackId: string;
-  ref: ContextRef;
 }): void {
-  const keyed = withKeys(items);
-  const start = keyed.find((i) => i.trackId === startTrackId);
+  const start = items.find((i) => i.trackId === startTrackId);
   if (!start) return;
-  playerActor.send({
-    type: 'PLAY_CONTEXT',
-    ctx: { ref, label, items: keyed },
-    startKey: start.key,
-    seed: newSeed(),
-  });
+  playerActor.send({ type: 'PLAY_CONTEXT', ctx: { label, items }, startKey: start.key });
   startPlayback();
 }
 
-/** Add to the front of Next up. */
-export function playNext(items: ItemData[]): void {
-  playerActor.send({ type: 'PLAY_NEXT', items: withKeys(items) });
-}
-
-/** Add to the end of Next up. */
-export function addToQueue(items: ItemData[]): void {
-  playerActor.send({ type: 'ADD_TO_QUEUE', items: withKeys(items) });
-}
-
-/** Play an entry of the queue (the queue panel). */
+/** Play an entry of the queue. */
 export function jumpTo(key: string, play = true): void {
-  playerActor.send({ type: 'JUMP_TO', key });
+  playerActor.send({ type: 'GOTO', key });
   if (play) startPlayback();
 }
 
@@ -116,23 +83,11 @@ export function jumpToTrack(trackId: string, play = true): void {
   if (item) jumpTo(item.key, play);
 }
 
-export const moveInQueue = (key: string, after: string) =>
-  playerActor.send({ type: 'MOVE', key, after });
-export const removeFromQueue = (key: string) => playerActor.send({ type: 'REMOVE', key });
-export const setShuffle = (on: boolean) =>
-  playerActor.send({ type: 'SET_SHUFFLE', seed: on ? newSeed() : null });
-export const setRepeat = (repeat: RepeatMode) => playerActor.send({ type: 'SET_REPEAT', repeat });
-
 // ---- transport ------------------------------------------------------------------
 
 export const play = startPlayback;
 export const pause = () => getEngine()?.pause();
-export function togglePlayPause(): void {
-  const engine = getEngine();
-  if (!engine) return;
-  if (engine.isPlaying || engine.wantsPlay) engine.pause();
-  else startPlayback();
-}
+export const togglePlayPause = () => (getEngine()?.isPlaying ? pause() : startPlayback());
 export const next = () => getEngine()?.next();
 export const previous = () => getEngine()?.previous();
 export const seek = (time: number) => getEngine()?.seek(time);

@@ -10,7 +10,7 @@
 import { Queue } from 'gapless';
 import { createActor } from 'xstate';
 import { replaceUrl } from '@timber-js/app/client';
-import { playerMachine } from './player.machine';
+import { playerLogic } from './queueLogic';
 import { playbackLogic } from './playback';
 import { compose, type QueueItem, type QueueState } from './queue/model';
 import { createQueueStorage, type QueueStorage } from './queue/storage';
@@ -32,7 +32,7 @@ declare global {
   }
 }
 
-export const playerActor = createActor(playerMachine);
+export const playerActor = createActor(playerLogic);
 export const playbackActor = createActor(playbackLogic);
 playerActor.start();
 playbackActor.start();
@@ -42,7 +42,7 @@ const isBrowser = typeof window !== 'undefined';
 function toEntry(item: QueueItem): EngineEntry {
   return {
     key: item.key,
-    url: proxyStreamUrl(item.mp3Url),
+    url: proxyStreamUrl(item.mp3Url) ?? item.mp3Url,
     metadata: {
       trackId: item.trackId,
       title: item.title,
@@ -63,7 +63,6 @@ function syncEngine(queue: QueueState, list = compose(queue)): void {
   engine?.sync({
     entries: list.map(toEntry),
     currentKey: queue.current?.key ?? null,
-    repeat: queue.repeat,
   });
 }
 
@@ -77,6 +76,7 @@ if (isBrowser) {
 
   const listens = createListenTracker();
   const queueOf = () => playerActor.getSnapshot().context.queue;
+  const saving = () => playerActor.getSnapshot().context.mode === 'ready';
   const itemFor = (key: string) => compose(queueOf()).find((i) => i.key === key);
 
   engine = createEngine(
@@ -90,14 +90,14 @@ if (isBrowser) {
         ...callbacks,
       }),
     {
-      onAdvanced: (key) => playerActor.send({ type: 'ADVANCED', key }),
+      onAdvanced: (key) => playerActor.send({ type: 'GOTO', key }),
       onProgress: ({ key, currentTime, duration, isPaused }) => {
         playbackActor.send({ type: 'PROGRESS', key, currentTime, duration });
         if (!isPaused) dismissAutoplayToast();
         const item = itemFor(key);
         if (!item) return;
         if (listens.progress(item.trackId, { currentTime, isPaused })) scrobblePlay(item.trackId);
-        if (playerActor.getSnapshot().matches('ready')) {
+        if (saving()) {
           storage?.savePosition({
             key,
             time: currentTime,
@@ -109,8 +109,6 @@ if (isBrowser) {
         playbackActor.send({ type: 'PLAYING', playing });
         // Someone who started playback by interacting autoplays next time.
         if (playing) rememberListener();
-        // The tab that starts playback owns the saved queue.
-        if (playing && playerActor.getSnapshot().matches('ready')) storage?.claim();
       },
       onStatus: (statuses) => playbackActor.send({ type: 'STATUS', statuses }),
       onError: () => showAudioError(),
@@ -123,11 +121,7 @@ if (isBrowser) {
   engine.setVolume(volume);
   playbackActor.send({ type: 'VOLUME', volume });
 
-  storage = createQueueStorage({
-    storage: window.localStorage,
-    // Lazy: embeds never save, so they never need (or write) a tab id.
-    tabId,
-  });
+  storage = createQueueStorage({ storage: window.localStorage });
   window.addEventListener('pagehide', () => storage?.flush());
 
   // ---- reacting to the machine ----------------------------------------------
@@ -137,11 +131,11 @@ if (isBrowser) {
   let lastCurrent: string | null = null;
 
   playerActor.subscribe((snapshot) => {
-    const queue = snapshot.context.queue;
+    const { queue, mode } = snapshot.context;
     // Saved separately from the change check: becoming ready (after
     // hydration) must save the queue a page started while booting, even
     // though the queue itself didn't change.
-    if (snapshot.matches('ready') && queue !== lastSaved) {
+    if (mode === 'ready' && queue !== lastSaved) {
       lastSaved = queue;
       storage?.saveQueue(queue);
     }
@@ -157,24 +151,6 @@ if (isBrowser) {
   });
 
   window.relistenPlayer = { playerActor, playbackActor, engine };
-}
-
-/**
- * This tab's id for the saved queue's owner rule. In sessionStorage, so a
- * reload is the same tab (and still owns the queue it saved).
- */
-function tabId(): string {
-  const make = () => crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
-  try {
-    let id = sessionStorage.getItem('relisten.tab');
-    if (!id) {
-      id = make();
-      sessionStorage.setItem('relisten.tab', id);
-    }
-    return id;
-  } catch {
-    return make();
-  }
 }
 
 /**
@@ -205,22 +181,18 @@ function followPlayback(item: QueueItem): void {
 /** Start playback (every play goes through here: transport, prompts, autoplay). */
 export function startPlayback(): void {
   engine?.play();
-  // Asking to play makes this the tab that last started playback, even if
-  // it was already playing (another tab may have taken the saved queue
-  // since). Not while booting (hydratePlayer claims then) or in embeds.
-  if (playerActor.getSnapshot().matches('ready')) storage?.claim();
 }
 
 // ---- hydration ----------------------------------------------------------------
 
 /**
  * Read the saved queue, after hydration so the first render matched the
- * server's. A page that already started playback keeps its show. Embeds
+ * server's. A page that already started playback keeps its queue. Embeds
  * play one show and save nothing.
  */
 export function hydratePlayer(): void {
   if (!isBrowser) return;
-  if (!playerActor.getSnapshot().matches('booting')) return;
+  if (playerActor.getSnapshot().context.mode !== 'booting') return;
   if (window.location.pathname.startsWith('/embed')) {
     playerActor.send({ type: 'EMBED' });
     return;
@@ -237,8 +209,6 @@ export function hydratePlayer(): void {
       duration: position.duration,
     });
   }
+  // A page that already started playback keeps it; the saved queue is dropped.
   playerActor.send({ type: 'HYDRATE', saved });
-  // Playback that started while booting (a track page that autoplayed) skipped
-  // claiming storage; this tab is the one that last started playback.
-  if (engine?.isPlaying) storage?.claim();
 }

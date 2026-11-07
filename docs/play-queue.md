@@ -72,16 +72,15 @@ TrackInfo.key                 // new field
 ## relisten-web: architecture
 
 ```
- UI (client components)        commands.ts                player machine (xstate, pure)
+ UI (client components)        commands.ts            player state (queueLogic.ts, pure reducer)
  ┌──────────────────────┐   ┌───────────────┐   ┌────────────────────────────────────┐
- │ track rows, song rows│──▶│ playShow,     │──▶│ context: QueueState                │
- │ PlayerManager (URL)  │   │ playSongRow,  │   │ booting → ready  (or ephemeral)    │
- │ PlayerBar, embeds    │   │ playNext, add,│   │ queue edits: root-level assigns    │
- │ keyboard, media keys │   │ jumpTo, …     │   │   calling the pure model.ts ops    │
- └─────────▲────────────┘   │ play/pause/   │   └─────────┬──────────────────▲───────┘
-           │ useSelector    │ seek          │             │ subscribe        │ ADVANCED
-           │ (@xstate/react)└───────┬───────┘             ▼                  │
-           │                        │ transport   ┌──────────────────────────┴────────┐
+ │ track rows, song rows│──▶│ playShow,     │──▶│ { mode, queue: QueueState }        │
+ │ PlayerManager (URL)  │   │ playSongRows, │   │ mode: booting → ready  (or embed)  │
+ │ PlayerBar, embeds    │   │ jumpTo, …     │   │ PLAY_CONTEXT, GOTO → model.ts      │
+ │ keyboard, media keys │   │ play/pause/   │   └─────────┬──────────────────▲───────┘
+ └─────────▲────────────┘   │ seek          │             │ subscribe        │ GOTO
+           │ useSelector    └───────┬───────┘             ▼                  │
+           │ (@xstate/react)        │ transport   ┌──────────────────────────┴────────┐
            │                        └────────────▶│ runtime.ts                        │
            │                                      │ engine.sync(compose(queue));      │
            │                                      │ save (storage.ts); URL/title sync │
@@ -95,34 +94,31 @@ TrackInfo.key                 // new field
 
 ### Principles
 
-- **Order and the current entry are declarative.** The machine holds `QueueState`. The engine reconciles gapless to it: `setEntries(compose(state))`, which is safe to repeat since unchanged keys cost nothing, then `goto(state.current)` if gapless is elsewhere. When gapless moves on by itself (a track ends, media keys), the engine sends `ADVANCED { key }`, the machine records it, and the next reconcile is a no-op. This is all synchronous, so a click and a track ending can't race.
+- **Order and the current entry are declarative.** The reducer holds `QueueState`. The engine reconciles gapless to it: `setEntries(compose(state))`, which is safe to repeat since unchanged keys cost nothing, then `goto(state.current)` if gapless is elsewhere. When gapless moves on by itself (a track ends, media keys), the engine sends `GOTO { key }`, the reducer records it, and the next reconcile is a no-op. This is all synchronous, so a click and a track ending can't race.
 - **Transport is imperative.** Play, pause, seek and volume go straight to the engine. They aren't queue state.
-- **Pure model, thin machine.** `model.ts` holds plain functions: `compose`, the operations and the seeded shuffle, all unit-tested. The machine's queue edits are `assign`s that call them.
-- **The UI never touches gapless.** It reads with `useSelector(playerActor, selector)` and writes through `commands.ts`.
-- **Position is separate.** Time and duration change about 60 times a second, so they live in a small `fromTransition` actor. Only the scrubber and the time display subscribe to it. The main machine, and every selector on it, change only on edits and track changes. Today every progress frame dispatches to Redux with a new `gaplessTracksMetadata` array, so `TrackList` re-renders on every frame.
+- **Pure model, thin reducer.** `model.ts` holds plain functions (`compose`, `playContext`, `advanceTo`), all unit-tested. `queueLogic.ts` is a `fromTransition` reducer that calls them and tracks whether the queue is saved.
+- **The UI never touches gapless.** It reads with `useSelector(actor, selector)` and writes through `commands.ts`.
+- **Position is separate.** Time and duration change about 60 times a second, so they live in a second small `fromTransition` actor. Only the scrubber and the time display subscribe to it. The queue, and every selector on it, change only on edits and track changes.
 - **No Redux.** The `playback` slice, the Redux `Provider` and `@reduxjs/toolkit`/`react-redux`/`redux` are removed. xstate already ships with gapless, and the app declares `xstate@^5.33.3` so pnpm keeps one copy. The only new dependency is `@xstate/react`.
 
-### The player machine (`src/player/player.machine.ts`)
+### Player state (`src/player/queueLogic.ts`)
 
-The machine is pure. It has no invoked actors. The engine and storage subscribe to it from outside (`src/player/runtime.ts`), so its tests need no fakes, and the engine has one input: the machine's snapshot.
+`{ mode, queue }`, where `mode` is:
 
-- `booting`: before the saved queue is read. On the server, and on the first client render, selectors see this empty snapshot, so the HTML matches. A track page can already start playback here, because React runs `PlayerManager`'s effect before `Providers`'. Nothing is saved yet.
-- `ready`: `HYDRATE { saved }` has run. `restoreOnto` keeps what the page started and carries over the saved Next up, repeat and shuffle. Changes are saved from now on, including the queue the page started while booting.
-- `ephemeral`: embeds. There's one show, no Next up or shuffle, and nothing is saved or restored.
+- `booting`: before the saved queue is read. On the server, and on the first client render, selectors see this empty state, so the HTML matches. A track page can already start playback here, because React runs `PlayerManager`'s effect before `Providers'`. Nothing is saved yet.
+- `ready`: `HYDRATE { saved }` has run. **If the page already started playback, the saved queue is ignored**; otherwise it's restored. Changes are saved from now on, including the queue the page started while booting.
+- `embed`: one show; nothing is saved or restored.
 
-Queue edits (`PLAY_CONTEXT`, `REFRESH_CONTEXT`, `PLAY_NEXT`, `ADD_TO_QUEUE`, `MOVE`, `REMOVE`, `JUMP_TO`, `ADVANCED`, `SET_SHUFFLE`, `SET_REPEAT`) are `assign`s that call `model.ts`. A model error, such as a duplicate key, is logged and the queue kept: a throw inside an xstate action would stop the actor.
-
-**Each item carries its `mp3Url`**, as the API gives it (proxied when played). A restored queue plays with no request, so there's no URL-resolution step or state. Items without an mp3 file aren't queued.
+**Each item carries its `mp3Url`**, as the API gives it (proxied when played). A restored queue plays with no request. Items without an mp3 file aren't queued.
 
 ### Types (`src/player/queue/model.ts`)
 
 ```ts
 type QueueItem = {
-  key: string; // unique per entry. The same track can be queued twice.
+  key: string; // a context entry's key is its trackId
   trackId: string;
   sourceId: string;
   showId: string;
-  artistId: string;
   artistSlug: string;
   artistName: string;
   date: string; // YYYY-MM-DD
@@ -130,49 +126,35 @@ type QueueItem = {
   title: string;
   duration?: number;
   venue?: string;
-}; // Includes mp3Url (stored raw; proxied when played).
-
-type ContextRef =
-  | { kind: 'show'; showId: string; sourceId: string }
-  | { kind: 'song'; artistId: string; songSlug: string; filters: SongFilters }
-  | { kind: 'playlist'; playlistId: string }
-  | { kind: 'tour'; artistId: string; tourSlug: string }
-  | { kind: 'venue'; venueSlug: string };
+  mp3Url: string; // stored raw; proxied when played
+};
 
 type QueueState = {
-  context: { ref: ContextRef; label: string; items: QueueItem[] } | null; // natural order
+  context: { label: string; items: QueueItem[] } | null;
   upNext: QueueItem[]; // not yet played
   current: { key: string; from: 'context' | 'upNext'; item: QueueItem } | null;
   cursor: string | null; // the context entry playback continues after
-  shuffle: { seed: number; anchorKey: string } | null;
-  repeat: 'off' | 'all' | 'one';
 };
 ```
 
-- **Keys are made by the caller,** when building items from page data. The model never creates keys: it's pure, and the shuffle seed is an argument.
+- **A context entry's key is its track id.** The same track gets the same key whichever page plays it, so playing another track of the playing show (or another row of a song page) keeps the decoded audio and just jumps. A context lists a track at most once; `playContext` drops duplicates.
+- **Next up entries will get their own random keys** (the same track can be queued twice). Nothing adds them yet: "Play next", "Add to queue" and the panel come with the queue UI. `compose` and `advanceTo` already handle them.
 - **`version` and `updatedAt` belong to the saved format** (`storage.ts`), not the model.
-- **The handoff's `QueueItem` gains `artistSlug`, `artistName` and `trackSlug`.** The player bar, the URL sync and `document.title` need them. Today they come from the single-show fields in `PlaybackState`, which stop making sense once the queue mixes shows.
 
 ### Composing the gapless list
 
 `compose(state) → QueueItem[]`:
 
-    order = shuffle ? [anchor, ...seededShuffle(rest, seed)] : context.items
-    if current is from the context:   order[..current] + upNext + order[current+1..]
-    if current is from Next up:       order[..cursor] + current + upNext + order[cursor+1..]
+    if current is from the context:   context[..current] + upNext + context[current+1..]
+    if current is from Next up:       context[..cursor] + current + upNext + context[cursor+1..]
 
-- **History stays in the list,** so `previous()` works, and repeat `all` wraps to the start of the context. Next up is always empty by the time playback wraps, so repeat `all` loops the context only.
-- **A Next up item leaves the list once playback moves past it.** `advanceTo` drops it, and `setEntries` removes it from gapless. It's behind the current entry by then, so nothing is interrupted. Going back with `previous()` from the next track lands on the context entry before it, as in Spotify.
-- **The shuffled order is reproducible after a reload** from the stored seed and anchor.
+- **History stays in the list,** so `previous()` works.
+- **A Next up item leaves the list once playback moves past it.** `advanceTo` drops it, and `setEntries` removes it from gapless. It's behind the current entry by then, so nothing is interrupted.
 
 ### Operations (pure, unit-tested)
 
-- `playContext(state, ctx, startKey)`: replaces the context and keeps `upNext`. If `ctx.ref` equals the current ref, it **reuses the existing entries' keys** (matched by `trackId`), so a click on another track in the playing show keeps the decoded audio and just jumps. With shuffle on, it re-anchors at the start entry, using the seed passed in.
-- `playNext(state, items)` and `addToQueue(state, items)`: add to the front or the end of `upNext`. If nothing is current, the first item becomes current.
-- `jumpTo(state, key)` and `advanceTo(state, key)`: the same move. Jumping to a Next up item drops the Next up items before it, as in Spotify. Jumping to a context entry moves the cursor.
-- `move(state, key, { after })`: within Next up.
-- `remove(state, key)`: from Next up or the context. **The current entry can't be removed;** the UI doesn't offer it.
-- `setShuffle(state, seed | null)` and `setRepeat(state, mode)`.
+- `playContext(state, ctx, startKey)`: replaces the context and keeps `upNext`. Because keys are track ids, replaying the playing context costs gapless nothing.
+- `advanceTo(state, key)`: gapless moved on, or the user picked an entry. Jumping to a Next up item drops the Next up items before it, as in Spotify. Jumping to a context entry moves the cursor.
 
 ### No audio until playback starts
 
@@ -184,41 +166,29 @@ Crawlers render pages, and headless browsers often allow autoplay. So a page loa
   - **Returning listener:** someone who once started playback by interacting gets `relisten.listened` in localStorage, and later page loads autoplay for them, unless `navigator.webdriver` is set. Crawlers start with empty storage and can't set it without interacting.
   - **Otherwise** `playShow` queues the tape paused and shows "Ready to play". If the browser blocks an autoplay anyway, gapless reports it and "Autoplay blocked" appears.
   - **Embeds are exempt:** the host page grants autoplay through the iframe's `allow` attribute.
-  - Every other command (song-row play, Play next, the queue panel) comes from a click.
+  - Every other command comes from a click.
 
 ### Song pages
 
-A song row's play button queues **the performances on screen**, in table order, starting at that row. The page already has them: `SongDetail` passes the visible rows' items to a `SongQueueProvider` around the table, and `PlayTrackButton` reads it. There's no request. The queue's ref includes the table's URL state, including the page, so another row on the same page reuses the queue and keeps its loaded audio. Another page or filter is another queue.
+A song row's play button queues **the performances on screen**, in table order, starting at that row. The page already has them: `SongDetail` passes the visible rows' items to a `SongQueueProvider` around the table, and `PlayTrackButton` reads it. There's no request. Another row keeps the loaded audio of tracks already queued, since their keys are their track ids.
 
 ### Callers
 
-- `PlayerManager`: on the URL of a show track, `playContext({ kind: 'show', … }, items, keyFor(songSlug))`. The navigation-means-play behaviour stays, including back and forward.
-- `PlayTrackButton`: `playContext({ kind: 'song', … }, filteredRows, keyFor(row))`.
+- `PlayerManager`: on the URL of a show track, `playShow(…)`. The navigation-means-play behaviour stays, including back and forward.
+- `PlayTrackButton`: `playSongRows(visibleRows, row)`.
+- Embeds' track lists: `jumpToTrack(trackId)`.
 - Keyboard and media keys: transport commands.
 - **URL sync:** the URL and title follow the current entry only while the page shows that entry's show. The queue never navigates.
 - **`src/ui` doesn't read the player.** `TrackList` takes a `playing` prop, and `src/player/PlayingTrackList.tsx` provides it. That's the repo's import rule for `src/ui`.
-- **Media session:** entries carry a title, artist, album (date and venue) and artwork (`/album-art/{showId}.png`), so lock screens show the track. The old player sent none of these.
+- **Media session:** entries carry a title, artist, album (date and venue) and artwork (`/album-art/{showId}.png`), so lock screens show the track.
 
 ### Persistence (`src/player/queue/storage.ts`)
 
-- `relisten.queue` holds `QueueState`. It's written on every structural change, debounced by 250 ms, and the reader checks `version`.
-- `relisten.position` holds `{ key, time, updatedAt }`, throttled to once a second (today's throttle). It's separate, so the large blob isn't rewritten during playback.
+- `relisten.queue` holds `QueueState`. It's written on every structural change, debounced by 250 ms, and the reader checks `version` (3). Older saved queues are ignored.
+- `relisten.position` holds `{ key, time, updatedAt }`, throttled to once a second. It's separate, so the large blob isn't rewritten during playback.
+- **Multiple tabs: whichever saved last wins.** Two tabs playing at once is rare, and the worst case is that a reload restores the other tab's queue.
 - **No migration** from the old keys (`lastPlayedUrl` and friends). They're ignored, and `/api/restore` is gone.
-
-### Multiple tabs
-
-- **The tab that last started playback owns the queue.** It writes `relisten.owner = { tabId, at }` when playback starts. The tab id lives in `sessionStorage`, so a reload is the same tab and still owns its queue. It's created only when ownership is checked, so embeds write nothing.
-- **Only the owner writes** `relisten.queue` and `relisten.position`.
-- **Other tabs don't write.** Live re-reading on the `storage` event is not built yet; another tab picks the queue up on its next load.
-- **Pressing play in another tab makes it the owner.** It picks up the stored queue and position.
-- The same rule carries over to account sync: the device that last played wins.
-
-### Stream URLs
-
-- **Items store their `mp3Url`.** That's one URL, about 120 bytes per item, so a 400-track queue is roughly 50 KB. They're archive.org and phish.in file URLs, which don't change. A broken one fails like any bad URL ("error loading your audio").
-- **`proxyStreamUrl` is applied when the entry is built,** so proxying can change without touching saved queues.
-- **No FLAC.** The console-only `window.FLAC` preference was dropped along with stored FLAC URLs.
-- **Saved queues are version 2.** Version 1 queues had no URLs; they're ignored.
+- **Items store their `mp3Url`.** About 120 bytes per item, so a 400-track queue is roughly 50 KB. They're archive.org and phish.in file URLs, which don't change. `proxyStreamUrl` is applied when the entry is built, so proxying can change without touching saved queues. No FLAC.
 
 ## gapless status (2026-11-07: #31 merged; published as `gapless@5.0.0-alpha.0` on the `alpha` tag)
 
@@ -264,11 +234,11 @@ Repeat, `snapshot`/`restore` and `onChange` came in the next commit (above).
 
 ## Out of scope for v1
 
-- Account sync: the shape is ready for it.
+- Account sync.
 - Saved playlists in the UI.
 - A sample-gapless repeat `one`.
 - Shuffling Next up.
-- Tour and venue contexts are typed but have no entry points yet.
+- Playlist, tour and venue contexts: added when something plays them.
 
 ## Build order
 
@@ -281,10 +251,11 @@ Repeat, `snapshot`/`restore` and `onChange` came in the next commit (above).
    - Published as `5.0.0-alpha.0`. The demo doesn't use the new API yet.
 2. **relisten-web model:** `model.ts`: types, `compose`, the operations and the seeded shuffle, with unit tests. No UI.
 3. **relisten-web plumbing (one PR):**
-   - the player machine, engine, position actor and `storage.ts`;
+   - the player state, engine, position actor and `storage.ts`;
    - move `PlayerManager`, `PlayTrackButton`, `PlayerBar`, the embeds and restore onto it;
    - remove Redux.
    - Playwright checks: reload restores the queue paused at the saved position, and playing a show keeps Next up.
-4. **UI:**
-   - "Play next" and "Add to queue" on track rows and song rows;
-   - a queue panel with drag to reorder, remove, shuffle and repeat.
+4. **UI (with its model operations, added here rather than ahead of their callers):**
+   - "Play next" and "Add to queue" on track rows and song rows (`playNext`, `addToQueue`, random keys for Next up entries);
+   - a queue panel with drag to reorder and remove (`move`, `remove`);
+   - shuffle (seeded, reproducible after a reload, Next up never shuffled) and repeat (gapless already supports `setRepeat`).

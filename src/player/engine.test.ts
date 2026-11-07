@@ -20,7 +20,7 @@ function fakeQueue() {
   const listeners = new Set<(c: QueueChange) => void>();
   const statuses = new Map<string, TrackInfo['webAudioLoadingState']>();
   let pending = false;
-  let repeat: RepeatMode = 'off';
+  const repeat: RepeatMode = 'off';
   let preload = 0;
   const emit = () => {
     if (pending) return;
@@ -52,9 +52,6 @@ function fakeQueue() {
       restarts.push(key);
       playing = opts.play ?? false;
       emit();
-    },
-    setRepeat: (mode) => {
-      repeat = mode;
     },
     onChange(l) {
       listeners.add(l);
@@ -126,7 +123,7 @@ function setup() {
   return { q, cb, engine, progress };
 }
 
-const entry = (key: string, url: string | null = `${key}.mp3`): EngineEntry => ({
+const entry = (key: string, url = `${key}.mp3`): EngineEntry => ({
   key,
   url,
   metadata: {},
@@ -136,7 +133,7 @@ const tick = () => new Promise<void>((r) => queueMicrotask(r));
 describe('engine.sync', () => {
   it('puts the entries in gapless and starts at the current one', () => {
     const { q, engine } = setup();
-    engine.sync({ entries: ['a', 'b', 'c'].map((k) => entry(k)), currentKey: 'b', repeat: 'off' });
+    engine.sync({ entries: ['a', 'b', 'c'].map((k) => entry(k)), currentKey: 'b' });
     expect(q.keys).toEqual(['a', 'b', 'c']);
     expect(q.currentKey).toBe('b');
   });
@@ -146,7 +143,6 @@ describe('engine.sync', () => {
     const input = {
       entries: ['a', 'b'].map((k) => entry(k)),
       currentKey: 'a',
-      repeat: 'off' as const,
     };
     engine.sync(input);
     engine.play();
@@ -159,59 +155,28 @@ describe('engine.sync', () => {
   it('jumps when the state moves the current entry, keeping play state', () => {
     const { q, engine } = setup();
     const entries = ['a', 'b', 'c'].map((k) => entry(k));
-    engine.sync({ entries, currentKey: 'a', repeat: 'off' });
+    engine.sync({ entries, currentKey: 'a' });
     engine.play();
-    engine.sync({ entries, currentKey: 'c', repeat: 'off' });
+    engine.sync({ entries, currentKey: 'c' });
     expect(q.currentKey).toBe('c');
     expect(q.isPlaying).toBe(true);
-  });
-
-  it('leaves out entries without a URL', () => {
-    const { q, engine } = setup();
-    engine.sync({
-      entries: [entry('a'), entry('b', null), entry('c')],
-      currentKey: 'a',
-      repeat: 'off',
-    });
-    expect(q.keys).toEqual(['a', 'c']);
-  });
-
-  it('leaves gapless alone while the current entry has no URL, and plays once it does', () => {
-    const { q, engine } = setup();
-    engine.sync({ entries: [entry('a', null), entry('b', null)], currentKey: 'a', repeat: 'off' });
-    expect(q.keys).toEqual([]);
-    engine.play(); // pressed before the URLs arrived
-    expect(engine.wantsPlay).toBe(true);
-    expect(q.isPlaying).toBe(false);
-
-    engine.sync({ entries: [entry('a'), entry('b')], currentKey: 'a', repeat: 'off' });
-    expect(q.currentKey).toBe('a');
-    expect(q.isPlaying).toBe(true);
-    expect(engine.wantsPlay).toBe(false);
   });
 
   it('starts a restored entry at its saved position, once', () => {
     const { q, engine } = setup();
     const goto = vi.spyOn(q, 'setEntries');
     engine.startAt('b', 42);
-    engine.sync({ entries: [entry('a'), entry('b')], currentKey: 'b', repeat: 'off' });
+    engine.sync({ entries: [entry('a'), entry('b')], currentKey: 'b' });
     expect(goto.mock.calls[0][1]).toMatchObject({ startKey: 'b', startTime: 42 });
-    engine.sync({ entries: [entry('a'), entry('b'), entry('c')], currentKey: 'b', repeat: 'off' });
+    engine.sync({ entries: [entry('a'), entry('b'), entry('c')], currentKey: 'b' });
     expect(goto.mock.calls[1][1]?.startTime).toBeUndefined();
-  });
-
-  it('passes the repeat mode through', () => {
-    const { q, engine } = setup();
-    const setRepeat = vi.spyOn(q, 'setRepeat');
-    engine.sync({ entries: [entry('a')], currentKey: 'a', repeat: 'all' });
-    expect(setRepeat).toHaveBeenCalledWith('all');
   });
 });
 
-describe('engine → machine', () => {
+describe('engine → queue', () => {
   it('reports when gapless moves on by itself', async () => {
     const { q, cb, engine } = setup();
-    engine.sync({ entries: ['a', 'b'].map((k) => entry(k)), currentKey: 'a', repeat: 'off' });
+    engine.sync({ entries: ['a', 'b'].map((k) => entry(k)), currentKey: 'a' });
     await tick();
     expect(cb.onAdvanced).not.toHaveBeenCalled();
     q.endTrack();
@@ -222,8 +187,8 @@ describe('engine → machine', () => {
   it("doesn't echo its own jumps", async () => {
     const { cb, engine } = setup();
     const entries = ['a', 'b', 'c'].map((k) => entry(k));
-    engine.sync({ entries, currentKey: 'a', repeat: 'off' });
-    engine.sync({ entries, currentKey: 'c', repeat: 'off' });
+    engine.sync({ entries, currentKey: 'a' });
+    engine.sync({ entries, currentKey: 'c' });
     await tick();
     expect(cb.onAdvanced).not.toHaveBeenCalled();
   });
@@ -231,10 +196,10 @@ describe('engine → machine', () => {
   it('a click in the same tick as a track ending wins', async () => {
     const { q, cb, engine } = setup();
     const entries = ['a', 'b', 'c'].map((k) => entry(k));
-    engine.sync({ entries, currentKey: 'a', repeat: 'off' });
+    engine.sync({ entries, currentKey: 'a' });
     await tick();
     q.endTrack(); // gapless moves to b; its change event is still pending
-    engine.sync({ entries, currentKey: 'c', repeat: 'off' }); // the click
+    engine.sync({ entries, currentKey: 'c' }); // the click
     await tick();
     expect(q.currentKey).toBe('c');
     expect(cb.onAdvanced).not.toHaveBeenCalled();
@@ -242,7 +207,7 @@ describe('engine → machine', () => {
 
   it('reports load states only when they change', async () => {
     const { q, cb, engine } = setup();
-    engine.sync({ entries: ['a', 'b'].map((k) => entry(k)), currentKey: 'a', repeat: 'off' });
+    engine.sync({ entries: ['a', 'b'].map((k) => entry(k)), currentKey: 'a' });
     expect(cb.onStatus).toHaveBeenLastCalledWith({ a: 'NONE', b: 'NONE' });
     const calls = cb.onStatus.mock.calls.length;
     await tick();
@@ -255,26 +220,17 @@ describe('engine → machine', () => {
 
   it('reports playing changes', () => {
     const { cb, engine } = setup();
-    engine.sync({ entries: [entry('a')], currentKey: 'a', repeat: 'off' });
+    engine.sync({ entries: [entry('a')], currentKey: 'a' });
     engine.play();
     engine.pause();
     expect(cb.onPlayingChange.mock.calls.map((c) => c[0])).toEqual([true, false]);
-  });
-
-  it('toggle pauses a pending play', () => {
-    const { engine } = setup();
-    engine.sync({ entries: [entry('a', null)], currentKey: 'a', repeat: 'off' });
-    engine.toggle();
-    expect(engine.wantsPlay).toBe(true);
-    engine.toggle();
-    expect(engine.wantsPlay).toBe(false);
   });
 });
 
 describe('no audio until playback starts', () => {
   it('keeps preloading off until a progress frame is actually playing', () => {
     const { q, engine, progress } = setup();
-    engine.sync({ entries: ['a', 'b', 'c'].map((k) => entry(k)), currentKey: 'a', repeat: 'off' });
+    engine.sync({ entries: ['a', 'b', 'c'].map((k) => entry(k)), currentKey: 'a' });
     expect(q.preloadNumTracks).toBe(0);
     progress('a', true); // a paused frame (a restored position, a seek while paused)
     expect(q.preloadNumTracks).toBe(0);

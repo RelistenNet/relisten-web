@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Source, Track } from '@/domain/types';
 import type { ShowRow } from '@/ui/shows/rows';
-import { showContext, songRowItem, withKeys } from './items';
+import { showContext, songRowItem } from './items';
 
 const track = (n: number, extra: Partial<Track> = {}): Track => ({
   id: `track_${n}`,
@@ -26,17 +26,17 @@ const source = {
 const show = { id: 'show_1', date: '1977-05-08', venue: { name: 'Barton Hall' } };
 
 describe('showContext', () => {
-  it('lists a tape’s tracks in set order, with a show ref and label', () => {
+  it('lists a tape’s tracks in set order, keyed by track id, with a label', () => {
     const ctx = showContext({
       show,
       source,
       artistSlug: 'grateful-dead',
       artistName: 'Grateful Dead',
     });
-    expect(ctx.ref).toEqual({ kind: 'show', showId: 'show_1', sourceId: 'source_1' });
     expect(ctx.label).toBe('Grateful Dead · 1977-05-08');
     expect(ctx.items.map((i) => i.trackId)).toEqual(['track_1', 'track_2', 'track_3']);
     expect(ctx.items[0]).toEqual({
+      key: 'track_1',
       trackId: 'track_1',
       sourceId: 'source_1',
       showId: 'show_1',
@@ -83,19 +83,11 @@ describe('songRowItem', () => {
       track: track(7, { title: 'Dark Star' }),
     } as unknown as ShowRow;
     expect(songRowItem(row)).toMatchObject({
+      key: 'track_7',
       trackId: 'track_7',
       showId: 'show_9',
       title: 'Dark Star',
     });
     expect(songRowItem({ ...row, track: undefined })).toBeNull();
-  });
-});
-
-describe('withKeys', () => {
-  it('gives each item its own key, even for the same track', () => {
-    const ctx = showContext({ show, source, artistSlug: 'gd', artistName: 'GD' });
-    const items = withKeys([ctx.items[0], ctx.items[0]]);
-    expect(items[0].key).not.toBe(items[1].key);
-    expect(items[0].trackId).toBe(items[1].trackId);
   });
 });

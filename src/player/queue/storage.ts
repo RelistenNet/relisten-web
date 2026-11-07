@@ -4,10 +4,8 @@
 //   relisten.queue     { version, updatedAt, queue: QueueState }, debounced
 //   relisten.position  { key, time, duration, updatedAt }, throttled: it
 //                      changes every frame, so it isn't part of the big blob
-//   relisten.owner     { tabId, at }: the tab that last started playback
 //
-// Only the owner writes, so two open tabs don't overwrite each other's queue.
-// Another tab takes over when it starts playback. Items carry their mp3 URL,
+// With two tabs open, whichever saved last wins. Items carry their mp3 URL,
 // so a restored queue plays with no request.
 // ---------------------------------------------------------------------------
 
@@ -15,31 +13,24 @@ import type { QueueState } from './model';
 
 export const QUEUE_KEY = 'relisten.queue';
 export const POSITION_KEY = 'relisten.position';
-export const OWNER_KEY = 'relisten.owner';
-/** 2: items carry their mp3Url. Older saved queues are ignored. */
-export const STORAGE_VERSION = 2;
+/** 3: keyed by trackId, no context ref, shuffle or repeat. Older saved queues are ignored. */
+export const STORAGE_VERSION = 3;
 
 export type SavedPosition = { key: string; time: number; duration?: number };
 
-type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
+type StorageLike = Pick<Storage, 'getItem' | 'setItem'>;
 
 export function createQueueStorage({
   storage,
-  tabId,
   now = () => Date.now(),
   debounceMs = 250,
   throttleMs = 1000,
 }: {
   storage: StorageLike;
-  /** This tab's id, or a function that makes it (called only when ownership matters). */
-  tabId: string | (() => string);
   now?: () => number;
   debounceMs?: number;
   throttleMs?: number;
 }) {
-  let id: string | null = typeof tabId === 'string' ? tabId : null;
-  const thisTab = () => (id ??= typeof tabId === 'string' ? tabId : tabId());
-
   const read = <T>(key: string): T | null => {
     try {
       const raw = storage.getItem(key);
@@ -56,17 +47,8 @@ export function createQueueStorage({
     }
   };
 
-  /** No owner yet counts as ours: the first tab to save takes it. */
-  const isOwner = () => {
-    const owner = read<{ tabId: string }>(OWNER_KEY);
-    return !owner || owner.tabId === thisTab();
-  };
-
   let queueTimer: ReturnType<typeof setTimeout> | null = null;
   let pendingQueue: QueueState | null = null;
-  /** The last queue and position this tab was given, kept after they're written. */
-  let latestQueue: QueueState | null = null;
-  let latestPosition: SavedPosition | null = null;
   let lastPositionAt = Number.NEGATIVE_INFINITY;
   let pendingPosition: SavedPosition | null = null;
   let positionTimer: ReturnType<typeof setTimeout> | null = null;
@@ -74,7 +56,7 @@ export function createQueueStorage({
   const flushQueue = () => {
     if (queueTimer) clearTimeout(queueTimer);
     queueTimer = null;
-    if (!pendingQueue || !isOwner()) return;
+    if (!pendingQueue) return;
     write(QUEUE_KEY, {
       version: STORAGE_VERSION,
       updatedAt: new Date(now()).toISOString(),
@@ -86,7 +68,7 @@ export function createQueueStorage({
   const flushPosition = () => {
     if (positionTimer) clearTimeout(positionTimer);
     positionTimer = null;
-    if (!pendingPosition || !isOwner()) return;
+    if (!pendingPosition) return;
     lastPositionAt = now();
     write(POSITION_KEY, { ...pendingPosition, updatedAt: new Date(lastPositionAt).toISOString() });
     pendingPosition = null;
@@ -110,7 +92,6 @@ export function createQueueStorage({
     /** Save after `debounceMs` of quiet. */
     saveQueue(queue: QueueState) {
       pendingQueue = queue;
-      latestQueue = queue;
       if (queueTimer) clearTimeout(queueTimer);
       queueTimer = setTimeout(flushQueue, debounceMs);
     },
@@ -118,7 +99,6 @@ export function createQueueStorage({
     /** At most once per `throttleMs`, always ending on the latest position. */
     savePosition(position: SavedPosition) {
       pendingPosition = position;
-      latestPosition = position;
       const wait = lastPositionAt + throttleMs - now();
       if (wait <= 0) flushPosition();
       else if (!positionTimer) positionTimer = setTimeout(flushPosition, wait);
@@ -129,23 +109,6 @@ export function createQueueStorage({
       flushQueue();
       flushPosition();
     },
-
-    /**
-     * This tab started playback: it owns the saved queue from now on. Anything
-     * it saved while another tab owned storage is written now, so the queue
-     * and the position stored next to it are both this tab's.
-     */
-    claim() {
-      write(OWNER_KEY, { tabId: thisTab(), at: new Date(now()).toISOString() });
-      // Always this tab's latest, not only what's pending: another tab may
-      // have written its own queue since this tab's last save completed.
-      if (latestQueue) pendingQueue = latestQueue;
-      if (latestPosition) pendingPosition = latestPosition;
-      flushQueue();
-      flushPosition();
-    },
-
-    isOwner,
   };
 }
 

@@ -1,12 +1,10 @@
 'use client';
 
 import { Pause, Play } from 'lucide-react';
-import { usePathname } from '@timber-js/app/client';
 import type { PlayableTrack } from '@/domain/types';
 import type { ShowRow } from '@/ui/shows/rows';
 import { playSongRows, togglePlayPause } from '@/player/commands';
 import { useCurrentItem, useIsPlaying } from '@/player/hooks';
-import { SONG_FILTER_IDS, songSearchParams } from './spec';
 import { useSongQueue } from './SongQueue';
 import { songRowItem } from '@/player/queue/items';
 
@@ -24,8 +22,6 @@ type Props = {
 export default function PlayTrackButton({ row, track, label }: Props) {
   const isCurrent = useCurrentItem()?.trackId === track.id;
   const isPlaying = useIsPlaying() && isCurrent;
-  const pathname = usePathname();
-  const [tableState] = songSearchParams.useQueryStates();
   const queue = useSongQueue();
 
   if (!track.mp3Url) return null;
@@ -35,17 +31,6 @@ export default function PlayTrackButton({ row, track, label }: Props) {
       togglePlayPause();
       return;
     }
-    // /artists/[artistSlug]/songs/[songSlug]
-    const songSlug = String(pathname).split('/').filter(Boolean).at(-1) ?? '';
-    // The table state that decides which rows are on screen: the queue's identity.
-    const state = tableState as Record<string, unknown>;
-    const params: Record<string, string> = {};
-    for (const k of ['q', 'sort', 'page', ...SONG_FILTER_IDS]) {
-      const v = state[k];
-      if ((typeof v === 'string' && v.trim()) || typeof v === 'number') {
-        params[k] = String(k === 'q' ? String(v).trim() : v);
-      }
-    }
     // Outside the song table's provider, queue just this row.
     const own = songRowItem({ ...row, track });
     const items = queue?.items.length ? queue.items : own ? [own] : [];
@@ -53,7 +38,6 @@ export default function PlayTrackButton({ row, track, label }: Props) {
       items,
       label: queue?.label ?? track.title ?? '',
       startTrackId: track.id,
-      ref: { kind: 'song', artistSlug: row.artistSlug, songSlug, params },
     });
   };
 

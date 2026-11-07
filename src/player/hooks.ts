@@ -6,7 +6,6 @@
 // ---------------------------------------------------------------------------
 
 import { useSelector } from '@xstate/react';
-import { useMemo } from 'react';
 import type { LoadState } from './engine';
 import type { PlaybackState } from './playback';
 import type { QueueItem, QueueState } from './queue/model';
@@ -33,18 +32,8 @@ export const useCurrentItem = (): QueueItem | null => useQueue((q) => q.current?
 export const useIsPlaying = (): boolean => usePlayback((p) => p.playing);
 
 /**
- * Web Audio load state ('LOADED' = gapless-ready) by track id, for the playing
- * context's tracks. Changes a few times per track, not per frame.
+ * Web Audio load state ('LOADED' = gapless-ready) by entry key, which for the
+ * playing context's entries is the track id. Changes a few times per track,
+ * not per frame.
  */
-export function useTrackStatuses(): Record<string, LoadState> {
-  const statuses = usePlayback((p) => p.statuses);
-  const items = useQueue((q) => q.context?.items);
-  return useMemo(() => {
-    const byTrack: Record<string, LoadState> = {};
-    for (const item of items ?? []) {
-      const state = statuses[item.key];
-      if (state) byTrack[item.trackId] = state;
-    }
-    return byTrack;
-  }, [statuses, items]);
-}
+export const useTrackStatuses = (): Record<string, LoadState> => usePlayback((p) => p.statuses);

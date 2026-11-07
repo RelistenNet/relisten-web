@@ -11,20 +11,10 @@
 // off (create it with preloadNumTracks: 0), and the engine turns preloading on
 // at the first progress frame that is actually playing. So a page that loads
 // paused (or a crawler that renders it) fetches no audio.
-//
-// Entries without a URL are left out of gapless. If the current entry has
-// none, gapless is left alone, and a play() waits for it.
 
-import type {
-  Entry,
-  QueueChange,
-  RepeatMode,
-  TrackInfo,
-  TrackMetadata,
-  WebAudioLoadingState,
-} from 'gapless';
+import type { Entry, QueueChange, TrackInfo, TrackMetadata, WebAudioLoadingState } from 'gapless';
 
-export type EngineEntry = { key: string; url: string | null; metadata: TrackMetadata };
+export type EngineEntry = { key: string; url: string; metadata: TrackMetadata };
 
 export type LoadState = WebAudioLoadingState;
 
@@ -48,7 +38,6 @@ export type QueueLike = {
     opts?: { startKey?: string; startTime?: number; play?: boolean }
   ): void;
   goto(key: string, opts?: { play?: boolean; startTime?: number }): void;
-  setRepeat(mode: RepeatMode): void;
   onChange(listener: (change: QueueChange) => void): () => void;
   play(): void;
   pause(): void;
@@ -75,7 +64,6 @@ export type QueueFactory = (callbacks: {
 export type SyncInput = {
   entries: EngineEntry[];
   currentKey: string | null;
-  repeat: RepeatMode;
 };
 
 const STATUS_INTERVAL_MS = 250;
@@ -130,11 +118,7 @@ export function createEngine(createQueue: QueueFactory, callbacks: EngineCallbac
 
   /** The entry the engine last put gapless on; anything else is gapless moving by itself. */
   let expected: string | null = null;
-  /** The latest state, to know whether the current entry is in gapless. */
-  let latest: SyncInput | null = null;
-  /** A play() made before the current entry could play. */
-  let wantPlay = false;
-  /** Where to start an entry the first time it loads (a restored position). */
+  /** Where to start an entry the first time it's current (a restored position). */
   let startAt: { key: string; time: number } | null = null;
 
   queue.onChange((change) => {
@@ -145,75 +129,45 @@ export function createEngine(createQueue: QueueFactory, callbacks: EngineCallbac
     reportStatus(true);
   });
 
-  function sync(input: SyncInput): void {
-    latest = input;
-    queue.setRepeat(input.repeat);
-    const playable = input.entries.filter((e): e is EngineEntry & { url: string } => !!e.url);
-    const { currentKey } = input;
-
-    // The current entry can't play yet: leave gapless alone until it can.
-    if (currentKey && !playable.some((e) => e.key === currentKey)) return;
-
+  function sync({ entries, currentKey }: SyncInput): void {
     const startTime = startAt && startAt.key === currentKey ? startAt.time : undefined;
-    const play = wantPlay || queue.isPlaying;
+    startAt = null;
+    const play = queue.isPlaying;
     expected = currentKey;
-    queue.setEntries(
-      playable.map((e) => ({ key: e.key, url: e.url, metadata: e.metadata })),
-      { startKey: currentKey ?? undefined, startTime, play }
-    );
+    queue.setEntries(entries, { startKey: currentKey ?? undefined, startTime, play });
     // setEntries keeps a surviving current entry; move it if the queue moved.
     if (currentKey && queue.currentKey !== currentKey) {
       queue.goto(currentKey, { play, startTime });
-    }
-    if (currentKey && queue.currentKey === currentKey) {
-      if (startTime !== undefined) startAt = null;
-      if (wantPlay) {
-        wantPlay = false;
-        queue.play();
-      }
     }
     reportPlaying();
     reportStatus(true);
   }
 
-  /** Whether the current entry is in gapless (has a URL). */
-  const ready = () => !!latest?.currentKey && queue.currentKey === latest.currentKey;
-
   function play(): void {
     void queue.resumeAudioContext();
-    if (!ready()) {
-      wantPlay = true;
-      return;
-    }
     queue.play();
     reportPlaying();
   }
 
   function pause(): void {
-    wantPlay = false;
     queue.pause();
     reportPlaying();
   }
 
   return {
     sync,
-    /** Start `key` at `time` once it can play (a restored position). */
+    /** Start `key` at `time` at the next sync that makes it current (a restored position). */
     startAt(key: string, time: number) {
       startAt = { key, time };
     },
     play,
     pause,
-    toggle: () => (queue.isPlaying || wantPlay ? pause() : play()),
     next: () => queue.next(),
     previous: () => queue.previous(),
     seek: (time: number) => queue.seek(time),
     setVolume: (volume: number) => queue.setVolume(volume),
     get isPlaying() {
       return queue.isPlaying;
-    },
-    /** Waiting to play until the current entry can (no URL yet). */
-    get wantsPlay() {
-      return wantPlay;
     },
     /** For debugging (window.relistenPlayer). */
     queue,
