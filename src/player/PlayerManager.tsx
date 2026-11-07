@@ -1,7 +1,7 @@
 'use client';
 
 import { Props, useSourceData } from '@/ui/shows/TrackList';
-import player, { loadTracks } from './player';
+import player, { canAutoplay, loadTracks } from './player';
 import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { tSearchParamsLoader } from '@/lib/searchParams/tSearchParam';
 import { createShowDate } from '@/lib/utils';
@@ -75,7 +75,9 @@ export default function PlayerManager(props: PlayerManagerProps) {
 
       // check if track is already in queue, and re-use
       if (player.currentTrack?.metadata?.trackId === activeTrack?.id) {
-        player.play();
+        if (canAutoplay()) {
+          player.play();
+        }
         return;
       }
 
@@ -86,7 +88,7 @@ export default function PlayerManager(props: PlayerManagerProps) {
         nextFirstTrack &&
         prevFirstTrack.metadata?.trackId === nextFirstTrack.id
       ) {
-        player.gotoTrack(activeTrackIndex, playImmediately);
+        player.gotoTrack(activeTrackIndex, playImmediately && canAutoplay());
         return;
       }
 

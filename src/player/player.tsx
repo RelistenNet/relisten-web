@@ -96,6 +96,76 @@ function dismissAutoplayToast() {
 
 let currentPlaybackMethod: 'HYBRID' | 'HTML5_ONLY' = 'HYBRID'; // reassigned in initGaplessPlayer
 
+// gapless preloads upcoming tracks by downloading them in full. Queues start
+// with preloading off and turn it on once audio is actually playing, so loading
+// a page (including by a crawler that runs JS) fetches no audio.
+const PRELOAD_TRACKS_WHILE_PLAYING = 2;
+
+/**
+ * Whether a page may start playback without a click. Requires that the visitor
+ * has interacted with this document: crawlers that render pages never do, and
+ * headless browsers often allow autoplay, so the browser's own autoplay policy
+ * would still let them stream audio. Embedded players defer to the host page,
+ * which grants autoplay through the iframe's `allow` attribute.
+ */
+export function canAutoplay(): boolean {
+  if (window.self !== window.top) return true;
+  return navigator.userActivation?.hasBeenActive ?? true;
+}
+
+/**
+ * Prompts the visitor to start playback. `blockedByBrowser` adds advice for
+ * sites whose sound permission is blocked; it doesn't apply when we held
+ * playback back ourselves.
+ */
+function showPlayPrompt({ blockedByBrowser }: { blockedByBrowser: boolean }) {
+  // In embeds/iframes the toast covers most of the player and its "lock icon"
+  // advice refers to the host page's address bar. Just stay paused — the
+  // play button is right there.
+  if (window.location.pathname.startsWith('/embed') || window.self !== window.top) return;
+
+  autoplayToastVisible = true;
+  deferToast(() =>
+    toast.warning(blockedByBrowser ? 'Autoplay blocked' : 'Ready to play', {
+      toasterId: 'audio-error',
+      id: 'autoplay-blocked',
+      duration: Infinity,
+      description: (
+        <ol className="m-0 flex flex-col gap-1 pl-0">
+          <li>
+            To start playing, hit <strong>Play now</strong>
+          </li>
+          {blockedByBrowser && (
+            <li>
+              To prevent this in the future, click the <strong>lock icon</strong> in your address
+              bar, select <strong>Sound</strong>, and choose <strong>Always Allow</strong>
+            </li>
+          )}
+        </ol>
+      ),
+      classNames: {
+        toast: '!bg-amber-100 !text-amber-800 !border-amber-500',
+        title: '!text-base !font-semibold !inline !align-middle',
+        icon: '!inline !align-middle !mr-1',
+        actionButton: '!bg-amber-700 !text-white',
+        closeButton: '!border-amber-400',
+      },
+      action: {
+        label: 'Play now',
+        onClick: () => {
+          if (!player) return;
+          player.resumeAudioContext();
+          player.play();
+          dismissAutoplayToast();
+        },
+      },
+      onDismiss: () => {
+        autoplayToastVisible = false;
+      },
+    })
+  );
+}
+
 // Proxy that always delegates to the current `player` instance.
 // This is needed because `export default` captures the value at declaration time,
 // but `player` gets reassigned in initGaplessPlayer/resetPlayer.
@@ -112,6 +182,7 @@ function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Qu
   const listens = createListenTracker();
   return new Queue({
     playbackMethod: options?.playbackMethod ?? 'HYBRID',
+    preloadNumTracks: 0,
     onDebug: (msg: string) => console.debug('[gapless]', msg),
     onProgress: (info: TrackInfo) => {
       if (!store) return;
@@ -123,6 +194,10 @@ function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Qu
         });
         if (!info.isPaused) {
           dismissAutoplayToast();
+
+          if (player && player.preloadNumTracks === 0) {
+            player.preloadNumTracks = PRELOAD_TRACKS_WHILE_PLAYING;
+          }
         }
         const track = store.getState().playback.tracks?.[info.index];
         if (track?.id && listens.progress(track.id, info)) scrobblePlay(track.id);
@@ -232,50 +307,7 @@ function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Qu
         })
       );
     },
-    onPlayBlocked: () => {
-      // In embeds/iframes the toast covers most of the player and its "lock icon"
-      // advice refers to the host page's address bar. Just stay paused — the
-      // play button is right there.
-      if (window.location.pathname.startsWith('/embed') || window.self !== window.top) return;
-      autoplayToastVisible = true;
-      deferToast(() =>
-        toast.warning('Autoplay blocked', {
-          toasterId: 'audio-error',
-          id: 'autoplay-blocked',
-          duration: Infinity,
-          description: (
-            <ol className="m-0 flex flex-col gap-1 pl-0">
-              <li>
-                To start playing, hit <strong>Play now</strong>
-              </li>
-              <li>
-                To prevent this in the future, click the <strong>lock icon</strong> in your address
-                bar, select <strong>Sound</strong>, and choose <strong>Always Allow</strong>
-              </li>
-            </ol>
-          ),
-          classNames: {
-            toast: '!bg-amber-100 !text-amber-800 !border-amber-500',
-            title: '!text-base !font-semibold !inline !align-middle',
-            icon: '!inline !align-middle !mr-1',
-            actionButton: '!bg-amber-700 !text-white',
-            closeButton: '!border-amber-400',
-          },
-          action: {
-            label: 'Play now',
-            onClick: () => {
-              if (!player) return;
-              player.resumeAudioContext();
-              player.play();
-              dismissAutoplayToast();
-            },
-          },
-          onDismiss: () => {
-            autoplayToastVisible = false;
-          },
-        })
-      );
-    },
+    onPlayBlocked: () => showPlayPrompt({ blockedByBrowser: true }),
   });
 }
 
@@ -447,6 +479,7 @@ export function loadTracks(
 
   const activeTrackIndex = tracks.findIndex((t) => t.slug === songSlug);
   const idx = activeTrackIndex >= 0 ? activeTrackIndex : 0;
+  const shouldPlay = playImmediately && canAutoplay();
 
   resetPlayer();
 
@@ -465,14 +498,18 @@ export function loadTracks(
       activeTrack: {
         id: tracks[idx]?.id,
         index: idx,
-        isPaused: !playImmediately,
+        isPaused: !shouldPlay,
         currentTime: seekTime,
         duration: tracks[idx]?.duration,
       },
     })
   );
 
-  player.gotoTrack(idx, playImmediately, seekTime > 0 ? seekTime : undefined);
+  player.gotoTrack(idx, shouldPlay, seekTime > 0 ? seekTime : undefined);
+
+  if (playImmediately && !shouldPlay) {
+    showPlayPrompt({ blockedByBrowser: false });
+  }
 }
 
 export default playerProxy;
