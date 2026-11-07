@@ -72,28 +72,26 @@ TrackInfo.key                 // new field
 ## relisten-web: architecture
 
 ```
- UI (client components)        commands.ts                player machine (xstate)
+ UI (client components)        commands.ts                player machine (xstate, pure)
  ┌──────────────────────┐   ┌───────────────┐   ┌────────────────────────────────────┐
- │ track rows, song rows│──▶│ playContext   │──▶│ context: QueueState                │
- │ PlayerManager (URL)  │   │ playNext, add │   │ lifecycle: booting → restored →    │
- │ PlayerBar, QueuePanel│   │ move, remove  │   │   resolving → ready (+ ephemeral)  │
- │ keyboard, media keys │   │ shuffle,repeat│   │ queue edits: root-level assigns    │
- └─────────▲────────────┘   │ play/pause/   │   │   calling the pure model.ts ops    │
-           │ useSelector    │ seek          │   │ invokes: engine (fromCallback),    │
-           │ (@xstate/react)└───────┬───────┘   │   resolve (fromPromise)            │
-           │                        │           └─────────┬──────────────────▲───────┘
-           │                        │ transport           │ order + current  │ ADVANCED
-           │                        ▼                     ▼                  │
-           │                ┌───────────────────────────────────────────────┴───┐
-           │                │ engine: owns the one gapless Queue                │
-           │                │ setEntries(compose(state)); goto if current       │
-           │                │ differs; onChange → ADVANCED; side effects:       │
-           │                │ scrobble, listen tracking, URL/title sync         │
-           │                └──────────────────────┬────────────────────────────┘
-           │   position actor (fromTransition) ◀───┤ onProgress, ~60 fps
-           └────────────── scrubber, time ─────────┘
-                                                   ▼
-                                           gapless@5 Queue
+ │ track rows, song rows│──▶│ playShow,     │──▶│ context: QueueState                │
+ │ PlayerManager (URL)  │   │ playSongRow,  │   │ booting → ready  (or ephemeral)    │
+ │ PlayerBar, embeds    │   │ playNext, add,│   │ queue edits: root-level assigns    │
+ │ keyboard, media keys │   │ jumpTo, …     │   │   calling the pure model.ts ops    │
+ └─────────▲────────────┘   │ play/pause/   │   └─────────┬──────────────────▲───────┘
+           │ useSelector    │ seek          │             │ subscribe        │ ADVANCED
+           │ (@xstate/react)└───────┬───────┘             ▼                  │
+           │                        │ transport   ┌──────────────────────────┴────────┐
+           │                        └────────────▶│ runtime.ts                        │
+           │                                      │ engine.sync(compose(queue));      │
+           │                                      │ fetch missing URLs (/api/queue);  │
+           │                                      │ save (storage.ts); URL/title sync │
+           │                                      │ scrobble, listen tracking         │
+           │                                      └──────────────┬────────────────────┘
+           │   playback actor (fromTransition) ◀── engine ───────┤ onProgress, ~60 fps
+           └──── scrubber, time, load tags ──────────────────────┘
+                                                                  ▼
+                                                          gapless@5 Queue
 ```
 
 ### Principles
@@ -107,16 +105,15 @@ TrackInfo.key                 // new field
 
 ### The player machine (`src/player/player.machine.ts`)
 
-The lifecycle states are the parts the queue would otherwise track with flags:
+The machine is pure. It has no invoked actors. The engine and storage subscribe to it from outside (`src/player/runtime.ts`), so its tests need no fakes, and the engine has one input: the machine's snapshot.
 
-- `booting`: before hydration. On the server, and on the first client render, selectors see this empty snapshot, so the HTML matches.
-- `restored`: `HYDRATED { saved }` loaded the saved queue after hydration. The player bar renders from the items, with no request.
-- `resolving`: a `fromPromise` fetches stream URLs for what's about to play. A `PLAY` here is remembered and runs on `RESOLVED`.
-- `ready`: the engine is reconciling gapless.
-- `error`: `RESOLVE_FAILED`; retry on the next `PLAY`.
-- `ephemeral`: embeds. There's one show context and no Next up, and nothing is saved or restored.
+- `booting`: before the saved queue is read. On the server, and on the first client render, selectors see this empty snapshot, so the HTML matches. A track page can already start playback here, because React runs `PlayerManager`'s effect before `Providers`'. Nothing is saved yet.
+- `ready`: `HYDRATE { saved }` has run. `restoreOnto` keeps what the page started and carries over the saved Next up, repeat and shuffle. Changes are saved from now on, including the queue the page started while booting.
+- `ephemeral`: embeds. There's one show, no Next up or shuffle, and nothing is saved or restored.
 
-Queue edits (`PLAY_CONTEXT`, `PLAY_NEXT`, `ADD_TO_QUEUE`, `MOVE`, `REMOVE`, `JUMP_TO`, `ADVANCED`, `SET_SHUFFLE`, `SET_REPEAT`) are handled at the root, in every state. Only the lifecycle has states; "shuffle on" or "has Next up" are context, not states.
+Queue edits (`PLAY_CONTEXT`, `REFRESH_CONTEXT`, `PLAY_NEXT`, `ADD_TO_QUEUE`, `MOVE`, `REMOVE`, `JUMP_TO`, `ADVANCED`, `SET_SHUFFLE`, `SET_REPEAT`) are `assign`s that call `model.ts`. A model error, such as a duplicate key, is logged and the queue kept: a throw inside an xstate action would stop the actor.
+
+**Stream URLs are resolved per entry, not in a lifecycle state.** Entries join gapless once their URL is known. While the current entry has none, gapless is left alone and a `play()` waits for it. So there's no `resolving` or `error` state: `runtime.ts` asks `/api/queue?shows=…` for missing URLs (the current entry's show first, at most 50 shows per request, with a retry after 30 s), then syncs again.
 
 ### Types (`src/player/queue/model.ts`)
 
@@ -178,24 +175,30 @@ type QueueState = {
 - `remove(state, key)`: from Next up or the context. **The current entry can't be removed;** the UI doesn't offer it.
 - `setShuffle(state, seed | null)` and `setRepeat(state, mode)`.
 
+### Song pages
+
+A song context needs every matching row, but the page renders one page of the table, and sending all rows would make the page payload heavy. So **play** on a row plays that row at once, as a one-item `song` context, using the URL already on the page. `/api/queue?artist=…&song=…&q=…&sort=…&year=…&sbd=…` then returns the whole filtered list, in table order, and `REFRESH_CONTEXT` applies it. The playing entry keeps its key, matched by track id, so nothing restarts. The route and the page share `features/song-detail/spec.ts`, so they filter and sort identically.
+
 ### Callers
 
 - `PlayerManager`: on the URL of a show track, `playContext({ kind: 'show', … }, items, keyFor(songSlug))`. The navigation-means-play behaviour stays, including back and forward.
 - `PlayTrackButton`: `playContext({ kind: 'song', … }, filteredRows, keyFor(row))`.
 - Keyboard and media keys: transport commands.
 - **URL sync:** the URL and title follow the current entry only while the page shows that entry's show. The queue never navigates.
+- **`src/ui` doesn't read the player.** `TrackList` takes a `playing` prop, and `src/player/PlayingTrackList.tsx` provides it. That's the repo's import rule for `src/ui`.
+- **Media session:** entries carry a title, artist, album (date and venue) and artwork (`/album-art/{showId}.png`), so lock screens show the track. The old player sent none of these.
 
 ### Persistence (`src/player/queue/storage.ts`)
 
 - `relisten.queue` holds `QueueState`. It's written on every structural change, debounced by 250 ms, and the reader checks `version`.
 - `relisten.position` holds `{ key, time, updatedAt }`, throttled to once a second (today's throttle). It's separate, so the large blob isn't rewritten during playback.
-- **Migration:** if `relisten.queue` is missing and `lastPlayedUrl` is present, call `/api/restore` once to build the items, write `relisten.queue`, and delete the old keys. After that `/api/restore` exists only for this migration, and it can be deleted later.
+- **No migration** from the old keys (`lastPlayedUrl` and friends). They're ignored, and `/api/restore` is gone.
 
 ### Multiple tabs
 
-- **The tab that last started playback owns the queue.** It writes `relisten.owner = { tabId, at }` when playback starts.
+- **The tab that last started playback owns the queue.** It writes `relisten.owner = { tabId, at }` when playback starts. The tab id lives in `sessionStorage`, so a reload is the same tab and still owns its queue. It's created only when ownership is checked, so embeds write nothing.
 - **Only the owner writes** `relisten.queue` and `relisten.position`.
-- **Other tabs listen for the `storage` event.** They re-read the queue so the panel stays current, but they don't write.
+- **Other tabs don't write.** Live re-reading on the `storage` event is not built yet; another tab picks the queue up on its next load.
 - **Pressing play in another tab makes it the owner.** It picks up the stored queue and position.
 - The same rule carries over to account sync: the device that last played wins.
 

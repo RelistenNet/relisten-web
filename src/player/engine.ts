@@ -119,7 +119,7 @@ export function createEngine(createQueue: QueueFactory, callbacks: EngineCallbac
 
   /** The entry the engine last put gapless on; anything else is gapless moving by itself. */
   let expected: string | null = null;
-  /** The latest state, kept so a deferred sync can run when URLs arrive. */
+  /** The latest state, to know whether the current entry is in gapless. */
   let latest: SyncInput | null = null;
   /** A play() made before the current entry could play. */
   let wantPlay = false;
@@ -186,10 +186,6 @@ export function createEngine(createQueue: QueueFactory, callbacks: EngineCallbac
 
   return {
     sync,
-    /** Re-run the last sync (after URLs arrive). */
-    resync: () => {
-      if (latest) sync(latest);
-    },
     /** Start `key` at `time` once it can play (a restored position). */
     startAt(key: string, time: number) {
       startAt = { key, time };

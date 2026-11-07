@@ -76,6 +76,21 @@ describe('queue storage', () => {
     expect(JSON.parse(storage.data.get(POSITION_KEY) ?? 'null').key).toBe('x');
   });
 
+  it('asks for the tab id only when ownership matters', () => {
+    const storage = memoryStorage();
+    const tabId = vi.fn(() => 'lazy');
+    const s = createQueueStorage({ storage, tabId });
+    s.loadQueue();
+    s.loadPosition();
+    s.flush();
+    expect(tabId).not.toHaveBeenCalled();
+    s.claim();
+    s.saveQueue(queue('one'));
+    vi.advanceTimersByTime(250);
+    expect(tabId).toHaveBeenCalledTimes(1);
+    expect(s.loadQueue()?.repeat).toBe('one');
+  });
+
   it('flush writes pending changes immediately', () => {
     const storage = memoryStorage();
     const s = createQueueStorage({ storage, tabId: 'a' });

@@ -16,10 +16,8 @@ export const playColumn: Column<ShowRow> = {
     r.track ? (
       <div className="flex flex-col items-center">
         <PlayTrackButton
+          row={r}
           track={r.track}
-          artistSlug={r.artistSlug}
-          artistName={r.artistName}
-          date={r.date}
           label={`Play ${r.date}${r.performance ? ` (${r.performance.index} of ${r.performance.of})` : ''}`}
         />
         {r.performance && (

@@ -1,5 +1,5 @@
 import { loadRandomShow } from '@/features/browse/load';
-import TrackList from '@/ui/shows/TrackList';
+import TrackList from '@/player/PlayingTrackList';
 import { DEFAULT_ARTIST_SLUG } from '@/lib/defaultArtist';
 import { splitShowDate } from '@/lib/utils';
 

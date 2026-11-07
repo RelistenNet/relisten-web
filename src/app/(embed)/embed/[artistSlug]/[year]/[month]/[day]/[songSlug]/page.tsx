@@ -1,7 +1,7 @@
 import { href } from '@timber-js/app/routes';
 import { loadArtists, loadShow } from '@/features/browse/load';
 import PlayerManager from '@/player/PlayerManager';
-import TrackList from '@/ui/shows/TrackList';
+import TrackList from '@/player/PlayingTrackList';
 import { proxyStreamUrl } from '@/player/proxyStreamUrl';
 import { createShowDate } from '@/lib/utils';
 import { deny, getSegmentParams } from '@timber-js/app/server';

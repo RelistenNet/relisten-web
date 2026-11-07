@@ -3,30 +3,20 @@ import { loadSong } from './load';
 import { findArtistBySlug } from '@/data/artists';
 import { lengthColumn, playColumn } from './columns';
 import DataTable from '@/ui/table/DataTable';
-import { showColumns, showFilters, showSearchText, showSorts } from '@/ui/shows/columns';
+import { showColumns } from '@/ui/shows/columns';
 import ArtistCover from '@/ui/base/ArtistCover';
 import PageHeader, { type StatItem } from '@/ui/base/PageHeader';
 import YearChart from '@/ui/base/YearChart';
-import { tableHref, tableSearchParams, toTableState, type TableParams } from '@/ui/table/params';
+import { tableHref, toTableState, type TableParams } from '@/ui/table/params';
 import { formatShare, formatShowDate, showStats, timeAgo } from '@/ui/shows/stats';
 import { durationToHHMMSS, numberFormat } from '@/lib/utils';
-import { queryTable, type TableSpec } from '@/ui/table/query';
+import { queryTable } from '@/ui/table/query';
 import type { ShowRow } from '@/ui/shows/rows';
+import { SONG_FILTER_IDS, songSearchParams, songSpec } from './spec';
 import { Link } from '@timber-js/app/client';
 import { redirect } from '@timber-js/app/server';
 
 // Every show an artist played a song at. Songs are artist-specific in v4.
-
-const FILTER_IDS = ['year', 'sbd'] as const;
-const searchParams = tableSearchParams(FILTER_IDS);
-
-const songSpec: TableSpec<ShowRow> = {
-  sorts: showSorts,
-  defaultSort: { id: 'date', dir: 'desc' },
-  searchText: showSearchText,
-  filters: [showFilters.year, showFilters.sbd],
-  pageSize: 25,
-};
 
 export default async function SongDetail({
   artistSlug,
@@ -38,7 +28,7 @@ export default async function SongDetail({
   const [song, artist, params] = await Promise.all([
     loadSong(artistSlug, songSlug),
     findArtistBySlug(artistSlug),
-    searchParams.get(),
+    songSearchParams.get(),
   ]);
 
   // A merged song, or a setlist-only song linked to its canonical song: the API
@@ -49,7 +39,7 @@ export default async function SongDetail({
     });
   }
 
-  const result = queryTable(song.rows, songSpec, toTableState(params, FILTER_IDS));
+  const result = queryTable(song.rows, songSpec, toTableState(params, SONG_FILTER_IDS));
   const stats = showStats(song.rows);
   const pathname = href('/artists/[artistSlug]/songs/[songSlug]', { artistSlug, songSlug });
   const artistShows = artist?.showCount ?? 0;

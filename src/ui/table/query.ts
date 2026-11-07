@@ -52,6 +52,8 @@ export type TableResult<Row> = {
   rows: Row[];
   /** Rows matching the search and filters, before paging. */
   total: number;
+  /** Every matching row, in order, before paging (a song page's "play" queue). */
+  sorted: Row[];
   /** Every row, unfiltered. */
   totalAll: number;
   page: number;
@@ -142,6 +144,7 @@ export function queryTable<Row>(
   return {
     rows: sorted.slice(offset, offset + spec.pageSize),
     total: sorted.length,
+    sorted,
     totalAll: allRows.length,
     page,
     pageCount,

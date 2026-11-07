@@ -30,11 +30,15 @@ export function createQueueStorage({
   throttleMs = 1000,
 }: {
   storage: StorageLike;
-  tabId: string;
+  /** This tab's id, or a function that makes it (called only when ownership matters). */
+  tabId: string | (() => string);
   now?: () => number;
   debounceMs?: number;
   throttleMs?: number;
 }) {
+  let id: string | null = typeof tabId === 'string' ? tabId : null;
+  const thisTab = () => (id ??= typeof tabId === 'string' ? tabId : tabId());
+
   const read = <T>(key: string): T | null => {
     try {
       const raw = storage.getItem(key);
@@ -54,7 +58,7 @@ export function createQueueStorage({
   /** No owner yet counts as ours: the first tab to save takes it. */
   const isOwner = () => {
     const owner = read<{ tabId: string }>(OWNER_KEY);
-    return !owner || owner.tabId === tabId;
+    return !owner || owner.tabId === thisTab();
   };
 
   let queueTimer: ReturnType<typeof setTimeout> | null = null;
@@ -122,7 +126,7 @@ export function createQueueStorage({
 
     /** This tab started playback: it owns the saved queue from now on. */
     claim() {
-      write(OWNER_KEY, { tabId, at: new Date(now()).toISOString() });
+      write(OWNER_KEY, { tabId: thisTab(), at: new Date(now()).toISOString() });
     },
 
     isOwner,
