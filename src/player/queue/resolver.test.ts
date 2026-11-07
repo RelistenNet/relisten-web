@@ -17,11 +17,11 @@ const item = (n: number, showId = `show${n}`): QueueItem => ({
 
 function setup(list: QueueItem[], current: QueueItem | null = list[0] ?? null) {
   const known = new Map<string, string>();
-  const fetchUrls = vi.fn(async (shows: string[]): Promise<UrlMap> => {
+  const fetchUrls = vi.fn(async (shows: string[]): Promise<{ urls: UrlMap; failed?: string[] }> => {
     const urls: UrlMap = {};
     for (const i of list)
       if (shows.includes(i.showId)) urls[i.trackId] = { mp3Url: `${i.trackId}.mp3`, flacUrl: null };
-    return urls;
+    return { urls };
   });
   const onResolved = vi.fn();
   const resolver = createUrlResolver({
@@ -113,6 +113,22 @@ describe('url resolver', () => {
     expect(known.has('t1')).toBe(true);
     expect(known.has('t2')).toBe(false);
     await vi.advanceTimersByTimeAsync(10_000); // t=40: show2's backoff is over
+    expect(known.has('t2')).toBe(true);
+  });
+
+  it('retries shows the server reports as failed (a 200 with `failed`)', async () => {
+    const list = [item(1), item(2)];
+    const { resolver, fetchUrls, known } = setup(list, list[0]);
+    // The API timed out for show2: its URLs are missing, and it's listed.
+    fetchUrls.mockResolvedValueOnce({
+      urls: { t1: { mp3Url: 't1.mp3', flacUrl: null } },
+      failed: ['show2'],
+    });
+    await resolver.kick();
+    expect(known.has('t1')).toBe(true);
+    expect(known.has('t2')).toBe(false);
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect(fetchUrls.mock.calls.at(-1)?.[0]).toEqual(['show2']);
     expect(known.has('t2')).toBe(true);
   });
 });

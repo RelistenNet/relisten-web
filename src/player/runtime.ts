@@ -229,7 +229,7 @@ const resolver = createUrlResolver({
   fetchUrls: async (shows) => {
     const res = await fetch(queueSearchParams.href('/api/queue', { shows: shows.join(',') }));
     if (!res.ok) throw new Error(`/api/queue ${res.status}`);
-    return ((await res.json()) as { urls: UrlMap }).urls;
+    return (await res.json()) as { urls: UrlMap; failed?: string[] };
   },
   latest: () => {
     const queue = playerActor.getSnapshot().context.queue;

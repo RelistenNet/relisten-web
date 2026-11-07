@@ -23,8 +23,11 @@ export function createUrlResolver({
   /** Whether a track's URL is known. */
   has: (trackId: string) => boolean;
   add: (urls: UrlMap) => void;
-  /** Stream URLs for these shows (throws on failure). */
-  fetchUrls: (showIds: string[]) => Promise<UrlMap>;
+  /**
+   * Stream URLs for these shows. Throws if the request fails; `failed` lists
+   * shows the server couldn't load this time (retried like a failed request).
+   */
+  fetchUrls: (showIds: string[]) => Promise<{ urls: UrlMap; failed?: string[] }>;
   /** The queue as it is now: the composed list and the current entry. */
   latest: () => { list: QueueItem[]; current: QueueItem | null };
   /** URLs arrived (sync the engine). */
@@ -83,8 +86,12 @@ export function createUrlResolver({
       const batch = shows.slice(i, i + batchSize);
       batch.forEach((id) => inFlight.add(id));
       try {
-        add(await fetchUrls(batch));
-        batch.forEach((id) => failedAt.delete(id));
+        const { urls, failed = [] } = await fetchUrls(batch);
+        add(urls);
+        for (const id of batch) {
+          if (failed.includes(id)) failedAt.set(id, now());
+          else failedAt.delete(id);
+        }
       } catch {
         batch.forEach((id) => failedAt.set(id, now()));
       } finally {
