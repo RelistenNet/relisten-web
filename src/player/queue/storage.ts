@@ -63,6 +63,9 @@ export function createQueueStorage({
 
   let queueTimer: ReturnType<typeof setTimeout> | null = null;
   let pendingQueue: QueueState | null = null;
+  /** The last queue and position this tab was given, kept after they're written. */
+  let latestQueue: QueueState | null = null;
+  let latestPosition: SavedPosition | null = null;
   let lastPositionAt = Number.NEGATIVE_INFINITY;
   let pendingPosition: SavedPosition | null = null;
   let positionTimer: ReturnType<typeof setTimeout> | null = null;
@@ -106,6 +109,7 @@ export function createQueueStorage({
     /** Save after `debounceMs` of quiet. */
     saveQueue(queue: QueueState) {
       pendingQueue = queue;
+      latestQueue = queue;
       if (queueTimer) clearTimeout(queueTimer);
       queueTimer = setTimeout(flushQueue, debounceMs);
     },
@@ -113,6 +117,7 @@ export function createQueueStorage({
     /** At most once per `throttleMs`, always ending on the latest position. */
     savePosition(position: SavedPosition) {
       pendingPosition = position;
+      latestPosition = position;
       const wait = lastPositionAt + throttleMs - now();
       if (wait <= 0) flushPosition();
       else if (!positionTimer) positionTimer = setTimeout(flushPosition, wait);
@@ -131,6 +136,10 @@ export function createQueueStorage({
      */
     claim() {
       write(OWNER_KEY, { tabId: thisTab(), at: new Date(now()).toISOString() });
+      // Always this tab's latest, not only what's pending: another tab may
+      // have written its own queue since this tab's last save completed.
+      if (latestQueue) pendingQueue = latestQueue;
+      if (latestPosition) pendingPosition = latestPosition;
       flushQueue();
       flushPosition();
     },

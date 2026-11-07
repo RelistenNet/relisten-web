@@ -95,4 +95,24 @@ describe('url resolver', () => {
     await vi.advanceTimersByTimeAsync(30_000);
     expect(fetchUrls).toHaveBeenCalledTimes(3);
   });
+
+  it('retries failures still inside their backoff after an earlier retry succeeds', async () => {
+    // Two shows fail 10 s apart; the first one's retry succeeds while the
+    // second is still backing off. The second must still be retried.
+    const list = [item(1)];
+    const { resolver, fetchUrls, known } = setup(list, list[0]);
+    fetchUrls.mockRejectedValueOnce(new Error('503')); // show1 at t=0
+    await resolver.kick();
+    await vi.advanceTimersByTimeAsync(10_000);
+    list.push(item(2));
+    fetchUrls.mockRejectedValueOnce(new Error('503')); // show2 at t=10
+    await resolver.kick();
+    expect(fetchUrls.mock.calls.map((c) => c[0])).toEqual([['show1'], ['show2']]);
+
+    await vi.advanceTimersByTimeAsync(20_000); // t=30: show1 retried, succeeds
+    expect(known.has('t1')).toBe(true);
+    expect(known.has('t2')).toBe(false);
+    await vi.advanceTimersByTimeAsync(10_000); // t=40: show2's backoff is over
+    expect(known.has('t2')).toBe(true);
+  });
 });

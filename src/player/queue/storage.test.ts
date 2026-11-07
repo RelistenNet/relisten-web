@@ -109,6 +109,25 @@ describe('queue storage', () => {
     expect(a.loadPosition()).toMatchObject({ key: 'b-track', time: 42 });
   });
 
+  it('reclaiming ownership writes this tab’s queue, even after its own save completed', () => {
+    const storage = memoryStorage();
+    const a = createQueueStorage({ storage, tabId: 'a' });
+    const b = createQueueStorage({ storage, tabId: 'b' });
+    a.claim();
+    a.saveQueue(queue('one'));
+    a.savePosition({ key: 'a-track', time: 5 });
+    vi.advanceTimersByTime(1000); // a's saves complete: nothing pending
+    b.claim();
+    b.saveQueue(queue('all'));
+    b.savePosition({ key: 'b-track', time: 9 });
+    vi.advanceTimersByTime(1000);
+    expect(a.loadQueue()?.repeat).toBe('all');
+    // a resumes playback without editing its queue.
+    a.claim();
+    expect(a.loadQueue()?.repeat).toBe('one');
+    expect(a.loadPosition()).toMatchObject({ key: 'a-track', time: 5 });
+  });
+
   it('flush writes pending changes immediately', () => {
     const storage = memoryStorage();
     const s = createQueueStorage({ storage, tabId: 'a' });

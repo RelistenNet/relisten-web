@@ -39,12 +39,31 @@ export function createUrlResolver({
   const failedAt = new Map<string, number>();
   let retryTimer: unknown = null;
 
-  const scheduleRetry = () => {
-    if (retryTimer) return;
-    retryTimer = setTimer(() => {
-      retryTimer = null;
-      void kick();
-    }, retryMs);
+  /**
+   * Wake up when the earliest backoff among still-missing shows ends. Run
+   * after every attempt, so failures at different times each get a retry
+   * (one timer for the first failure would leave later ones behind).
+   */
+  const scheduleNext = () => {
+    if (retryTimer) clearTimer(retryTimer);
+    retryTimer = null;
+    const missing = new Set(
+      latest()
+        .list.filter((i) => !has(i.trackId))
+        .map((i) => i.showId)
+    );
+    let deadline = Number.POSITIVE_INFINITY;
+    for (const [id, failed] of failedAt) {
+      if (missing.has(id) && !inFlight.has(id)) deadline = Math.min(deadline, failed + retryMs);
+    }
+    if (deadline === Number.POSITIVE_INFINITY) return;
+    retryTimer = setTimer(
+      () => {
+        retryTimer = null;
+        void kick();
+      },
+      Math.max(0, deadline - now())
+    );
   };
 
   /** Fetch what's missing. `force` ignores the backoff after a failure. */
@@ -59,10 +78,6 @@ export function createUrlResolver({
       const failed = failedAt.get(id);
       return force || failed === undefined || now() - failed >= retryMs;
     });
-    if (force && retryTimer) {
-      clearTimer(retryTimer);
-      retryTimer = null;
-    }
 
     for (let i = 0; i < shows.length; i += batchSize) {
       const batch = shows.slice(i, i + batchSize);
@@ -72,12 +87,12 @@ export function createUrlResolver({
         batch.forEach((id) => failedAt.delete(id));
       } catch {
         batch.forEach((id) => failedAt.set(id, now()));
-        scheduleRetry();
       } finally {
         batch.forEach((id) => inFlight.delete(id));
       }
       onResolved();
     }
+    scheduleNext();
   }
 
   return { kick };
