@@ -32,7 +32,8 @@ describe('detail page urls', () => {
     it.each([
       [undefined, undefined, '/artists/gd/today-in-history'],
       [5, 8, '/artists/gd/today-in-history?month=5&day=8'],
-      ['05', '08', '/artists/gd/today-in-history?month=05&day=08'],
+      ['05', '08', '/artists/gd/today-in-history?month=5&day=8'],
+      ['13', '8', '/artists/gd/today-in-history'],
       // Needs both; one alone (or an empty string) means today.
       [5, undefined, '/artists/gd/today-in-history'],
       [undefined, 8, '/artists/gd/today-in-history'],

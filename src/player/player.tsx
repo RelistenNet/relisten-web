@@ -1,3 +1,5 @@
+import { sourceHref } from '@/lib/searchParams/sourceSearchParam';
+import { restoreSearchParams } from '@/lib/searchParams/restoreSearchParams';
 import { Queue, type TrackInfo } from 'gapless';
 
 import { splitShowDate } from '@/lib/utils';
@@ -185,14 +187,14 @@ function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Qu
           const basePath = `/${artistSlug}/${year}/${month}/${day}/${songSlug}`;
           const prefixes = ['/embed-track', '/embed'];
           const routePrefix = prefixes.find((p) => window.location.pathname.startsWith(p)) ?? '';
-          const nextUrl = `${routePrefix}${basePath}?source=${toSourceParam(source)}`;
+          const nextUrl = sourceHref(`${routePrefix}${basePath}`, source);
 
           if (playback !== songSlug) {
             store.dispatch(updatePlayback({ songSlug, artistSlug, year, month, day, source }));
           }
 
           if (songSlug && !routePrefix) {
-            window.localStorage.lastPlayedUrl = `${basePath}?source=${toSourceParam(source)}`;
+            window.localStorage.lastPlayedUrl = sourceHref(basePath, source);
             window.localStorage.lastPlayedTrackTitle = track.title ?? '';
             window.localStorage.lastPlayedArtistName = playback.artistName ?? '';
             window.localStorage.lastPlayedShowDate = playback.showDate ?? '';
@@ -300,12 +302,12 @@ export function restoreLastPlayback() {
   if (!restored) return;
 
   restoreController = new AbortController();
-  const qs = new URLSearchParams({
+  const url = restoreSearchParams.href('/api/restore', {
     artist: restored.artistSlug,
     date: restored.showDate,
     source: restored.source ?? '',
   });
-  fetch(`/api/restore?${qs}`, { signal: restoreController.signal })
+  fetch(url, { signal: restoreController.signal })
     .then((res) => (res.ok ? (res.json() as Promise<{ source: Source | null }>) : null))
     .then((data) => {
       const activeSource = data?.source;

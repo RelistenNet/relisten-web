@@ -4,6 +4,7 @@ import { Link } from '@timber-js/app/client';
 import { format, addDays, subDays, getMonth, getDate } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import DateJumper from './DateJumper';
+import { dateSearchParams } from '@/lib/searchParams/dateSearchParam';
 
 type TodayDateNavProps = {
   month: string;
@@ -11,9 +12,8 @@ type TodayDateNavProps = {
   pathname: string;
 };
 
-function buildDateUrl(pathname: string, date: Date) {
-  return `${pathname}?month=${getMonth(date) + 1}&day=${getDate(date)}`;
-}
+const buildDateUrl = (pathname: string, date: Date) =>
+  dateSearchParams.href(pathname, { month: getMonth(date) + 1, day: getDate(date) });
 
 export default function TodayDateNav({ month, day, pathname }: TodayDateNavProps) {
   // Use 2024 as reference year (leap year) so Feb 29 works

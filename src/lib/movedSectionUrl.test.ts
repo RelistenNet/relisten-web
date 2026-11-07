@@ -83,9 +83,8 @@ describe('movedQuickHitUrl', () => {
       ).toBe('/gd/1977/05/08/a%2Fb?source=a%26b');
       expect(moved('/gd/songs?slug=a%2F..%2Fb')).toBe('/artists/gd/songs/a%2F..%2Fb');
       expect(moved('/gd/venues?slug=x%3Fy')).toBe('/artists/gd/venues/x%3Fy');
-      expect(moved('/gd/today-in-history?month=5%26x&day=8')).toBe(
-        '/artists/gd/today-in-history?month=5%26x&day=8'
-      );
+      // Not a month: the date is dropped (today's page) rather than passed along.
+      expect(moved('/gd/today-in-history?month=5%26x&day=8')).toBe('/artists/gd/today-in-history');
     });
   });
 });

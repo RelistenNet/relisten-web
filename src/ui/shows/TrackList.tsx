@@ -3,7 +3,7 @@
 import { Fragment } from 'react';
 import { durationToHHMMSS, removeLeadingZero } from '@/lib/utils';
 
-import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
+import { sourceHref, sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { useSelector } from 'react-redux';
 import type { ShowDetail, Source, SourceSet } from '@/domain/types';
 import type { GaplessMetadata } from '@/redux/modules/playback';
@@ -120,7 +120,10 @@ const TrackList = (props: Props) => {
                   )}
                   {adminTools && track.slug && (
                     <Link
-                      href={`/admin/clip/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${toSourceParam(activeSourceObj.id)}`}
+                      href={sourceHref(
+                        `/admin/clip/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}`,
+                        activeSourceObj.id
+                      )}
                       prefetch={false}
                       title="Create clip"
                       className="
@@ -133,7 +136,10 @@ const TrackList = (props: Props) => {
                   )}
                   <Row
                     key={track.id}
-                    href={`${props.routePrefix || ''}/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${toSourceParam(activeSourceObj.id)}`}
+                    href={sourceHref(
+                      `${props.routePrefix || ''}/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}`,
+                      activeSourceObj.id
+                    )}
                     active={trackIsActive}
                   >
                     <div>

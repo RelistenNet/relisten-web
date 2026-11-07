@@ -1,5 +1,6 @@
 'use client';
 
+import { sourceHref } from '@/lib/searchParams/sourceSearchParam';
 import { Link } from '@timber-js/app/client';
 import React, { Suspense, use, useRef, useState } from 'react';
 import { browser } from 'react-dom';
@@ -117,7 +118,7 @@ function PlayerInner() {
               </div>
 
               <Link
-                href={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
+                href={sourceHref(`/${artistSlug}/${year}/${month}/${day}`, source)}
                 className="band-title justify-center text-center text-[0.8em] text-text-muted"
               >
                 {artistName} – {removeLeadingZero(month)}/{removeLeadingZero(day)}/{year.slice(2)}
@@ -190,7 +191,7 @@ function PlayerInner() {
       )}
       {activeTrack && (
         <Link
-          href={`/${artistSlug}/${year}/${month}/${day}?source=${source}`}
+          href={sourceHref(`/${artistSlug}/${year}/${month}/${day}`, source)}
           className="
             flex w-[40px] cursor-pointer items-center justify-center self-center text-text-muted
             active:text-text-primary max-lg:hidden

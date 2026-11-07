@@ -24,6 +24,17 @@ export const toTableState = (params: TableParams, filterIds: readonly string[]):
   filters: Object.fromEntries(filterIds.map((id) => [id, params[id] as string | undefined])),
 });
 
+// One definition per set of keys, so building hrefs doesn't redefine the schema
+// for every link on the page.
+const definitions = new Map<string, ReturnType<typeof tableSearchParams>>();
+const definitionFor = (keys: string[]) => {
+  const filterIds = keys.filter((k) => k !== 'q' && k !== 'sort' && k !== 'page').sort();
+  const id = filterIds.join(',');
+  let definition = definitions.get(id);
+  if (!definition) definitions.set(id, (definition = tableSearchParams(filterIds)));
+  return definition;
+};
+
 /**
  * The URL for this table with `patch` applied. Any change other than paging
  * goes back to page 1; empty values and page 1 are left out of the URL.
@@ -31,11 +42,9 @@ export const toTableState = (params: TableParams, filterIds: readonly string[]):
 export function tableHref(pathname: string, params: TableParams, patch: TableParams) {
   const next: TableParams = { ...params, ...patch };
   if (!('page' in patch)) next.page = undefined;
-  const qs = new URLSearchParams();
-  for (const [key, value] of Object.entries(next)) {
-    if (value === undefined || value === '' || (key === 'page' && Number(value) <= 1)) continue;
-    qs.set(key, String(value));
-  }
-  const query = qs.toString();
-  return query ? `${pathname}?${query}` : pathname;
+  // '' would serialize as an empty `?q=`; leave it out like any unset value.
+  const values = Object.fromEntries(
+    Object.entries(next).filter(([, value]) => value !== undefined && value !== '')
+  );
+  return definitionFor(Object.keys(values)).href(pathname, values);
 }

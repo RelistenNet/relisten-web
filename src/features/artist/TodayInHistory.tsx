@@ -6,23 +6,17 @@ import TodayDateNav from '@/ui/base/TodayDateNav';
 import { getCurrentMonthDay } from '@/lib/timezone';
 import { artistTodayUrl } from '@/lib/urls';
 import { numberFormat } from '@/lib/utils';
-import { defineSearchParams } from '@timber-js/app/search-params';
+import { dateSearchParams } from '@/lib/searchParams/dateSearchParam';
 import { deny } from '@timber-js/app/server';
 import { format } from 'date-fns';
-import { z } from 'zod/v4';
 
 // Shows on this calendar date in past years: today in the viewer's timezone,
 // or ?month=&day=.
 
-const dateParams = defineSearchParams({
-  month: z.coerce.number().int().min(1).max(12).optional(),
-  day: z.coerce.number().int().min(1).max(31).optional(),
-});
-
 export default async function TodayInHistory({ artistSlug }: { artistSlug: string }) {
   const [artist, parsed, today] = await Promise.all([
     findArtistBySlug(artistSlug),
-    dateParams.get(),
+    dateSearchParams.get(),
     getCurrentMonthDay(),
   ]);
   if (!artist) deny(404);

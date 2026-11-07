@@ -1,5 +1,6 @@
 'use client';
 
+import { searchSearchParams } from '@/lib/searchParams/apiSearchParams';
 import { use, useCallback, useEffect, useDeferredValue, useState, Suspense } from 'react';
 import { useRouter } from '@timber-js/app/client';
 import {
@@ -29,7 +30,7 @@ function fetchSearchResults(query: string): Promise<SearchResults> {
       const oldest = searchCache.keys().next().value;
       if (oldest !== undefined) searchCache.delete(oldest);
     }
-    cached = fetch(`/api/search?q=${encodeURIComponent(query)}`)
+    cached = fetch(searchSearchParams.href('/api/search', { q: query }))
       .then((res) => (res.ok ? (res.json() as Promise<SearchResults>) : EMPTY_SEARCH))
       .catch(() => {
         searchCache.delete(query);

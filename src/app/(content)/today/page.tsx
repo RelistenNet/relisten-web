@@ -5,13 +5,16 @@ import TodayIndex from '@/features/today/TodayIndex';
 import TodayTrack from '@/features/today/TodayTrack';
 import { getCurrentMonthDay } from '@/lib/timezone';
 import slugify from 'slugify';
-import { searchParams } from './params';
+import { dateSearchParams } from '@/lib/searchParams/dateSearchParam';
 
 export default async function Page() {
-  const [currentMonthDay, parsed] = await Promise.all([getCurrentMonthDay(), searchParams.get()]);
+  const [currentMonthDay, parsed] = await Promise.all([
+    getCurrentMonthDay(),
+    dateSearchParams.get(),
+  ]);
 
-  const month = parsed.month ?? currentMonthDay.month;
-  const day = parsed.day ?? currentMonthDay.day;
+  const month = String(parsed.month ?? currentMonthDay.month);
+  const day = String(parsed.day ?? currentMonthDay.day);
 
   const [data, allArtists] = await Promise.all([
     loadTodayShows(Number(month), Number(day)),

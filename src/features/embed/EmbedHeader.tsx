@@ -1,5 +1,11 @@
 'use client';
 
+import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
+import { tSearchParamsLoader } from '@/lib/searchParams/tSearchParam';
+import { toSourceParam } from '@/lib/sourceParam';
+
+/** A track link that opens at the playing tape and position. */
+const shareSearchParams = sourceSearchParamsLoader.extend(tSearchParamsLoader.codecs);
 import { ExternalLinkIcon } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import player from '@/player/player';
@@ -20,8 +26,10 @@ export default function EmbedHeader({ compact = false }: { compact?: boolean }) 
 
     if (hasTrack) {
       const { year, month, day } = splitShowDate(showDate);
-      const t = formatTimeParam(activeTrack?.currentTime || 0);
-      const url = `https://relisten.net/${artistSlug}/${year}/${month}/${day}/${songSlug}?source=${source}&t=${t}`;
+      const url = shareSearchParams.href(
+        `https://relisten.net/${artistSlug}/${year}/${month}/${day}/${songSlug}`,
+        { source: toSourceParam(source), t: activeTrack?.currentTime || 0 }
+      );
       window.open(url, '_blank');
       player.pause();
     } else {

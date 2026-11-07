@@ -110,7 +110,11 @@ const TodayIndex = ({ items, month, day, pathname }: TodayIndexProps) => {
           return (
             <li key={anchor} className="ml-0 list-none">
               <a
-                href={`?${todayIndexSearchParams.buildSearchParams({ sort: sortMode, dir: sortDir, anchor })}`}
+                href={todayIndexSearchParams.href(pathname, {
+                  sort: sortMode,
+                  dir: sortDir,
+                  anchor,
+                })}
                 onClick={(e) => {
                   e.preventDefault();
                   document

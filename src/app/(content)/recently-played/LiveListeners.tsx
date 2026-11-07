@@ -1,5 +1,7 @@
 'use client';
 
+import { liveSummarySearchParams } from '@/lib/searchParams/apiSearchParams';
+import { sourceHref } from '@/lib/searchParams/sourceSearchParam';
 import { Link } from '@timber-js/app/client';
 import type { ReactNode } from 'react';
 import {
@@ -29,9 +31,15 @@ export default function LiveListeners({ initialSummary, today, feed }: Props) {
   const summary = usePollingState(
     initialSummary,
     async (signal): Promise<LiveSummary> => {
-      const res = await fetch(`/api/live/summary?month=${today.month}&day=${today.day}`, {
-        signal,
-      });
+      const res = await fetch(
+        liveSummarySearchParams.href('/api/live/summary', {
+          month: Number(today.month),
+          day: Number(today.day),
+        }),
+        {
+          signal,
+        }
+      );
       if (!res.ok) throw new Error(`live summary: HTTP ${res.status}`);
       return res.json();
     },
@@ -111,8 +119,7 @@ export default function LiveListeners({ initialSummary, today, feed }: Props) {
 const artistHref = ({ artistSlug, topShow }: LiveArtist) => {
   if (!topShow) return `/${artistSlug}`;
   const { year, month, day } = splitShowDate(topShow.displayDate);
-  const source = topShow.sourceParam ? `?source=${topShow.sourceParam}` : '';
-  return `/${artistSlug}/${year}/${month}/${day}${source}`;
+  return sourceHref(`/${artistSlug}/${year}/${month}/${day}`, topShow.sourceParam);
 };
 
 function ArtistRow({ artist }: { artist: LiveArtist }) {

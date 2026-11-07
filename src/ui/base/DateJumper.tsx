@@ -2,16 +2,10 @@
 
 import { format, getDate, getMonth, parse } from 'date-fns';
 import { Calendar } from 'lucide-react';
-import { parseAsString, useQueryStates } from 'nuqs';
+import { dateSearchParams } from '@/lib/searchParams/dateSearchParam';
 
 export default function DateJumper({ month, day }: { month: string; day: string }) {
-  const [, setParams] = useQueryStates(
-    {
-      month: parseAsString.withDefault(month),
-      day: parseAsString.withDefault(day),
-    },
-    { shallow: false }
-  );
+  const [, setParams] = dateSearchParams.useQueryStates({ shallow: false });
 
   // Use 2024 as reference year (leap year) so Feb 29 works
   const date = new Date(2024, Number(month) - 1, Number(day));
@@ -32,10 +26,7 @@ export default function DateJumper({ month, day }: { month: string; day: string 
           const d = e.target.value;
           if (!d) return;
           const selected = parse(d, 'yyyy-MM-dd', new Date());
-          setParams({
-            month: String(getMonth(selected) + 1),
-            day: String(getDate(selected)),
-          });
+          setParams({ month: getMonth(selected) + 1, day: getDate(selected) });
         }}
         className="absolute inset-0 cursor-pointer opacity-0"
       />

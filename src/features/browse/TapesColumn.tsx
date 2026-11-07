@@ -4,7 +4,7 @@ import React from 'react';
 
 import { durationToHHMMSS } from '@/lib/utils';
 
-import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
+import { sourceHref, sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { toSourceParam } from '@/lib/sourceParam';
 import type { Source } from '@/domain/types';
 import Column from '@/ui/base/Column';
@@ -48,7 +48,7 @@ const TapesColumn = (props: Props) => {
         <div key={sourceObj.id}>
           <RowHeader>{author(sourceObj) || `Source ${idx + 1} of ${sourcesData.length}`}</RowHeader>
           <Row
-            href={`/${artistSlug}/${year}/${month}/${day}?source=${toSourceParam(sourceObj.id)}`}
+            href={sourceHref(`/${artistSlug}/${year}/${month}/${day}`, sourceObj.id)}
             active={activeSourceId === sourceObj?.id}
           >
             <div className="w-full">

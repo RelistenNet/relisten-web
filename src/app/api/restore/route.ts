@@ -1,6 +1,5 @@
 import { loadArtist, loadShow } from '@/features/browse/load';
-import { defineSearchParams } from '@timber-js/app/search-params';
-import { z } from 'zod/v4';
+import { restoreSearchParams } from '@/lib/searchParams/restoreSearchParams';
 import { fromSourceParam, isLegacySourceParam } from '@/lib/sourceParam';
 import { resolveLegacySource } from '@/data/legacy';
 
@@ -8,14 +7,7 @@ import { resolveLegacySource } from '@/data/legacy';
 // `?source=`, and gets back just the source to load. Server-side because v4
 // addresses shows by artist id, and saved state from before v4 can hold a legacy
 // source id that has to be resolved.
-const searchParams = defineSearchParams({
-  artist: z.string().regex(/^[a-z0-9-]+$/i),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  source: z
-    .string()
-    .regex(/^[a-z0-9_-]*$/i)
-    .default(''),
-});
+const searchParams = restoreSearchParams;
 
 export async function GET() {
   let params: { artist?: string; date?: string; source: string } | undefined;
