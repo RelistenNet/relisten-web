@@ -7,6 +7,11 @@
 // on by itself (a track ends, the OS media keys skip), onAdvanced reports the
 // new key so the machine can record it. The engine's own jumps don't echo.
 //
+// Nothing is downloaded until audio plays: gapless starts with preloading
+// off (create it with preloadNumTracks: 0), and the engine turns preloading on
+// at the first progress frame that is actually playing. So a page that loads
+// paused (or a crawler that renders it) fetches no audio.
+//
 // Entries join gapless once their stream URL is known. While the current
 // entry has none (after a reload, before /api/queue answers), gapless is left
 // alone, and a play() waits for it.
@@ -58,6 +63,8 @@ export type QueueLike = {
   readonly keys: string[];
   readonly currentKey: string | null;
   readonly isPlaying: boolean;
+  /** Tracks gapless downloads ahead of the current one (0 = none). */
+  preloadNumTracks: number;
   readonly tracks: readonly TrackInfo[];
 };
 
@@ -74,6 +81,9 @@ export type SyncInput = {
 };
 
 const STATUS_INTERVAL_MS = 250;
+
+/** Tracks to preload ahead once audio is playing (gapless starts with none). */
+export const PRELOAD_TRACKS_WHILE_PLAYING = 2;
 
 export function createEngine(createQueue: QueueFactory, callbacks: EngineCallbacks) {
   let lastStatus = '';
@@ -101,6 +111,9 @@ export function createEngine(createQueue: QueueFactory, callbacks: EngineCallbac
 
   const queue = createQueue({
     onProgress(info) {
+      if (!info.isPaused && queue.preloadNumTracks === 0) {
+        queue.preloadNumTracks = PRELOAD_TRACKS_WHILE_PLAYING;
+      }
       callbacks.onProgress({
         key: info.key,
         currentTime: info.currentTime,

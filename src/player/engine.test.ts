@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Entry, QueueChange, RepeatMode, TrackInfo } from 'gapless';
-import { createEngine, type EngineCallbacks, type EngineEntry, type QueueLike } from './engine';
+import {
+  createEngine,
+  PRELOAD_TRACKS_WHILE_PLAYING,
+  type EngineCallbacks,
+  type EngineEntry,
+  type QueueLike,
+} from './engine';
 
 /**
  * A stand-in for gapless's Queue with the behaviour the engine relies on:
@@ -15,6 +21,7 @@ function fakeQueue() {
   const statuses = new Map<string, TrackInfo['webAudioLoadingState']>();
   let pending = false;
   let repeat: RepeatMode = 'off';
+  let preload = 0;
   const emit = () => {
     if (pending) return;
     pending = true;
@@ -83,6 +90,12 @@ function fakeQueue() {
     get isPlaying() {
       return playing;
     },
+    get preloadNumTracks() {
+      return preload;
+    },
+    set preloadNumTracks(n: number) {
+      preload = n;
+    },
     get tracks() {
       return entries.map(
         (e) => ({ key: e.key, webAudioLoadingState: statuses.get(e.key) ?? 'NONE' }) as TrackInfo
@@ -102,8 +115,15 @@ function setup() {
     onError: vi.fn(),
     onPlayBlocked: vi.fn(),
   } satisfies EngineCallbacks;
-  const engine = createEngine(() => q, cb);
-  return { q, cb, engine };
+  let gaplessCallbacks!: Parameters<Parameters<typeof createEngine>[0]>[0];
+  const engine = createEngine((c) => {
+    gaplessCallbacks = c;
+    return q;
+  }, cb);
+  /** A progress frame from gapless. */
+  const progress = (key: string, isPaused: boolean, currentTime = 1) =>
+    gaplessCallbacks.onProgress({ key, isPaused, currentTime, duration: 30 } as TrackInfo);
+  return { q, cb, engine, progress };
 }
 
 const entry = (key: string, url: string | null = `${key}.mp3`): EngineEntry => ({
@@ -248,5 +268,25 @@ describe('engine → machine', () => {
     expect(engine.wantsPlay).toBe(true);
     engine.toggle();
     expect(engine.wantsPlay).toBe(false);
+  });
+});
+
+describe('no audio until playback starts', () => {
+  it('keeps preloading off until a progress frame is actually playing', () => {
+    const { q, engine, progress } = setup();
+    engine.sync({ entries: ['a', 'b', 'c'].map((k) => entry(k)), currentKey: 'a', repeat: 'off' });
+    expect(q.preloadNumTracks).toBe(0);
+    progress('a', true); // a paused frame (a restored position, a seek while paused)
+    expect(q.preloadNumTracks).toBe(0);
+    progress('a', false);
+    expect(q.preloadNumTracks).toBe(PRELOAD_TRACKS_WHILE_PLAYING);
+  });
+
+  it("doesn't override a preload count set later", () => {
+    const { q, progress } = setup();
+    progress('a', false);
+    q.preloadNumTracks = 5;
+    progress('a', false);
+    expect(q.preloadNumTracks).toBe(5);
   });
 });

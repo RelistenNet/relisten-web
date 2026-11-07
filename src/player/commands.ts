@@ -17,13 +17,19 @@ import {
   type UrlMap,
 } from './queue/items';
 import type { ContextRef, RepeatMode } from './queue/model';
+import { canAutoplay } from './autoplay';
 import { addUrls, getEngine, playerActor } from './runtime';
+import { showPlayPrompt } from './toasts';
 
 const newSeed = () => Math.floor(Math.random() * 2 ** 31);
 
 /**
  * Play a tape from one of its tracks (a show page, or an embed). Next up is
  * kept. Playing the track that's already current just resumes it.
+ *
+ * This is the one path a page load takes (the URL means "play this"), so it
+ * plays only after the visitor has interacted with the page (canAutoplay);
+ * otherwise it queues the tape paused, fetches no audio, and prompts.
  */
 export function playShow({
   show,
@@ -58,7 +64,9 @@ export function playShow({
   });
   const engine = getEngine();
   if (startTime && startTime > 0) engine?.seek(startTime);
-  if (play) engine?.play();
+  if (!play) return;
+  if (canAutoplay()) engine?.play();
+  else showPlayPrompt({ blockedByBrowser: false, playNow: () => getEngine()?.play() });
 }
 
 /**

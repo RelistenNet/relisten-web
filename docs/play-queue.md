@@ -175,6 +175,13 @@ type QueueState = {
 - `remove(state, key)`: from Next up or the context. **The current entry can't be removed;** the UI doesn't offer it.
 - `setShuffle(state, seed | null)` and `setRepeat(state, mode)`.
 
+### No audio until playback starts
+
+Crawlers render pages, and headless browsers often allow autoplay. So a page load must not fetch audio files from audio.relisten.net:
+
+- **gapless starts with preloading off** (`preloadNumTracks: 0`). The engine turns it on (2 tracks) at the first progress frame that's actually playing. A paused queue, whether restored after a reload or set up by a track page, downloads nothing.
+- **A track page autoplays only after the visitor has interacted with the document** (`navigator.userActivation.hasBeenActive`; see `src/player/autoplay.ts`). Otherwise `playShow` queues the tape paused and shows a "Ready to play" prompt. Embeds are exempt: the host page grants autoplay through the iframe's `allow` attribute. Every other command (song-row play, Play next, the queue panel) comes from a click.
+
 ### Song pages
 
 A song context needs every matching row, but the page renders one page of the table, and sending all rows would make the page payload heavy. So **play** on a row plays that row at once, as a one-item `song` context, using the URL already on the page. `/api/queue?artist=…&song=…&q=…&sort=…&year=…&sbd=…` then returns the whole filtered list, in table order, and `REFRESH_CONTEXT` applies it. The playing entry keeps its key, matched by track id, so nothing restarts. The route and the page share `features/song-detail/spec.ts`, so they filter and sort identically.

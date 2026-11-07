@@ -19,7 +19,7 @@ import { createEngine, type Engine, type EngineEntry } from './engine';
 import { proxyStreamUrl } from './proxyStreamUrl';
 import { createListenTracker } from './listenTracker';
 import { scrobblePlay } from './scrobble';
-import { dismissAutoplayToast, showAudioError, showAutoplayBlocked } from './toasts';
+import { dismissAutoplayToast, showAudioError, showPlayPrompt } from './toasts';
 import { queueSearchParams, MAX_QUEUE_SHOWS } from '@/lib/searchParams/queueSearchParams';
 import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
 import { trackHref, type TrackRoute } from '@/ui/shows/trackHref';
@@ -102,6 +102,8 @@ if (isBrowser) {
       new Queue({
         // Mobile browsers suspend Web Audio in the background; HTML5 keeps playing.
         playbackMethod: mobile ? 'HTML5_ONLY' : 'HYBRID',
+        // No downloads until audio plays; the engine turns preloading on then.
+        preloadNumTracks: 0,
         onDebug: (msg) => console.debug('[gapless]', msg),
         ...callbacks,
       }),
@@ -128,12 +130,8 @@ if (isBrowser) {
       },
       onStatus: (statuses) => playbackActor.send({ type: 'STATUS', statuses }),
       onError: () => showAudioError(),
-      onPlayBlocked: () => {
-        // In embeds the toast would cover the player, and its advice is about
-        // the host page's address bar. The play button is right there.
-        if (window.location.pathname.startsWith('/embed') || window.self !== window.top) return;
-        showAutoplayBlocked(() => engine?.play());
-      },
+      onPlayBlocked: () =>
+        showPlayPrompt({ blockedByBrowser: true, playNow: () => engine?.play() }),
     }
   );
 

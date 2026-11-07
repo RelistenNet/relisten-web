@@ -23,10 +23,26 @@ export function dismissAutoplayToast(): void {
   defer(() => toast.dismiss('autoplay-blocked'));
 }
 
-export function showAutoplayBlocked(playNow: () => void): void {
+/**
+ * Prompts the visitor to start playback. `blockedByBrowser` adds advice for
+ * sites whose sound permission is blocked; it doesn't apply when we held
+ * playback back ourselves (no interaction yet; see canAutoplay).
+ */
+export function showPlayPrompt({
+  blockedByBrowser,
+  playNow,
+}: {
+  blockedByBrowser: boolean;
+  playNow: () => void;
+}): void {
+  // In embeds/iframes the toast covers most of the player and its "lock icon"
+  // advice refers to the host page's address bar. Just stay paused — the
+  // play button is right there.
+  if (window.location.pathname.startsWith('/embed') || window.self !== window.top) return;
+
   autoplayToastVisible = true;
   defer(() =>
-    toast.warning('Autoplay blocked', {
+    toast.warning(blockedByBrowser ? 'Autoplay blocked' : 'Ready to play', {
       toasterId: 'audio-error',
       id: 'autoplay-blocked',
       duration: Infinity,
@@ -35,10 +51,12 @@ export function showAutoplayBlocked(playNow: () => void): void {
           <li>
             To start playing, hit <strong>Play now</strong>
           </li>
-          <li>
-            To prevent this in the future, click the <strong>lock icon</strong> in your address bar,
-            select <strong>Sound</strong>, and choose <strong>Always Allow</strong>
-          </li>
+          {blockedByBrowser && (
+            <li>
+              To prevent this in the future, click the <strong>lock icon</strong> in your address
+              bar, select <strong>Sound</strong>, and choose <strong>Always Allow</strong>
+            </li>
+          )}
         </ol>
       ),
       classNames: {
