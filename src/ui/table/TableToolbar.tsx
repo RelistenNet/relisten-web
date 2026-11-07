@@ -5,10 +5,13 @@ import { SearchIcon, XIcon } from 'lucide-react';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { tableHref, type TableParams } from '@/ui/table/params';
 import cn from '@/lib/cn';
-import { useMarkStale } from './TablePending';
+import { useMarkOwnNavigation, useMarkStale } from './TablePending';
 import type { ToolbarFilter } from './types';
 
 const SEARCH_DEBOUNCE_MS = 300;
+
+/** "year" → "years", "country" → "countries". */
+const plural = (word: string) => (/[^aeiou]y$/.test(word) ? `${word.slice(0, -1)}ies` : `${word}s`);
 /** How long "done" lasts: the check draws, holds, and fades out. */
 const DONE_MS = 1400;
 
@@ -82,8 +85,11 @@ export default function TableToolbar({ params, filters, searchPlaceholder }: Pro
   // The rows on screen don't match the query until its results render.
   useMarkStale(status === 'waiting' || status === 'searching');
 
-  const go = (patch: TableParams) =>
+  const markOwnNavigation = useMarkOwnNavigation();
+  const go = (patch: TableParams) => {
+    markOwnNavigation?.();
     router.push(tableHref(pathname, params, patch), { scroll: false });
+  };
 
   return (
     // Without JS, the search box still works as a plain GET form.
@@ -161,7 +167,7 @@ export default function TableToolbar({ params, filters, searchPlaceholder }: Pro
             onChange={(e) => go({ [f.id]: e.target.value || undefined })}
             className={cn(FIELD, 'px-2')}
           >
-            <option value="">All {f.label.toLowerCase()}s</option>
+            <option value="">All {plural(f.label.toLowerCase())}</option>
             {f.options.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label} ({o.count})
