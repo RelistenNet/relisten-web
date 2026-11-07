@@ -14,22 +14,14 @@ import { artistIdForSlug } from '@/data/artists';
 
 // Every song an artist has played, from the cached song list.
 
-const FILTER_IDS = ['recorded'] as const;
+const FILTER_IDS = [] as const;
 const searchParams = tableSearchParams(FILTER_IDS);
 
 const spec: TableSpec<SongListItem> = {
   sorts: { name: (s) => s.name, shows: (s) => s.showCount },
   defaultSort: { id: 'shows', dir: 'desc' },
   searchText: (s) => s.name ?? '',
-  filters: [
-    {
-      kind: 'toggle',
-      id: 'recorded',
-      label: 'With recordings',
-      // Imported songs are known from setlists only: nothing to play.
-      test: (s) => !s.id.startsWith('imported_song_'),
-    },
-  ],
+  filters: [],
   pageSize: 25,
 };
 
