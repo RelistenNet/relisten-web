@@ -1,3 +1,4 @@
+import { href } from '@timber-js/app/routes';
 import { loadScopedVenue } from './load';
 import DataTable from '@/ui/table/DataTable';
 import { showColumns, showFilters, showSearchText, showSorts } from '@/ui/shows/columns';
@@ -12,7 +13,6 @@ import { numberFormat } from '@/lib/utils';
 import { Link } from '@timber-js/app/client';
 import { findArtistBySlug } from '@/data/artists';
 import ArtistScopeSelect from './ArtistScopeSelect';
-import { venueUrl } from '@/lib/urls';
 
 // A venue's shows: across every artist (/venues/msg), or one artist's
 // (/artists/phish/venues/msg). Both come from the same cached venue fetch; the artist
@@ -42,7 +42,9 @@ export default async function VenueDetail({
     findArtistBySlug(artistSlug),
   ]);
 
-  const pathname = venueUrl(venueSlug, artistSlug);
+  const pathname = artistSlug
+    ? href('/artists/[artistSlug]/venues/[venueSlug]', { artistSlug, venueSlug })
+    : href('/venues/[venueSlug]', { venueSlug });
   const result = queryTable(rows, venueSpec, toTableState(params, FILTER_IDS));
   const stats = showStats(rows);
 

@@ -1,9 +1,11 @@
 'use client';
 
+import { trackHref, type TrackRoute } from './trackHref';
+import { href } from '@timber-js/app/routes';
 import { Fragment } from 'react';
 import { durationToHHMMSS, removeLeadingZero } from '@/lib/utils';
 
-import { sourceHref, sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
+import { sourceQuery, sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { useSelector } from 'react-redux';
 import type { ShowDetail, Source, SourceSet } from '@/domain/types';
 import type { GaplessMetadata } from '@/redux/modules/playback';
@@ -31,7 +33,8 @@ export type Props = {
   day?: string;
 } & {
   show?: Pick<ShowDetail, 'sources'>;
-  routePrefix?: string;
+  /** Which pages the track links go to (the site, or an embed). */
+  trackRoute?: TrackRoute;
 };
 
 interface SourceData {
@@ -87,6 +90,8 @@ const TrackList = (props: Props) => {
       source: sourceId,
     });
   const adminTools = useAdminTools();
+  const { artistSlug, year, month, day } = props;
+  const show = artistSlug && year && month && day ? { artistSlug, year, month, day } : null;
 
   return (
     <Column
@@ -118,11 +123,12 @@ const TrackList = (props: Props) => {
                       {set.name || `Set ${setIdx + 1}`} <div>{getSetTime(set)}</div>
                     </RowHeader>
                   )}
-                  {adminTools && track.slug && (
+                  {adminTools && show && track.slug && (
                     <Link
-                      href={sourceHref(
-                        `/admin/clip/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}`,
-                        activeSourceObj.id
+                      href={href(
+                        '/admin/clip/[artistSlug]/[year]/[month]/[day]/[songSlug]',
+                        { ...show, songSlug: track.slug },
+                        sourceQuery(activeSourceObj.id)
                       )}
                       prefetch={false}
                       title="Create clip"
@@ -136,10 +142,15 @@ const TrackList = (props: Props) => {
                   )}
                   <Row
                     key={track.id}
-                    href={sourceHref(
-                      `${props.routePrefix || ''}/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}`,
-                      activeSourceObj.id
-                    )}
+                    href={
+                      show && track.slug
+                        ? trackHref(
+                            props.trackRoute ?? 'site',
+                            { ...show, songSlug: track.slug },
+                            sourceQuery(activeSourceObj.id)
+                          )
+                        : undefined
+                    }
                     active={trackIsActive}
                   >
                     <div>

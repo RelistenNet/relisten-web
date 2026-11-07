@@ -1,5 +1,6 @@
 'use client';
 
+import { href } from '@timber-js/app/routes';
 import { searchSearchParams } from '@/lib/searchParams/apiSearchParams';
 import { use, useCallback, useEffect, useDeferredValue, useState, Suspense } from 'react';
 import { useRouter } from '@timber-js/app/client';
@@ -15,7 +16,6 @@ import {
 import { Popover, PopoverTrigger, PopoverContent } from '@/ui/base/shadcn/popover';
 import { SearchIcon, MicIcon, MapPinIcon, RouteIcon } from 'lucide-react';
 import { EMPTY_SEARCH, type SearchResults } from '@/lib/search';
-import { songUrl, tourUrl, venueUrl } from '@/lib/urls';
 import cn from '@/lib/cn';
 
 const resolvedEmpty = Promise.resolve(EMPTY_SEARCH);
@@ -68,7 +68,7 @@ function SearchResultsList({
             <CommandItem
               key={`artist-${artist.slug}`}
               value={`artist-${artist.slug}`}
-              onSelect={() => onNavigate(`/${artist.slug}`)}
+              onSelect={() => onNavigate(href('/[artistSlug]', { artistSlug: artist.slug }))}
             >
               <MicIcon className="size-4 text-text-muted" />
               <span>{artist.name}</span>
@@ -88,7 +88,14 @@ function SearchResultsList({
             <CommandItem
               key={`song-${song.artist.slug}-${song.slug}`}
               value={`song-${song.artist.slug}-${song.slug}`}
-              onSelect={() => onNavigate(songUrl(song.artist.slug, song.slug))}
+              onSelect={() =>
+                onNavigate(
+                  href('/artists/[artistSlug]/songs/[songSlug]', {
+                    artistSlug: song.artist.slug,
+                    songSlug: song.slug,
+                  })
+                )
+              }
             >
               <SearchIcon className="size-4 text-text-muted" />
               <div className="flex flex-col">
@@ -112,7 +119,14 @@ function SearchResultsList({
             <CommandItem
               key={`venue-${venue.artist.slug}-${venue.slug}`}
               value={`venue-${venue.artist.slug}-${venue.slug}`}
-              onSelect={() => onNavigate(venueUrl(venue.slug, venue.artist.slug))}
+              onSelect={() =>
+                onNavigate(
+                  href('/artists/[artistSlug]/venues/[venueSlug]', {
+                    artistSlug: venue.artist.slug,
+                    venueSlug: venue.slug,
+                  })
+                )
+              }
             >
               <MapPinIcon className="size-4 text-text-muted" />
               <div className="flex flex-col">
@@ -136,7 +150,14 @@ function SearchResultsList({
             <CommandItem
               key={`tour-${tour.artist.slug}-${tour.slug}`}
               value={`tour-${tour.artist.slug}-${tour.slug}`}
-              onSelect={() => onNavigate(tourUrl(tour.artist.slug, tour.slug))}
+              onSelect={() =>
+                onNavigate(
+                  href('/artists/[artistSlug]/tours/[tourSlug]', {
+                    artistSlug: tour.artist.slug,
+                    tourSlug: tour.slug,
+                  })
+                )
+              }
             >
               <RouteIcon className="size-4 text-text-muted" />
               <div className="flex flex-col">

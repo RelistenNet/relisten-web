@@ -1,10 +1,11 @@
 'use client';
 
+import { href } from '@timber-js/app/routes';
 import React from 'react';
 
 import { durationToHHMMSS } from '@/lib/utils';
 
-import { sourceHref, sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
+import { sourceQuery, sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { toSourceParam } from '@/lib/sourceParam';
 import type { Source } from '@/domain/types';
 import Column from '@/ui/base/Column';
@@ -40,6 +41,7 @@ const TapesColumn = (props: Props) => {
   const [{ source: sourceId }] = sourceSearchParamsLoader.useQueryStates();
 
   const { artistSlug, year, month, day } = props;
+  const show = artistSlug && year && month && day ? { artistSlug, year, month, day } : null;
   const { sourcesData, activeSourceId } = useSourceData({ ...props, source: String(sourceId) });
 
   return (
@@ -48,7 +50,11 @@ const TapesColumn = (props: Props) => {
         <div key={sourceObj.id}>
           <RowHeader>{author(sourceObj) || `Source ${idx + 1} of ${sourcesData.length}`}</RowHeader>
           <Row
-            href={sourceHref(`/${artistSlug}/${year}/${month}/${day}`, sourceObj.id)}
+            href={
+              show
+                ? href('/[artistSlug]/[year]/[month]/[day]', show, sourceQuery(sourceObj.id))
+                : undefined
+            }
             active={activeSourceId === sourceObj?.id}
           >
             <div className="w-full">

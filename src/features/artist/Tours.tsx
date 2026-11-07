@@ -1,3 +1,4 @@
+import { href } from '@timber-js/app/routes';
 import { loadTours } from './load';
 import { findArtistBySlug } from '@/data/artists';
 import DataTable from '@/ui/table/DataTable';
@@ -5,7 +6,6 @@ import type { Column } from '@/ui/table/types';
 import { tableSearchParams, toTableState } from '@/ui/table/params';
 import { queryTable, type TableSpec } from '@/ui/table/query';
 import { formatShowDate } from '@/ui/shows/stats';
-import { artistToursUrl, tourUrl } from '@/lib/urls';
 import { numberFormat } from '@/lib/utils';
 import type { TourSummary } from '@/domain/types';
 import { Link } from '@timber-js/app/client';
@@ -47,7 +47,10 @@ export default async function Tours({ artistSlug }: { artistSlug: string }) {
       label: 'Tour',
       sortable: true,
       cell: (t) => (
-        <Link href={tourUrl(artistSlug, t.slug)} className="text-accent hover:underline">
+        <Link
+          href={href('/artists/[artistSlug]/tours/[tourSlug]', { artistSlug, tourSlug: t.slug })}
+          className="text-accent hover:underline"
+        >
           {t.name}
         </Link>
       ),
@@ -80,7 +83,7 @@ export default async function Tours({ artistSlug }: { artistSlug: string }) {
         stats={[{ label: 'Tours', value: numberFormat.format(tours.length) }]}
       />
       <DataTable
-        pathname={artistToursUrl(artistSlug)}
+        pathname={href('/artists/[artistSlug]/tours', { artistSlug })}
         params={params}
         spec={spec}
         result={result}

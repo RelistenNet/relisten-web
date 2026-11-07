@@ -1,5 +1,6 @@
 'use client';
 
+import { href } from '@timber-js/app/routes';
 import { useFilterState } from '@/hooks/useFilterState';
 import type { ShowSummary } from '@/domain/types';
 import { useSegmentParams } from '@timber-js/app/client';
@@ -130,7 +131,12 @@ const ShowsColumnWithControls = ({
             tours[show.tourName] = true;
           }
 
-          const showHref = `/${artistSlug}/${year}/${month}/${day}`;
+          const showHref = href('/[artistSlug]/[year]/[month]/[day]', {
+            artistSlug,
+            year,
+            month,
+            day,
+          });
 
           return (
             <Fragment key={show.id}>

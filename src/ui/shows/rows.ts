@@ -1,3 +1,4 @@
+import { href } from '@timber-js/app/routes';
 import type { Artist, PlayableTrack, ShowSummary, SongDetail } from '@/domain/types';
 import { splitShowDate } from '@/lib/utils';
 
@@ -67,7 +68,7 @@ export function showRow(show: ShowSummary, artists: ArtistsById): ShowRow | null
     rating: show.rating,
     plays30d: show.plays30d,
     addedAt: show.addedAt,
-    href: `/${artist.slug}/${year}/${month}/${day}`,
+    href: href('/[artistSlug]/[year]/[month]/[day]', { artistSlug: artist.slug, year, month, day }),
   };
 }
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { href } from '@timber-js/app/routes';
 import type { YearSummary } from '@/domain/types';
 import { PropsWithChildren, useMemo } from 'react';
 import { useSegmentParams } from '@timber-js/app/client';
@@ -90,7 +91,7 @@ const YearsColumnWithControls = ({
         processedYears.map((yearObj) => (
           <Row
             key={yearObj.id}
-            href={`/${artistSlug}/${yearObj.year}`}
+            href={href('/[artistSlug]/[year]', { artistSlug, year: yearObj.year })}
             active={yearObj.year === currentYear}
           >
             <div>

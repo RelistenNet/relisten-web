@@ -1,6 +1,7 @@
 'use client';
 
-import { sourceHref } from '@/lib/searchParams/sourceSearchParam';
+import { href } from '@timber-js/app/routes';
+import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
 import { Link } from '@timber-js/app/client';
 import React, { Suspense, use, useRef, useState } from 'react';
 import { browser } from 'react-dom';
@@ -23,6 +24,15 @@ function PlayerInner() {
 
   const { year, month, day } = splitShowDate(playback.showDate);
   const { artistSlug, source } = playback;
+  // The playing show's page, on the playing tape.
+  const showHref =
+    artistSlug && year && month && day
+      ? href(
+          '/[artistSlug]/[year]/[month]/[day]',
+          { artistSlug, year, month, day },
+          sourceQuery(source)
+        )
+      : href('/');
   const artistName = playback.artistName;
   const activeTrack = playback.tracks.find(
     (_track, idx: number) => idx === playback.activeTrack.index
@@ -118,7 +128,7 @@ function PlayerInner() {
               </div>
 
               <Link
-                href={sourceHref(`/${artistSlug}/${year}/${month}/${day}`, source)}
+                href={showHref}
                 className="band-title justify-center text-center text-[0.8em] text-text-muted"
               >
                 {artistName} – {removeLeadingZero(month)}/{removeLeadingZero(day)}/{year.slice(2)}
@@ -191,7 +201,7 @@ function PlayerInner() {
       )}
       {activeTrack && (
         <Link
-          href={sourceHref(`/${artistSlug}/${year}/${month}/${day}`, source)}
+          href={showHref}
           className="
             flex w-[40px] cursor-pointer items-center justify-center self-center text-text-muted
             active:text-text-primary max-lg:hidden

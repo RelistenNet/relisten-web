@@ -1,3 +1,4 @@
+import { href } from '@timber-js/app/routes';
 import { loadSong } from './load';
 import { findArtistBySlug } from '@/data/artists';
 import { lengthColumn, playColumn } from './columns';
@@ -13,7 +14,6 @@ import { queryTable, type TableSpec } from '@/ui/table/query';
 import type { ShowRow } from '@/ui/shows/rows';
 import { Link } from '@timber-js/app/client';
 import { redirect } from '@timber-js/app/server';
-import { songUrl } from '@/lib/urls';
 
 // Every show an artist played a song at. Songs are artist-specific in v4.
 
@@ -44,12 +44,14 @@ export default async function SongDetail({
   // A merged song, or a setlist-only song linked to its canonical song: the API
   // returns the song under its current slug, so send the URL there.
   if (song.slug && song.slug !== songSlug) {
-    redirect(songUrl(artistSlug, song.slug), { permanent: true });
+    redirect(href('/artists/[artistSlug]/songs/[songSlug]', { artistSlug, songSlug: song.slug }), {
+      permanent: true,
+    });
   }
 
   const result = queryTable(song.rows, songSpec, toTableState(params, FILTER_IDS));
   const stats = showStats(song.rows);
-  const pathname = songUrl(artistSlug, songSlug);
+  const pathname = href('/artists/[artistSlug]/songs/[songSlug]', { artistSlug, songSlug });
   const artistShows = artist?.showCount ?? 0;
   const subtitle = [
     song.originalArtist && `Originally by ${song.originalArtist}`,

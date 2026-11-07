@@ -1,3 +1,4 @@
+import { href } from '@timber-js/app/routes';
 import { loadArtists, loadYearShows } from '@/features/browse/load';
 import { format } from 'date-fns';
 import type { Metadata } from '@timber-js/app/server';
@@ -170,7 +171,7 @@ export default async function MonthPage() {
             </td>
             <td className="py-1 pr-8">
               <Link
-                href={`/${artistSlug}/${year}`}
+                href={href('/[artistSlug]/[year]', { artistSlug, year })}
                 className="
                   text-blue-700 no-underline
                   visited:text-purple-700
@@ -225,7 +226,12 @@ export default async function MonthPage() {
                 </td>
                 <td className="py-1 pr-8">
                   <Link
-                    href={`/${artistSlug}/${year}/${month}/${dayStr}`}
+                    href={href('/[artistSlug]/[year]/[month]/[day]', {
+                      artistSlug,
+                      year,
+                      month,
+                      day: dayStr,
+                    })}
                     className="
                       text-blue-700 no-underline
                       visited:text-purple-700

@@ -1,7 +1,7 @@
 'use client';
 
+import { href } from '@timber-js/app/routes';
 import { useRouter } from '@timber-js/app/client';
-import { venueUrl } from '@/lib/urls';
 
 type Props = {
   venueSlug: string;
@@ -18,7 +18,14 @@ export default function ArtistScopeSelect({ venueSlug, artistSlug, artists }: Pr
       name="artist"
       aria-label="Artist"
       value={artistSlug ?? ''}
-      onChange={(e) => router.push(venueUrl(venueSlug, e.target.value || undefined))}
+      onChange={(e) => {
+        const artistSlug = e.target.value;
+        router.push(
+          artistSlug
+            ? href('/artists/[artistSlug]/venues/[venueSlug]', { artistSlug, venueSlug })
+            : href('/venues/[venueSlug]', { venueSlug })
+        );
+      }}
       className="
         self-start rounded-md border border-hairline bg-surface px-2 py-1.5 text-base
         text-text-primary sm:text-sm

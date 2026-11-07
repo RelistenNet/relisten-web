@@ -1,3 +1,5 @@
+import { playImmediatelySearchParamsLoader } from '@/lib/searchParams/playImmediatelySearchParam';
+import { href } from '@timber-js/app/routes';
 import { loadShow } from '@/features/browse/load';
 import { deny, getSegmentParams, redirect } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
@@ -25,7 +27,7 @@ export default async function EmbedShowPage() {
   const firstSet = firstSource?.sets?.[0];
   const firstTrack = firstSet?.tracks?.[0];
 
-  if (!firstTrack) {
+  if (!firstTrack?.slug) {
     return (
       <div className="flex h-screen items-center justify-center text-gray-500">
         No songs available for this show
@@ -33,7 +35,13 @@ export default async function EmbedShowPage() {
     );
   }
 
-  redirect(`/embed/${artistSlug}/${year}/${month}/${day}/${firstTrack.slug}?playImmediately=false`);
+  redirect(
+    href(
+      '/embed/[artistSlug]/[year]/[month]/[day]/[songSlug]',
+      { artistSlug, year, month, day, songSlug: firstTrack.slug },
+      playImmediatelySearchParamsLoader.buildSearchParams({ playImmediately: false })
+    )
+  );
 }
 
 export async function metadata() {
@@ -48,7 +56,7 @@ export async function metadata() {
     title: `${artistSlug} - ${year}/${month}/${day}`,
     description: `Embedded view of ${artistSlug} show from ${year}/${month}/${day}`,
     alternates: {
-      canonical: `/${artistSlug}/${year}/${month}/${day}`,
+      canonical: href('/[artistSlug]/[year]/[month]/[day]', { artistSlug, year, month, day }),
     },
   };
 }

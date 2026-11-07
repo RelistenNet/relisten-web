@@ -1,16 +1,9 @@
 'use client';
 
+import { href } from '@timber-js/app/routes';
 import { Link, useLinkStatus, usePathname } from '@timber-js/app/client';
 import cn from '@/lib/cn';
 import { DEFAULT_ARTIST_SLUG } from '@/lib/defaultArtist';
-import {
-  artistRecentlyAddedUrl,
-  artistSongsUrl,
-  artistTodayUrl,
-  artistToursUrl,
-  artistUrl,
-  artistVenuesUrl,
-} from '@/lib/urls';
 import type { ArtistFeatures } from '@/domain/types';
 
 // The artist's sections, under the nav bar on every page: the artist in the URL
@@ -25,7 +18,7 @@ import type { ArtistFeatures } from '@/domain/types';
 type Tab = { label: string; href: string; isActive: (path: string) => boolean };
 
 function tabsFor(artistSlug: string, features?: Partial<ArtistFeatures>): Tab[] {
-  const browse = `/${artistSlug}`;
+  const browse = href('/[artistSlug]', { artistSlug });
   const under = (prefix: string) => (path: string) =>
     path === prefix || path.startsWith(`${prefix}/`);
 
@@ -38,23 +31,24 @@ function tabsFor(artistSlug: string, features?: Partial<ArtistFeatures>): Tab[] 
     },
     {
       label: 'Overview',
-      href: artistUrl(artistSlug),
-      isActive: (p) => p === artistUrl(artistSlug),
+      href: href('/artists/[artistSlug]', { artistSlug }),
+      isActive: (p) => p === href('/artists/[artistSlug]', { artistSlug }),
     },
   ];
   const page = (label: string, href: string): Tab => ({ label, href, isActive: under(href) });
   // Songs come from normalization; the older setlist songs flag can be set on
   // artists with no songs, so it doesn't count.
   if (features?.normalization) {
-    tabs.push(page('Songs', artistSongsUrl(artistSlug)));
+    tabs.push(page('Songs', href('/artists/[artistSlug]/songs', { artistSlug })));
   }
   if (features?.perShowVenues || features?.perSourceVenues) {
-    tabs.push(page('Venues', artistVenuesUrl(artistSlug)));
+    tabs.push(page('Venues', href('/artists/[artistSlug]/venues', { artistSlug })));
   }
-  if (features?.tours) tabs.push(page('Tours', artistToursUrl(artistSlug)));
+  if (features?.tours)
+    tabs.push(page('Tours', href('/artists/[artistSlug]/tours', { artistSlug })));
   tabs.push(
-    page('Recently Added', artistRecentlyAddedUrl(artistSlug)),
-    page('Today In History', artistTodayUrl(artistSlug))
+    page('Recently Added', href('/artists/[artistSlug]/recently-added', { artistSlug })),
+    page('Today In History', href('/artists/[artistSlug]/today-in-history', { artistSlug }))
   );
   return tabs;
 }

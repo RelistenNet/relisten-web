@@ -1,10 +1,10 @@
+import { href } from '@timber-js/app/routes';
 import { loadOnDate } from './load';
 import { findArtistBySlug } from '@/data/artists';
 import ArtistShowList from './ArtistShowList';
 import { showColumns } from '@/ui/shows/columns';
 import TodayDateNav from '@/ui/base/TodayDateNav';
 import { getCurrentMonthDay } from '@/lib/timezone';
-import { artistTodayUrl } from '@/lib/urls';
 import { numberFormat } from '@/lib/utils';
 import { dateSearchParams } from '@/lib/searchParams/dateSearchParam';
 import { deny } from '@timber-js/app/server';
@@ -38,13 +38,13 @@ export default async function TodayInHistory({ artistSlug }: { artistSlug: strin
         <TodayDateNav
           month={String(month)}
           day={String(day)}
-          pathname={artistTodayUrl(artistSlug)}
+          pathname={href('/artists/[artistSlug]/today-in-history', { artistSlug })}
         />
       }
       rows={rows}
       columns={[showColumns.show, showColumns.tapes, showColumns.rating, showColumns.plays]}
       defaultSort={{ id: 'date', dir: 'asc' }}
-      pathname={artistTodayUrl(artistSlug)}
+      pathname={href('/artists/[artistSlug]/today-in-history', { artistSlug })}
       extraParams={parsed.month && parsed.day ? { month, day } : undefined}
     />
   );

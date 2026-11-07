@@ -1,7 +1,8 @@
 'use client';
 
+import { href } from '@timber-js/app/routes';
 import { liveSummarySearchParams } from '@/lib/searchParams/apiSearchParams';
-import { sourceHref } from '@/lib/searchParams/sourceSearchParam';
+import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
 import { Link } from '@timber-js/app/client';
 import type { ReactNode } from 'react';
 import {
@@ -117,9 +118,13 @@ export default function LiveListeners({ initialSummary, today, feed }: Props) {
 }
 
 const artistHref = ({ artistSlug, topShow }: LiveArtist) => {
-  if (!topShow) return `/${artistSlug}`;
+  if (!topShow) return href('/[artistSlug]', { artistSlug });
   const { year, month, day } = splitShowDate(topShow.displayDate);
-  return sourceHref(`/${artistSlug}/${year}/${month}/${day}`, topShow.sourceParam);
+  return href(
+    '/[artistSlug]/[year]/[month]/[day]',
+    { artistSlug, year, month, day },
+    sourceQuery(topShow.sourceParam)
+  );
 };
 
 function ArtistRow({ artist }: { artist: LiveArtist }) {

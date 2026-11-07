@@ -1,3 +1,4 @@
+import { href } from '@timber-js/app/routes';
 import { Link } from '@timber-js/app/client';
 import type { ShowRow } from './rows';
 import type { TableFilter, TableSpec } from '@/ui/table/query';
@@ -5,7 +6,6 @@ import { numberFormat } from '@/lib/utils';
 import Tag from '@/ui/base/Tag';
 import { formatShowDate } from './stats';
 import type { Column } from '@/ui/table/types';
-import { venueUrl } from '@/lib/urls';
 
 // Columns, sorts, and filters shared by every table of shows (venue pages, song
 // pages). Each page picks the columns it needs.
@@ -48,7 +48,10 @@ export const showColumns = {
         >
           {r.venueName && r.venueSlug ? (
             <Link
-              href={venueUrl(r.venueSlug, r.artistSlug)}
+              href={href('/artists/[artistSlug]/venues/[venueSlug]', {
+                artistSlug: r.artistSlug,
+                venueSlug: r.venueSlug,
+              })}
               className="hover:text-text-primary hover:underline"
             >
               {r.venueName}
@@ -66,7 +69,7 @@ export const showColumns = {
     label: 'Artist',
     sortable: true,
     cell: (r) => (
-      <Link href={`/${r.artistSlug}`} className="hover:underline">
+      <Link href={href('/[artistSlug]', { artistSlug: r.artistSlug })} className="hover:underline">
         {r.artistName}
       </Link>
     ),

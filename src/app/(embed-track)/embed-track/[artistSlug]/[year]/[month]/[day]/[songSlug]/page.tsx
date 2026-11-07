@@ -1,3 +1,4 @@
+import { href } from '@timber-js/app/routes';
 import { loadArtists, loadShow } from '@/features/browse/load';
 import PlayerManager from '@/player/PlayerManager';
 import EmbedTrackList from '@/features/embed/EmbedTrackList';
@@ -45,7 +46,7 @@ export default async function SingleTrackEmbedPage() {
         day={day}
         show={show}
         artistName={artistName}
-        routePrefix="/embed-track"
+        trackRoute="embed-track"
         playImmediately={false}
         trackSlugs={trackSlugs}
       />
@@ -64,7 +65,7 @@ export async function metadata() {
 
   const name = artists?.find((a) => a.slug === artistSlug)?.name;
 
-  if (!artistSlug || !name || !year || !month || !day) return {};
+  if (!artistSlug || !name || !year || !month || !day || !songSlug) return {};
 
   const show = await loadShow(artistSlug, createShowDate(year, month, day));
 
@@ -78,7 +79,13 @@ export async function metadata() {
     title: [song?.title, createShowDate(year, month, day), name].filter((x) => x).join(' | '),
     description: [show?.venue?.name, show?.venue?.location].filter((x) => x).join(' '),
     alternates: {
-      canonical: `/${artistSlug}/${year}/${month}/${day}/${songSlug}`,
+      canonical: href('/[artistSlug]/[year]/[month]/[day]/[songSlug]', {
+        artistSlug,
+        year,
+        month,
+        day,
+        songSlug,
+      }),
     },
     openGraph: {
       audio: [

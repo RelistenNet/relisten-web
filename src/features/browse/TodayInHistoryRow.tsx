@@ -1,16 +1,16 @@
+import { href } from '@timber-js/app/routes';
 import { loadOnDate } from './load';
 import { getCurrentMonthDay } from '@/lib/timezone';
 import { simplePluralize } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Suspense } from 'react';
 import Row from '@/ui/base/Row';
-import { artistTodayUrl } from '@/lib/urls';
 
 const TodayInHistoryRow = async ({ artistSlug }: { artistSlug?: string }) => {
   const currentMonthDay = await getCurrentMonthDay();
 
   return (
-    <Row href={artistTodayUrl(artistSlug ?? '')}>
+    <Row href={href('/artists/[artistSlug]/today-in-history', { artistSlug: artistSlug ?? '' })}>
       <div>
         <div>Today In History</div>
         <div className="text-xxs text-foreground-muted">

@@ -1,4 +1,5 @@
-import { sourceHref } from '@/lib/searchParams/sourceSearchParam';
+import { trackHref, type TrackRoute } from '@/ui/shows/trackHref';
+import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
 import { restoreSearchParams } from '@/lib/searchParams/restoreSearchParams';
 import { Queue, type TrackInfo } from 'gapless';
 
@@ -184,17 +185,23 @@ function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Qu
             }
           }
 
-          const basePath = `/${artistSlug}/${year}/${month}/${day}/${songSlug}`;
-          const prefixes = ['/embed-track', '/embed'];
-          const routePrefix = prefixes.find((p) => window.location.pathname.startsWith(p)) ?? '';
-          const nextUrl = sourceHref(`${routePrefix}${basePath}`, source);
+          const { pathname } = window.location;
+          const route: TrackRoute = pathname.startsWith('/embed-track')
+            ? 'embed-track'
+            : pathname.startsWith('/embed')
+              ? 'embed'
+              : 'site';
+          const nextUrl =
+            artistSlug && songSlug
+              ? trackHref(route, { artistSlug, year, month, day, songSlug }, sourceQuery(source))
+              : null;
 
           if (playback !== songSlug) {
             store.dispatch(updatePlayback({ songSlug, artistSlug, year, month, day, source }));
           }
 
-          if (songSlug && !routePrefix) {
-            window.localStorage.lastPlayedUrl = sourceHref(basePath, source);
+          if (nextUrl && route === 'site') {
+            window.localStorage.lastPlayedUrl = nextUrl;
             window.localStorage.lastPlayedTrackTitle = track.title ?? '';
             window.localStorage.lastPlayedArtistName = playback.artistName ?? '';
             window.localStorage.lastPlayedShowDate = playback.showDate ?? '';
@@ -204,8 +211,8 @@ function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Qu
           }
 
           // update URL and page title to reflect current track without triggering a full navigation
-          if (window.location.pathname.indexOf(`/${artistSlug}/${year}/${month}/${day}`) !== -1) {
-            if (source && window.location.pathname + window.location.search !== nextUrl) {
+          if (nextUrl && pathname.indexOf(`/${artistSlug}/${year}/${month}/${day}`) !== -1) {
+            if (source && pathname + window.location.search !== nextUrl) {
               replaceUrl(nextUrl);
             }
             // Keep everything after the first " | " (e.g. "2024-01-01 | Grateful Dead | Relisten")

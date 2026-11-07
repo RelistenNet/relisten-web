@@ -1,10 +1,10 @@
+import { href } from '@timber-js/app/routes';
 import { loadArtistShows } from './load';
 import { findArtistBySlug } from '@/data/artists';
 import ArtistShowList from './ArtistShowList';
 import type { StatItem } from '@/ui/base/PageHeader';
 import { showColumns } from '@/ui/shows/columns';
 import { showStats } from '@/ui/shows/stats';
-import { artistUrl } from '@/lib/urls';
 import { numberFormat } from '@/lib/utils';
 import { deny } from '@timber-js/app/server';
 
@@ -37,7 +37,7 @@ export default async function ArtistOverview({ artistSlug }: { artistSlug: strin
       rows={rows}
       columns={[showColumns.show, showColumns.tapes, showColumns.rating, showColumns.plays]}
       defaultSort={{ id: 'date', dir: 'desc' }}
-      pathname={artistUrl(artistSlug)}
+      pathname={href('/artists/[artistSlug]', { artistSlug })}
       yearChart
     />
   );

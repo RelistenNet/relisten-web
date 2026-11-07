@@ -6,6 +6,6 @@ export const sourceSearchParamsLoader = defineSearchParams({
   source: z.coerce.string().default(''),
 });
 
-/** `path?source=…` for a show or track page: a source id, prefixed or not. */
-export const sourceHref = (path: string, source: string | null | undefined) =>
-  sourceSearchParamsLoader.href(path, { source: toSourceParam(source) });
+/** The `source=…` query for a show or track link: a source id, prefixed or not. */
+export const sourceQuery = (source: string | null | undefined) =>
+  sourceSearchParamsLoader.buildSearchParams({ source: toSourceParam(source) });

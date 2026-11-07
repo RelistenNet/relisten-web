@@ -1,8 +1,8 @@
+import { href } from '@timber-js/app/routes';
 import { loadRecentlyAdded } from './load';
 import { findArtistBySlug } from '@/data/artists';
 import ArtistShowList from './ArtistShowList';
 import { showColumns } from '@/ui/shows/columns';
-import { artistRecentlyAddedUrl } from '@/lib/urls';
 import { deny } from '@timber-js/app/server';
 
 /** Shows most recently added to Relisten. */
@@ -20,7 +20,7 @@ export default async function RecentlyAdded({ artistSlug }: { artistSlug: string
       rows={rows}
       columns={[showColumns.show, showColumns.added, showColumns.tapes, showColumns.plays]}
       defaultSort={{ id: 'added', dir: 'desc' }}
-      pathname={artistRecentlyAddedUrl(artistSlug)}
+      pathname={href('/artists/[artistSlug]/recently-added', { artistSlug })}
     />
   );
 }

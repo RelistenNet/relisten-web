@@ -1,5 +1,6 @@
 'use client';
 
+import { href } from '@timber-js/app/routes';
 import React, { Fragment, type RefObject, Suspense, use, useMemo, useRef, useState } from 'react';
 import { browser } from 'react-dom';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
@@ -288,7 +289,7 @@ function ArtistList({
     }
     return (
       <Row
-        href={`/${item.artist.slug}`}
+        href={href('/[artistSlug]', { artistSlug: item.artist.slug })}
         active={item.artist.slug === currentArtistSlug}
         refreshWhenCurrent
       >

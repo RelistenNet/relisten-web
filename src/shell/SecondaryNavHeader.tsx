@@ -1,5 +1,6 @@
 'use client';
 
+import { href } from '@timber-js/app/routes';
 import {
   Link,
   usePathname,
@@ -79,7 +80,7 @@ export default function SecondaryNavBar({ artistName }: Props) {
     return (
       <>
         <span>TO</span>
-        <Link href={`/${artistSlug}`} className="uppercase">
+        <Link href={href('/[artistSlug]', { artistSlug })} className="uppercase">
           {bandsWithThe.includes(artistSlug) ? 'THE ' : ''}
           {artistName}
         </Link>

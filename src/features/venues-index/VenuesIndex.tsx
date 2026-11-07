@@ -1,10 +1,10 @@
+import { href } from '@timber-js/app/routes';
 import { artistIdForSlug, findArtistBySlug, venues } from '@/data/artists';
 import { allVenues } from '@/data/venues';
 import DataTable from '@/ui/table/DataTable';
 import type { Column } from '@/ui/table/types';
 import { tableSearchParams, toTableState } from '@/ui/table/params';
 import { queryTable, type TableSpec } from '@/ui/table/query';
-import { artistVenuesUrl, venuesUrl, venueUrl } from '@/lib/urls';
 import { numberFormat } from '@/lib/utils';
 import type { VenueListItem } from '@/domain/types';
 import { Link } from '@timber-js/app/client';
@@ -69,7 +69,14 @@ export default async function VenuesIndex({ artistSlug }: { artistSlug?: string 
       label: 'Venue',
       sortable: true,
       cell: (v) => (
-        <Link href={venueUrl(v.slug, artistSlug)} className="text-accent hover:underline">
+        <Link
+          href={
+            artistSlug
+              ? href('/artists/[artistSlug]/venues/[venueSlug]', { artistSlug, venueSlug: v.slug })
+              : href('/venues/[venueSlug]', { venueSlug: v.slug })
+          }
+          className="text-accent hover:underline"
+        >
           {v.name}
         </Link>
       ),
@@ -114,7 +121,9 @@ export default async function VenuesIndex({ artistSlug }: { artistSlug?: string 
         stats={stats}
       />
       <DataTable
-        pathname={artistSlug ? artistVenuesUrl(artistSlug) : venuesUrl}
+        pathname={
+          artistSlug ? href('/artists/[artistSlug]/venues', { artistSlug }) : href('/venues')
+        }
         params={params}
         spec={spec}
         result={result}

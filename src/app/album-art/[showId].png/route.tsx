@@ -43,7 +43,7 @@ const searchParams = defineSearchParams({
   // Small allow-list so each show has at most a few distinct renders.
   // Anything else falls back to the default.
   size: z.enum(['256', '512', '1024']).default('1024').transform(Number),
-  debug: z.coerce.boolean().default(false),
+  debug: z.stringbool().default(false),
 });
 
 export async function GET() {

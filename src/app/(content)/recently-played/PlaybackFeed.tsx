@@ -1,7 +1,8 @@
 'use client';
 
+import { href } from '@timber-js/app/routes';
 import { liveHistorySearchParams } from '@/lib/searchParams/apiSearchParams';
-import { sourceHref } from '@/lib/searchParams/sourceSearchParam';
+import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
 import { Link } from '@timber-js/app/client';
 import { useEffect, useState } from 'react';
 import TimeAgo from '@/ui/base/TimeAgo';
@@ -125,9 +126,10 @@ function PlaybackRow({ play, serverNow }: { play: LivePlay; serverNow: number })
 
   return (
     <Link
-      href={sourceHref(
-        `/${play.artistSlug}/${year}/${month}/${day}/${play.trackSlug}`,
-        play.sourceParam
+      href={href(
+        '/[artistSlug]/[year]/[month]/[day]/[songSlug]',
+        { artistSlug: play.artistSlug, year, month, day, songSlug: play.trackSlug },
+        sourceQuery(play.sourceParam)
       )}
       prefetch={false}
       className="flex items-center gap-3 px-3 py-2 transition-colors duration-150 hover:bg-surface-hover"

@@ -1,9 +1,9 @@
+import { href } from '@timber-js/app/routes';
 import { findArtistBySlug, songs } from '@/data/artists';
 import DataTable from '@/ui/table/DataTable';
 import type { Column } from '@/ui/table/types';
 import { tableSearchParams, toTableState } from '@/ui/table/params';
 import { queryTable, type TableSpec } from '@/ui/table/query';
-import { artistSongsUrl, songUrl } from '@/lib/urls';
 import { numberFormat } from '@/lib/utils';
 import type { SongListItem } from '@/domain/types';
 import { Link } from '@timber-js/app/client';
@@ -40,7 +40,10 @@ export default async function SongsIndex({ artistSlug }: { artistSlug: string })
       label: 'Song',
       sortable: true,
       cell: (s) => (
-        <Link href={songUrl(artistSlug, s.slug)} className="text-accent hover:underline">
+        <Link
+          href={href('/artists/[artistSlug]/songs/[songSlug]', { artistSlug, songSlug: s.slug })}
+          className="text-accent hover:underline"
+        >
           {s.name}
         </Link>
       ),
@@ -64,7 +67,7 @@ export default async function SongsIndex({ artistSlug }: { artistSlug: string })
         stats={[{ label: 'Songs', value: numberFormat.format(songs.length) }]}
       />
       <DataTable
-        pathname={artistSongsUrl(artistSlug)}
+        pathname={href('/artists/[artistSlug]/songs', { artistSlug })}
         params={params}
         spec={spec}
         result={result}
