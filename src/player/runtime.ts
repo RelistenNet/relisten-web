@@ -20,6 +20,7 @@ import { createListenTracker } from './listenTracker';
 import { scrobblePlay } from './scrobble';
 import { dismissAutoplayToast, showAudioError, showPlayPrompt } from './toasts';
 import { rememberListener } from './autoplay';
+import { savedVolume } from './volume';
 import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
 import { trackHref, type TrackRoute } from '@/ui/shows/trackHref';
 import { splitShowDate } from '@/lib/utils';
@@ -117,8 +118,10 @@ if (isBrowser) {
     }
   );
 
-  const volume = Number(localStorage.volume);
-  if (Number.isFinite(volume) && localStorage.volume !== undefined) engine.setVolume(volume);
+  // Volume lives in the playback actor; the engine follows it.
+  const volume = savedVolume();
+  engine.setVolume(volume);
+  playbackActor.send({ type: 'VOLUME', volume });
 
   storage = createQueueStorage({
     storage: window.localStorage,

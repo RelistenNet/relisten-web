@@ -17,6 +17,8 @@ export type PlaybackState = {
   /** Seconds; NaN until the file's length is known. */
   duration: number;
   playing: boolean;
+  /** 0–1. The one copy: the engine and the player bar both follow it. */
+  volume: number;
   /** Web Audio load state per entry key ('LOADED' means gapless-ready). */
   statuses: Record<string, LoadState>;
 };
@@ -24,6 +26,7 @@ export type PlaybackState = {
 export type PlaybackEvent =
   | { type: 'PROGRESS'; key: string; currentTime: number; duration: number }
   | { type: 'PLAYING'; playing: boolean }
+  | { type: 'VOLUME'; volume: number }
   | { type: 'STATUS'; statuses: Record<string, LoadState> }
   /** A restored position, shown before the entry can play. */
   | { type: 'RESTORED'; key: string; currentTime: number; duration?: number };
@@ -33,6 +36,7 @@ export const initialPlayback: PlaybackState = {
   currentTime: 0,
   duration: Number.NaN,
   playing: false,
+  volume: 1,
   statuses: {},
 };
 
@@ -55,6 +59,12 @@ export function playbackTransition(state: PlaybackState, event: PlaybackEvent): 
     }
     case 'PLAYING':
       return event.playing === state.playing ? state : { ...state, playing: event.playing };
+    case 'VOLUME': {
+      const volume = Number.isFinite(event.volume)
+        ? Math.max(0, Math.min(1, event.volume))
+        : state.volume;
+      return volume === state.volume ? state : { ...state, volume };
+    }
     case 'STATUS':
       return { ...state, statuses: event.statuses };
     case 'RESTORED':

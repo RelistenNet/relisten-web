@@ -14,7 +14,7 @@ import {
 } from './queue/items';
 import type { ContextRef, RepeatMode } from './queue/model';
 import { canAutoplay } from './autoplay';
-import { getEngine, playerActor, startPlayback } from './runtime';
+import { getEngine, playbackActor, playerActor, startPlayback } from './runtime';
 import { showPlayPrompt } from './toasts';
 
 const newSeed = () => Math.floor(Math.random() * 2 ** 31);
@@ -137,8 +137,10 @@ export const next = () => getEngine()?.next();
 export const previous = () => getEngine()?.previous();
 export const seek = (time: number) => getEngine()?.seek(time);
 
+/** Set the volume (0–1): the playback actor, the engine and the saved value together. */
 export function setVolume(volume: number): void {
   const v = Math.max(0, Math.min(1, volume));
+  playbackActor.send({ type: 'VOLUME', volume: v });
   getEngine()?.setVolume(v);
   try {
     localStorage.volume = v;

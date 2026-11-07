@@ -94,7 +94,7 @@ function PlayerInner() {
 
   const activeTrack = useCurrentItem();
   const isPlaying = useIsPlaying();
-  const [volume, setVolume] = useState(Number(localStorage.volume) || 1);
+  const volume = usePlayback((p) => p.volume);
 
   const { year, month, day } = splitShowDate(activeTrack?.date);
   const artistSlug = activeTrack?.artistSlug;
@@ -115,7 +115,6 @@ function PlayerInner() {
       0,
       Math.min(1, (rect.height - (e.clientY - rect.top)) / rect.height)
     );
-    setVolume(nextVolume);
     setPlayerVolume(nextVolume);
   };
 
