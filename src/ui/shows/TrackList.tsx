@@ -6,10 +6,7 @@ import { Fragment } from 'react';
 import { durationToHHMMSS, removeLeadingZero } from '@/lib/utils';
 
 import { sourceQuery, sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
-import { useSelector } from 'react-redux';
 import type { ShowDetail, Source, SourceSet } from '@/domain/types';
-import type { GaplessMetadata } from '@/redux/modules/playback';
-import type { RootState } from '@/redux';
 import Column from '@/ui/base/Column';
 import Row from '@/ui/base/Row';
 import RowHeader from '@/ui/base/RowHeader';
@@ -37,12 +34,19 @@ export type Props = {
   trackRoute?: TrackRoute;
 };
 
+/** Web Audio load state of a track ('LOADED' means it can play gaplessly). */
+export type TrackLoadState = 'NONE' | 'LOADING' | 'LOADED' | 'ERROR';
+
+/** What's playing, from the player (src/ui doesn't read the player itself). */
+export type PlayingTrack = {
+  trackId: string;
+  sourceId: string;
+  /** Load states by track id, for the playing tape. */
+  statuses: Record<string, TrackLoadState>;
+};
+
 interface SourceData {
-  gaplessTracksMetadata: GaplessMetadata[];
-  activePlaybackSourceId: string | undefined;
   activeSourceId: string | undefined;
-  isActiveSourcePlaying: boolean;
-  activePlaybackTrackId?: string;
   displayDate: string | undefined;
   activeSourceObj: Source | undefined;
   sourcesData: Source[];
@@ -55,13 +59,6 @@ export const useSourceData = ({
   show,
   source,
 }: Props & { source: string }): SourceData => {
-  // The store holds the full v4 source id (`source_…`).
-  const activePlaybackSourceId = useSelector(({ playback }: RootState) => playback.source);
-  const activePlaybackTrackId = useSelector(({ playback }: RootState) => playback.activeTrack?.id);
-  const gaplessTracksMetadata = useSelector(
-    ({ playback }: RootState) => playback.gaplessTracksMetadata
-  );
-
   const displayDate = year && month && day ? [year, month, day].join('-') : undefined;
 
   const sourcesData = sortSources(show?.sources ?? []);
@@ -71,24 +68,18 @@ export const useSourceData = ({
   const activeSourceObj = sourcesData.find((s) => s.id === wantedSourceId) ?? sourcesData[0];
 
   return {
-    gaplessTracksMetadata,
-    activePlaybackSourceId,
     activeSourceId: activeSourceObj?.id,
-    activePlaybackTrackId,
-    isActiveSourcePlaying: activeSourceObj?.id === activePlaybackSourceId,
     displayDate,
     activeSourceObj,
     sourcesData,
   };
 };
 
-const TrackList = (props: Props) => {
+const TrackList = ({ playing, ...props }: Props & { playing?: PlayingTrack | null }) => {
   const [{ source: sourceId }] = sourceSearchParamsLoader.useQueryStates();
-  const { gaplessTracksMetadata, isActiveSourcePlaying, activeSourceObj, activePlaybackTrackId } =
-    useSourceData({
-      ...props,
-      source: sourceId,
-    });
+  const { activeSourceObj } = useSourceData({ ...props, source: sourceId });
+  // Both are full v4 ids (`source_…`, `track_…`).
+  const isActiveSourcePlaying = !!playing && activeSourceObj?.id === playing.sourceId;
   const adminTools = useAdminTools();
   const { artistSlug, year, month, day } = props;
   const show = artistSlug && year && month && day ? { artistSlug, year, month, day } : null;
@@ -107,14 +98,9 @@ const TrackList = (props: Props) => {
         activeSourceObj.sets?.map((set, setIdx) => (
           <Fragment key={set.id}>
             {set.tracks?.map((track, trackIdx) => {
-              const trackIsActive = track.id === activePlaybackTrackId && isActiveSourcePlaying;
+              const trackIsActive = isActiveSourcePlaying && track.id === playing.trackId;
 
-              const trackMetadata = isActiveSourcePlaying
-                ? gaplessTracksMetadata.find(
-                    (gaplessTrack) =>
-                      gaplessTrack.trackMetadata && gaplessTrack.trackMetadata.trackId === track.id
-                  )
-                : null;
+              const loadState = isActiveSourcePlaying ? playing.statuses[track.id] : undefined;
 
               return (
                 <div key={track.id} className="relative">
@@ -162,16 +148,9 @@ const TrackList = (props: Props) => {
                       )}
                     </div>
                     <div className="shrink-0 text-right">
-                      {trackMetadata &&
-                        (() => {
-                          if (trackMetadata.webAudioLoadingState === 'LOADED')
-                            return <Tag variant="success">{'\u2713'} GAPLESS</Tag>;
-                          if (trackMetadata.webAudioLoadingState === 'LOADING')
-                            return <Tag variant="warning">LOADING</Tag>;
-                          if (trackMetadata.webAudioLoadingState === 'ERROR')
-                            return <Tag variant="error">ERROR</Tag>;
-                          return null;
-                        })()}
+                      {loadState === 'LOADED' && <Tag variant="success">{'\u2713'} GAPLESS</Tag>}
+                      {loadState === 'LOADING' && <Tag variant="warning">LOADING</Tag>}
+                      {loadState === 'ERROR' && <Tag variant="error">ERROR</Tag>}
                     </div>
                   </Row>
                 </div>

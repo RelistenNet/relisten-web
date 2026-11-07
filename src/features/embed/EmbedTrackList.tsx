@@ -1,10 +1,9 @@
 'use client';
 
-import { useSelector } from 'react-redux';
-import type { RootState } from '@/redux';
 import type { Track } from '@/domain/types';
 import { durationToHHMMSS } from '@/lib/utils';
-import player from '@/player/player';
+import { jumpToTrack } from '@/player/commands';
+import { useCurrentItem } from '@/player/hooks';
 
 interface EmbedTrackListProps {
   tracks: Track[];
@@ -12,7 +11,7 @@ interface EmbedTrackListProps {
 }
 
 export default function EmbedTrackList({ tracks, startPosition }: EmbedTrackListProps) {
-  const activeTrackId = useSelector(({ playback }: RootState) => playback.activeTrack?.id);
+  const activeTrackId = useCurrentItem()?.trackId;
 
   return (
     <div className="divide-y divide-gray-200 border-b border-gray-200">
@@ -24,9 +23,7 @@ export default function EmbedTrackList({ tracks, startPosition }: EmbedTrackList
           <button
             key={track.id}
             type="button"
-            onClick={() => {
-              player.gotoTrack(i, true);
-            }}
+            onClick={() => jumpToTrack(track.id)}
             className={`
               flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left text-sm
               transition-colors hover:bg-gray-50

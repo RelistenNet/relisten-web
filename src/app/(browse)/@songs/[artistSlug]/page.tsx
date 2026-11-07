@@ -1,5 +1,5 @@
 import { loadRandomShow } from '@/features/browse/load';
-import TrackList from '@/ui/shows/TrackList';
+import TrackList from '@/player/PlayingTrackList';
 import { splitShowDate } from '@/lib/utils';
 import { getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';

@@ -1,16 +1,16 @@
 'use client';
 
 import { Props, useSourceData } from '@/ui/shows/TrackList';
-import player, { canAutoplay, loadTracks } from './player';
+import { playShow } from './commands';
 import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { tSearchParamsLoader } from '@/lib/searchParams/tSearchParam';
 import { createShowDate } from '@/lib/utils';
-import { store } from '@/redux';
-import { updatePlayback } from '@/redux/modules/playback';
+import type { ShowDetail } from '@/domain/types';
 import { usePathname } from '@timber-js/app/client';
 import { useEffect, useEffectEvent } from 'react';
 
 interface PlayerManagerProps extends Props {
+  show?: ShowDetail;
   artistName?: string;
   playImmediately?: boolean;
   trackSlugs?: string[];
@@ -21,6 +21,11 @@ interface PlayerManagerProps extends Props {
   source?: string;
 }
 
+/**
+ * A track page's URL means "play this tape from this track". The queue keeps
+ * Next up; the same tape keeps its loaded audio; the track already playing
+ * just resumes (which is also what happens when the URL follows playback).
+ */
 export default function PlayerManager(props: PlayerManagerProps) {
   const pathname = usePathname();
   const [{ source: querySourceId }] = sourceSearchParamsLoader.useQueryStates();
@@ -43,57 +48,25 @@ export default function PlayerManager(props: PlayerManagerProps) {
 
   // Non-reactive values (props, ?t=) are read at sync time; only the deps below re-trigger it.
   const syncPlayer = useEffectEvent(() => {
-    if (activeSourceObj) {
-      const allTracks = (activeSourceObj.sets?.map((set) => set.tracks).flat() ?? []).filter(
-        (t): t is NonNullable<typeof t> => t != null
-      );
-      const { trackSlugs } = props;
-      const tracks = trackSlugs
-        ? allTracks.filter((t) => t.slug && trackSlugs.includes(t.slug))
-        : allTracks;
-      const activeTrackIndex = tracks.findIndex((track) => track?.slug === songSlug);
-      const activeTrack = tracks[activeTrackIndex];
-      const playImmediately = props.playImmediately ?? true;
+    const { show } = props;
+    if (!activeSourceObj || !show || !artistSlug) return;
 
-      store.dispatch(
-        updatePlayback({
-          artistSlug,
-          artistName: props.artistName,
-          year,
-          showDate: createShowDate(year, month, day),
-          songSlug,
-          source: String(activeSourceObj.id),
-          paused: false,
-        })
-      );
-
-      if (tracks.length && typeof window.Notification !== 'undefined') {
-        if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-          Notification.requestPermission();
-        }
+    if (typeof window.Notification !== 'undefined') {
+      if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+        Notification.requestPermission();
       }
-
-      // check if track is already in queue, and re-use
-      if (player.currentTrack?.metadata?.trackId === activeTrack?.id) {
-        if (canAutoplay()) {
-          player.play();
-        }
-        return;
-      }
-
-      const prevFirstTrack = player.tracks?.[0];
-      const nextFirstTrack = tracks[0];
-      if (
-        prevFirstTrack &&
-        nextFirstTrack &&
-        prevFirstTrack.metadata?.trackId === nextFirstTrack.id
-      ) {
-        player.gotoTrack(activeTrackIndex, playImmediately && canAutoplay());
-        return;
-      }
-
-      loadTracks(tracks, songSlug, { playImmediately, seekTime });
     }
+
+    playShow({
+      show: { ...show, date: show.date || createShowDate(year, month, day) },
+      source: activeSourceObj,
+      artistSlug,
+      artistName: props.artistName ?? artistSlug.replace(/-/g, ' '),
+      trackSlug: songSlug,
+      trackSlugs: props.trackSlugs,
+      play: props.playImmediately ?? true,
+      startTime: seekTime,
+    });
   });
 
   useEffect(() => {
