@@ -35,13 +35,14 @@ function PopoverContent({
   side = 'bottom',
   sideOffset = 8,
   arrowPadding = 8,
+  arrowClassName,
   children,
   ...props
 }: PopoverPrimitive.Popup.Props &
   Pick<
     PopoverPrimitive.Positioner.Props,
     'align' | 'alignOffset' | 'side' | 'sideOffset' | 'arrowPadding'
-  >) {
+  > & { arrowClassName?: string }) {
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Positioner
@@ -69,7 +70,7 @@ function PopoverContent({
           )}
           {...props}
         >
-          <PopoverArrow />
+          <PopoverArrow className={arrowClassName} />
           {children}
         </PopoverPrimitive.Popup>
       </PopoverPrimitive.Positioner>

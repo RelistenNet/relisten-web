@@ -122,12 +122,17 @@ export function advanceTo(state: QueueState, key: string): QueueState {
   return state;
 }
 
-/** What the queue panel shows: now playing, Next up, then the rest of the context. */
-export function upcoming(state: QueueState) {
+/**
+ * What the queue panel shows: the context before the cursor (already played),
+ * now playing, Next up, then the rest of the context.
+ */
+export function queueView(state: QueueState) {
   const order = state.context?.items ?? [];
   const after = state.current?.from === 'context' ? state.current.key : state.cursor;
   const i = after ? order.findIndex((item) => item.key === after) : -1;
   return {
+    // Playing from Next up, the cursor entry has been played too.
+    played: order.slice(0, state.current?.from === 'context' ? i : i + 1),
     current: state.current?.item ?? null,
     upNext: state.upNext,
     label: state.context?.label ?? null,

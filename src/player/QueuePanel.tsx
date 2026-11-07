@@ -1,31 +1,18 @@
 'use client';
 
-import { Drawer } from '@base-ui/react/drawer';
-import { GripVerticalIcon, ListMusicIcon, Volume2Icon, XIcon } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { GripVerticalIcon, ListMusicIcon, XIcon } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import cn from '@/lib/cn';
 import { durationToHHMMSS } from '@/lib/utils';
+import RowHeader from '@/ui/base/RowHeader';
+import { Popover, PopoverContent, PopoverTrigger } from '@/ui/base/shadcn/popover';
 import { jumpTo, moveInQueue, removeFromQueue } from './commands';
 import { useIsPlaying, useQueue } from './hooks';
-import { upcoming, type QueueItem } from './queue/model';
+import { queueView, type QueueItem } from './queue/model';
 
-// The queue: a bottom sheet on phones (swipe down to close), a panel on the
-// right on desktop. Now playing, Next up (drag or arrow keys to reorder,
-// remove), then the rest of the show or song list. Picking an entry plays it.
-
-const DESKTOP = '(min-width: 64rem)';
-
-function useIsDesktop(): boolean {
-  return useSyncExternalStore(
-    (onChange) => {
-      const media = window.matchMedia(DESKTOP);
-      media.addEventListener('change', onChange);
-      return () => media.removeEventListener('change', onChange);
-    },
-    () => window.matchMedia(DESKTOP).matches,
-    () => false
-  );
-}
+// The queue: a popover off the player bar's queue button, as plain rows like a
+// show's track list. Played, now playing, Next up (drag or arrow keys to
+// reorder, remove), then the rest of the show or song list. Picking a row plays it.
 
 /** A 48×48 touch target on a smaller button (coarse pointers only). */
 const TouchTarget = () => (
@@ -41,19 +28,18 @@ const ICON_BUTTON = `
   focus-visible:outline-offset-2 focus-visible:outline-accent
 `;
 
-/** The player bar's queue button, with the panel it opens. */
+/** The player bar's queue button, with the popover it opens. */
 export default function QueueButton() {
   const count = useQueue((q) => q.upNext.length);
-  const isDesktop = useIsDesktop();
 
   return (
-    <Drawer.Root swipeDirection={isDesktop ? 'right' : 'down'}>
-      <Drawer.Trigger
+    <Popover>
+      <PopoverTrigger
         aria-label={count ? `Queue, ${count} up next` : 'Queue'}
         className="
           relative flex w-11 shrink-0 items-center justify-center self-stretch text-text-muted
           hover:text-text-primary focus-visible:outline-2 focus-visible:-outline-offset-2
-          focus-visible:outline-accent lg:w-10
+          focus-visible:outline-accent data-popup-open:text-text-primary lg:w-10
         "
       >
         <ListMusicIcon size={22} className="shrink-0" aria-hidden />
@@ -68,156 +54,232 @@ export default function QueueButton() {
             {count}
           </span>
         )}
-      </Drawer.Trigger>
-      <Drawer.Portal>
-        <Drawer.Backdrop
+      </PopoverTrigger>
+      <PopoverContent
+        aria-label="Queue"
+        align="end"
+        sideOffset={4}
+        // The arrow meets the 2px ring and takes the header's colour; the
+        // content (positioned, later) covers its lower half.
+        arrowClassName="border-t-2 border-l-2 bg-column-subheader data-[side=bottom]:-top-2 data-[side=left]:-right-2 data-[side=right]:-left-2 data-[side=top]:-bottom-2"
+        className="
+          w-[min(24rem,calc(100vw-1rem))] gap-0 p-0 shadow-2xl ring-2 dark:shadow-black/60
+        "
+      >
+        <div
           className="
-            fixed inset-0 z-50 bg-black/30 transition-opacity duration-300
-            data-ending-style:opacity-0 data-starting-style:opacity-0
+            relative flex max-h-[min(36rem,calc(var(--available-height)-0.5rem))] flex-col
+            overflow-hidden rounded-lg
           "
-        />
-        {/* The viewport carries swipe-to-close and touch scroll locking. */}
-        <Drawer.Viewport className="fixed inset-0 z-50">
-          <Drawer.Popup
-            className="
-              fixed inset-x-0 bottom-0 z-50 flex max-h-[85dvh]
-              translate-y-(--drawer-swipe-movement-y) flex-col rounded-t-2xl bg-surface
-              pb-[env(safe-area-inset-bottom)] text-text-primary shadow-xl ring-1 ring-hairline
-              transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] outline-none
-              data-ending-style:translate-y-full data-starting-style:translate-y-full
-              lg:inset-x-auto lg:inset-y-0 lg:right-0 lg:max-h-none lg:w-[26rem]
-              lg:translate-x-(--drawer-swipe-movement-x) lg:translate-y-0 lg:rounded-none lg:pb-0
-              lg:data-ending-style:translate-x-full
-              lg:data-ending-style:translate-y-0 lg:data-starting-style:translate-x-full
-              lg:data-starting-style:translate-y-0 dark:shadow-none
-            "
-          >
-            <div
-              className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-hairline lg:hidden"
-              aria-hidden
-            />
-            <div className="flex shrink-0 items-center gap-2 border-b border-hairline py-2 pr-2 pl-4">
-              <Drawer.Title className="flex-1 text-base font-semibold">Queue</Drawer.Title>
-              <Drawer.Close aria-label="Close the queue" className={ICON_BUTTON}>
-                <XIcon size={16} className="shrink-0" aria-hidden />
-                <TouchTarget />
-              </Drawer.Close>
-            </div>
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-4">
-              <QueueContents />
-            </div>
-          </Drawer.Popup>
-        </Drawer.Viewport>
-      </Drawer.Portal>
-    </Drawer.Root>
+        >
+          <QueueContents />
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
+const total = (items: QueueItem[]) => items.reduce((sum, i) => sum + (i.duration ?? 0), 0);
+
+const formatDate = (date: string) => {
+  const d = new Date(`${date}T00:00:00`);
+  return Number.isNaN(d.getTime())
+    ? date
+    : d.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+};
+
 function QueueContents() {
   const queue = useQueue((q) => q);
-  const { current, upNext, label, rest } = useMemo(() => upcoming(queue), [queue]);
+  const { played, current, upNext, rest } = useMemo(() => queueView(queue), [queue]);
+  const currentRow = useRef<HTMLLIElement>(null);
+  const scroller = useRef<HTMLDivElement>(null);
+
+  // Open with the current row in the middle: earlier tracks above, what's next below.
+  // A frame later, once the popover has its size.
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      const row = currentRow.current;
+      const box = scroller.current;
+      if (row && box) box.scrollTop = row.offsetTop - (box.clientHeight - row.offsetHeight) / 2;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   if (!current) {
     return (
-      <p className="px-4 py-8 text-center text-base/6 text-pretty text-text-muted sm:text-sm/6">
-        Nothing is playing. Use Play next or Add to queue on any track to build a queue.
+      <p className="px-4 py-6 text-center text-sm text-text-muted">
+        Nothing playing. Add tracks with Play next or Add to queue.
       </p>
     );
   }
 
+  // Track numbers are positions in the show or song list.
+  const numbers = new Map(queue.context?.items.map((item, i) => [item.key, i + 1]));
+  const count = queue.context?.items.length ?? 0;
+  const position = numbers.get(current.key);
+  const left = total([...upNext, ...rest]);
+
+  const showOf = (item: QueueItem) =>
+    [item.artistName, formatDate(item.date), item.venue].filter(Boolean).join(' · ');
+
   return (
     <>
-      <Section title="Now playing">
+      <div
+        className="
+          flex shrink-0 items-center gap-3 border-b-2 border-hairline bg-column-subheader px-3
+          py-2 text-xxs font-semibold tracking-wide text-column-subheader-text uppercase
+          tabular-nums
+        "
+      >
+        {position && count > 0 && (
+          <span>
+            Track {position} of {count}
+          </span>
+        )}
+        {left > 0 && <span>{durationToHHMMSS(left)} left</span>}
+        {upNext.length > 0 && <span className="text-accent">{upNext.length} up next</span>}
+      </div>
+      <div ref={scroller} className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain">
         <ol role="list" className="m-0 list-none p-0">
-          <QueueRow item={current} current />
+          {played.map((item) => (
+            <QueueRow
+              key={item.key}
+              item={item}
+              number={numbers.get(item.key)}
+              show={showOf(item)}
+              played
+            />
+          ))}
+          <QueueRow
+            ref={currentRow}
+            item={current}
+            number={position}
+            show={showOf(current)}
+            current
+          />
         </ol>
-      </Section>
-      {upNext.length > 0 && (
-        <Section title="Next up">
-          <NextUpList items={upNext} />
-        </Section>
-      )}
-      {rest.length > 0 && (
-        <Section title={label ? `Next from ${label}` : 'Next'}>
+        {upNext.length > 0 && (
+          <>
+            <RowHeader>
+              Up next <span className="tabular-nums">{durationToHHMMSS(total(upNext))}</span>
+            </RowHeader>
+            <NextUpList items={upNext} showOf={showOf} />
+            {rest.length > 0 && <RowHeader>Then</RowHeader>}
+          </>
+        )}
+        {rest.length > 0 && (
           <ol role="list" className="m-0 list-none p-0">
             {rest.map((item) => (
-              <QueueRow key={item.key} item={item} />
+              <QueueRow
+                key={item.key}
+                item={item}
+                number={numbers.get(item.key)}
+                show={showOf(item)}
+              />
             ))}
           </ol>
-        </Section>
-      )}
-      {!upNext.length && !rest.length && (
-        <p className="px-4 pt-4 text-base/6 text-text-muted sm:text-sm/6">
-          Nothing after this track.
-        </p>
-      )}
+        )}
+        {!upNext.length && !rest.length && <RowHeader>Last track</RowHeader>}
+      </div>
     </>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+/** Bouncing bars on the current row while it plays. */
+function PlayingBars() {
+  const playing = useIsPlaying();
   return (
-    <section className="pt-4">
-      <h3 className="truncate px-4 pb-1 text-sm/6 font-medium text-text-muted">{title}</h3>
-      {children}
-    </section>
+    <span className="flex h-3 items-end gap-px" aria-label={playing ? 'Playing' : 'Paused'}>
+      {[0, 150, 300].map((delay) => (
+        <span
+          key={delay}
+          className={cn(
+            'w-[3px] rounded-[1px] bg-accent',
+            playing ? 'h-full origin-bottom animate-[queue-bars_0.9s_ease-in-out_infinite]' : 'h-1'
+          )}
+          style={{ animationDelay: `${delay}ms` }}
+        />
+      ))}
+      <style>{`@keyframes queue-bars{0%,100%{transform:scaleY(.3)}50%{transform:scaleY(1)}}`}</style>
+    </span>
   );
 }
 
-const meta = (item: QueueItem) =>
-  [item.artistName, item.date, item.venue].filter(Boolean).join(' · ');
-
-/** An entry: picking it plays it. */
+/** A row: picking it plays it. */
 function QueueRow({
+  ref,
   item,
+  number,
+  show,
   current = false,
+  played = false,
   before,
   after,
   className,
   style,
 }: {
+  ref?: React.Ref<HTMLLIElement>;
   item: QueueItem;
+  /** Its position in the show or song list (none for Next up). */
+  number?: number;
+  /** Artist, date and venue. */
+  show: string;
   current?: boolean;
+  /** Already played: dimmed. */
+  played?: boolean;
   before?: React.ReactNode;
   after?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
 }) {
-  const playing = useIsPlaying() && current;
   return (
     <li
-      className={cn('m-0 flex items-center gap-1 px-2 hover:bg-surface-hover', className)}
+      ref={ref}
+      className={cn(
+        `
+          group relative m-0 flex min-h-12 items-center border-b border-hairline pr-1
+          hover:bg-surface-hover lg:min-h-10
+        `,
+        current && 'bg-accent/10 hover:bg-accent/15',
+        className
+      )}
       style={style}
     >
+      {current && <div className="absolute inset-y-0 left-0 w-1 bg-accent" aria-hidden />}
       {before}
       <button
         type="button"
         onClick={() => jumpTo(item.key)}
         aria-current={current || undefined}
-        className="
-          flex min-w-0 flex-1 items-center gap-3 rounded-md px-2 py-2.5 text-left
-          focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent
-          sm:py-2
-        "
+        className={cn(
+          `
+            flex min-w-0 flex-1 items-center gap-3 self-stretch py-1.5 pr-2 text-left
+            leading-tight tabular-nums focus-visible:outline-2 focus-visible:-outline-offset-2
+            focus-visible:outline-accent
+          `,
+          before ? 'pl-1' : 'pl-3',
+          played && 'text-text-muted'
+        )}
       >
-        <div className="min-w-0 flex-1">
-          <div
-            className={cn(
-              'truncate text-base/6 font-medium sm:text-sm/5',
-              current && 'text-accent'
-            )}
-          >
+        {!before && (
+          <span className="flex w-5 shrink-0 justify-end text-xs text-text-muted">
+            {current ? <PlayingBars /> : number}
+          </span>
+        )}
+        <span className="min-w-0 flex-1">
+          <span className={cn('block truncate', current && 'font-medium text-accent')}>
             {item.title}
-          </div>
-          <div className="truncate text-sm/5 text-text-muted sm:text-[0.8125rem]/5">
-            {meta(item)}
-          </div>
-        </div>
-        {playing && <Volume2Icon size={16} className="shrink-0 text-accent" aria-label="Playing" />}
+          </span>
+          {show && <span className="block truncate text-xxs text-text-muted">{show}</span>}
+        </span>
         {item.duration ? (
-          <div className="shrink-0 text-sm/5 text-text-muted tabular-nums">
+          <span className="shrink-0 text-xs text-text-muted">
             {durationToHHMMSS(item.duration)}
-          </div>
+          </span>
         ) : null}
       </button>
       {after}
@@ -225,10 +287,23 @@ function QueueRow({
   );
 }
 
-type Drag = { key: string; from: number; to: number; startY: number; dy: number; rects: DOMRect[] };
+type Drag = {
+  key: string;
+  from: number;
+  to: number;
+  startY: number;
+  dy: number;
+  rects: DOMRect[];
+};
 
 /** Next up: drag a handle (or focus it and use the arrow keys) to reorder; remove an entry. */
-function NextUpList({ items }: { items: QueueItem[] }) {
+function NextUpList({
+  items,
+  showOf,
+}: {
+  items: QueueItem[];
+  showOf: (item: QueueItem) => string;
+}) {
   const listRef = useRef<HTMLOListElement>(null);
   const handles = useRef(new Map<string, HTMLButtonElement>());
   const [drag, setDrag] = useState<Drag | null>(null);
@@ -305,11 +380,12 @@ function NextUpList({ items }: { items: QueueItem[] }) {
               className={cn(
                 'relative translate-y-(--shift)',
                 dragging
-                  ? 'z-10 bg-surface-raised shadow-lg ring-1 ring-hairline dark:shadow-none'
+                  ? 'z-10 bg-surface-raised shadow-lg dark:shadow-none'
                   : drag && 'transition-transform duration-150'
               )}
               style={{ '--shift': `${shift(index)}px` } as React.CSSProperties}
               item={item}
+              show={showOf(item)}
               before={
                 <button
                   type="button"
@@ -319,8 +395,6 @@ function NextUpList({ items }: { items: QueueItem[] }) {
                   }}
                   aria-label={`Reorder ${item.title}`}
                   aria-describedby="queue-reorder-hint"
-                  // A drag on the handle reorders; it mustn't start the drawer's swipe-to-close.
-                  data-base-ui-swipe-ignore=""
                   onKeyDown={(e) => onKeyDown(e, item.key, index)}
                   onPointerDown={(e) => onPointerDown(e, item.key, index)}
                   onPointerMove={onPointerMove}

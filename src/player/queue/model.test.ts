@@ -9,7 +9,7 @@ import {
   playContext,
   playNext,
   remove,
-  upcoming,
+  queueView,
   type QueueContext,
   type QueueItem,
   type QueueState,
@@ -92,7 +92,10 @@ describe('playContext', () => {
   });
 
   it('drops duplicate keys, and keys already in Next up', () => {
-    const dupes = { label: 'x', items: [item('a'), item('b'), item('a'), item('n1')] };
+    const dupes = {
+      label: 'x',
+      items: [item('a'), item('b'), item('a'), item('n1')],
+    };
     const s = playContext(withUpNext(emptyQueue, 'n1'), dupes, 'a');
     expect(composed(s)).toEqual(['a', 'n1', 'b']);
   });
@@ -179,12 +182,23 @@ describe('Next up', () => {
   });
 });
 
-describe('upcoming', () => {
+describe('queueView', () => {
   it('splits the queue the way the panel shows it, after the current entry or the cursor', () => {
     let s = addToQueue(playing(), [item('a')]);
-    expect(upcoming(s)).toMatchObject({ current: { key: 'c2' }, upNext: [{ key: 'a' }] });
-    expect(upcoming(s).rest.map((i) => i.key)).toEqual(['c3', 'c4']);
+    expect(queueView(s)).toMatchObject({
+      current: { key: 'c2' },
+      upNext: [{ key: 'a' }],
+    });
+    expect(queueView(s).rest.map((i) => i.key)).toEqual(['c3', 'c4']);
     s = advanceTo(s, 'a'); // a Next up entry is current: the rest still follows the cursor (c2)
-    expect(upcoming(s).rest.map((i) => i.key)).toEqual(['c3', 'c4']);
+    expect(queueView(s).rest.map((i) => i.key)).toEqual(['c3', 'c4']);
+  });
+
+  it('lists the context before the cursor as played', () => {
+    let s = addToQueue(playing(), [item('a')]);
+    expect(queueView(s).played.map((i) => i.key)).toEqual(['c1']);
+    s = advanceTo(s, 'a'); // a Next up entry is current: the cursor (c2) has been played
+    expect(queueView(s).played.map((i) => i.key)).toEqual(['c1', 'c2']);
+    expect(queueView(addToQueue(emptyQueue, [item('a')])).played).toEqual([]);
   });
 });
