@@ -13,6 +13,7 @@ const item = (key: string, trackId = key): QueueItem => ({
   date: '1977-05-08',
   trackSlug: trackId,
   title: trackId,
+  mp3Url: `https://archive.org/${trackId}.mp3`,
 });
 
 const show = (showId: string, n: number, prefix: string): QueueContext => ({

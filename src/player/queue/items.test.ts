@@ -47,8 +47,8 @@ describe('showContext', () => {
       title: 'Song 1',
       duration: 301,
       venue: 'Barton Hall',
+      mp3Url: 'https://archive.org/1.mp3',
     });
-    expect(ctx.urls.track_2).toEqual({ mp3Url: 'https://archive.org/2.mp3', flacUrl: null });
   });
 
   it('can take just some tracks (the single-track embed)', () => {
@@ -62,9 +62,13 @@ describe('showContext', () => {
     expect(ctx.items.map((i) => i.trackId)).toEqual(['track_1', 'track_3']);
   });
 
-  it('keeps URLs out of the items (they are saved; URLs are not)', () => {
-    const ctx = showContext({ show, source, artistSlug: 'gd', artistName: 'GD' });
-    expect(JSON.stringify(ctx.items)).not.toContain('archive.org');
+  it('skips tracks without an mp3 file (nothing to play)', () => {
+    const noFile = {
+      ...source,
+      sets: [{ id: 's1', index: 0, tracks: [track(1), track(2, { mp3Url: null })] }],
+    } as unknown as Source;
+    const ctx = showContext({ show, source: noFile, artistSlug: 'gd', artistName: 'GD' });
+    expect(ctx.items.map((i) => i.trackId)).toEqual(['track_1']);
   });
 });
 

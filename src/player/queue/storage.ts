@@ -7,8 +7,8 @@
 //   relisten.owner     { tabId, at }: the tab that last started playback
 //
 // Only the owner writes, so two open tabs don't overwrite each other's queue.
-// Another tab takes over when it starts playback. The versioned shape holds
-// no stream URLs, so it can sync to an account later without a migration.
+// Another tab takes over when it starts playback. Items carry their mp3 URL,
+// so a restored queue plays with no request.
 // ---------------------------------------------------------------------------
 
 import type { QueueState } from './model';
@@ -16,7 +16,8 @@ import type { QueueState } from './model';
 export const QUEUE_KEY = 'relisten.queue';
 export const POSITION_KEY = 'relisten.position';
 export const OWNER_KEY = 'relisten.owner';
-export const STORAGE_VERSION = 1;
+/** 2: items carry their mp3Url. Older saved queues are ignored. */
+export const STORAGE_VERSION = 2;
 
 export type SavedPosition = { key: string; time: number; duration?: number };
 

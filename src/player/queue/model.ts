@@ -11,7 +11,7 @@
 
 export type RepeatMode = 'off' | 'all' | 'one';
 
-/** One entry in the queue. Enough to render it without a request; no stream URLs. */
+/** One entry in the queue: enough to render and play it after a reload, with no request. */
 export type QueueItem = {
   /** Unique per entry: the same track can be queued twice. Made by the caller. */
   key: string;
@@ -27,6 +27,8 @@ export type QueueItem = {
   /** Seconds. */
   duration?: number;
   venue?: string;
+  /** The file, as the API gives it (proxied when played; see proxyStreamUrl). */
+  mp3Url: string;
 };
 
 /** Enough to fetch a context's tracks again (for stream URLs after a reload). */

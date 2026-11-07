@@ -10,15 +10,13 @@ import { queueSearchParams } from '@/lib/searchParams/queueSearchParams';
 import {
   showContext,
   songRowItem,
-  urlsOf,
   withKeys,
   type ContextPayload,
   type ItemData,
-  type UrlMap,
 } from './queue/items';
 import type { ContextRef, RepeatMode } from './queue/model';
 import { canAutoplay } from './autoplay';
-import { addUrls, getEngine, playerActor, startPlayback } from './runtime';
+import { getEngine, playerActor, startPlayback } from './runtime';
 import { showPlayPrompt } from './toasts';
 
 const newSeed = () => Math.floor(Math.random() * 2 ** 31);
@@ -52,7 +50,6 @@ export function playShow({
   startTime?: number;
 }): void {
   const payload = showContext({ show, source, artistSlug, artistName, trackSlugs });
-  addUrls(payload.urls);
   const items = withKeys(payload.items);
   const start = items.find((i) => i.trackSlug === trackSlug) ?? items[0];
   if (!start) return;
@@ -89,7 +86,6 @@ export function playSongRow({
   const data = songRowItem({ ...row, track });
   if (!data) return;
   const ref: ContextRef = { kind: 'song', artistSlug: row.artistSlug, songSlug, params };
-  addUrls(urlsOf([track]));
   const [item] = withKeys([data]);
   playerActor.send({
     type: 'PLAY_CONTEXT',
@@ -105,7 +101,6 @@ export function playSongRow({
     .then((res) => (res.ok ? (res.json() as Promise<ContextPayload>) : null))
     .then((payload) => {
       if (!payload) return;
-      addUrls(payload.urls);
       playerActor.send({
         type: 'REFRESH_CONTEXT',
         ctx: { ref, label: payload.label, items: withKeys(payload.items) },
@@ -115,14 +110,12 @@ export function playSongRow({
 }
 
 /** Add to the front of Next up. */
-export function playNext(items: ItemData[], urls: UrlMap): void {
-  addUrls(urls);
+export function playNext(items: ItemData[]): void {
   playerActor.send({ type: 'PLAY_NEXT', items: withKeys(items) });
 }
 
 /** Add to the end of Next up. */
-export function addToQueue(items: ItemData[], urls: UrlMap): void {
-  addUrls(urls);
+export function addToQueue(items: ItemData[]): void {
   playerActor.send({ type: 'ADD_TO_QUEUE', items: withKeys(items) });
 }
 

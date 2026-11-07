@@ -26,7 +26,7 @@ describe('queue storage', () => {
     expect(storage.data.has(QUEUE_KEY)).toBe(false);
     vi.advanceTimersByTime(250);
     expect(JSON.parse(storage.data.get(QUEUE_KEY) ?? 'null')).toMatchObject({
-      version: 1,
+      version: 2,
       queue: { repeat: 'all' },
     });
     expect(s.loadQueue()).toEqual(queue('all'));
@@ -35,9 +35,10 @@ describe('queue storage', () => {
   it('ignores an unknown version or a malformed queue', () => {
     const storage = memoryStorage();
     const s = createQueueStorage({ storage, tabId: 'a' });
-    storage.setItem(QUEUE_KEY, JSON.stringify({ version: 2, queue: queue('all') }));
+    // Version 1 queues had no mp3 URLs; they're ignored.
+    storage.setItem(QUEUE_KEY, JSON.stringify({ version: 1, queue: queue('all') }));
     expect(s.loadQueue()).toBeNull();
-    storage.setItem(QUEUE_KEY, JSON.stringify({ version: 1, queue: { upNext: 'nope' } }));
+    storage.setItem(QUEUE_KEY, JSON.stringify({ version: 2, queue: { upNext: 'nope' } }));
     expect(s.loadQueue()).toBeNull();
     storage.setItem(QUEUE_KEY, '{not json');
     expect(s.loadQueue()).toBeNull();

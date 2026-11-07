@@ -13,15 +13,12 @@ import { replaceUrl } from '@timber-js/app/client';
 import { playerMachine } from './player.machine';
 import { playbackLogic } from './playback';
 import { compose, type QueueItem, type QueueState } from './queue/model';
-import type { StreamUrls, UrlMap } from './queue/items';
 import { createQueueStorage, type QueueStorage } from './queue/storage';
 import { createEngine, type Engine, type EngineEntry } from './engine';
 import { proxyStreamUrl } from './proxyStreamUrl';
 import { createListenTracker } from './listenTracker';
 import { scrobblePlay } from './scrobble';
 import { dismissAutoplayToast, showAudioError, showPlayPrompt } from './toasts';
-import { queueSearchParams, MAX_QUEUE_SHOWS } from '@/lib/searchParams/queueSearchParams';
-import { createUrlResolver } from './queue/resolver';
 import { rememberListener } from './autoplay';
 import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
 import { trackHref, type TrackRoute } from '@/ui/shows/trackHref';
@@ -29,8 +26,6 @@ import { splitShowDate } from '@/lib/utils';
 
 declare global {
   interface Window {
-    /** Set to prefer FLAC streams. */
-    FLAC: string;
     /** For debugging in the console. */
     relistenPlayer?: unknown;
   }
@@ -43,26 +38,10 @@ playbackActor.start();
 
 const isBrowser = typeof window !== 'undefined';
 
-// ---- stream URLs ------------------------------------------------------------
-
-/** Stream URLs by track id; not saved (they're fetched again after a reload). */
-const urls = new Map<string, StreamUrls>();
-
-export function addUrls(map: UrlMap): void {
-  for (const [trackId, u] of Object.entries(map)) urls.set(trackId, u);
-}
-
-function streamUrl(trackId: string): string | null {
-  const u = urls.get(trackId);
-  if (!u) return null;
-  return proxyStreamUrl(window.FLAC ? u.flacUrl || u.mp3Url : u.mp3Url);
-}
-
 function toEntry(item: QueueItem): EngineEntry {
-  const url = streamUrl(item.trackId);
   return {
     key: item.key,
-    url,
+    url: proxyStreamUrl(item.mp3Url),
     metadata: {
       trackId: item.trackId,
       title: item.title,
@@ -168,14 +147,13 @@ if (isBrowser) {
 
     const list = compose(queue);
     syncEngine(queue, list);
-    void resolver.kick();
 
     const current = queue.current?.item ?? null;
     if (current && current.key !== lastCurrent) followPlayback(current);
     lastCurrent = current?.key ?? null;
   });
 
-  window.relistenPlayer = { playerActor, playbackActor, engine, urls };
+  window.relistenPlayer = { playerActor, playbackActor, engine };
 }
 
 /**
@@ -221,34 +199,9 @@ function followPlayback(item: QueueItem): void {
   document.title = parts.join(' | ');
 }
 
-// ---- fetching what's missing --------------------------------------------------
-
-const resolver = createUrlResolver({
-  has: (trackId) => urls.has(trackId),
-  add: addUrls,
-  fetchUrls: async (shows) => {
-    const res = await fetch(queueSearchParams.href('/api/queue', { shows: shows.join(',') }));
-    if (!res.ok) throw new Error(`/api/queue ${res.status}`);
-    return (await res.json()) as { urls: UrlMap; failed?: string[] };
-  },
-  latest: () => {
-    const queue = playerActor.getSnapshot().context.queue;
-    return { list: compose(queue), current: queue.current?.item ?? null };
-  },
-  // Rebuild the entries from the queue as it is now, with the new URLs.
-  onResolved: () => syncEngine(playerActor.getSnapshot().context.queue),
-  batchSize: MAX_QUEUE_SHOWS,
-});
-
-/**
- * Start playback. If the current entry has no URL yet (a reload, a failed
- * request), the engine waits for it, and the URLs are fetched again now:
- * the listener asked, so don't wait out the retry backoff.
- */
+/** Start playback (every play goes through here: transport, prompts, autoplay). */
 export function startPlayback(): void {
-  if (!engine) return;
-  engine.play();
-  if (engine.wantsPlay) void resolver.kick({ force: true });
+  engine?.play();
 }
 
 // ---- hydration ----------------------------------------------------------------

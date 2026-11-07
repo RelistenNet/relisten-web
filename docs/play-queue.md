@@ -84,7 +84,6 @@ TrackInfo.key                 // new field
            │                        │ transport   ┌──────────────────────────┴────────┐
            │                        └────────────▶│ runtime.ts                        │
            │                                      │ engine.sync(compose(queue));      │
-           │                                      │ fetch missing URLs (/api/queue);  │
            │                                      │ save (storage.ts); URL/title sync │
            │                                      │ scrobble, listen tracking         │
            │                                      └──────────────┬────────────────────┘
@@ -113,7 +112,7 @@ The machine is pure. It has no invoked actors. The engine and storage subscribe 
 
 Queue edits (`PLAY_CONTEXT`, `REFRESH_CONTEXT`, `PLAY_NEXT`, `ADD_TO_QUEUE`, `MOVE`, `REMOVE`, `JUMP_TO`, `ADVANCED`, `SET_SHUFFLE`, `SET_REPEAT`) are `assign`s that call `model.ts`. A model error, such as a duplicate key, is logged and the queue kept: a throw inside an xstate action would stop the actor.
 
-**Stream URLs are resolved per entry, not in a lifecycle state.** Entries join gapless once their URL is known. While the current entry has none, gapless is left alone and a `play()` waits for it. So there's no `resolving` or `error` state: `runtime.ts` asks `/api/queue?shows=…` for missing URLs (the current entry's show first, at most 50 shows per request, with a retry after 30 s), then syncs again.
+**Each item carries its `mp3Url`**, as the API gives it (proxied when played). A restored queue plays with no request, so there's no URL-resolution step or state. Items without an mp3 file aren't queued.
 
 ### Types (`src/player/queue/model.ts`)
 
@@ -131,7 +130,7 @@ type QueueItem = {
   title: string;
   duration?: number;
   venue?: string;
-}; // No URLs.
+}; // Includes mp3Url (stored raw; proxied when played).
 
 type ContextRef =
   | { kind: 'show'; showId: string; sourceId: string }
@@ -214,15 +213,13 @@ A song context needs every matching row, but the page renders one page of the ta
 - **Pressing play in another tab makes it the owner.** It picks up the stored queue and position.
 - The same rule carries over to account sync: the device that last played wins.
 
-### Resolving URLs at play time
+### Stream URLs
 
-- **The rendered queue needs no request:** it comes straight from stored items.
-- **Turning items into gapless entries needs URLs.** Resolve them **per context, not per track**: one `showById` for a show context, and one song-detail fetch (with the stored filters) for a song context. Next up items are grouped by `showId`.
-- **One new route, `/api/queue/resolve`:** it takes context refs and show ids and returns `trackId → { mp3Url, flacUrl }`. Its query string is built with `defineSearchParams`.
-- **After a reload,** it runs right after hydration, where `restoreLastPlayback()` runs today, and calls `setEntries` paused at the saved position.
-- **In the same session,** items created from a page already hold their `PlayableTrack`s, so there's no request.
-- `proxyStreamUrl` and the FLAC preference are applied when the entries are built.
-- **If a track no longer resolves,** it is dropped from gapless and shown greyed out in the panel.
+- **Items store their `mp3Url`.** That's one URL, about 120 bytes per item, so a 400-track queue is roughly 50 KB. They're archive.org and phish.in file URLs, which don't change. A broken one fails like any bad URL ("error loading your audio").
+- **`proxyStreamUrl` is applied when the entry is built,** so proxying can change without touching saved queues.
+- **No FLAC.** The console-only `window.FLAC` preference was dropped along with stored FLAC URLs.
+- **`/api/queue` serves song pages only** (see Song pages): the full filtered list, with each item's `mp3Url`.
+- **Saved queues are version 2.** Version 1 queues had no URLs; they're ignored.
 
 ## gapless status (2026-11-07: #31 merged; published as `gapless@5.0.0-alpha.0` on the `alpha` tag)
 
@@ -285,7 +282,7 @@ Repeat, `snapshot`/`restore` and `onChange` came in the next commit (above).
    - Published as `5.0.0-alpha.0`. The demo doesn't use the new API yet.
 2. **relisten-web model:** `model.ts`: types, `compose`, the operations and the seeded shuffle, with unit tests. No UI.
 3. **relisten-web plumbing (one PR):**
-   - the player machine, engine, position actor, `storage.ts` (including migration) and `/api/queue/resolve`;
+   - the player machine, engine, position actor, `storage.ts` and `/api/queue` (song lists);
    - move `PlayerManager`, `PlayTrackButton`, `PlayerBar`, the embeds and restore onto it;
    - remove Redux.
    - Playwright checks: reload restores the queue paused at the saved position, and playing a show keeps Next up.
