@@ -1,7 +1,7 @@
 import { href } from '@timber-js/app/routes';
 import { loadSong } from './load';
 import { findArtistBySlug } from '@/data/artists';
-import { lengthColumn, playColumn } from './columns';
+import { lengthColumn, playColumn, queueColumn } from './columns';
 import DataTable from '@/ui/table/DataTable';
 import { showColumns } from '@/ui/shows/columns';
 import ArtistCover from '@/ui/base/ArtistCover';
@@ -123,6 +123,7 @@ export default async function SongDetail({
             ...(song.imported ? [] : [lengthColumn]),
             showColumns.tapes,
             showColumns.plays,
+            ...(song.imported ? [] : [queueColumn]),
           ]}
           rowKey={(r) => r.id}
           noun="performance"

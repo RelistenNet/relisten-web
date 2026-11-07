@@ -1,9 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
+  addToQueue,
   advanceTo,
   compose,
   emptyQueue,
+  move,
+  nextUpKey,
   playContext,
+  playNext,
+  remove,
+  upcoming,
   type QueueContext,
   type QueueItem,
   type QueueState,
@@ -116,5 +122,69 @@ describe('advanceTo', () => {
     const s = playing();
     expect(advanceTo(s, 'nope')).toBe(s);
     expect(advanceTo(s, 'c2')).toBe(s);
+  });
+});
+
+describe('Next up', () => {
+  /** A Next up entry for a context track: its own key, same track. */
+  const next = (trackId: string, id = '1'): QueueItem => ({
+    ...item(trackId),
+    key: nextUpKey(trackId, id),
+  });
+  const upNextKeys = (s: QueueState) => s.upNext.map((i) => i.key);
+
+  it('Play next goes to the front, Add to queue to the end, right after the current entry', () => {
+    let s = addToQueue(playing(), [item('a')]);
+    s = playNext(s, [item('b')]);
+    s = addToQueue(s, [item('c')]);
+    expect(composed(s)).toEqual(['c1', 'c2', 'b', 'a', 'c', 'c3', 'c4']);
+  });
+
+  it('a track already in the context can be queued (its own key)', () => {
+    const s = playNext(playing(), [next('c4')]);
+    expect(composed(s)).toEqual(['c1', 'c2', 'next:c4:1', 'c3', 'c4']);
+  });
+
+  it('skips keys already in the queue', () => {
+    const s = addToQueue(playing(), [item('c3'), item('a'), item('a')]);
+    expect(upNextKeys(s)).toEqual(['a']);
+    expect(addToQueue(s, [item('a')])).toBe(s);
+  });
+
+  it('with nothing playing, the first item becomes current', () => {
+    const s = addToQueue(emptyQueue, [item('a'), item('b')]);
+    expect(s.current).toMatchObject({ key: 'a', from: 'upNext' });
+    expect(composed(s)).toEqual(['a', 'b']);
+  });
+
+  it('moves within Next up, and ignores unknown keys', () => {
+    const s = addToQueue(playing(), [item('a'), item('b'), item('c')]);
+    expect(upNextKeys(move(s, 'c', 'start'))).toEqual(['c', 'a', 'b']);
+    expect(upNextKeys(move(s, 'a', 'b'))).toEqual(['b', 'a', 'c']);
+    expect(move(s, 'nope', 'start')).toBe(s);
+    expect(move(s, 'a', 'nope')).toBe(s);
+  });
+
+  it('removes from Next up only', () => {
+    const s = addToQueue(playing(), [item('a'), item('b')]);
+    expect(upNextKeys(remove(s, 'a'))).toEqual(['b']);
+    expect(remove(s, 'c3')).toBe(s); // a context entry: not removable here
+  });
+
+  it('a queued entry plays next, then is gone', () => {
+    let s = playNext(playing(), [next('c4')]);
+    s = advanceTo(s, 'next:c4:1');
+    s = advanceTo(s, 'c3');
+    expect(composed(s)).toEqual(['c1', 'c2', 'c3', 'c4']);
+  });
+});
+
+describe('upcoming', () => {
+  it('splits the queue the way the panel shows it, after the current entry or the cursor', () => {
+    let s = addToQueue(playing(), [item('a')]);
+    expect(upcoming(s)).toMatchObject({ current: { key: 'c2' }, upNext: [{ key: 'a' }] });
+    expect(upcoming(s).rest.map((i) => i.key)).toEqual(['c3', 'c4']);
+    s = advanceTo(s, 'a'); // a Next up entry is current: the rest still follows the cursor (c2)
+    expect(upcoming(s).rest.map((i) => i.key)).toEqual(['c3', 'c4']);
   });
 });

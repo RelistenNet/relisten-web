@@ -2,11 +2,11 @@
 
 import { trackHref, type TrackRoute } from './trackHref';
 import { href } from '@timber-js/app/routes';
-import { Fragment } from 'react';
+import { Fragment, type ReactNode } from 'react';
 import { durationToHHMMSS, removeLeadingZero } from '@/lib/utils';
 
 import { sourceQuery, sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
-import type { ShowDetail, Source, SourceSet } from '@/domain/types';
+import type { ShowDetail, Source, SourceSet, Track } from '@/domain/types';
 import Column from '@/ui/base/Column';
 import Row from '@/ui/base/Row';
 import RowHeader from '@/ui/base/RowHeader';
@@ -75,7 +75,15 @@ export const useSourceData = ({
   };
 };
 
-const TrackList = ({ playing, ...props }: Props & { playing?: PlayingTrack | null }) => {
+const TrackList = ({
+  playing,
+  trackActions,
+  ...props
+}: Props & {
+  playing?: PlayingTrack | null;
+  /** Per-track controls beside the row (a "⋯" menu); src/ui doesn't know what they do. */
+  trackActions?: (track: Track, source: Source) => ReactNode;
+}) => {
   const [{ source: sourceId }] = sourceSearchParamsLoader.useQueryStates();
   const { activeSourceObj } = useSourceData({ ...props, source: sourceId });
   // Both are full v4 ids (`source_…`, `track_…`).
@@ -102,57 +110,65 @@ const TrackList = ({ playing, ...props }: Props & { playing?: PlayingTrack | nul
 
               const loadState = isActiveSourcePlaying ? playing.statuses[track.id] : undefined;
 
+              const actions = trackActions?.(track, activeSourceObj);
               return (
-                <div key={track.id} className="relative">
+                <div key={track.id}>
                   {trackIdx === 0 && Number(activeSourceObj.sets?.length) > 1 && (
                     <RowHeader>
                       {set.name || `Set ${setIdx + 1}`} <div>{getSetTime(set)}</div>
                     </RowHeader>
                   )}
-                  {adminTools && show && track.slug && (
-                    <Link
-                      href={href(
-                        '/admin/clip/[artistSlug]/[year]/[month]/[day]/[songSlug]',
-                        { ...show, songSlug: track.slug },
-                        sourceQuery(activeSourceObj.id)
-                      )}
-                      prefetch={false}
-                      title="Create clip"
-                      className="
-                        absolute top-1/2 right-1 z-10 -translate-y-1/2 rounded bg-surface px-1.5
-                        py-0.5 text-xs hover:bg-surface-hover
-                      "
+                  <div className="relative">
+                    {adminTools && show && track.slug && (
+                      <Link
+                        href={href(
+                          '/admin/clip/[artistSlug]/[year]/[month]/[day]/[songSlug]',
+                          { ...show, songSlug: track.slug },
+                          sourceQuery(activeSourceObj.id)
+                        )}
+                        prefetch={false}
+                        title="Create clip"
+                        className="
+                          absolute top-1/2 right-10 z-10 -translate-y-1/2 rounded bg-surface px-1.5
+                          py-0.5 text-xs hover:bg-surface-hover
+                        "
+                      >
+                        {'✂'}
+                      </Link>
+                    )}
+                    <Row
+                      key={track.id}
+                      href={
+                        show && track.slug
+                          ? trackHref(
+                              props.trackRoute ?? 'site',
+                              { ...show, songSlug: track.slug },
+                              sourceQuery(activeSourceObj.id)
+                            )
+                          : undefined
+                      }
+                      active={trackIsActive}
                     >
-                      {'✂'}
-                    </Link>
-                  )}
-                  <Row
-                    key={track.id}
-                    href={
-                      show && track.slug
-                        ? trackHref(
-                            props.trackRoute ?? 'site',
-                            { ...show, songSlug: track.slug },
-                            sourceQuery(activeSourceObj.id)
-                          )
-                        : undefined
-                    }
-                    active={trackIsActive}
-                  >
-                    <div>
-                      <div>{track.title}</div>
-                      {track.duration && (
-                        <div className="text-xxs text-foreground-muted">
-                          {durationToHHMMSS(track.duration)}
-                        </div>
-                      )}
-                    </div>
-                    <div className="shrink-0 text-right">
-                      {loadState === 'LOADED' && <Tag variant="success">{'\u2713'} GAPLESS</Tag>}
-                      {loadState === 'LOADING' && <Tag variant="warning">LOADING</Tag>}
-                      {loadState === 'ERROR' && <Tag variant="error">ERROR</Tag>}
-                    </div>
-                  </Row>
+                      <div>
+                        <div>{track.title}</div>
+                        {track.duration && (
+                          <div className="text-xxs text-foreground-muted">
+                            {durationToHHMMSS(track.duration)}
+                          </div>
+                        )}
+                      </div>
+                      <div className={actions ? 'shrink-0 pr-9 text-right' : 'shrink-0 text-right'}>
+                        {loadState === 'LOADED' && <Tag variant="success">{'\u2713'} GAPLESS</Tag>}
+                        {loadState === 'LOADING' && <Tag variant="warning">LOADING</Tag>}
+                        {loadState === 'ERROR' && <Tag variant="error">ERROR</Tag>}
+                      </div>
+                    </Row>
+                    {actions && (
+                      <div className="absolute top-1/2 right-1 z-10 -translate-y-1/2">
+                        {actions}
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
