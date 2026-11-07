@@ -4,9 +4,7 @@
 // engine directly. Components don't touch gapless or the actors.
 // ---------------------------------------------------------------------------
 
-import type { PlayableTrack, Source } from '@/domain/types';
-import type { ShowRow } from '@/ui/shows/rows';
-import { queueSearchParams } from '@/lib/searchParams/queueSearchParams';
+import type { Source } from '@/domain/types';
 import {
   showContext,
   songRowItem,
@@ -67,46 +65,31 @@ export function playShow({
 }
 
 /**
- * Play a song page's row now, then fill in the rest of the song's queue (every
- * performance matching the page's filters, in table order) once /api/queue
- * answers. The full list keeps the playing entry's key, so nothing restarts.
+ * Play a song page's visible performances, in table order, from one of them.
+ * Another row on the same page (same filters, sort and page) reuses the
+ * queue, so its loaded audio is kept.
  */
-export function playSongRow({
-  row,
-  track,
-  songSlug,
-  params,
+export function playSongRows({
+  items,
+  label,
+  startTrackId,
+  ref,
 }: {
-  row: ShowRow;
-  track: PlayableTrack;
-  songSlug: string;
-  /** The song table's URL state (q, sort, filters), without the page. */
-  params: Record<string, string>;
+  items: ItemData[];
+  label: string;
+  startTrackId: string;
+  ref: ContextRef;
 }): void {
-  const data = songRowItem({ ...row, track });
-  if (!data) return;
-  const ref: ContextRef = { kind: 'song', artistSlug: row.artistSlug, songSlug, params };
-  const [item] = withKeys([data]);
+  const keyed = withKeys(items);
+  const start = keyed.find((i) => i.trackId === startTrackId);
+  if (!start) return;
   playerActor.send({
     type: 'PLAY_CONTEXT',
-    ctx: { ref, label: data.title, items: [item] },
-    startKey: item.key,
+    ctx: { ref, label, items: keyed },
+    startKey: start.key,
     seed: newSeed(),
   });
   startPlayback();
-
-  void fetch(
-    queueSearchParams.href('/api/queue', { artist: row.artistSlug, song: songSlug, ...params })
-  )
-    .then((res) => (res.ok ? (res.json() as Promise<ContextPayload>) : null))
-    .then((payload) => {
-      if (!payload) return;
-      playerActor.send({
-        type: 'REFRESH_CONTEXT',
-        ctx: { ref, label: payload.label, items: withKeys(payload.items) },
-      });
-    })
-    .catch(() => {});
 }
 
 /** Add to the front of Next up. */

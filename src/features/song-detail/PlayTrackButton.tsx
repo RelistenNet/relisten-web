@@ -4,9 +4,11 @@ import { Pause, Play } from 'lucide-react';
 import { usePathname } from '@timber-js/app/client';
 import type { PlayableTrack } from '@/domain/types';
 import type { ShowRow } from '@/ui/shows/rows';
-import { playSongRow, togglePlayPause } from '@/player/commands';
+import { playSongRows, togglePlayPause } from '@/player/commands';
 import { useCurrentItem, useIsPlaying } from '@/player/hooks';
 import { SONG_FILTER_IDS, songSearchParams } from './spec';
+import { useSongQueue } from './SongQueue';
+import { songRowItem } from '@/player/queue/items';
 
 type Props = {
   row: ShowRow;
@@ -16,15 +18,15 @@ type Props = {
 };
 
 /**
- * Plays a performance in place, then the rest of the song's performances that
- * match the page's filters, in table order. While it's the current track, the
- * button pauses and resumes.
+ * Plays a performance in place, then the rest of the performances on screen,
+ * in table order. While it's the current track, the button pauses and resumes.
  */
 export default function PlayTrackButton({ row, track, label }: Props) {
   const isCurrent = useCurrentItem()?.trackId === track.id;
   const isPlaying = useIsPlaying() && isCurrent;
   const pathname = usePathname();
   const [tableState] = songSearchParams.useQueryStates();
+  const queue = useSongQueue();
 
   if (!track.mp3Url) return null;
 
@@ -35,14 +37,24 @@ export default function PlayTrackButton({ row, track, label }: Props) {
     }
     // /artists/[artistSlug]/songs/[songSlug]
     const songSlug = String(pathname).split('/').filter(Boolean).at(-1) ?? '';
-    // The table's state that decides its rows (not the page), as /api/queue reads it.
+    // The table state that decides which rows are on screen: the queue's identity.
     const state = tableState as Record<string, unknown>;
     const params: Record<string, string> = {};
-    for (const k of ['q', 'sort', ...SONG_FILTER_IDS]) {
+    for (const k of ['q', 'sort', 'page', ...SONG_FILTER_IDS]) {
       const v = state[k];
-      if (typeof v === 'string' && v.trim()) params[k] = k === 'q' ? v.trim() : v;
+      if ((typeof v === 'string' && v.trim()) || typeof v === 'number') {
+        params[k] = String(k === 'q' ? String(v).trim() : v);
+      }
     }
-    playSongRow({ row, track, songSlug, params });
+    // Outside the song table's provider, queue just this row.
+    const own = songRowItem({ ...row, track });
+    const items = queue?.items.length ? queue.items : own ? [own] : [];
+    playSongRows({
+      items,
+      label: queue?.label ?? track.title ?? '',
+      startTrackId: track.id,
+      ref: { kind: 'song', artistSlug: row.artistSlug, songSlug, params },
+    });
   };
 
   const Icon = isPlaying ? Pause : Play;

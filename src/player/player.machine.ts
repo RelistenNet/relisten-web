@@ -21,7 +21,6 @@ import {
   move,
   playContext,
   playNext,
-  refreshContext,
   remove,
   restoreOnto,
   setRepeat,
@@ -36,7 +35,6 @@ export type PlayerEvent =
   | { type: 'HYDRATE'; saved: QueueState | null }
   | { type: 'EMBED' }
   | { type: 'PLAY_CONTEXT'; ctx: QueueContext; startKey: string; seed?: number }
-  | { type: 'REFRESH_CONTEXT'; ctx: QueueContext }
   | { type: 'PLAY_NEXT'; items: QueueItem[] }
   | { type: 'ADD_TO_QUEUE'; items: QueueItem[] }
   | { type: 'MOVE'; key: string; after: string }
@@ -77,9 +75,6 @@ export const playerMachine = setup({
       const { ctx, startKey, seed } = e as Extract<PlayerEvent, { type: 'PLAY_CONTEXT' }>;
       return playContext(q, ctx, startKey, { seed });
     }),
-    refreshContext: edit((q, e) =>
-      refreshContext(q, (e as Extract<PlayerEvent, { type: 'REFRESH_CONTEXT' }>).ctx)
-    ),
     playNext: edit((q, e) => playNext(q, (e as Extract<PlayerEvent, { type: 'PLAY_NEXT' }>).items)),
     addToQueue: edit((q, e) =>
       addToQueue(q, (e as Extract<PlayerEvent, { type: 'ADD_TO_QUEUE' }>).items)
@@ -110,7 +105,6 @@ export const playerMachine = setup({
   // Edits every state handles.
   on: {
     PLAY_CONTEXT: { actions: 'playContext' },
-    REFRESH_CONTEXT: { actions: 'refreshContext' },
     MOVE: { actions: 'move' },
     REMOVE: { actions: 'remove' },
     JUMP_TO: { actions: 'jumpTo' },

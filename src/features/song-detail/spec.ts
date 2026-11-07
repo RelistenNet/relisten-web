@@ -3,8 +3,8 @@ import type { ShowRow } from '@/ui/shows/rows';
 import { tableSearchParams } from '@/ui/table/params';
 import type { TableSpec } from '@/ui/table/query';
 
-// A song page's table: shared with /api/queue, so "play" on a song page queues
-// exactly the rows the page shows, in the same order.
+// A song page's table: its rows, filters and URL state. Shared by the page
+// (server) and its play buttons (client), which queue the rows on screen.
 
 export const SONG_FILTER_IDS = ['year', 'sbd'] as const;
 

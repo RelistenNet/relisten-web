@@ -12,10 +12,8 @@
 // at the first progress frame that is actually playing. So a page that loads
 // paused (or a crawler that renders it) fetches no audio.
 //
-// Entries join gapless once their stream URL is known. While the current
-// entry has none (after a reload, before /api/queue answers), gapless is left
-// alone, and a play() waits for it.
-// ---------------------------------------------------------------------------
+// Entries without a URL are left out of gapless. If the current entry has
+// none, gapless is left alone, and a play() waits for it.
 
 import type {
   Entry,

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
-// Building queue items from the app's data. Shared by pages (client) and
-// /api/queue (server); keys are added on the client, with withKeys(). Tracks
+// Building queue items from the app's data, on the server or the client;
+// keys are added on the client, with withKeys(). Tracks
 // without an mp3 file aren't queued: there'd be nothing to play.
 // ---------------------------------------------------------------------------
 
@@ -11,7 +11,7 @@ import type { ContextRef, QueueItem } from './model';
 /** A queue item before it has a key. */
 export type ItemData = Omit<QueueItem, 'key'>;
 
-/** A context as /api/queue (or a page) delivers it: items without keys. */
+/** A context as a page delivers it: items without keys. */
 export type ContextPayload = {
   ref: ContextRef;
   label: string;

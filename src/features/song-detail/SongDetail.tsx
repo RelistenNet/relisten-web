@@ -13,6 +13,8 @@ import { durationToHHMMSS, numberFormat } from '@/lib/utils';
 import { queryTable } from '@/ui/table/query';
 import type { ShowRow } from '@/ui/shows/rows';
 import { SONG_FILTER_IDS, songSearchParams, songSpec } from './spec';
+import { SongQueueProvider } from './SongQueue';
+import { songRowItem } from '@/player/queue/items';
 import { Link } from '@timber-js/app/client';
 import { redirect } from '@timber-js/app/server';
 
@@ -40,6 +42,8 @@ export default async function SongDetail({
   }
 
   const result = queryTable(song.rows, songSpec, toTableState(params, SONG_FILTER_IDS));
+  // A row's play button queues the performances on screen, in table order.
+  const visibleItems = result.rows.flatMap((row) => songRowItem(row) ?? []);
   const stats = showStats(song.rows);
   const pathname = href('/artists/[artistSlug]/songs/[songSlug]', { artistSlug, songSlug });
   const artistShows = artist?.showCount ?? 0;
@@ -107,23 +111,25 @@ export default async function SongDetail({
         />
       </PageHeader>
 
-      <DataTable
-        pathname={pathname}
-        params={params}
-        spec={songSpec}
-        result={result}
-        columns={[
-          ...(song.imported ? [] : [playColumn]),
-          showColumns.show,
-          ...(song.imported ? [] : [lengthColumn]),
-          showColumns.tapes,
-          showColumns.plays,
-        ]}
-        rowKey={(r) => r.id}
-        noun="performance"
-        searchPlaceholder="Search venues, cities, dates"
-        chipFilters={['year']}
-      />
+      <SongQueueProvider label={song.name ?? songSlug} items={visibleItems}>
+        <DataTable
+          pathname={pathname}
+          params={params}
+          spec={songSpec}
+          result={result}
+          columns={[
+            ...(song.imported ? [] : [playColumn]),
+            showColumns.show,
+            ...(song.imported ? [] : [lengthColumn]),
+            showColumns.tapes,
+            showColumns.plays,
+          ]}
+          rowKey={(r) => r.id}
+          noun="performance"
+          searchPlaceholder="Search venues, cities, dates"
+          chipFilters={['year']}
+        />
+      </SongQueueProvider>
     </div>
   );
 }
