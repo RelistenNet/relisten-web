@@ -4,7 +4,7 @@ import cn from '@/lib/cn';
 import { tableHref, type TableParams } from '@/ui/table/params';
 import { formatSort, type TableResult, type TableSpec } from '@/ui/table/query';
 import Pagination from './Pagination';
-import TablePending, { TableState } from './TablePending';
+import TablePending from './TablePending';
 import { numberFormat } from '@/lib/utils';
 import TableToolbar from './TableToolbar';
 import type { Column, ToolbarFilter } from './types';
@@ -97,147 +97,145 @@ export default function DataTable<Row>({
 
   return (
     // The bottom pager links back here, so a new page starts at the top of the table.
-    <TableState>
-      <div id={RESULTS_ID} className="flex scroll-mt-4 flex-col gap-4">
-        <TableToolbar
-          params={params}
-          filters={toolbarFilters}
-          searchPlaceholder={searchPlaceholder}
-        />
+    <div id={RESULTS_ID} className="flex scroll-mt-4 flex-col gap-4">
+      <TableToolbar
+        params={params}
+        filters={toolbarFilters}
+        searchPlaceholder={searchPlaceholder}
+      />
 
-        <TablePending className="flex flex-col gap-3">
-          {pager('Pagination, top')}
+      <TablePending className="flex flex-col gap-3">
+        {pager('Pagination, top')}
 
-          <div className="-mx-4 -my-2 overflow-x-auto">
-            <div className="inline-block min-w-full px-4 py-2 align-middle">
-              {/* Fixed layout: column widths come from the <colgroup>, not the rows on
+        <div className="-mx-4 -my-2 overflow-x-auto">
+          <div className="inline-block min-w-full px-4 py-2 align-middle">
+            {/* Fixed layout: column widths come from the <colgroup>, not the rows on
                 screen, so paging, sorting, and filtering never shift them. */}
-              <table className="w-full min-w-[36rem] table-fixed text-left text-base sm:text-sm">
-                <colgroup>
-                  {columns.map((col) => (
-                    <col
-                      key={col.id}
-                      className={cn(col.width, col.hideBelow && hideClass[col.hideBelow])}
-                    />
-                  ))}
-                </colgroup>
-                <thead>
-                  <tr className="border-b border-hairline">
-                    {columns.map((col) => {
-                      const sorts =
-                        col.sorts ??
-                        (col.sortable
-                          ? [{ id: col.id, label: col.label, firstDir: col.firstDir }]
-                          : []);
-                      const activeSort = sorts.find((x) => x.id === result.sort.id);
-                      const Arrow = result.sort.dir === 'asc' ? ArrowUp : ArrowDown;
-                      const sortLink = (x: (typeof sorts)[number]) => {
-                        const active = x.id === result.sort.id;
-                        const nextDir = active
-                          ? result.sort.dir === 'asc'
-                            ? 'desc'
-                            : 'asc'
-                          : (x.firstDir ?? 'asc');
-                        return (
-                          <Link
-                            key={x.id}
-                            href={href({ sort: formatSort(x.id, nextDir) })}
-                            scroll={false}
-                            className={cn(
-                              'inline-flex items-center gap-1 hover:text-text-primary',
-                              active && 'text-text-primary'
-                            )}
-                          >
-                            {x.label}
-                            {/* Always rendered (invisible when inactive) so changing the sort
-                              never shifts the header. */}
-                            <Arrow
-                              className={cn('size-4 shrink-0', !active && 'invisible')}
-                              aria-hidden
-                            />
-                          </Link>
-                        );
-                      };
+            <table className="w-full min-w-[36rem] table-fixed text-left text-base sm:text-sm">
+              <colgroup>
+                {columns.map((col) => (
+                  <col
+                    key={col.id}
+                    className={cn(col.width, col.hideBelow && hideClass[col.hideBelow])}
+                  />
+                ))}
+              </colgroup>
+              <thead>
+                <tr className="border-b border-hairline">
+                  {columns.map((col) => {
+                    const sorts =
+                      col.sorts ??
+                      (col.sortable
+                        ? [{ id: col.id, label: col.label, firstDir: col.firstDir }]
+                        : []);
+                    const activeSort = sorts.find((x) => x.id === result.sort.id);
+                    const Arrow = result.sort.dir === 'asc' ? ArrowUp : ArrowDown;
+                    const sortLink = (x: (typeof sorts)[number]) => {
+                      const active = x.id === result.sort.id;
+                      const nextDir = active
+                        ? result.sort.dir === 'asc'
+                          ? 'desc'
+                          : 'asc'
+                        : (x.firstDir ?? 'asc');
                       return (
-                        <th
-                          key={col.id}
-                          scope="col"
-                          aria-sort={
-                            activeSort
-                              ? result.sort.dir === 'asc'
-                                ? 'ascending'
-                                : 'descending'
-                              : undefined
-                          }
+                        <Link
+                          key={x.id}
+                          href={href({ sort: formatSort(x.id, nextDir) })}
+                          scroll={false}
                           className={cn(
-                            'py-2 pr-4 font-medium whitespace-nowrap text-text-secondary last:pr-0',
-                            col.align === 'right' && 'text-right',
-                            col.hideBelow && hideClass[col.hideBelow]
+                            'inline-flex items-center gap-1 hover:text-text-primary',
+                            active && 'text-text-primary'
                           )}
                         >
-                          {sorts.length ? (
-                            <span className="inline-flex items-center gap-3">
-                              {sorts.filter((x) => x.id in spec.sorts).map(sortLink)}
-                            </span>
-                          ) : (
-                            <span className={col.srOnlyLabel ? 'sr-only' : undefined}>
-                              {col.label}
-                            </span>
-                          )}
-                        </th>
+                          {x.label}
+                          {/* Always rendered (invisible when inactive) so changing the sort
+                              never shifts the header. */}
+                          <Arrow
+                            className={cn('size-4 shrink-0', !active && 'invisible')}
+                            aria-hidden
+                          />
+                        </Link>
                       );
-                    })}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-hairline">
-                  {result.rows.length === 0 && (
-                    <tr>
-                      <td colSpan={columns.length} className="py-10 text-center text-text-muted">
-                        {result.totalAll === 0 ? (
-                          <p className="mb-0">No {plural(0, noun)} yet.</p>
-                        ) : (
-                          <>
-                            <p className="mb-2">
-                              {query
-                                ? `No ${plural(0, noun)} match “${query}”.`
-                                : `No ${plural(0, noun)} match these filters.`}
-                            </p>
-                            <Link
-                              href={href(clearAll)}
-                              scroll={false}
-                              className="text-accent hover:underline"
-                            >
-                              Clear search and filters
-                            </Link>
-                          </>
+                    };
+                    return (
+                      <th
+                        key={col.id}
+                        scope="col"
+                        aria-sort={
+                          activeSort
+                            ? result.sort.dir === 'asc'
+                              ? 'ascending'
+                              : 'descending'
+                            : undefined
+                        }
+                        className={cn(
+                          'py-2 pr-4 font-medium whitespace-nowrap text-text-secondary last:pr-0',
+                          col.align === 'right' && 'text-right',
+                          col.hideBelow && hideClass[col.hideBelow]
                         )}
+                      >
+                        {sorts.length ? (
+                          <span className="inline-flex items-center gap-3">
+                            {sorts.filter((x) => x.id in spec.sorts).map(sortLink)}
+                          </span>
+                        ) : (
+                          <span className={col.srOnlyLabel ? 'sr-only' : undefined}>
+                            {col.label}
+                          </span>
+                        )}
+                      </th>
+                    );
+                  })}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-hairline">
+                {result.rows.length === 0 && (
+                  <tr>
+                    <td colSpan={columns.length} className="py-10 text-center text-text-muted">
+                      {result.totalAll === 0 ? (
+                        <p className="mb-0">No {plural(0, noun)} yet.</p>
+                      ) : (
+                        <>
+                          <p className="mb-2">
+                            {query
+                              ? `No ${plural(0, noun)} match “${query}”.`
+                              : `No ${plural(0, noun)} match these filters.`}
+                          </p>
+                          <Link
+                            href={href(clearAll)}
+                            scroll={false}
+                            className="text-accent hover:underline"
+                          >
+                            Clear search and filters
+                          </Link>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                )}
+                {result.rows.map((row) => (
+                  <tr key={rowKey(row)}>
+                    {columns.map((col) => (
+                      <td
+                        key={col.id}
+                        className={cn(
+                          'truncate py-2 pr-4 text-text-primary tabular-nums last:pr-0',
+                          col.align === 'right' && 'text-right',
+                          col.hideBelow && hideClass[col.hideBelow]
+                        )}
+                      >
+                        {col.cell(row)}
                       </td>
-                    </tr>
-                  )}
-                  {result.rows.map((row) => (
-                    <tr key={rowKey(row)}>
-                      {columns.map((col) => (
-                        <td
-                          key={col.id}
-                          className={cn(
-                            'truncate py-2 pr-4 text-text-primary tabular-nums last:pr-0',
-                            col.align === 'right' && 'text-right',
-                            col.hideBelow && hideClass[col.hideBelow]
-                          )}
-                        >
-                          {col.cell(row)}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+        </div>
 
-          {pager('Pagination, bottom', RESULTS_ID)}
-        </TablePending>
-      </div>
-    </TableState>
+        {pager('Pagination, bottom', RESULTS_ID)}
+      </TablePending>
+    </div>
   );
 }
