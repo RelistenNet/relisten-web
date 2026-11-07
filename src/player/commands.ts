@@ -6,7 +6,7 @@
 
 import type { Source } from '@/domain/types';
 import { showContext } from './queue/items';
-import type { QueueItem } from './queue/model';
+import { nextUpKey, type QueueItem } from './queue/model';
 import { canAutoplay } from './autoplay';
 import { getEngine, playbackActor, playerActor, startPlayback } from './runtime';
 import { showPlayPrompt } from './toasts';
@@ -68,6 +68,27 @@ export function playSongRows({
   playerActor.send({ type: 'PLAY_CONTEXT', ctx: { label, items }, startKey: start.key });
   startPlayback();
 }
+
+/** Give Next up entries keys of their own (the same track can also be in the context). */
+const asNextUp = (items: QueueItem[]) =>
+  items.map((item) => ({ ...item, key: nextUpKey(item.trackId, newId()) }));
+
+const newId = () =>
+  crypto.randomUUID?.() ?? `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
+
+/** Add to the front of Next up. */
+export const playNext = (items: QueueItem[]) =>
+  playerActor.send({ type: 'PLAY_NEXT', items: asNextUp(items) });
+
+/** Add to the end of Next up. */
+export const addToQueue = (items: QueueItem[]) =>
+  playerActor.send({ type: 'ADD_TO_QUEUE', items: asNextUp(items) });
+
+/** Move a Next up entry after another one, or to the front ('start'). */
+export const moveInQueue = (key: string, after: string) =>
+  playerActor.send({ type: 'MOVE', key, after });
+
+export const removeFromQueue = (key: string) => playerActor.send({ type: 'REMOVE', key });
 
 /** Play an entry of the queue. */
 export function jumpTo(key: string, play = true): void {

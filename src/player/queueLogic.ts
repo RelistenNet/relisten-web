@@ -13,9 +13,14 @@
 
 import { fromTransition } from 'xstate';
 import {
+  addToQueue,
   advanceTo,
   emptyQueue,
+  move,
   playContext,
+  playNext,
+  remove,
+  type QueueItem,
   type QueueContext,
   type QueueState,
 } from './queue/model';
@@ -30,7 +35,12 @@ export type PlayerEvent =
   | { type: 'EMBED' }
   | { type: 'PLAY_CONTEXT'; ctx: QueueContext; startKey: string }
   /** Make an entry current: gapless moved on by itself, or the user picked one. */
-  | { type: 'GOTO'; key: string };
+  | { type: 'GOTO'; key: string }
+  /** Next up (the queue panel and row menus). Ignored in embeds. */
+  | { type: 'PLAY_NEXT'; items: QueueItem[] }
+  | { type: 'ADD_TO_QUEUE'; items: QueueItem[] }
+  | { type: 'MOVE'; key: string; after: string }
+  | { type: 'REMOVE'; key: string };
 
 export const initialPlayer: PlayerState = { mode: 'booting', queue: emptyQueue };
 
@@ -48,6 +58,17 @@ export function playerTransition(state: PlayerState, event: PlayerEvent): Player
       return withQueue(playContext(state.queue, event.ctx, event.startKey));
     case 'GOTO':
       return withQueue(advanceTo(state.queue, event.key));
+    case 'PLAY_NEXT':
+      return state.mode === 'embed' ? state : withQueue(playNext(state.queue, event.items));
+    case 'ADD_TO_QUEUE':
+      return state.mode === 'embed' ? state : withQueue(addToQueue(state.queue, event.items));
+    case 'MOVE':
+      return withQueue(move(state.queue, event.key, event.after));
+    case 'REMOVE':
+      return withQueue(remove(state.queue, event.key));
+    default:
+      // Events from outside the app's types (devtools, an older client) mustn't wipe the state.
+      return state;
   }
 }
 

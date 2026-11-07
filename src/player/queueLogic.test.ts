@@ -51,3 +51,40 @@ describe('playerTransition', () => {
     expect(playerTransition(s, { type: 'GOTO', key: 'a' })).toBe(s);
   });
 });
+
+describe('Next up events', () => {
+  const qi = (key: string) => ({
+    key,
+    trackId: key,
+    sourceId: 's',
+    showId: 'sh',
+    artistSlug: 'gd',
+    artistName: 'GD',
+    date: '1977-05-08',
+    trackSlug: key,
+    title: key,
+    mp3Url: `${key}.mp3`,
+  });
+
+  it('are ignored in embeds', () => {
+    const embed = playerTransition(initialPlayer, { type: 'EMBED' });
+    expect(playerTransition(embed, { type: 'ADD_TO_QUEUE', items: [qi('a')] })).toBe(embed);
+    expect(playerTransition(embed, { type: 'PLAY_NEXT', items: [qi('a')] })).toBe(embed);
+  });
+
+  it('edit Next up when ready', () => {
+    let s = playerTransition(initialPlayer, { type: 'HYDRATE', saved: null });
+    s = playerTransition(s, { type: 'ADD_TO_QUEUE', items: [qi('a'), qi('b')] });
+    s = playerTransition(s, { type: 'MOVE', key: 'b', after: 'start' });
+    s = playerTransition(s, { type: 'REMOVE', key: 'b' });
+    expect(s.queue.current?.key).toBe('a');
+    expect(s.queue.upNext).toEqual([]);
+  });
+});
+
+it('ignores unknown events instead of losing the state', () => {
+  const s = playerTransition(initialPlayer, { type: 'HYDRATE', saved: null });
+  expect(playerTransition(s, { type: 'SET_REPEAT', repeat: 'all' } as unknown as PlayerEvent)).toBe(
+    s
+  );
+});

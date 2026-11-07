@@ -47,6 +47,27 @@ export function showContext({
   };
 }
 
+/** One track of a tape, as a queue item (Play next / Add to queue), or null if it has no file. */
+export function showTrackItem({
+  show,
+  track,
+  artistSlug,
+  artistName,
+}: {
+  show: ShowInfo;
+  track: PlayableTrack;
+  artistSlug: string;
+  artistName: string;
+}): QueueItem | null {
+  return trackItem(track, {
+    showId: show.id,
+    date: show.date,
+    artistSlug,
+    artistName,
+    venue: show.venue?.name,
+  });
+}
+
 /** A song page row's performance, or null if it has no file. */
 export function songRowItem(row: ShowRow): QueueItem | null {
   if (!row.track) return null;
