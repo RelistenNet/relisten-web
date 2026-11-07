@@ -67,7 +67,10 @@ export const parseSort = <Row>(spec: TableSpec<Row>, sort: string | undefined) =
   if (sort) {
     const dir: SortDir = sort.startsWith('-') ? 'desc' : 'asc';
     const id = sort.replace(/^-/, '');
-    if (id in spec.sorts) return { id, dir };
+    // Own properties only: `in` would also match inherited ones (?sort=__proto__).
+    if (Object.hasOwn(spec.sorts, id) && typeof spec.sorts[id] === 'function') {
+      return { id, dir };
+    }
   }
   return spec.defaultSort;
 };

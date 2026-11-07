@@ -1,25 +1,30 @@
 'use client';
 
-import { usePathname, useRouter } from '@timber-js/app/client';
+import { usePendingNavigation } from '@timber-js/app/client';
+import { debounce } from '@timber-js/app/search-params';
 import { SearchIcon, XIcon } from 'lucide-react';
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { tableHref, type TableParams } from '@/ui/table/params';
+import type { CSSProperties } from 'react';
+import { definitionFor, type TableParams } from '@/ui/table/params';
 import cn from '@/lib/cn';
 import type { ToolbarFilter } from './types';
+
+// The table's search box and filters. The URL is their only state: the box
+// and controls read it through useQueryStates, typing writes it (debounced,
+// so one server request per pause), and Back/Forward simply change it. The
+// search status is derived from three values: the text, the query the server
+// last rendered (`params.q`), and where a pending navigation is headed.
 
 const SEARCH_DEBOUNCE_MS = 300;
 
 /** "year" → "years", "country" → "countries". */
 const plural = (word: string) => (/[^aeiou]y$/.test(word) ? `${word.slice(0, -1)}ies` : `${word}s`);
-/** How long "done" lasts: the check draws, holds, and fades out. */
-const DONE_MS = 1400;
 
 /**
  * Search progress, shown by one ring on the right of the input: waiting out
- * the debounce (a muted ring), searching (an accent arc, spinning), done (the
- * arc closes, a check draws inside, then it all fades).
+ * the debounce (a muted ring), searching (an accent arc, spinning), idle. Going
+ * from searching to idle closes the arc, draws a check, and fades (CSS only).
  */
-type SearchStatus = 'idle' | 'waiting' | 'searching' | 'done';
+type SearchStatus = 'idle' | 'waiting' | 'searching';
 
 // Focus: a faint accent border and ring instead of the browser outline.
 const FIELD = `
@@ -29,67 +34,37 @@ const FIELD = `
 `;
 
 type Props = {
+  /** The params the server rendered this table with. */
   params: TableParams;
   filters: ToolbarFilter[];
   searchPlaceholder: string;
 };
 
 export default function TableToolbar({ params, filters, searchPlaceholder }: Props) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const urlQuery = (params.q as string | undefined) ?? '';
-  const [query, setQuery] = useState(urlQuery);
-  const inputRef = useRef<HTMLInputElement>(null);
-  // The query sent to the server and not yet reflected in the URL.
-  const [sent, setSent] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
-  const trimmed = query.trim();
+  const definition = definitionFor(filters.map((f) => f.id));
+  const [url, setParams] = definition.useQueryStates({ scroll: false });
 
-  // Follow the URL (back/forward, "Clear"), but never while the user is typing.
-  useEffect(() => {
-    if (document.activeElement !== inputRef.current) setQuery(urlQuery);
-  }, [urlQuery]);
+  const text = url.q ?? '';
+  const rendered = ((params.q as string | undefined) ?? '').trim();
+  // A navigation in flight to this page with a different search: the results are coming.
+  const searching = usePendingNavigation(
+    (to, from) =>
+      to.pathname === from.pathname && (to.searchParams.get('q') ?? '').trim() !== rendered
+  );
+  const status: SearchStatus = searching
+    ? 'searching'
+    : text.trim() !== rendered
+      ? 'waiting'
+      : 'idle';
 
-  // Typing replaces the history entry rather than adding one per keystroke.
-  useEffect(() => {
-    if (trimmed === urlQuery) return;
-    const timer = setTimeout(() => {
-      setSent(trimmed);
-      setDone(false);
-      router.replace(tableHref(pathname, params, { q: trimmed || undefined }), {
-        scroll: false,
-      });
-    }, SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [trimmed, urlQuery, pathname, params, router]);
-
-  // The server rendered the sent query (its params now carry it): results are
-  // in. Adjusted during render, as React recommends for state that follows props.
-  if (sent !== null && urlQuery === sent) {
-    setSent(null);
-    // Still typing past it: stay busy rather than finishing.
-    setDone(trimmed === sent);
-  }
-
-  useEffect(() => {
-    if (!done) return;
-    const timer = setTimeout(() => setDone(false), DONE_MS);
-    return () => clearTimeout(timer);
-  }, [done]);
-
-  // A search in flight stays "searching" even if typing continues, so the arc
-  // never steps back to the waiting ring mid-request.
-  const status: SearchStatus =
-    sent !== null ? 'searching' : trimmed !== urlQuery ? 'waiting' : done ? 'done' : 'idle';
-
-  const go = (patch: TableParams) =>
-    router.push(tableHref(pathname, params, patch), { scroll: false });
+  // Any change but paging goes back to page 1.
+  const setFilter = (patch: TableParams) =>
+    setParams({ ...patch, page: undefined }, { history: 'push' });
 
   return (
     // Without JS, the search box still works as a plain GET form.
     <form
       method="get"
-      action={pathname}
       className="flex flex-wrap items-center gap-3"
       onSubmit={(e) => e.preventDefault()}
     >
@@ -99,14 +74,18 @@ export default function TableToolbar({ params, filters, searchPlaceholder }: Pro
           className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-text-muted"
         />
         <input
-          ref={inputRef}
           type="search"
           name="q"
           aria-label="Search"
           autoComplete="off"
           placeholder={searchPlaceholder}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          value={text}
+          onChange={(e) =>
+            setParams(
+              { q: e.target.value || undefined, page: undefined },
+              { history: 'replace', limitUrlUpdates: debounce(SEARCH_DEBOUNCE_MS) }
+            )
+          }
           // The browser's clear button is replaced by ours, which shares the ring's spot.
           className={cn(
             FIELD,
@@ -117,58 +96,67 @@ export default function TableToolbar({ params, filters, searchPlaceholder }: Pro
         <button
           type="button"
           aria-label="Clear search"
-          onClick={() => {
-            setQuery('');
-            inputRef.current?.focus();
+          onClick={(e) => {
+            setParams({ q: undefined, page: undefined }, { history: 'replace' });
+            e.currentTarget.form?.querySelector('input')?.focus();
           }}
           className={cn(
             'absolute top-1/2 right-2 flex size-6 -translate-y-1/2 items-center justify-center',
-            'rounded-sm text-text-muted transition-opacity duration-300 hover:text-text-primary',
-            status === 'idle' && query ? 'opacity-100' : 'pointer-events-none opacity-0'
+            'rounded-sm text-text-muted transition-opacity hover:text-text-primary',
+            // It shares the ring's spot: hide at once while the ring shows, and
+            // come back only after the ring's check has faded (see RING_STYLE.idle).
+            status === 'idle' && text
+              ? 'opacity-100 delay-1350 duration-300'
+              : 'pointer-events-none opacity-0 duration-150'
           )}
         >
           <XIcon aria-hidden className="size-4" />
         </button>
         <SearchRing status={status} />
         <span role="status" className="sr-only">
-          {status === 'searching' ? 'Searching' : status === 'done' ? 'Results updated' : ''}
+          {status === 'searching' ? 'Searching' : ''}
         </span>
       </div>
-      {filters.map((f) =>
-        f.kind === 'chip' ? (
-          params[f.id] ? (
+      {filters.map((f) => {
+        const value = url[f.id] as string | undefined;
+        if (f.kind === 'chip') {
+          return value ? (
             <button
               key={f.id}
               type="button"
-              onClick={() => go({ [f.id]: undefined })}
-              aria-label={`Remove ${f.label.toLowerCase()} filter: ${f.valueLabel ?? params[f.id]}`}
+              onClick={() => setFilter({ [f.id]: undefined })}
+              aria-label={`Remove ${f.label.toLowerCase()} filter: ${f.valueLabel ?? value}`}
               className="
                 flex items-center gap-1 rounded-full bg-accent/15 py-1 pr-2 pl-3 text-base
                 text-text-primary outline-none hover:bg-accent/25 focus-visible:ring-3
                 focus-visible:ring-accent/30 sm:text-sm
               "
             >
-              {f.valueLabel ?? String(params[f.id])}
+              {f.valueLabel ?? value}
               <XIcon aria-hidden className="size-4 text-text-muted" />
             </button>
-          ) : null
-        ) : f.kind === 'select' ? (
-          <select
-            key={f.id}
-            name={f.id}
-            aria-label={f.label}
-            value={(params[f.id] as string | undefined) ?? ''}
-            onChange={(e) => go({ [f.id]: e.target.value || undefined })}
-            className={cn(FIELD, 'px-2')}
-          >
-            <option value="">All {plural(f.label.toLowerCase())}</option>
-            {f.options.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label} ({o.count})
-              </option>
-            ))}
-          </select>
-        ) : (
+          ) : null;
+        }
+        if (f.kind === 'select') {
+          return (
+            <select
+              key={f.id}
+              name={f.id}
+              aria-label={f.label}
+              value={value ?? ''}
+              onChange={(e) => setFilter({ [f.id]: e.target.value || undefined })}
+              className={cn(FIELD, 'px-2')}
+            >
+              <option value="">All {plural(f.label.toLowerCase())}</option>
+              {f.options.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label} ({o.count})
+                </option>
+              ))}
+            </select>
+          );
+        }
+        return (
           <label
             key={f.id}
             className="flex items-center gap-2 text-base text-text-primary sm:text-sm"
@@ -177,30 +165,32 @@ export default function TableToolbar({ params, filters, searchPlaceholder }: Pro
               type="checkbox"
               name={f.id}
               value="1"
-              checked={params[f.id] === '1'}
-              onChange={(e) => go({ [f.id]: e.target.checked ? '1' : undefined })}
+              checked={value === '1'}
+              onChange={(e) => setFilter({ [f.id]: e.target.checked ? '1' : undefined })}
               className="size-5 sm:size-4"
             />
             {f.label}
           </label>
-        )
-      )}
+        );
+      })}
     </form>
   );
 }
 
 // One SVG for every status, so each change is a transition of the same shapes
 // rather than a swap. The ring spins whenever it shows: a full circle looks the
-// same at any angle, so the spin only reads once it opens into an arc, and
-// starting or stopping it never snaps.
+// same at any angle, so the spin only reads once it opens into an arc. "Done"
+// is the searching → idle transition: idle's styles close the ring and draw the
+// check, and fade the whole thing after a pause. A page that loads idle has no
+// transition to run, so nothing shows.
 const RING_STYLE: Record<
   SearchStatus,
   { ring: CSSProperties; check: CSSProperties; box: CSSProperties }
 > = {
   idle: {
-    box: { opacity: 0, transition: 'opacity 500ms ease-in-out' },
-    ring: { strokeDasharray: '1 0' },
-    check: { strokeDashoffset: 1, transition: 'none' },
+    box: { opacity: 0, transition: 'opacity 500ms ease-in-out 850ms' },
+    ring: { strokeDasharray: '1 0', transition: 'stroke-dasharray 300ms ease-out, color 300ms' },
+    check: { strokeDashoffset: 0, transition: 'stroke-dashoffset 300ms ease-out 250ms' },
   },
   waiting: {
     box: { opacity: 1, transition: 'opacity 300ms ease-out' },
@@ -214,12 +204,6 @@ const RING_STYLE: Record<
       transition: 'stroke-dasharray 500ms ease-in-out, color 300ms',
     },
     check: { strokeDashoffset: 1, transition: 'none' },
-  },
-  done: {
-    // Close the ring, draw the check, hold, then fade.
-    box: { opacity: 0, transition: 'opacity 500ms ease-in-out 850ms' },
-    ring: { strokeDasharray: '1 0', transition: 'stroke-dasharray 300ms ease-out, color 300ms' },
-    check: { strokeDashoffset: 0, transition: 'stroke-dashoffset 300ms ease-out 250ms' },
   },
 };
 
@@ -242,7 +226,7 @@ function SearchRing({ status }: { status: SearchStatus }) {
           pathLength={1}
           className={cn(
             'origin-center animate-[spin_1.4s_linear_infinite] stroke-current',
-            '[transform-box:fill-box] motion-reduce:animate-none',
+            'transform-fill motion-reduce:animate-none',
             status === 'waiting' ? 'text-text-muted' : 'text-accent'
           )}
           style={style.ring}

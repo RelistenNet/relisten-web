@@ -8,7 +8,9 @@ import type { TableState } from './query';
 
 export const tableSearchParams = (filterIds: readonly string[]) =>
   defineSearchParams({
-    q: z.string().trim().max(100).optional(),
+    // Untrimmed: the search box reads this back while you type, and trimming
+    // would eat the space between words. Search splits on whitespace anyway.
+    q: z.string().max(100).optional(),
     sort: z.string().max(40).optional(),
     page: z.coerce.number().int().min(1).max(10_000).default(1),
     ...Object.fromEntries(filterIds.map((id) => [id, z.string().max(100).optional()])),
@@ -18,7 +20,7 @@ export const tableSearchParams = (filterIds: readonly string[]) =>
 export type TableParams = Record<string, string | number | undefined>;
 
 export const toTableState = (params: TableParams, filterIds: readonly string[]): TableState => ({
-  q: params.q as string | undefined,
+  q: (params.q as string | undefined)?.trim() || undefined,
   sort: params.sort as string | undefined,
   page: params.page as number | undefined,
   filters: Object.fromEntries(filterIds.map((id) => [id, params[id] as string | undefined])),
@@ -27,7 +29,8 @@ export const toTableState = (params: TableParams, filterIds: readonly string[]):
 // One definition per set of keys, so building hrefs doesn't redefine the schema
 // for every link on the page.
 const definitions = new Map<string, ReturnType<typeof tableSearchParams>>();
-const definitionFor = (keys: string[]) => {
+/** The definition for a table with these params (cached, so hooks get a stable one). */
+export const definitionFor = (keys: readonly string[]) => {
   const filterIds = keys.filter((k) => k !== 'q' && k !== 'sort' && k !== 'page').sort();
   const id = filterIds.join(',');
   let definition = definitions.get(id);

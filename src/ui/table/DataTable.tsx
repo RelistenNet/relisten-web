@@ -176,7 +176,7 @@ export default function DataTable<Row>({
                       >
                         {sorts.length ? (
                           <span className="inline-flex items-center gap-3">
-                            {sorts.filter((x) => x.id in spec.sorts).map(sortLink)}
+                            {sorts.filter((x) => Object.hasOwn(spec.sorts, x.id)).map(sortLink)}
                           </span>
                         ) : (
                           <span className={col.srOnlyLabel ? 'sr-only' : undefined}>
