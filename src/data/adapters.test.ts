@@ -95,8 +95,8 @@ describe('toShowDetail', () => {
       venue: { slug: 'barton-hall', name: 'Barton Hall', location: 'Ithaca, NY' },
       tourName: 'Spring 1977',
     });
-    // Show pages don't read these; only the browse view's year list carries them.
-    expect(detail).not.toHaveProperty('popularity');
+    // Show pages show the popularity badge; only the browse view's year list carries avgDuration.
+    expect(detail.popularity?.windows?.['30d']?.plays).toBe(5954);
     expect(detail).not.toHaveProperty('avgDuration');
   });
 

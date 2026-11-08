@@ -83,7 +83,7 @@ export type ShowSummary = {
   addedAt: string;
   /** Browse view only (a year's shows): average tape length, in seconds. */
   avgDuration?: number | null;
-  /** Browse view only (a year's shows): the full popularity windows, for the badge. */
+  /** A year's shows and show pages: the full popularity windows, for the badge. */
   popularity?: Popularity | null;
 };
 

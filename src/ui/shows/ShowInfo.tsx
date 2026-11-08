@@ -1,0 +1,87 @@
+'use client';
+
+import { Link } from '@timber-js/app/client';
+import { href } from '@timber-js/app/routes';
+import { MapPin } from 'lucide-react';
+import { useState } from 'react';
+import type { ShowDetail } from '@/domain/types';
+import cn from '@/lib/cn';
+import { durationToHHMMSS } from '@/lib/utils';
+import PopularityBadge from '@/ui/base/PopularityBadge';
+
+export type ShowInfoShow = Partial<Pick<ShowDetail, 'id' | 'venue' | 'popularity'>>;
+
+const VENUE_PILL = `
+  flex min-w-0 items-center gap-1 self-start rounded bg-foreground/5 px-1.5 py-1 text-xs
+  text-foreground transition-colors
+`;
+
+/**
+ * The top of a show's track list: album art, the venue (linking to its page),
+ * where it is, how many people are listening, and the tape's length.
+ */
+export default function ShowInfo({
+  show,
+  artistSlug,
+  duration,
+  linkVenue,
+}: {
+  show: ShowInfoShow;
+  artistSlug?: string;
+  /** The selected tape's length, in seconds. */
+  duration?: number;
+  /** Off in embeds, which stay on the show. */
+  linkVenue: boolean;
+}) {
+  const [artFailed, setArtFailed] = useState(false);
+  const { venue } = show;
+
+  const venueContent = venue?.name && (
+    <>
+      <MapPin className="h-3 w-3 shrink-0 text-foreground-muted" />
+      <span className="truncate">{venue.name}</span>
+    </>
+  );
+
+  return (
+    <div className="flex items-center gap-3 border-b border-hairline p-2">
+      {show.id && !artFailed && (
+        <img
+          src={`/album-art/${show.id}.png?size=256`}
+          alt=""
+          width={64}
+          height={64}
+          loading="lazy"
+          onError={() => setArtFailed(true)}
+          className="size-16 shrink-0 rounded bg-surface-recessed"
+        />
+      )}
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        {venueContent &&
+          (linkVenue && artistSlug && venue.slug ? (
+            <Link
+              href={href('/artists/[artistSlug]/venues/[venueSlug]', {
+                artistSlug,
+                venueSlug: venue.slug,
+              })}
+              title={venue.name}
+              className={cn(VENUE_PILL, 'hover:bg-foreground/10')}
+            >
+              {venueContent}
+            </Link>
+          ) : (
+            <span className={VENUE_PILL} title={venue.name}>
+              {venueContent}
+            </span>
+          ))}
+        {venue?.location && (
+          <div className="truncate text-xxs text-foreground-muted">{venue.location}</div>
+        )}
+        <div className="flex items-center gap-3 text-xxs text-foreground-muted tabular-nums">
+          <PopularityBadge popularity={show.popularity} />
+          {!!duration && <span>{durationToHHMMSS(duration)}</span>}
+        </div>
+      </div>
+    </div>
+  );
+}

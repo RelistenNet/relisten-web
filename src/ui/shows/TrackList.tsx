@@ -15,14 +15,7 @@ import { sortSources } from '@/lib/sortSources';
 import { fromSourceParam, toSourceParam } from '@/lib/sourceParam';
 import { useAdminTools } from '@/hooks/useAdminTools';
 import { Link } from '@timber-js/app/client';
-import { MapPin } from 'lucide-react';
-import cn from '@/lib/cn';
-
-// Styled like the column headers' filter toggles.
-const VENUE_PILL = `
-  flex min-w-0 items-center gap-1 rounded bg-column-header-text/5 p-1 text-[10px] normal-case
-  text-column-header-text/70 transition-colors
-`;
+import ShowInfo, { type ShowInfoShow } from './ShowInfo';
 
 const getSetTime = (set: SourceSet): string =>
   durationToHHMMSS(
@@ -37,7 +30,7 @@ export type Props = {
   month?: string;
   day?: string;
 } & {
-  show?: Pick<ShowDetail, 'sources'> & Partial<Pick<ShowDetail, 'venue'>>;
+  show?: Pick<ShowDetail, 'sources'> & ShowInfoShow;
   /** Which pages the track links go to (the site, or an embed). */
   trackRoute?: TrackRoute;
 };
@@ -99,44 +92,23 @@ const TrackList = ({
   const adminTools = useAdminTools();
   const { artistSlug, year, month, day } = props;
   const show = artistSlug && year && month && day ? { artistSlug, year, month, day } : null;
-  const venue = props.show?.venue;
 
   return (
     <Column
       heading={
-        activeSourceObj ? (
-          <span className="flex min-w-0 items-center gap-2 px-2">
-            <span className="shrink-0">
-              {`${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year?.slice(2)}`}
-            </span>
-            {venue?.name &&
-              (artistSlug && venue.slug && (props.trackRoute ?? 'site') === 'site' ? (
-                <Link
-                  href={href('/artists/[artistSlug]/venues/[venueSlug]', {
-                    artistSlug,
-                    venueSlug: venue.slug,
-                  })}
-                  title={[venue.name, venue.location].filter(Boolean).join(' · ')}
-                  className={cn(
-                    VENUE_PILL,
-                    'hover:bg-column-header-text/10 hover:text-column-header-text'
-                  )}
-                >
-                  <MapPin className="h-3 w-3 shrink-0" />
-                  <span className="truncate">{venue.name}</span>
-                </Link>
-              ) : (
-                <span className={VENUE_PILL} title={venue.location}>
-                  <MapPin className="h-3 w-3 shrink-0" />
-                  <span className="truncate">{venue.name}</span>
-                </span>
-              ))}
-          </span>
-        ) : (
-          'Songs'
-        )
+        activeSourceObj
+          ? `${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year?.slice(2)}`
+          : 'Songs'
       }
     >
+      {activeSourceObj && props.show && (
+        <ShowInfo
+          show={props.show}
+          artistSlug={artistSlug}
+          duration={activeSourceObj.duration}
+          linkVenue={(props.trackRoute ?? 'site') === 'site'}
+        />
+      )}
       {activeSourceObj &&
         activeSourceObj.sets?.map((set, setIdx) => (
           <Fragment key={set.id}>
