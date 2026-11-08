@@ -171,6 +171,19 @@ describe('engine.sync', () => {
     engine.sync({ entries: [entry('a'), entry('b'), entry('c')], currentKey: 'b' });
     expect(goto.mock.calls[1][1]?.startTime).toBeUndefined();
   });
+
+  it('stops when nothing is current, instead of restarting a played entry', async () => {
+    const { q, cb, engine } = setup();
+    engine.sync({ entries: [entry('a'), entry('b')], currentKey: 'b' });
+    engine.play();
+    // The last entry was removed; a stays as history.
+    engine.sync({ entries: [entry('a')], currentKey: null });
+    await tick();
+    expect(q.currentKey).toBeNull();
+    expect(q.isPlaying).toBe(false);
+    expect(cb.onAdvanced).not.toHaveBeenCalled();
+    expect(cb.onPlayingChange).toHaveBeenLastCalledWith(false);
+  });
 });
 
 describe('engine → queue', () => {

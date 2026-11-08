@@ -130,6 +130,16 @@ export function createEngine(createQueue: QueueFactory, callbacks: EngineCallbac
   });
 
   function sync({ entries, currentKey }: SyncInput): void {
+    if (currentKey === null) {
+      // Nothing is current (the last entry was removed): stop. Given the list,
+      // gapless would start its first entry, a track already played.
+      startAt = null;
+      expected = null;
+      queue.setEntries([], { play: false });
+      reportPlaying();
+      reportStatus(true);
+      return;
+    }
     const startTime = startAt && startAt.key === currentKey ? startAt.time : undefined;
     startAt = null;
     const play = queue.isPlaying;

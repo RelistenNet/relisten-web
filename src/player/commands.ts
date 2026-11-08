@@ -42,7 +42,15 @@ export function playShow({
   const ctx = showContext({ show, source, artistSlug, artistName, trackSlugs });
   const start = ctx.items.find((i) => i.trackSlug === trackSlug) ?? ctx.items[0];
   if (!start) return;
-  playerActor.send({ type: 'PLAY_CONTEXT', ctx, startKey: start.key });
+  // A Next up entry for this track is playing: the URL is following playback
+  // (or names what's already playing). Replacing the context would swap the
+  // entry for its context copy and move the cursor, skipping tracks.
+  const current = playerActor.getSnapshot().context.queue.current;
+  const playingFromUpNext =
+    current?.from === 'upNext' &&
+    current.item.trackId === start.trackId &&
+    current.item.sourceId === start.sourceId;
+  if (!playingFromUpNext) playerActor.send({ type: 'PLAY_CONTEXT', ctx, startKey: start.key });
   const engine = getEngine();
   if (startTime && startTime > 0) engine?.seek(startTime);
   if (!play) return;

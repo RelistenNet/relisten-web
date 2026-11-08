@@ -96,7 +96,7 @@ if (isBrowser) {
         if (!isPaused) dismissAutoplayToast();
         const item = itemFor(key);
         if (!item) return;
-        if (listens.progress(item.trackId, { currentTime, isPaused })) scrobblePlay(item.trackId);
+        if (listens.progress(key, { currentTime, isPaused })) scrobblePlay(item.trackId);
         if (saving()) {
           storage?.savePosition({
             key,
