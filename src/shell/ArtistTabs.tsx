@@ -17,6 +17,9 @@ import type { ArtistFeatures } from '@/domain/types';
 
 type Tab = { label: string; href: string; isActive: (path: string) => boolean };
 
+/** The Tours tab is hidden until tours are ready; flip this to bring it back. */
+const SHOW_TOURS_TAB = false;
+
 function tabsFor(artistSlug: string, features?: Partial<ArtistFeatures>): Tab[] {
   const browse = href('/[artistSlug]', { artistSlug });
   const under = (prefix: string) => (path: string) =>
@@ -44,7 +47,7 @@ function tabsFor(artistSlug: string, features?: Partial<ArtistFeatures>): Tab[] 
   if (features?.perShowVenues || features?.perSourceVenues) {
     tabs.push(page('Venues', href('/artists/[artistSlug]/venues', { artistSlug })));
   }
-  if (features?.tours)
+  if (SHOW_TOURS_TAB && features?.tours)
     tabs.push(page('Tours', href('/artists/[artistSlug]/tours', { artistSlug })));
   tabs.push(
     page('Recently Added', href('/artists/[artistSlug]/recently-added', { artistSlug })),
