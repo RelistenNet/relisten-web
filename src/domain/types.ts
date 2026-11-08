@@ -143,7 +143,11 @@ export type Track = PlayableTrack & {
   /** 1-based, within the tape. */
   position: number;
   flacUrl: string | null;
+  /** The songs the file plays (a segue file holds several), for links to their pages. */
+  songs?: TrackSong[];
 };
+
+export type TrackSong = { slug: string; name: string };
 
 /** A row of an artist's song list. */
 export type SongListItem = {

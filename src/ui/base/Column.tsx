@@ -6,7 +6,8 @@ import Flex from './Flex';
 import Scroller from './Scroller';
 
 type ColumnProps = {
-  heading?: string;
+  /** A string heading has its dashes shown as spaces; pass a node (e.g. with links) as-is. */
+  heading?: React.ReactNode;
   children?: React.ReactNode;
   className?: string;
 };
@@ -30,7 +31,7 @@ const Column = ({ className, heading, children }: ColumnProps) => {
       column
     >
       <Scroller containerRef={ref} />
-      {heading?.trim() && (
+      {(typeof heading === 'string' ? heading.trim() : heading) && (
         <Flex
           center
           className="
@@ -38,7 +39,7 @@ const Column = ({ className, heading, children }: ColumnProps) => {
             text-column-header-text capitalize max-lg:hidden
           "
         >
-          {heading?.replaceAll('-', ' ')}
+          {typeof heading === 'string' ? heading.replaceAll('-', ' ') : heading}
         </Flex>
       )}
       <Flex column className="flex-1 overflow-x-hidden lg:overflow-y-auto">

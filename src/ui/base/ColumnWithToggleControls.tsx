@@ -18,7 +18,8 @@ type ToggleConfig = {
 };
 
 type ColumnWithToggleControlsProps = {
-  heading?: string;
+  /** A string heading has its dashes shown as spaces; pass a node (e.g. a link) as-is. */
+  heading?: React.ReactNode;
   children?: React.ReactNode;
   className?: string;
   toggles?: ToggleConfig[];
@@ -64,7 +65,9 @@ const ColumnWithToggleControls = ({
           lg:text-sm
         "
         >
-          <span className="flex-1 text-center">{heading?.replaceAll('-', ' ')}</span>
+          <span className="flex-1 text-center">
+            {typeof heading === 'string' ? heading.replaceAll('-', ' ') : heading}
+          </span>
 
           <Flex className="absolute right-2 gap-1">
             {toggles.map((toggle, index) => (
