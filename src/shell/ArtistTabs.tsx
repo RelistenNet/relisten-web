@@ -4,14 +4,17 @@ import { href } from '@timber-js/app/routes';
 import { Link, useLinkStatus, usePathname } from '@timber-js/app/client';
 import cn from '@/lib/cn';
 import { artistSections } from '@/lib/artistSections';
-import ArtistPicker, { type PickerArtist } from './ArtistPicker';
+import { DEFAULT_ARTIST_SLUG } from '@/lib/defaultArtist';
+import ArtistPicker from './ArtistPicker';
+import type { ArtistRow } from '@/lib/artistRows';
 import type { ArtistFeatures } from '@/domain/types';
 
-// The artist's sections, under the nav bar on pages with an artist in the URL
-// (/grateful-dead/… browse, /artists/grateful-dead/… detail pages), led by the
-// artist picker so the tabs read as that artist's. On / (no artist yet) the bar
-// holds the picker alone. Bridges the two URL trees: Browse is the browse view
-// (artist → year → show); every other tab is a detail page under /artists/{artist}.
+// The artist's sections, under the nav bar on every page: the artist in the URL
+// (/grateful-dead/… browse, /artists/grateful-dead/… detail pages), else the
+// default artist, which is what / browses. Bridges
+// the two: Browse is the browse view (artist → year → show); every other tab is
+// a detail page under /artists/{artist}. Led by the artist picker, which switches
+// artist.
 //
 // Active state comes from the pathname on the client: this lives in a layout
 // that persists across navigations, so server-computed state would go stale.
@@ -27,7 +30,12 @@ function tabsFor(artistSlug: string, features?: Partial<ArtistFeatures>): Tab[] 
     path === prefix || path.startsWith(`${prefix}/`);
 
   const tabs: Tab[] = [
-    { label: 'Browse', href: browse, isActive: under(browse) },
+    {
+      label: 'Browse',
+      href: browse,
+      // The browse view; / is the default artist's browse view.
+      isActive: (p) => (p === '/' && artistSlug === DEFAULT_ARTIST_SLUG) || under(browse)(p),
+    },
     {
       label: 'Overview',
       href: href('/artists/[artistSlug]', { artistSlug }),
@@ -51,49 +59,44 @@ function tabsFor(artistSlug: string, features?: Partial<ArtistFeatures>): Tab[] 
 
 export default function ArtistTabs({
   artist,
-  pickerArtists,
+  pickerRows,
 }: {
-  /** The artist in the URL; without one, the bar is the picker alone. */
-  artist?: { slug: string; name: string; features?: Partial<ArtistFeatures> };
-  pickerArtists: PickerArtist[];
+  artist: { slug: string; name: string; features?: Partial<ArtistFeatures> };
+  pickerRows: ArtistRow[];
 }) {
   const pathname = usePathname();
-  const tabs = artist ? tabsFor(artist.slug, artist.features) : [];
+  const tabs = tabsFor(artist.slug, artist.features);
 
   return (
     <nav
       aria-label="Artist"
       className="flex h-9 items-center border-b border-b-hairline bg-surface-raised pl-2 text-sm lg:pl-4"
     >
-      <ArtistPicker artists={pickerArtists} current={artist} />
-      {tabs.length > 0 && (
-        <>
-          <span aria-hidden className="mx-2 h-4 w-px shrink-0 bg-hairline" />
-          {/* The picker stays put; the tabs scroll when they don't fit. */}
-          <ul
-            role="list"
-            className="flex h-full min-w-0 items-stretch gap-1 overflow-x-auto pr-2 whitespace-nowrap lg:pr-4"
-          >
-            {tabs.map((tab) => {
-              const active = tab.isActive(pathname);
-              return (
-                <li key={tab.label} className="flex">
-                  <Link
-                    href={tab.href}
-                    aria-current={active ? 'page' : undefined}
-                    className={cn(
-                      'relative flex items-center px-2 text-text-secondary hover:text-text-primary',
-                      active && 'text-text-primary'
-                    )}
-                  >
-                    <TabLabel label={tab.label} active={active} />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </>
-      )}
+      <ArtistPicker rows={pickerRows} current={artist} />
+      <span aria-hidden className="mx-2 h-4 w-px shrink-0 bg-hairline" />
+      {/* The picker stays put; the tabs scroll when they don't fit. */}
+      <ul
+        role="list"
+        className="flex h-full min-w-0 items-stretch gap-1 overflow-x-auto pr-2 whitespace-nowrap lg:pr-4"
+      >
+        {tabs.map((tab) => {
+          const active = tab.isActive(pathname);
+          return (
+            <li key={tab.label} className="flex">
+              <Link
+                href={tab.href}
+                aria-current={active ? 'page' : undefined}
+                className={cn(
+                  'relative flex items-center px-2 text-text-secondary hover:text-text-primary',
+                  active && 'text-text-primary'
+                )}
+              >
+                <TabLabel label={tab.label} active={active} />
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
     </nav>
   );
 }

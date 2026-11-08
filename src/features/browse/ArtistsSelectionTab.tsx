@@ -2,15 +2,12 @@
 
 import cn from '@/lib/cn';
 import { fromArtistRow, type ArtistRow } from '@/lib/artistRows';
-import { createArchiveLoader } from '@/lib/archiveArtists';
+import { createArchiveLoader, type ArchiveLoader } from '@/lib/archiveArtists';
 import { useSegmentParams } from '@timber-js/app/client';
 import { X } from 'lucide-react';
 import { Suspense, use, useMemo, useRef, useState, useTransition } from 'react';
 import { browser } from 'react-dom';
-import ArtistsColumnWithControls, {
-  type ArchiveLoader,
-  type ArtistsTab,
-} from './ArtistsColumnWithControls';
+import ArtistsColumnWithControls, { type ArtistsTab } from './ArtistsColumnWithControls';
 
 type ArtistsSelectionTabProps = {
   /** Primary (featured ≤ 1) artists, sent with the page shell. */

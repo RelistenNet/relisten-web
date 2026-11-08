@@ -5,6 +5,7 @@ import { ArrowUp, ArrowDown } from 'lucide-react';
 import React, { useRef } from 'react';
 import Flex from './Flex';
 import Scroller from './Scroller';
+import { columnHeading } from './Column';
 import { simplePluralize } from '@/lib/utils';
 
 type ToggleConfig = {
@@ -18,7 +19,7 @@ type ToggleConfig = {
 };
 
 type ColumnWithToggleControlsProps = {
-  /** A string heading has its dashes shown as spaces; pass a node (e.g. a link) as-is. */
+  /** See columnHeading. */
   heading?: React.ReactNode;
   children?: React.ReactNode;
   className?: string;
@@ -65,9 +66,7 @@ const ColumnWithToggleControls = ({
           lg:text-sm
         "
         >
-          <span className="flex-1 text-center">
-            {typeof heading === 'string' ? heading.replaceAll('-', ' ') : heading}
-          </span>
+          <span className="flex-1 text-center">{columnHeading(heading)}</span>
 
           <Flex className="absolute right-2 gap-1">
             {toggles.map((toggle, index) => (

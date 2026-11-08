@@ -15,7 +15,7 @@ import { sortSources } from '@/lib/sortSources';
 import { fromSourceParam, toSourceParam } from '@/lib/sourceParam';
 import { useAdminTools } from '@/hooks/useAdminTools';
 import { Link } from '@timber-js/app/client';
-import ShowInfo, { type ShowInfoShow } from './ShowInfo';
+import ShowHeader, { type ShowHeaderShow } from './ShowHeader';
 
 const getSetTime = (set: SourceSet): string =>
   durationToHHMMSS(
@@ -30,7 +30,7 @@ export type Props = {
   month?: string;
   day?: string;
 } & {
-  show?: Pick<ShowDetail, 'sources'> & ShowInfoShow;
+  show?: Pick<ShowDetail, 'sources'> & ShowHeaderShow;
   /** Which pages the track links go to (the site, or an embed). */
   trackRoute?: TrackRoute;
 };
@@ -97,12 +97,14 @@ const TrackList = ({
     <Column
       heading={
         activeSourceObj
-          ? `${removeLeadingZero(month)}/${removeLeadingZero(day)}/${year?.slice(2)}`
+          ? `${removeLeadingZero(props.month)}/${removeLeadingZero(props.day)}/${props.year?.slice(
+              2
+            )}`
           : 'Songs'
       }
     >
       {activeSourceObj && props.show && (
-        <ShowInfo
+        <ShowHeader
           show={props.show}
           artistSlug={artistSlug}
           duration={activeSourceObj.duration}

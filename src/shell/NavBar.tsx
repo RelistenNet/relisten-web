@@ -10,8 +10,8 @@ import BlogNavLink from '@/features/blog/BlogNavLink';
 // import GlobalSearch from './GlobalSearch';
 import { MenuIcon } from 'lucide-react';
 import ArtistTabs from './ArtistTabs';
-import { isPrimaryArtist } from '@/lib/artistRows';
-import type { Artist } from '@/domain/types';
+import { getArtistColumnRows } from '@/lib/artistColumnRows';
+import { DEFAULT_ARTIST_SLUG } from '@/lib/defaultArtist';
 import { getHeaders, getSegmentParams } from '@timber-js/app/server';
 import { UAParser } from 'ua-parser-js';
 import { getIsInIframe } from '@/lib/isInIframe';
@@ -26,22 +26,10 @@ export const getUserAgent = async () => {
   return UAParser(userAgent);
 };
 
-/** The picker's list: primary artists, featured first, then by plays (the artists column's default order). */
-function pickerArtists(artists: Artist[]) {
-  const plays = (a: Artist) => a.popularity?.windows?.['30d']?.plays ?? 0;
-  return artists
-    .filter(isPrimaryArtist)
-    .sort((a, b) => Number(b.featured) - Number(a.featured) || plays(b) - plays(a))
-    .map(({ slug, name, featured }) => ({ slug, name, featured }));
-}
-
-/**
- * `browse`: in the browse layout, a URL without an artist is /, which shows the
- * artist picker alone. Elsewhere, no artist means no artist bar.
- */
-export default async function NavBar({ browse = false }: { browse?: boolean }) {
-  const [artists, userAgent, isInIframe] = await Promise.all([
+export default async function NavBar() {
+  const [artists, { primary }, userAgent, isInIframe] = await Promise.all([
     loadArtists(),
+    getArtistColumnRows(),
     getUserAgent(),
     getIsInIframe(),
   ]);
@@ -51,6 +39,7 @@ export default async function NavBar({ browse = false }: { browse?: boolean }) {
   const { artistSlug } = getSegmentParams() as { artistSlug?: string };
   const artist = artistSlug ? artists.find((a) => a.slug === artistSlug) : undefined;
   const artistName = artist?.name;
+  const tabsArtist = artist ?? artists.find((a) => a.slug === DEFAULT_ARTIST_SLUG);
 
   return (
     <>
@@ -154,10 +143,12 @@ export default async function NavBar({ browse = false }: { browse?: boolean }) {
           </div>
         </div>
       </div>
-      {(artist || browse) && (
+      {/* Always present, so the layout doesn't jump between pages: the artist in
+          the URL, else the default artist (what / browses). */}
+      {tabsArtist && (
         <ArtistTabs
-          artist={artist && { slug: artist.slug, name: artist.name, features: artist.features }}
-          pickerArtists={pickerArtists(artists)}
+          artist={{ slug: tabsArtist.slug, name: tabsArtist.name, features: tabsArtist.features }}
+          pickerRows={primary}
         />
       )}
       {isAndroid && <AndroidUpgradeNotification />}

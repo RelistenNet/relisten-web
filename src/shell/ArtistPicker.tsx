@@ -3,7 +3,6 @@
 import { href } from '@timber-js/app/routes';
 import { usePathname, useRouter } from '@timber-js/app/client';
 import { useEffect, useMemo, useState } from 'react';
-import { fuzzyMatch } from '@nozbe/microfuzz';
 import { ChevronDown } from 'lucide-react';
 import {
   Command,
@@ -14,22 +13,22 @@ import {
   CommandList,
 } from '@/ui/base/shadcn/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/base/shadcn/popover';
-import { createArchiveLoader } from '@/lib/archiveArtists';
-import type { ArtistListItem } from '@/lib/artistRows';
+import { createArchiveLoader, searchArtists } from '@/lib/archiveArtists';
+import { fromArtistRow, type ArtistListItem, type ArtistRow } from '@/lib/artistRows';
 
 // The artist at the start of the artist tabs: names whose sections the tabs
-// are, and switches artist. Lists the primary artists (sent with the page,
-// featured first); a search also covers the archive, fetched on the first
-// search.
+// are, and switches artist. Lists the primary artists (the artists column's
+// rows, sent with the page), featured first, then by plays; a search also
+// covers the archive, fetched on the first search.
 
-export type PickerArtist = Pick<ArtistListItem, 'slug' | 'name' | 'featured'>;
+const plays = (a: ArtistListItem) => a.popularity?.windows?.['30d']?.plays ?? 0;
 
 const MAX_RESULTS = 50;
 
 /** The same section for another artist: Browse goes to the artist's browse root. */
-function sectionHref(pathname: string, fromSlug: string | undefined, artistSlug: string): string {
-  const prefix = fromSlug && `/artists/${fromSlug}`;
-  if (!prefix || (pathname !== prefix && !pathname.startsWith(`${prefix}/`))) {
+function sectionHref(pathname: string, fromSlug: string, artistSlug: string): string {
+  const prefix = href('/artists/[artistSlug]', { artistSlug: fromSlug });
+  if (pathname !== prefix && !pathname.startsWith(`${prefix}/`)) {
     return href('/[artistSlug]', { artistSlug });
   }
   // Detail pages (a song, a venue) go to their section's index.
@@ -52,11 +51,11 @@ function sectionHref(pathname: string, fromSlug: string | undefined, artistSlug:
 }
 
 export default function ArtistPicker({
-  artists,
+  rows,
   current,
 }: {
-  artists: PickerArtist[];
-  current?: { slug: string; name: string };
+  rows: ArtistRow[];
+  current: { slug: string; name: string };
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -64,6 +63,10 @@ export default function ArtistPicker({
   const [archive, setArchive] = useState<ArtistListItem[] | null>(null);
   const pathname = usePathname();
   const router = useRouter();
+  const artists = useMemo(
+    () => rows.map(fromArtistRow).sort((a, b) => plays(b) - plays(a)),
+    [rows]
+  );
 
   const searching = query.trim() !== '';
   useEffect(() => {
@@ -76,21 +79,15 @@ export default function ArtistPicker({
     };
   }, [searching, archive, loadArchive]);
 
-  const matches = useMemo(() => {
-    const q = query.trim();
-    if (!q) return [];
-    const scored: { artist: PickerArtist; score: number }[] = [];
-    for (const list of [artists, archive ?? []]) {
-      for (const artist of list) {
-        const result = fuzzyMatch(artist.name, q);
-        if (result) scored.push({ artist, score: result.score });
-      }
-    }
-    return scored
-      .sort((a, b) => a.score - b.score)
-      .slice(0, MAX_RESULTS)
-      .map((s) => s.artist);
-  }, [artists, archive, query]);
+  const matches = useMemo(
+    () =>
+      searching
+        ? searchArtists([artists, archive ?? []], query.trim())
+            .slice(0, MAX_RESULTS)
+            .map((m) => m.artist)
+        : [],
+    [artists, archive, query, searching]
+  );
 
   const onOpenChange = (next: boolean) => {
     setOpen(next);
@@ -99,14 +96,14 @@ export default function ArtistPicker({
 
   const select = (slug: string) => {
     onOpenChange(false);
-    if (slug !== current?.slug) router.push(sectionHref(pathname, current?.slug, slug));
+    if (slug !== current.slug) router.push(sectionHref(pathname, current.slug, slug));
   };
 
-  const item = (artist: PickerArtist) => (
+  const item = (artist: ArtistListItem) => (
     <CommandItem
       key={artist.slug}
       value={artist.slug}
-      data-checked={artist.slug === current?.slug}
+      data-checked={artist.slug === current.slug}
       onSelect={select}
     >
       {artist.name}
@@ -116,13 +113,13 @@ export default function ArtistPicker({
   return (
     <Popover open={open} onOpenChange={onOpenChange} align="start" sideOffset={6}>
       <PopoverTrigger
-        aria-label={current ? `Artist: ${current.name}. Switch artist` : 'Choose an artist'}
+        aria-label={`Artist: ${current.name}. Switch artist`}
         className="
           flex h-7 max-w-56 cursor-pointer items-center gap-1 rounded-md border border-accent/40
           bg-accent/10 px-2 font-medium text-text-primary hover:bg-accent/20
         "
       >
-        <span className="truncate">{current?.name ?? 'Choose an artist'}</span>
+        <span className="truncate">{current.name}</span>
         <ChevronDown className="size-3.5 shrink-0 text-text-secondary" />
       </PopoverTrigger>
       <PopoverContent className="w-[min(320px,calc(100vw-1rem))] p-0">

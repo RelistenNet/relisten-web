@@ -13,7 +13,8 @@ import { useFilterState } from '@/hooks/useFilterState';
 import cn from '@/lib/cn';
 import ColumnWithToggleControls from '@/ui/base/ColumnWithToggleControls';
 import PopularityBadge from '@/ui/base/PopularityBadge';
-import { fuzzyMatch, type HighlightRanges } from '@nozbe/microfuzz';
+import type { HighlightRanges } from '@nozbe/microfuzz';
+import { searchArtists, type ArchiveLoader } from '@/lib/archiveArtists';
 import Row, { unwrapSegment } from '@/ui/base/Row';
 import RowHeader from '@/ui/base/RowHeader';
 
@@ -47,9 +48,6 @@ function HighlightText({ text, ranges }: { text: string; ranges: HighlightRanges
 }
 
 export type ArtistsTab = 'primary' | 'all';
-
-/** Returns the archive list (`null` if it failed to load); the same promise on every call. */
-export type ArchiveLoader = () => Promise<ArtistListItem[] | null>;
 
 type ArtistsColumnWithControlsProps = {
   primaryArtists: ArtistListItem[];
@@ -175,20 +173,13 @@ function selectArtists(
       highlightRanges: new Map<string, HighlightRanges>(),
     };
   }
+  const matches = searchArtists([primaryArtists, archiveArtists ?? []], query);
   const highlightRanges = new Map<string, HighlightRanges>();
-  const scored: { artist: ArtistListItem; score: number }[] = [];
-  for (const list of [primaryArtists, archiveArtists ?? []]) {
-    for (const artist of list) {
-      const result = fuzzyMatch(artist.name || '', query);
-      if (result) {
-        scored.push({ artist, score: result.score });
-        const [nameRanges] = result.matches;
-        if (artist.slug && nameRanges) highlightRanges.set(artist.slug, nameRanges);
-      }
-    }
+  for (const { artist, result } of matches) {
+    const [nameRanges] = result.matches;
+    if (artist.slug && nameRanges) highlightRanges.set(artist.slug, nameRanges);
   }
-  scored.sort((a, b) => a.score - b.score);
-  return { artists: scored.map((s) => s.artist), highlightRanges };
+  return { artists: matches.map((m) => m.artist), highlightRanges };
 }
 
 function ArtistList({
