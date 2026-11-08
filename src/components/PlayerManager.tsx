@@ -13,6 +13,8 @@ import { useEffect, useEffectEvent } from 'react';
 interface PlayerManagerProps extends Props {
   artistName?: string;
   playImmediately?: boolean;
+  // Embeds never autoplay on load; only a viewer's click inside the embed starts playback.
+  embed?: boolean;
   trackSlugs?: string[];
   songSlug?: string;
   // Server-resolved ?source. Prefer this over nuqs: after a pathname change nuqs
@@ -20,6 +22,11 @@ interface PlayerManagerProps extends Props {
   // the new track with the old (often empty) source.
   source?: string;
 }
+
+// Only the first sync after a page load is the "load"; later syncs come from the viewer
+// clicking a track inside the embed, which should play. Module scope so it survives the
+// page remounting on in-embed navigation, and resets on a full reload.
+let embedLoadSynced = false;
 
 export default function PlayerManager(props: PlayerManagerProps) {
   const pathname = usePathname();
@@ -53,7 +60,9 @@ export default function PlayerManager(props: PlayerManagerProps) {
         : allTracks;
       const activeTrackIndex = tracks.findIndex((track) => track?.slug === songSlug);
       const activeTrack = tracks[activeTrackIndex];
-      const playImmediately = props.playImmediately ?? true;
+      const isEmbedLoad = props.embed && !embedLoadSynced;
+      if (isEmbedLoad) embedLoadSynced = true;
+      const playImmediately = isEmbedLoad ? false : (props.playImmediately ?? true);
 
       store.dispatch(
         updatePlayback({
@@ -63,7 +72,7 @@ export default function PlayerManager(props: PlayerManagerProps) {
           showDate: createShowDate(year, month, day),
           songSlug,
           source: String(activeSourceObj.id),
-          paused: false,
+          paused: !playImmediately,
         })
       );
 
@@ -75,7 +84,7 @@ export default function PlayerManager(props: PlayerManagerProps) {
 
       // check if track is already in queue, and re-use
       if (player.currentTrack?.metadata?.trackId === activeTrack?.id) {
-        player.play();
+        if (playImmediately) player.play();
         return;
       }
 

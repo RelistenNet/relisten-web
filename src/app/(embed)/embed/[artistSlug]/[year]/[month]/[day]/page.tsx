@@ -33,7 +33,7 @@ export default async function EmbedShowPage() {
     );
   }
 
-  redirect(`/embed/${artistSlug}/${year}/${month}/${day}/${firstTrack.slug}?playImmediately=false`);
+  redirect(`/embed/${artistSlug}/${year}/${month}/${day}/${firstTrack.slug}`);
 }
 
 export async function metadata() {

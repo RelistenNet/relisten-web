@@ -39,6 +39,7 @@ export default async function SingleTrackEmbedPage() {
         <EmbedTrackList tracks={contextTracks} startPosition={startIdx + 1} />
       )}
       <PlayerManager
+        embed
         artistSlug={artistSlug}
         year={year}
         month={month}
