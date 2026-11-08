@@ -77,7 +77,15 @@ if (isBrowser) {
   const listens = createListenTracker();
   const queueOf = () => playerActor.getSnapshot().context.queue;
   const saving = () => playerActor.getSnapshot().context.mode === 'ready';
-  const itemFor = (key: string) => compose(queueOf()).find((i) => i.key === key);
+  // Progress frames arrive ~60 times a second: index the queue once per change.
+  let indexed: { queue: QueueState; byKey: Map<string, QueueItem> } | null = null;
+  const itemFor = (key: string) => {
+    const queue = queueOf();
+    if (indexed?.queue !== queue) {
+      indexed = { queue, byKey: new Map(compose(queue).map((i) => [i.key, i])) };
+    }
+    return indexed.byKey.get(key);
+  };
 
   engine = createEngine(
     (callbacks) =>

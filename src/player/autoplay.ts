@@ -22,7 +22,8 @@ const automated = () => navigator.webdriver === true;
 export function canAutoplay(): boolean {
   if (typeof window === 'undefined') return false;
   if (inIframe()) return true;
-  if (navigator.userActivation?.hasBeenActive ?? true) return true;
+  // No userActivation API: assume no interaction (crawlers mustn't autoplay).
+  if (navigator.userActivation?.hasBeenActive) return true;
   return isReturningListener();
 }
 

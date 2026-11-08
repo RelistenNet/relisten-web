@@ -248,12 +248,13 @@ export function move(state: QueueState, key: string, after: string | null): Queu
     .find((row) => items.some((i) => i.key === row.key));
   const at = anchor ? items.findIndex((i) => i.key === anchor.key) + 1 : 0;
   const ctx = base.context ?? { label: '', items: [] };
-  const moved = {
+  // Moving the cursor (a played entry, while Next up plays) leaves the cursor
+  // on the entry before it (withoutContextEntry), so the context still
+  // continues from where it was; the moved entry plays again where it lands.
+  return {
     ...base,
     context: { ...ctx, items: [...items.slice(0, at), item, ...items.slice(at)] },
   };
-  // Moving the cursor keeps it the cursor.
-  return state.cursor === key ? { ...moved, cursor: key } : moved;
 }
 
 /**

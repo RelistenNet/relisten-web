@@ -202,6 +202,15 @@ describe('Next up', () => {
     expect(move(n, 'a', null)).toBe(n);
   });
 
+  it('moving the cursor while Next up plays keeps the rest of the context ahead', () => {
+    let s = addToQueue(playing(), [item('a')]); // c2 current
+    s = advanceTo(s, 'a'); // Next up plays; the cursor is c2
+    const m = move(s, 'c2', 'c4');
+    expect(contextKeys(m)).toEqual(['c1', 'c3', 'c4', 'c2']);
+    expect(m.cursor).toBe('c1');
+    expect(queueView(m).rest.map((i) => i.key)).toEqual(['c3', 'c4', 'c2']);
+  });
+
   it('removes any entry; removing the current one moves on', () => {
     const s = addToQueue(playing(), [item('a'), item('b')]);
     expect(upNextKeys(remove(s, 'a'))).toEqual(['b']);
