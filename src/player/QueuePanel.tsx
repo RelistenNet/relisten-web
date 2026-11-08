@@ -1,13 +1,15 @@
 'use client';
 
-import { GripVerticalIcon, ListMusicIcon, XIcon } from 'lucide-react';
+import { CheckIcon, CircleAlertIcon, GripVerticalIcon, ListMusicIcon, XIcon } from 'lucide-react';
+import driver from '@switz/driver';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import cn from '@/lib/cn';
 import { durationToHHMMSS } from '@/lib/utils';
 import RowHeader from '@/ui/base/RowHeader';
+import Tooltip from '@/ui/base/Tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/base/shadcn/popover';
 import { jumpTo, moveInQueue, removeFromQueue } from './commands';
-import { useIsPlaying, useQueue } from './hooks';
+import { useIsPlaying, useQueue, useTrackStatuses } from './hooks';
 import { queueView, type QueueItem } from './queue/model';
 
 // The queue: a popover off the player bar's queue button, as plain rows like a
@@ -33,13 +35,13 @@ export default function QueueButton() {
   const count = useQueue((q) => q.upNext.length);
 
   return (
-    <Popover>
+    <Popover align="end" sideOffset={4}>
       <PopoverTrigger
         aria-label={count ? `Queue, ${count} up next` : 'Queue'}
         className="
           relative flex w-11 shrink-0 items-center justify-center self-stretch text-text-muted
           hover:text-text-primary focus-visible:outline-2 focus-visible:-outline-offset-2
-          focus-visible:outline-accent data-popup-open:text-text-primary lg:w-10
+          focus-visible:outline-accent aria-expanded:text-text-primary lg:w-10
         "
       >
         <ListMusicIcon size={22} className="shrink-0" aria-hidden />
@@ -57,18 +59,16 @@ export default function QueueButton() {
       </PopoverTrigger>
       <PopoverContent
         aria-label="Queue"
-        align="end"
-        sideOffset={4}
-        // The arrow meets the 2px ring and takes the header's colour; the
-        // content (positioned, later) covers its lower half.
-        arrowClassName="border-t-2 border-l-2 bg-column-subheader data-[side=bottom]:-top-2 data-[side=left]:-right-2 data-[side=right]:-left-2 data-[side=top]:-bottom-2"
+        // The arrow sits on the panel's edge: up 2px to meet the ring, in the
+        // header's colour; the content (positioned, later) covers its lower half.
+        arrowClassName="-translate-y-0.5 border-t-2 border-l-2 bg-column-subheader"
         className="
-          w-[min(24rem,calc(100vw-1rem))] gap-0 p-0 shadow-2xl ring-2 dark:shadow-black/60
+          w-[min(28rem,calc(100vw-1rem))] gap-0 p-0 shadow-2xl ring-2 dark:shadow-black/60
         "
       >
         <div
           className="
-            relative flex max-h-[min(36rem,calc(var(--available-height)-0.5rem))] flex-col
+            relative flex max-h-[min(36rem,calc(100dvh-5rem))] flex-col
             overflow-hidden rounded-lg
           "
         >
@@ -94,19 +94,26 @@ const formatDate = (date: string) => {
 
 function QueueContents() {
   const queue = useQueue((q) => q);
-  const { played, current, upNext, rest } = useMemo(() => queueView(queue), [queue]);
-  const currentRow = useRef<HTMLLIElement>(null);
+  const view = useMemo(() => queueView(queue), [queue]);
+  const { played, current, upNext, rest } = view;
+  // Every row, in the order listed: one list for dragging, across the sections.
+  const rows = useMemo(
+    () => [...played, ...(current ? [current] : []), ...upNext, ...rest],
+    [played, current, upNext, rest]
+  );
+  const reorder = useReorder(rows);
   const scroller = useRef<HTMLDivElement>(null);
 
   // Open with the current row in the middle: earlier tracks above, what's next below.
   // A frame later, once the popover has its size.
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
-      const row = currentRow.current;
       const box = scroller.current;
+      const row = box?.querySelector<HTMLElement>('li:has([aria-current])');
       if (row && box) box.scrollTop = row.offsetTop - (box.clientHeight - row.offsetHeight) / 2;
     });
     return () => cancelAnimationFrame(frame);
+    // Only on open.
   }, []);
 
   if (!current) {
@@ -122,9 +129,55 @@ function QueueContents() {
   const count = queue.context?.items.length ?? 0;
   const position = numbers.get(current.key);
   const left = total([...upNext, ...rest]);
+  // One playing from Next up can't move (it isn't in a list); it can be removed (skipped).
+  const fixed = queue.current?.from === 'upNext' ? current.key : null;
 
   const showOf = (item: QueueItem) =>
     [item.artistName, formatDate(item.date), item.venue].filter(Boolean).join(' · ');
+
+  const indexOf = new Map(rows.map((r, i) => [r.key, i]));
+  const row = (item: QueueItem, kind: 'played' | 'current' | 'upNext' | 'rest') => {
+    const i = indexOf.get(item.key) ?? 0;
+    return (
+      <QueueRow
+        key={item.key}
+        ref={reorder.rowRef(item.key)}
+        {...reorder.rowProps(item.key, i)}
+        item={item}
+        number={kind === 'upNext' ? undefined : numbers.get(item.key)}
+        show={showOf(item)}
+        current={kind === 'current'}
+        played={kind === 'played'}
+        actions={
+          <>
+            {item.key !== fixed && (
+              <button
+                type="button"
+                {...reorder.handleProps(item.key, i)}
+                aria-label={`Reorder ${item.title}`}
+                aria-describedby="queue-reorder-hint"
+                className={cn(ICON_BUTTON, 'cursor-grab touch-none active:cursor-grabbing')}
+              >
+                <GripVerticalIcon size={16} className="shrink-0" aria-hidden />
+                <TouchTarget />
+              </button>
+            )}
+            <button
+              type="button"
+              aria-label={
+                kind === 'current' ? `Remove ${item.title} and skip it` : `Remove ${item.title}`
+              }
+              onClick={() => removeFromQueue(item.key)}
+              className={ICON_BUTTON}
+            >
+              <XIcon size={16} className="shrink-0" aria-hidden />
+              <TouchTarget />
+            </button>
+          </>
+        }
+      />
+    );
+  };
 
   return (
     <>
@@ -145,45 +198,32 @@ function QueueContents() {
       </div>
       <div ref={scroller} className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain">
         <ol role="list" className="m-0 list-none p-0">
-          {played.map((item) => (
-            <QueueRow
-              key={item.key}
-              item={item}
-              number={numbers.get(item.key)}
-              show={showOf(item)}
-              played
-            />
-          ))}
-          <QueueRow
-            ref={currentRow}
-            item={current}
-            number={position}
-            show={showOf(current)}
-            current
-          />
+          {played.map((item) => row(item, 'played'))}
+          {row(current, 'current')}
         </ol>
         {upNext.length > 0 && (
           <>
             <RowHeader>
               Up next <span className="tabular-nums">{durationToHHMMSS(total(upNext))}</span>
             </RowHeader>
-            <NextUpList items={upNext} showOf={showOf} />
+            <ol role="list" className="m-0 list-none p-0">
+              {upNext.map((item) => row(item, 'upNext'))}
+            </ol>
             {rest.length > 0 && <RowHeader>Then</RowHeader>}
           </>
         )}
         {rest.length > 0 && (
           <ol role="list" className="m-0 list-none p-0">
-            {rest.map((item) => (
-              <QueueRow
-                key={item.key}
-                item={item}
-                number={numbers.get(item.key)}
-                show={showOf(item)}
-              />
-            ))}
+            {rest.map((item) => row(item, 'rest'))}
           </ol>
         )}
         {!upNext.length && !rest.length && <RowHeader>Last track</RowHeader>}
+        <p id="queue-reorder-hint" className="sr-only">
+          Drag, or use the up and down arrow keys, to change the order.
+        </p>
+        <p aria-live="polite" className="sr-only">
+          {reorder.announcement}
+        </p>
       </div>
     </>
   );
@@ -209,7 +249,54 @@ function PlayingBars() {
   );
 }
 
-/** A row: picking it plays it. */
+/** Whether an entry is loaded for gapless playback: an icon, in a fixed column. */
+function LoadState({ entryKey, hidden }: { entryKey: string; hidden: boolean }) {
+  const status = useTrackStatuses()[entryKey];
+  const load = driver({
+    states: {
+      isHidden: hidden,
+      isReady: status === 'LOADED',
+      isLoading: status === 'LOADING',
+      isFailed: status === 'ERROR',
+      isIdle: true,
+    },
+    derived: {
+      label: {
+        isReady: 'Gapless Ready',
+        isLoading: 'Loading Gapless',
+        isFailed: 'Failed To Load',
+      },
+      icon: {
+        isReady: <CheckIcon size={14} strokeWidth={2.5} className="text-emerald-500" aria-hidden />,
+        isLoading: <span className="size-2 rounded-full bg-amber-500" aria-hidden />,
+        isFailed: (
+          <CircleAlertIcon size={14} strokeWidth={2.5} className="text-red-500" aria-hidden />
+        ),
+      },
+    },
+  });
+
+  return (
+    <span className="flex w-4 shrink-0 justify-center">
+      {load.label && (
+        <Tooltip
+          content={load.label}
+          align="top"
+          className="flex size-4 items-center justify-center"
+        >
+          {load.icon}
+          <span className="sr-only">{load.label}</span>
+        </Tooltip>
+      )}
+    </span>
+  );
+}
+
+/**
+ * A row: picking it plays it. Every row has the same columns, so they line
+ * up across sections: number (or playing bars), title and show, load state,
+ * duration, then room for the drag handle and remove button.
+ */
 function QueueRow({
   ref,
   item,
@@ -217,8 +304,7 @@ function QueueRow({
   show,
   current = false,
   played = false,
-  before,
-  after,
+  actions,
   className,
   style,
 }: {
@@ -231,8 +317,8 @@ function QueueRow({
   current?: boolean;
   /** Already played: dimmed. */
   played?: boolean;
-  before?: React.ReactNode;
-  after?: React.ReactNode;
+  /** The drag handle and remove button, for entries still to come. */
+  actions?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
 }) {
@@ -241,7 +327,7 @@ function QueueRow({
       ref={ref}
       className={cn(
         `
-          group relative m-0 flex min-h-12 items-center border-b border-hairline pr-1
+          relative m-0 flex min-h-12 items-center border-b border-hairline
           hover:bg-surface-hover lg:min-h-10
         `,
         current && 'bg-accent/10 hover:bg-accent/15',
@@ -250,39 +336,34 @@ function QueueRow({
       style={style}
     >
       {current && <div className="absolute inset-y-0 left-0 w-1 bg-accent" aria-hidden />}
-      {before}
       <button
         type="button"
         onClick={() => jumpTo(item.key)}
         aria-current={current || undefined}
         className={cn(
           `
-            flex min-w-0 flex-1 items-center gap-3 self-stretch py-1.5 pr-2 text-left
-            leading-tight tabular-nums focus-visible:outline-2 focus-visible:-outline-offset-2
+            flex min-w-0 flex-1 items-center gap-2 self-stretch py-1.5 text-left leading-tight
+            tabular-nums focus-visible:outline-2 focus-visible:-outline-offset-2
             focus-visible:outline-accent
           `,
-          before ? 'pl-1' : 'pl-3',
           played && 'text-text-muted'
         )}
       >
-        {!before && (
-          <span className="flex w-5 shrink-0 justify-end text-xs text-text-muted">
-            {current ? <PlayingBars /> : number}
-          </span>
-        )}
+        <span className="flex w-7 shrink-0 justify-end text-xs text-text-muted">
+          {current ? <PlayingBars /> : number}
+        </span>
         <span className="min-w-0 flex-1">
           <span className={cn('block truncate', current && 'font-medium text-accent')}>
             {item.title}
           </span>
-          {show && <span className="block truncate text-xxs text-text-muted">{show}</span>}
+          <span className="block truncate text-xxs text-text-muted">{show}</span>
         </span>
-        {item.duration ? (
-          <span className="shrink-0 text-xs text-text-muted">
-            {durationToHHMMSS(item.duration)}
-          </span>
-        ) : null}
+        <LoadState entryKey={item.key} hidden={played} />
+        <span className="w-12 shrink-0 text-right text-xs text-text-muted">
+          {item.duration ? durationToHHMMSS(item.duration) : null}
+        </span>
       </button>
-      {after}
+      <span className="flex w-[4.25rem] shrink-0 items-center justify-end pr-1">{actions}</span>
     </li>
   );
 }
@@ -296,15 +377,13 @@ type Drag = {
   rects: DOMRect[];
 };
 
-/** Next up: drag a handle (or focus it and use the arrow keys) to reorder; remove an entry. */
-function NextUpList({
-  items,
-  showOf,
-}: {
-  items: QueueItem[];
-  showOf: (item: QueueItem) => string;
-}) {
-  const listRef = useRef<HTMLOListElement>(null);
+/**
+ * Reordering the panel's rows, across its sections: drag a row's handle, or
+ * focus it and use the arrow keys. A row lands just after the row above it;
+ * move() decides which list that puts it in.
+ */
+function useReorder(rows: QueueItem[]) {
+  const rowEls = useRef(new Map<string, HTMLLIElement>());
   const handles = useRef(new Map<string, HTMLButtonElement>());
   const [drag, setDrag] = useState<Drag | null>(null);
   /** The handle to refocus once a keyboard move has re-rendered the list. */
@@ -316,47 +395,14 @@ function NextUpList({
     if (!focusKey.current) return;
     handles.current.get(focusKey.current)?.focus();
     focusKey.current = null;
-  }, [items]);
-
-  const keys = items.map((i) => i.key);
+  }, [rows]);
 
   /** Move `key` to position `to` (in the list without it). */
   const moveTo = (key: string, to: number) => {
-    const others = keys.filter((k) => k !== key);
-    moveInQueue(key, to === 0 ? 'start' : others[to - 1]);
-    const item = items.find((i) => i.key === key);
-    setAnnouncement(`${item?.title ?? 'Track'} moved to position ${to + 1} of ${items.length}.`);
-  };
-
-  const onKeyDown = (e: React.KeyboardEvent, key: string, index: number) => {
-    const to = e.key === 'ArrowUp' ? index - 1 : e.key === 'ArrowDown' ? index + 1 : null;
-    if (to === null || to < 0 || to >= items.length) return;
-    e.preventDefault();
-    focusKey.current = key;
-    moveTo(key, to);
-  };
-
-  const onPointerDown = (e: React.PointerEvent, key: string, index: number) => {
-    if (e.button !== 0 || !listRef.current) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    const rects = [...listRef.current.children].map((el) => el.getBoundingClientRect());
-    setDrag({ key, from: index, to: index, startY: e.clientY, dy: 0, rects });
-  };
-
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (!drag) return;
-    const dy = e.clientY - drag.startY;
-    const dragged = drag.rects[drag.from];
-    const center = dragged.top + dragged.height / 2 + dy;
-    // The new position: how many other rows' middles are above the dragged row's middle.
-    const to = drag.rects.filter((r, i) => i !== drag.from && r.top + r.height / 2 < center).length;
-    setDrag({ ...drag, dy, to });
-  };
-
-  const onPointerUp = () => {
-    if (!drag) return;
-    if (drag.to !== drag.from) moveTo(drag.key, drag.to);
-    setDrag(null);
+    const others = rows.filter((r) => r.key !== key);
+    moveInQueue(key, to === 0 ? null : others[to - 1].key);
+    const item = rows.find((r) => r.key === key);
+    setAnnouncement(`${item?.title ?? 'Track'} moved to position ${to + 1} of ${rows.length}.`);
   };
 
   /** How far a row moves while another is dragged past it. */
@@ -369,64 +415,63 @@ function NextUpList({
     return 0;
   };
 
-  return (
-    <>
-      <ol ref={listRef} role="list" className="m-0 list-none p-0">
-        {items.map((item, index) => {
-          const dragging = drag?.key === item.key;
-          return (
-            <QueueRow
-              key={item.key}
-              className={cn(
-                'relative translate-y-(--shift)',
-                dragging
-                  ? 'z-10 bg-surface-raised shadow-lg dark:shadow-none'
-                  : drag && 'transition-transform duration-150'
-              )}
-              style={{ '--shift': `${shift(index)}px` } as React.CSSProperties}
-              item={item}
-              show={showOf(item)}
-              before={
-                <button
-                  type="button"
-                  ref={(el) => {
-                    if (el) handles.current.set(item.key, el);
-                    else handles.current.delete(item.key);
-                  }}
-                  aria-label={`Reorder ${item.title}`}
-                  aria-describedby="queue-reorder-hint"
-                  onKeyDown={(e) => onKeyDown(e, item.key, index)}
-                  onPointerDown={(e) => onPointerDown(e, item.key, index)}
-                  onPointerMove={onPointerMove}
-                  onPointerUp={onPointerUp}
-                  onPointerCancel={() => setDrag(null)}
-                  className={cn(ICON_BUTTON, 'cursor-grab touch-none active:cursor-grabbing')}
-                >
-                  <GripVerticalIcon size={16} className="shrink-0" aria-hidden />
-                  <TouchTarget />
-                </button>
-              }
-              after={
-                <button
-                  type="button"
-                  aria-label={`Remove ${item.title} from Next up`}
-                  onClick={() => removeFromQueue(item.key)}
-                  className={ICON_BUTTON}
-                >
-                  <XIcon size={16} className="shrink-0" aria-hidden />
-                  <TouchTarget />
-                </button>
-              }
-            />
-          );
-        })}
-      </ol>
-      <p id="queue-reorder-hint" className="sr-only">
-        Drag, or use the up and down arrow keys, to change the order.
-      </p>
-      <p aria-live="polite" className="sr-only">
-        {announcement}
-      </p>
-    </>
-  );
+  return {
+    announcement,
+    rowRef: (key: string) => (el: HTMLLIElement | null) => {
+      if (el) rowEls.current.set(key, el);
+      else rowEls.current.delete(key);
+    },
+    // Rows only get a transform while dragging: an idle transform would break
+    // the CSS-anchored tooltips inside them.
+    rowProps: (key: string, index: number) =>
+      drag
+        ? {
+            className: cn(
+              'relative translate-y-(--shift)',
+              drag.key === key
+                ? 'z-10 bg-surface-raised shadow-lg dark:shadow-none'
+                : 'transition-transform duration-150'
+            ),
+            style: { '--shift': `${shift(index)}px` } as React.CSSProperties,
+          }
+        : {},
+    handleProps: (key: string, index: number) => ({
+      ref: (el: HTMLButtonElement | null) => {
+        if (el) handles.current.set(key, el);
+        else handles.current.delete(key);
+      },
+      onKeyDown: (e: React.KeyboardEvent) => {
+        const to = e.key === 'ArrowUp' ? index - 1 : e.key === 'ArrowDown' ? index + 1 : null;
+        if (to === null || to < 0 || to >= rows.length) return;
+        e.preventDefault();
+        focusKey.current = key;
+        moveTo(key, to);
+      },
+      onPointerDown: (e: React.PointerEvent) => {
+        if (e.button !== 0) return;
+        e.currentTarget.setPointerCapture(e.pointerId);
+        const els = rows.map((r) => rowEls.current.get(r.key));
+        if (els.some((el) => !el)) return;
+        const rects = els.map((el) => el?.getBoundingClientRect() ?? new DOMRect());
+        setDrag({ key, from: index, to: index, startY: e.clientY, dy: 0, rects });
+      },
+      onPointerMove: (e: React.PointerEvent) => {
+        if (!drag) return;
+        const dy = e.clientY - drag.startY;
+        const dragged = drag.rects[drag.from];
+        const center = dragged.top + dragged.height / 2 + dy;
+        // The new position: how many other rows' middles are above the dragged row's middle.
+        const to = drag.rects.filter(
+          (r, i) => i !== drag.from && r.top + r.height / 2 < center
+        ).length;
+        setDrag({ ...drag, dy, to });
+      },
+      onPointerUp: () => {
+        if (!drag) return;
+        if (drag.to !== drag.from) moveTo(drag.key, drag.to);
+        setDrag(null);
+      },
+      onPointerCancel: () => setDrag(null),
+    }),
+  };
 }

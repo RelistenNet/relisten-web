@@ -1,80 +1,102 @@
+'use client';
+
 import * as React from 'react';
-import { Popover as PopoverPrimitive } from '@base-ui/react/popover';
+import {
+  Arrow,
+  Popover as AnchoredPopover,
+  PopoverContent as AnchoredPopoverContent,
+  PopoverTrigger as AnchoredPopoverTrigger,
+  type Placement,
+} from 'css-anchor-kit';
 
 import cn from '@/lib/cn';
 
-function Popover({ ...props }: PopoverPrimitive.Root.Props) {
-  return <PopoverPrimitive.Root data-slot="popover" {...props} />;
-}
+// A click-to-open popover: a native `popover="auto"` panel in the top layer,
+// placed with CSS anchor positioning (css-anchor-kit, like <Tooltip>). The
+// browser handles light dismiss and Escape. No transforms position it, so
+// anchored tooltips inside it land in the right place in every browser.
 
-function PopoverTrigger({ ...props }: PopoverPrimitive.Trigger.Props) {
-  return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />;
-}
+type Side = 'top' | 'bottom' | 'left' | 'right';
+type Align = 'start' | 'center' | 'end';
 
-function PopoverArrow({ className, ...props }: PopoverPrimitive.Arrow.Props) {
+const OpenContext = React.createContext(false);
+
+function Popover({
+  open: openProp,
+  defaultOpen = false,
+  onOpenChange,
+  side = 'bottom',
+  align = 'center',
+  sideOffset = 8,
+  children,
+}: {
+  open?: boolean;
+  defaultOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  side?: Side;
+  align?: Align;
+  /** Gap between the trigger and the panel, in px. */
+  sideOffset?: number;
+  children?: React.ReactNode;
+}) {
+  const [openState, setOpenState] = React.useState(defaultOpen);
+  const open = openProp ?? openState;
+  const placement: Placement = align === 'center' ? side : `${side}-${align}`;
+
   return (
-    <PopoverPrimitive.Arrow
-      data-slot="popover-arrow"
+    <AnchoredPopover
+      open={open}
+      onOpenChange={(next) => {
+        if (openProp === undefined) setOpenState(next);
+        onOpenChange?.(next);
+      }}
+      placement={placement}
+      offset={sideOffset}
+    >
+      <OpenContext.Provider value={open}>{children}</OpenContext.Provider>
+    </AnchoredPopover>
+  );
+}
+
+/** The button that opens the popover. `aria-expanded` says whether it's open. */
+function PopoverTrigger(props: React.ComponentProps<'button'>) {
+  return <AnchoredPopoverTrigger data-slot="popover-trigger" {...props} />;
+}
+
+/**
+ * The panel. Its children mount when it opens and unmount when it closes, so
+ * `autoFocus` and on-open effects inside it run each time it opens.
+ */
+function PopoverContent({
+  className,
+  arrowClassName,
+  children,
+  ...props
+}: React.ComponentProps<'div'> & { arrowClassName?: string }) {
+  const open = React.useContext(OpenContext);
+  return (
+    <AnchoredPopoverContent
+      data-slot="popover-content"
       className={cn(
         `
-          size-3 rotate-45 rounded-tl-sm border-t border-l border-hairline bg-surface-raised
-          data-[side=bottom]:-top-1.5 data-[side=left]:-right-1.5 data-[side=right]:-left-1.5
-          data-[side=top]:-bottom-1.5
+          z-50 flex w-72 flex-col gap-2.5 overflow-visible rounded-lg bg-surface-raised p-2.5
+          text-sm text-text-primary shadow-lg ring-1 ring-hairline outline-hidden
+          transition-[opacity,display,overlay] transition-discrete duration-100
+          not-open:opacity-0 starting:open:opacity-0
         `,
         className
       )}
       {...props}
-    />
-  );
-}
-
-function PopoverContent({
-  className,
-  align = 'center',
-  alignOffset = 0,
-  side = 'bottom',
-  sideOffset = 8,
-  arrowPadding = 8,
-  arrowClassName,
-  children,
-  ...props
-}: PopoverPrimitive.Popup.Props &
-  Pick<
-    PopoverPrimitive.Positioner.Props,
-    'align' | 'alignOffset' | 'side' | 'sideOffset' | 'arrowPadding'
-  > & { arrowClassName?: string }) {
-  return (
-    <PopoverPrimitive.Portal>
-      <PopoverPrimitive.Positioner
-        align={align}
-        alignOffset={alignOffset}
-        side={side}
-        sideOffset={sideOffset}
-        arrowPadding={arrowPadding}
-        className="isolate z-50"
-      >
-        <PopoverPrimitive.Popup
-          data-slot="popover-content"
-          className={cn(
-            `
-              z-50 flex w-72 origin-(--transform-origin) flex-col gap-2.5 rounded-lg
-              bg-surface-raised p-2.5 text-sm text-text-primary shadow-lg ring-1 ring-hairline
-              outline-hidden duration-100 data-[side=bottom]:slide-in-from-top-2
-              data-[side=inline-end]:slide-in-from-left-2
-              data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2
-              data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2
-              data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out
-              data-closed:fade-out-0 data-closed:zoom-out-95
-            `,
-            className
-          )}
-          {...props}
-        >
-          <PopoverArrow className={arrowClassName} />
-          {children}
-        </PopoverPrimitive.Popup>
-      </PopoverPrimitive.Positioner>
-    </PopoverPrimitive.Portal>
+    >
+      <Arrow
+        data-slot="popover-arrow"
+        className={cn(
+          'size-3 rotate-45 rounded-tl-sm border-t border-l border-hairline bg-surface-raised',
+          arrowClassName
+        )}
+      />
+      {open && children}
+    </AnchoredPopoverContent>
   );
 }
 
@@ -88,23 +110,13 @@ function PopoverHeader({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
-function PopoverTitle({ className, ...props }: PopoverPrimitive.Title.Props) {
-  return (
-    <PopoverPrimitive.Title
-      data-slot="popover-title"
-      className={cn('font-medium', className)}
-      {...props}
-    />
-  );
+function PopoverTitle({ className, ...props }: React.ComponentProps<'h2'>) {
+  return <h2 data-slot="popover-title" className={cn('font-medium', className)} {...props} />;
 }
 
-function PopoverDescription({ className, ...props }: PopoverPrimitive.Description.Props) {
+function PopoverDescription({ className, ...props }: React.ComponentProps<'p'>) {
   return (
-    <PopoverPrimitive.Description
-      data-slot="popover-description"
-      className={cn('text-text-muted', className)}
-      {...props}
-    />
+    <p data-slot="popover-description" className={cn('text-text-muted', className)} {...props} />
   );
 }
 

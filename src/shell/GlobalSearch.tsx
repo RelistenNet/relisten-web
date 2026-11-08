@@ -222,7 +222,7 @@ export default function GlobalSearch() {
   const showResults = !showHint && deferredQuery.length >= 2;
 
   return (
-    <Popover open={open} onOpenChange={handleOpenChange}>
+    <Popover open={open} onOpenChange={handleOpenChange} align="end" sideOffset={8}>
       <PopoverTrigger
         className="
           hidden h-8 cursor-pointer items-center gap-2 rounded-md border border-hairline
@@ -243,7 +243,7 @@ export default function GlobalSearch() {
         </kbd>
       </PopoverTrigger>
 
-      <PopoverContent align="end" sideOffset={8} className="w-[min(420px,calc(100vw-1rem))] p-0">
+      <PopoverContent className="w-[min(420px,calc(100vw-1rem))] p-0">
         <Command shouldFilter={false}>
           <CommandInput
             placeholder="Search artists, songs, venues..."

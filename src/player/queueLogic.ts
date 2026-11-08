@@ -39,7 +39,7 @@ export type PlayerEvent =
   /** Next up (the queue panel and row menus). Ignored in embeds. */
   | { type: 'PLAY_NEXT'; items: QueueItem[] }
   | { type: 'ADD_TO_QUEUE'; items: QueueItem[] }
-  | { type: 'MOVE'; key: string; after: string }
+  | { type: 'MOVE'; key: string; after: string | null }
   | { type: 'REMOVE'; key: string };
 
 export const initialPlayer: PlayerState = { mode: 'booting', queue: emptyQueue };

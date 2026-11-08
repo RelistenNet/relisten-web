@@ -75,7 +75,7 @@ describe('Next up events', () => {
   it('edit Next up when ready', () => {
     let s = playerTransition(initialPlayer, { type: 'HYDRATE', saved: null });
     s = playerTransition(s, { type: 'ADD_TO_QUEUE', items: [qi('a'), qi('b')] });
-    s = playerTransition(s, { type: 'MOVE', key: 'b', after: 'start' });
+    s = playerTransition(s, { type: 'MOVE', key: 'b', after: null });
     s = playerTransition(s, { type: 'REMOVE', key: 'b' });
     expect(s.queue.current?.key).toBe('a');
     expect(s.queue.upNext).toEqual([]);

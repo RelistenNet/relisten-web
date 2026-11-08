@@ -84,8 +84,8 @@ export const playNext = (items: QueueItem[]) =>
 export const addToQueue = (items: QueueItem[]) =>
   playerActor.send({ type: 'ADD_TO_QUEUE', items: asNextUp(items) });
 
-/** Move a Next up entry after another one, or to the front ('start'). */
-export const moveInQueue = (key: string, after: string) =>
+/** Move an entry to just after another in the queue panel's list (null: the top); see move(). */
+export const moveInQueue = (key: string, after: string | null) =>
   playerActor.send({ type: 'MOVE', key, after });
 
 export const removeFromQueue = (key: string) => playerActor.send({ type: 'REMOVE', key });

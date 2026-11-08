@@ -34,6 +34,7 @@ const ctx = (n: number, prefix = 'c'): QueueContext => ({
   items: Array.from({ length: n }, (_, i) => item(`${prefix}${i + 1}`)),
 });
 
+const contextKeys = (s: QueueState) => s.context?.items.map((i) => i.key);
 const composed = (s: QueueState) => compose(s).map((i) => i.key);
 
 /** Playing c2 of a 4-track context. */
@@ -160,18 +161,61 @@ describe('Next up', () => {
     expect(composed(s)).toEqual(['a', 'b']);
   });
 
+  // The panel lists playing() + [a, b] as c1 | c2 (current) | a b | c3 c4.
+
   it('moves within Next up, and ignores unknown keys', () => {
     const s = addToQueue(playing(), [item('a'), item('b'), item('c')]);
-    expect(upNextKeys(move(s, 'c', 'start'))).toEqual(['c', 'a', 'b']);
+    expect(upNextKeys(move(s, 'c', 'c2'))).toEqual(['c', 'a', 'b']);
     expect(upNextKeys(move(s, 'a', 'b'))).toEqual(['b', 'a', 'c']);
-    expect(move(s, 'nope', 'start')).toBe(s);
+    expect(move(s, 'nope', null)).toBe(s);
     expect(move(s, 'a', 'nope')).toBe(s);
   });
 
-  it('removes from Next up only', () => {
+  it('moves context entries anywhere in the context, played and current ones too', () => {
+    const s = playContext(emptyQueue, ctx(5), 'c2');
+    expect(contextKeys(move(s, 'c5', 'c2'))).toEqual(['c1', 'c2', 'c5', 'c3', 'c4']);
+    expect(contextKeys(move(s, 'c3', 'c4'))).toEqual(['c1', 'c2', 'c4', 'c3', 'c5']);
+    expect(contextKeys(move(s, 'c5', null))).toEqual(['c5', 'c1', 'c2', 'c3', 'c4']);
+    expect(contextKeys(move(s, 'c1', 'c3'))).toEqual(['c2', 'c3', 'c1', 'c4', 'c5']);
+    const c = move(s, 'c2', 'c4'); // the current entry: still current
+    expect(contextKeys(c)).toEqual(['c1', 'c3', 'c4', 'c2', 'c5']);
+    expect(c.current?.key).toBe('c2');
+    expect(queueView(c).played.map((i) => i.key)).toEqual(['c1', 'c3', 'c4']);
+  });
+
+  it('crosses between Next up and the context only when dropped inside the other', () => {
+    const s = addToQueue(playing(), [item('a'), item('b')]);
+    // c3 dropped between a and b joins Next up.
+    const x = move(s, 'c3', 'a');
+    expect(upNextKeys(x)).toEqual(['a', 'c3', 'b']);
+    expect(contextKeys(x)).toEqual(['c1', 'c2', 'c4']);
+    // At the edges each stays in its own list.
+    expect(contextKeys(move(s, 'c4', 'b'))).toEqual(['c1', 'c2', 'c4', 'c3']);
+    expect(upNextKeys(move(s, 'b', 'c2'))).toEqual(['b', 'a']);
+    // a dropped among the context leaves Next up.
+    const y = move(s, 'a', 'c3');
+    expect(upNextKeys(y)).toEqual(['b']);
+    expect(contextKeys(y)).toEqual(['c1', 'c2', 'c3', 'a', 'c4']);
+    // The current entry never joins Next up; one playing from Next up doesn't move.
+    expect(upNextKeys(move(s, 'c2', 'a'))).toEqual(['a', 'b']);
+    const n = advanceTo(s, 'a');
+    expect(move(n, 'a', null)).toBe(n);
+  });
+
+  it('removes any entry; removing the current one moves on', () => {
     const s = addToQueue(playing(), [item('a'), item('b')]);
     expect(upNextKeys(remove(s, 'a'))).toEqual(['b']);
-    expect(remove(s, 'c3')).toBe(s); // a context entry: not removable here
+    expect(contextKeys(remove(s, 'c3'))).toEqual(['c1', 'c2', 'c4']);
+    expect(contextKeys(remove(s, 'c1'))).toEqual(['c2', 'c3', 'c4']);
+    const r = remove(s, 'c2');
+    expect(r.current).toMatchObject({ key: 'a', from: 'upNext' });
+    expect(contextKeys(r)).toEqual(['c1', 'c3', 'c4']);
+    expect(r.cursor).toBe('c1'); // the context continues from c1: c3 is next after Next up
+    expect(composed(r)).toEqual(['c1', 'a', 'b', 'c3', 'c4']);
+    // The last entry: nothing after it, so nothing plays.
+    const last = remove(playContext(emptyQueue, ctx(2), 'c2'), 'c2');
+    expect(last.current).toBeNull();
+    expect(contextKeys(last)).toEqual(['c1']);
   });
 
   it('a queued entry plays next, then is gone', () => {

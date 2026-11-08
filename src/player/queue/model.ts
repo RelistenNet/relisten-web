@@ -128,8 +128,7 @@ export function advanceTo(state: QueueState, key: string): QueueState {
  */
 export function queueView(state: QueueState) {
   const order = state.context?.items ?? [];
-  const after = state.current?.from === 'context' ? state.current.key : state.cursor;
-  const i = after ? order.findIndex((item) => item.key === after) : -1;
+  const i = contextIndex(state);
   return {
     // Playing from Next up, the cursor entry has been played too.
     played: order.slice(0, state.current?.from === 'context' ? i : i + 1),
@@ -169,20 +168,108 @@ export function addToQueue(state: QueueState, items: QueueItem[]): QueueState {
   return { ...state, upNext: [...state.upNext, ...fresh] };
 }
 
-/** Move a Next up entry after another one, or to the front ('start'). */
-export function move(state: QueueState, key: string, after: string): QueueState {
-  const item = state.upNext.find((i) => i.key === key);
-  if (!item || after === key) return state;
-  const rest = state.upNext.filter((i) => i.key !== key);
-  const at = after === 'start' ? 0 : rest.findIndex((i) => i.key === after) + 1;
-  if (after !== 'start' && at === 0) return state;
-  return { ...state, upNext: [...rest.slice(0, at), item, ...rest.slice(at)] };
+/**
+ * Where the context continues from: the current entry, or (while Next up
+ * plays) the cursor. -1 with neither.
+ */
+function contextIndex(state: QueueState): number {
+  const order = state.context?.items ?? [];
+  const after = state.current?.from === 'context' ? state.current.key : state.cursor;
+  return after ? order.findIndex((item) => item.key === after) : -1;
 }
 
-/** Remove a Next up entry. */
+/** The entries in the order the queue panel lists them. */
+const listed = (state: QueueState): QueueItem[] => {
+  const { played, current, upNext, rest } = queueView(state);
+  return [...played, ...(current ? [current] : []), ...upNext, ...rest];
+};
+
+/**
+ * Take a context entry out. Removing the cursor (while Next up plays) moves
+ * it back to the entry before, so the context still continues from there.
+ */
+function withoutContextEntry(state: QueueState, key: string): QueueState {
+  const ctx = state.context;
+  const i = ctx ? ctx.items.findIndex((x) => x.key === key) : -1;
+  if (!ctx || i === -1) return state;
+  const cursor = state.cursor === key ? (ctx.items[i - 1]?.key ?? null) : state.cursor;
+  return { ...state, cursor, context: { ...ctx, items: ctx.items.filter((x) => x.key !== key) } };
+}
+
+/**
+ * Move an entry to just after `after` (null: the top) in the list the queue
+ * panel shows: played, current, Next up, the rest. Dropped among Next up it
+ * joins Next up; anywhere else it's a context entry. At the edge between the
+ * two (just after the current entry, or just after the last Next up entry)
+ * it stays in the list it was in. The current entry stays in the context,
+ * and one playing from Next up doesn't move.
+ */
+export function move(state: QueueState, key: string, after: string | null): QueueState {
+  if (after === key) return state;
+  const { current } = state;
+  const isCurrent = current?.key === key;
+  if (isCurrent && current.from === 'upNext') return state;
+
+  const inUpNext = state.upNext.some((i) => i.key === key);
+  const item = inUpNext
+    ? state.upNext.find((i) => i.key === key)
+    : state.context?.items.find((i) => i.key === key);
+  if (!item) return state;
+
+  const rows = listed(state).filter((i) => i.key !== key);
+  const a = after === null ? -1 : rows.findIndex((i) => i.key === after);
+  if (after !== null && a === -1) return state;
+  const above = rows[a];
+  const below = rows[a + 1];
+  const queued = (row?: QueueItem) => !!row && state.upNext.some((i) => i.key === row.key);
+  const toUpNext =
+    !isCurrent &&
+    (queued(above) && queued(below)
+      ? true
+      : queued(above) || queued(below)
+        ? inUpNext // the edge: stay put
+        : false);
+
+  if (toUpNext) {
+    const upNext = state.upNext.filter((i) => i.key !== key);
+    const at = queued(above) ? upNext.findIndex((i) => i.key === above.key) + 1 : 0;
+    const base = inUpNext ? state : withoutContextEntry(state, key);
+    return { ...base, upNext: [...upNext.slice(0, at), item, ...upNext.slice(at)] };
+  }
+
+  // Into the context, after the nearest context entry above (or the current one).
+  const base = inUpNext
+    ? { ...state, upNext: state.upNext.filter((i) => i.key !== key) }
+    : withoutContextEntry(state, key);
+  const items = base.context?.items ?? [];
+  const anchor = rows
+    .slice(0, a + 1)
+    .reverse()
+    .find((row) => items.some((i) => i.key === row.key));
+  const at = anchor ? items.findIndex((i) => i.key === anchor.key) + 1 : 0;
+  const ctx = base.context ?? { label: '', items: [] };
+  const moved = {
+    ...base,
+    context: { ...ctx, items: [...items.slice(0, at), item, ...items.slice(at)] },
+  };
+  // Moving the cursor keeps it the cursor.
+  return state.cursor === key ? { ...moved, cursor: key } : moved;
+}
+
+/**
+ * Remove an entry. Removing the current one moves on to the entry after it
+ * (or stops, with nothing after).
+ */
 export function remove(state: QueueState, key: string): QueueState {
+  if (state.current?.key === key) {
+    const list = compose(state);
+    const next = list[list.findIndex((i) => i.key === key) + 1];
+    const moved = next ? advanceTo(state, next.key) : { ...state, current: null };
+    return withoutContextEntry(moved, key);
+  }
   const upNext = state.upNext.filter((i) => i.key !== key);
-  return upNext.length === state.upNext.length ? state : { ...state, upNext };
+  if (upNext.length !== state.upNext.length) return { ...state, upNext };
+  return withoutContextEntry(state, key);
 }
 
 /** A Next up entry's key: unique, and never a context entry's (which is its trackId). */
