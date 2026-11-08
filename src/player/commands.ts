@@ -42,15 +42,15 @@ export function playShow({
   const ctx = showContext({ show, source, artistSlug, artistName, trackSlugs });
   const start = ctx.items.find((i) => i.trackSlug === trackSlug) ?? ctx.items[0];
   if (!start) return;
-  // A Next up entry for this track is playing: the URL is following playback
-  // (or names what's already playing). Replacing the context would swap the
-  // entry for its context copy and move the cursor, skipping tracks.
+  // This track is already current: the URL names what's playing (it followed
+  // playback, or the listener opened the playing track). Keep the queue as it
+  // is. Rebuilding the context would undo the listener's removes and moves,
+  // and a Next up entry would be swapped for its context copy, moving the
+  // cursor and skipping tracks.
   const current = playerActor.getSnapshot().context.queue.current;
-  const playingFromUpNext =
-    current?.from === 'upNext' &&
-    current.item.trackId === start.trackId &&
-    current.item.sourceId === start.sourceId;
-  if (!playingFromUpNext) playerActor.send({ type: 'PLAY_CONTEXT', ctx, startKey: start.key });
+  const alreadyCurrent =
+    current?.item.trackId === start.trackId && current.item.sourceId === start.sourceId;
+  if (!alreadyCurrent) playerActor.send({ type: 'PLAY_CONTEXT', ctx, startKey: start.key });
   const engine = getEngine();
   if (startTime && startTime > 0) engine?.seek(startTime);
   if (!play) return;
