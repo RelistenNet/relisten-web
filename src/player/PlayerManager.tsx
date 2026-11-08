@@ -13,6 +13,8 @@ interface PlayerManagerProps extends Props {
   show?: ShowDetail;
   artistName?: string;
   playImmediately?: boolean;
+  // Embeds never autoplay on load; only a viewer's click inside the embed starts playback.
+  embed?: boolean;
   trackSlugs?: string[];
   songSlug?: string;
   // Server-resolved ?source. Prefer this over nuqs: after a pathname change nuqs
@@ -20,6 +22,11 @@ interface PlayerManagerProps extends Props {
   // the new track with the old (often empty) source.
   source?: string;
 }
+
+// Only the first sync after a page load is the "load"; later syncs come from the viewer
+// clicking a track inside the embed, which should play. Module scope so it survives the
+// page remounting on in-embed navigation, and resets on a full reload.
+let embedLoadSynced = false;
 
 /**
  * A track page's URL means "play this tape from this track". The queue keeps
@@ -57,6 +64,9 @@ export default function PlayerManager(props: PlayerManagerProps) {
       }
     }
 
+    const isEmbedLoad = props.embed && !embedLoadSynced;
+    if (isEmbedLoad) embedLoadSynced = true;
+
     playShow({
       show: { ...show, date: show.date || createShowDate(year, month, day) },
       source: activeSourceObj,
@@ -64,7 +74,7 @@ export default function PlayerManager(props: PlayerManagerProps) {
       artistName: props.artistName ?? artistSlug.replace(/-/g, ' '),
       trackSlug: songSlug,
       trackSlugs: props.trackSlugs,
-      play: props.playImmediately ?? true,
+      play: isEmbedLoad ? false : (props.playImmediately ?? true),
       startTime: seekTime,
     });
   });
