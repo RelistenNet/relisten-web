@@ -1,7 +1,8 @@
 'use client';
 
 import cn from '@/lib/cn';
-import { fromArtistRow, type ArtistListItem, type ArtistRow } from '@/lib/artistRows';
+import { fromArtistRow, type ArtistRow } from '@/lib/artistRows';
+import { createArchiveLoader } from '@/lib/archiveArtists';
 import { useSegmentParams } from '@timber-js/app/client';
 import { X } from 'lucide-react';
 import { Suspense, use, useMemo, useRef, useState, useTransition } from 'react';
@@ -15,20 +16,6 @@ type ArtistsSelectionTabProps = {
   /** Primary (featured ≤ 1) artists, sent with the page shell. */
   primary: ArtistRow[];
 };
-
-/**
- * A loader for the archive list: fetches on the first call and returns that
- * same request afterwards. Resolves to `null` on failure instead of
- * rejecting, since `use()` would throw a rejection to the error boundary.
- */
-function createArchiveLoader(): ArchiveLoader {
-  let request: Promise<ArtistListItem[] | null> | undefined;
-  return () =>
-    (request ??= fetch('/api/artists/archive')
-      .then((res) => (res.ok ? (res.json() as Promise<ArtistRow[]>) : null))
-      .then((rows) => rows && rows.map(fromArtistRow))
-      .catch(() => null));
-}
 
 /**
  * The archive list is fetched and rendered in the browser only. The two

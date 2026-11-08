@@ -23,7 +23,7 @@ export default function BrowseLayout({
   return (
     <Flex column className="lg:h-dvh">
       <Toaster id="audio-error" position="top-center" offset="54px" richColors closeButton />
-      <NavBar />
+      <NavBar browse />
       <MobileBrowseNav />
       <BrowseContainer>
         <div className="browse-col">{artists}</div>
