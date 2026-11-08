@@ -83,6 +83,7 @@ export default async function ArtistShowList({
         result={result}
         columns={columns}
         rowKey={(r) => r.id}
+        rowHref={(r) => r.href}
         noun="show"
         searchPlaceholder="Search venues, cities, dates"
         chipFilters={yearChart ? ['year'] : undefined}

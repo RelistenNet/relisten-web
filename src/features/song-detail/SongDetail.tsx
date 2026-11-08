@@ -126,6 +126,7 @@ export default async function SongDetail({
             ...(song.imported ? [] : [queueColumn]),
           ]}
           rowKey={(r) => r.id}
+          rowHref={(r) => r.href}
           noun="performance"
           searchPlaceholder="Search venues, cities, dates"
           chipFilters={['year']}

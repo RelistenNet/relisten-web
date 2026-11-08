@@ -60,7 +60,7 @@ export const lengthColumn: Column<ShowRow> = {
 /** Play next / Add to queue for a performance. */
 export const queueColumn: Column<ShowRow> = {
   id: 'queue',
-  width: 'w-12',
+  width: 'w-14',
   label: 'Queue',
   srOnlyLabel: true,
   align: 'right',
