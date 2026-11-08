@@ -2,7 +2,6 @@ import BrowseContainer from '@/features/browse/BrowseContainer';
 import Flex from '@/ui/base/Flex';
 import NavBar from '@/shell/NavBar';
 import { ReactNode } from 'react';
-import { Toaster } from 'sonner';
 import MobileBrowseNav from '@/features/browse/MobileBrowseNav';
 
 export default function BrowseLayout({
@@ -22,7 +21,6 @@ export default function BrowseLayout({
 }) {
   return (
     <Flex column className="lg:h-dvh">
-      <Toaster id="audio-error" position="top-center" offset="54px" richColors closeButton />
       <NavBar />
       <MobileBrowseNav />
       <BrowseContainer>

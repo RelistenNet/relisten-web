@@ -36,6 +36,16 @@ describe('playerTransition', () => {
     expect(s.queue.context?.items.map((i) => i.key)).toEqual(['p1', 'p2']);
   });
 
+  it('restores the saved queue when the page started its current track (a reload)', () => {
+    const s1 = item('s1');
+    const playingS1 = { ...saved, current: { key: 's1', from: 'context' as const, item: s1 } };
+    const s = run(
+      { type: 'PLAY_CONTEXT', ctx: ctx('s1', 's2', 's3'), startKey: 's1' },
+      { type: 'HYDRATE', saved: playingS1 }
+    );
+    expect(s.queue).toBe(playingS1);
+  });
+
   it('hydrates once', () => {
     const s = run({ type: 'HYDRATE', saved: null }, { type: 'HYDRATE', saved });
     expect(s.queue).toBe(emptyQueue);

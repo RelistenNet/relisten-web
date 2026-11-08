@@ -144,9 +144,12 @@ export function createEngine(createQueue: QueueFactory, callbacks: EngineCallbac
     startAt = null;
     const play = queue.isPlaying;
     expected = currentKey;
+    const was = queue.currentKey;
+    const survives = was !== null && entries.some((e) => e.key === was);
     queue.setEntries(entries, { startKey: currentKey ?? undefined, startTime, play });
-    // setEntries keeps a surviving current entry; move it if the queue moved.
-    if (currentKey && queue.currentKey !== currentKey) {
+    // setEntries keeps a surviving current entry, ignoring startTime: move it
+    // if the queue moved, or start it at a pending start time.
+    if (queue.currentKey !== currentKey || (survives && startTime !== undefined)) {
       queue.goto(currentKey, { play, startTime });
     }
     reportPlaying();
