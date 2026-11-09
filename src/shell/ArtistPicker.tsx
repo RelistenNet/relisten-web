@@ -60,40 +60,16 @@ function sectionHref(pathname: string, fromSlug: string, to: ArtistListItem): st
 
 export default function ArtistPicker({ current }: { current: { slug: string; name: string } }) {
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
   const pathname = usePathname();
   const router = useRouter();
-  const primary = usePrimaryArtists();
-  const artists = useMemo(
-    () => [...primary].sort((a, b) => artistPlays(b) - artistPlays(a)),
-    [primary]
-  );
-
-  const search = query.trim();
-
-  const onOpenChange = (next: boolean) => {
-    setOpen(next);
-    if (!next) setQuery('');
-  };
 
   const select = (artist: ArtistListItem) => {
-    onOpenChange(false);
+    setOpen(false);
     if (artist.slug !== current.slug) router.push(sectionHref(pathname, current.slug, artist));
   };
 
-  const item = (artist: ArtistListItem) => (
-    <CommandItem
-      key={artist.slug}
-      value={artist.slug}
-      data-checked={artist.slug === current.slug}
-      onSelect={() => select(artist)}
-    >
-      {artist.name}
-    </CommandItem>
-  );
-
   return (
-    <Popover open={open} onOpenChange={onOpenChange} align="start" sideOffset={6}>
+    <Popover open={open} onOpenChange={setOpen} align="start" sideOffset={6}>
       <PopoverTrigger
         aria-label={`Artist: ${current.name}. Switch artist`}
         className="
@@ -105,31 +81,66 @@ export default function ArtistPicker({ current }: { current: { slug: string; nam
         <ChevronDown className="size-3.5 shrink-0 text-text-secondary" />
       </PopoverTrigger>
       <PopoverContent className="w-[min(320px,calc(100vw-1rem))] p-0">
-        <Command shouldFilter={false}>
-          <CommandInput
-            placeholder="Search artists…"
-            value={query}
-            onValueChange={setQuery}
-            autoFocus
-          />
-          <CommandList className="max-h-80">
-            {search ? (
-              // The first search fetches the archive; until it arrives, the
-              // primary artists' matches show.
-              <Suspense fallback={<Matches artists={artists} query={search} item={item} />}>
-                <MatchesWithArchive artists={artists} query={search} item={item} />
-              </Suspense>
-            ) : (
-              groupArtists(artists).map((group) => (
-                <CommandGroup key={group.key} heading={group.label}>
-                  {group.artists.map(item)}
-                </CommandGroup>
-              ))
-            )}
-          </CommandList>
-        </Command>
+        <PickerPanel currentSlug={current.slug} onSelect={select} />
       </PopoverContent>
     </Popover>
+  );
+}
+
+/**
+ * The open picker. It holds the search: the popover unmounts it on close, so
+ * each opening starts with an empty search.
+ */
+function PickerPanel({
+  currentSlug,
+  onSelect,
+}: {
+  currentSlug: string;
+  onSelect: (artist: ArtistListItem) => void;
+}) {
+  const [query, setQuery] = useState('');
+  const primary = usePrimaryArtists();
+  const artists = useMemo(
+    () => [...primary].sort((a, b) => artistPlays(b) - artistPlays(a)),
+    [primary]
+  );
+  const search = query.trim();
+
+  const item = (artist: ArtistListItem) => (
+    <CommandItem
+      key={artist.slug}
+      value={artist.slug}
+      data-checked={artist.slug === currentSlug}
+      onSelect={() => onSelect(artist)}
+    >
+      {artist.name}
+    </CommandItem>
+  );
+
+  return (
+    <Command shouldFilter={false}>
+      <CommandInput
+        placeholder="Search artists…"
+        value={query}
+        onValueChange={setQuery}
+        autoFocus
+      />
+      <CommandList className="max-h-80">
+        {search ? (
+          // The first search fetches the archive; until it arrives, the
+          // primary artists' matches show.
+          <Suspense fallback={<Matches artists={artists} query={search} item={item} />}>
+            <MatchesWithArchive artists={artists} query={search} item={item} />
+          </Suspense>
+        ) : (
+          groupArtists(artists).map((group) => (
+            <CommandGroup key={group.key} heading={group.label}>
+              {group.artists.map(item)}
+            </CommandGroup>
+          ))
+        )}
+      </CommandList>
+    </Command>
   );
 }
 

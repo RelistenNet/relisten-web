@@ -48,6 +48,10 @@ export default function ShowHeader({
 
   return (
     <div className="flex items-center gap-3 border-b border-hairline p-2">
+      {/* A failed image keeps its box, so the venue and stats don't jump. */}
+      {show.id && show.id === failedArtId && (
+        <div aria-hidden className="size-16 shrink-0 rounded bg-surface-recessed" />
+      )}
       {show.id && show.id !== failedArtId && (
         <img
           src={href(
@@ -60,6 +64,11 @@ export default function ShowHeader({
           height={64}
           loading="lazy"
           onError={() => setFailedArtId(show.id)}
+          // A server-rendered image can fail before hydration, when React
+          // isn't listening yet: check on mount too.
+          ref={(img) => {
+            if (img?.complete && !img.naturalWidth) setFailedArtId(show.id);
+          }}
           className="size-16 shrink-0 rounded bg-surface-recessed"
         />
       )}
