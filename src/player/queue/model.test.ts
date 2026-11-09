@@ -101,6 +101,15 @@ describe('playContext', () => {
     expect(composed(s)).toEqual(['a', 'n1', 'b']);
   });
 
+  it('starts at an entry that was moved into Next up, taking it out of Next up', () => {
+    let s = addToQueue(playContext(emptyQueue, ctx(4), 'c1'), [item('a'), item('b')]);
+    s = move(s, 'c3', 'a'); // c3 dropped between two Next up entries
+    const p = playContext(s, ctx(4), 'c3');
+    expect(p.current?.key).toBe('c3');
+    expect(p.upNext.map((i) => i.key)).toEqual(['a', 'b']);
+    expect(contextKeys(p)).toEqual(['c1', 'c2', 'c3', 'c4']);
+  });
+
   it('an empty context clears the cursor and leaves the current entry', () => {
     const s = playContext(playing(), { label: 'x', items: [] }, 'c1');
     expect(s.cursor).toBeNull();
@@ -200,6 +209,13 @@ describe('Next up', () => {
     expect(upNextKeys(move(s, 'c2', 'a'))).toEqual(['a', 'b']);
     const n = advanceTo(s, 'a');
     expect(move(n, 'a', null)).toBe(n);
+  });
+
+  it('moving the current entry keeps it the cursor', () => {
+    const s = move(addToQueue(playing(), [item('a')]), 'c2', 'c3'); // c2 current
+    expect(s.cursor).toBe('c2');
+    // Once Next up has played, the context continues after c2, not before it.
+    expect(composed(advanceTo(s, 'a'))).toEqual(['c1', 'c3', 'c2', 'a', 'c4']);
   });
 
   it('moving the cursor while Next up plays keeps the rest of the context ahead', () => {

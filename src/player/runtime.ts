@@ -254,7 +254,9 @@ if (isBrowser) {
       failed.clear();
       dismissPlaybackFailure();
     }
-    if (current && current.key !== lastCurrent) followPlayback(current);
+    // Not while booting: the URL already names the track the page started, and
+    // following it would drop a `?t=` that hydratePlayer still needs to see.
+    if (current && current.key !== lastCurrent && mode !== 'booting') followPlayback(current);
     lastCurrent = current?.key ?? null;
   });
 
