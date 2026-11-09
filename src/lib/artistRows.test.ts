@@ -9,6 +9,7 @@ const artist: Artist = {
   showCount: 2400,
   sourceCount: 17000,
   featured: 1,
+  features: { normalization: true, perSourceVenues: true } as Artist['features'],
   popularity: {
     momentumScore: 3.2,
     trendRatio: 1.1,
@@ -29,6 +30,12 @@ describe('artist rows', () => {
       featured: 1,
       showCount: 2400,
       sourceCount: 17000,
+      features: {
+        normalization: true,
+        perShowVenues: false,
+        perSourceVenues: true,
+        tours: false,
+      },
       popularity: {
         windows: {
           '48h': { plays: 120, hours: 0.4, hotScore: 0 },
@@ -42,13 +49,13 @@ describe('artist rows', () => {
   it('rounds hours to what formatHours displays', () => {
     const row = toArtistRow(artist);
     // 0.4h displays as 24m; whole hours above that.
-    expect(Math.round((row[6] as number) * 60)).toBe(24);
-    expect(row[8]).toBe(62);
+    expect(Math.round((row[7] as number) * 60)).toBe(24);
+    expect(row[9]).toBe(62);
   });
 
   it('omits windows for artists without popularity', () => {
     const row = toArtistRow({ ...artist, popularity: null });
-    expect(row).toEqual(['grateful-dead', 'Grateful Dead', 1, 2400, 17000]);
+    expect(row).toEqual(['grateful-dead', 'Grateful Dead', 1, 2400, 17000, 0b0101]);
     expect(fromArtistRow(row).popularity).toBeNull();
   });
 

@@ -1,4 +1,4 @@
-import type { Artist, Popularity } from '@/domain/types';
+import type { Artist, ArtistFeatures, Popularity } from '@/domain/types';
 
 /**
  * The artist as the artists column uses it: only the fields that
@@ -8,7 +8,22 @@ import type { Artist, Popularity } from '@/domain/types';
 export type ArtistListItem = Pick<
   Artist,
   'slug' | 'name' | 'featured' | 'showCount' | 'sourceCount' | 'popularity'
->;
+> & {
+  /** Rows carry only the section features (SECTION_FEATURES). */
+  features?: Partial<ArtistFeatures>;
+};
+
+/**
+ * The features the rows carry: the ones artistSections reads, so the artist
+ * picker can tell which sections an artist has. A bit each.
+ */
+const SECTION_FEATURES = ['normalization', 'perShowVenues', 'perSourceVenues', 'tours'] as const;
+
+const toFeatureBits = (features: Partial<ArtistFeatures> | undefined) =>
+  SECTION_FEATURES.reduce((bits, f, i) => (features?.[f] ? bits | (1 << i) : bits), 0);
+
+const fromFeatureBits = (bits: number): Partial<ArtistFeatures> =>
+  Object.fromEntries(SECTION_FEATURES.map((f, i) => [f, !!(bits & (1 << i))]));
 
 /**
  * Compact wire format for the artists column.
@@ -18,7 +33,7 @@ export type ArtistListItem = Pick<
  * nested popularity windows: no repeated key names, and arrays of primitives
  * are much cheaper for Flight to serialize and for SSR to decode.
  *
- *   [slug, name, featured, showCount, sourceCount,
+ *   [slug, name, featured, showCount, sourceCount, featureBits,
  *    plays48h, hours48h, plays7d, hours7d, plays30d, hours30d]
  *
  * The six window values are present only when the artist has popularity
@@ -30,6 +45,8 @@ export type ArtistRow = [
   featured: number,
   showCount: number,
   sourceCount: number,
+  /** The section features (SECTION_FEATURES), a bit each. */
+  featureBits: number,
   ...windows: (number | null)[],
 ];
 
@@ -45,6 +62,7 @@ export function toArtistRow(artist: ArtistListItem): ArtistRow {
     Number(artist.featured),
     artist.showCount,
     artist.sourceCount,
+    toFeatureBits(artist.features),
   ];
   const windows = artist.popularity?.windows;
   if (windows) {
@@ -57,18 +75,19 @@ export function toArtistRow(artist: ArtistListItem): ArtistRow {
 }
 
 export function fromArtistRow(row: ArtistRow): ArtistListItem {
-  const [slug, name, featured, showCount, sourceCount] = row;
+  const [slug, name, featured, showCount, sourceCount, featureBits] = row;
   let popularity: Popularity | null = null;
-  if (row.length > 5) {
+  if (row.length > 6) {
     const windows: NonNullable<Popularity['windows']> = {};
     WINDOWS.forEach((w, i) => {
-      const plays = row[5 + i * 2] as number | null;
-      const hours = row[6 + i * 2] as number | null;
+      const plays = row[6 + i * 2] as number | null;
+      const hours = row[7 + i * 2] as number | null;
       if (plays != null && hours != null) windows[w] = { plays, hours, hotScore: 0 };
     });
     popularity = { windows };
   }
-  return { slug, name, featured, showCount, sourceCount, popularity };
+  const features = fromFeatureBits(featureBits);
+  return { slug, name, featured, showCount, sourceCount, popularity, features };
 }
 
 /** Primary (featured ≤ 1) artists are shown first and sent with the page shell. */

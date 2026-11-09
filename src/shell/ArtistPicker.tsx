@@ -15,6 +15,7 @@ import {
 } from '@/ui/base/shadcn/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/base/shadcn/popover';
 import { loadArchive, searchArtists } from '@/lib/archiveArtists';
+import { artistSections } from '@/lib/artistSections';
 import { fromArtistRow, type ArtistListItem, type ArtistRow } from '@/lib/artistRows';
 
 // The artist at the start of the artist tabs: names whose sections the tabs
@@ -26,19 +27,27 @@ const plays = (a: ArtistListItem) => a.popularity?.windows?.['30d']?.plays ?? 0;
 
 const MAX_RESULTS = 50;
 
-/** The same section for another artist: Browse goes to the artist's browse root. */
-function sectionHref(pathname: string, fromSlug: string, artistSlug: string): string {
+/**
+ * The same section for another artist: Browse goes to the artist's browse
+ * root, and a section the artist doesn't have goes to its overview.
+ */
+function sectionHref(pathname: string, fromSlug: string, to: ArtistListItem): string {
+  const artistSlug = to.slug;
   const prefix = href('/artists/[artistSlug]', { artistSlug: fromSlug });
   if (pathname !== prefix && !pathname.startsWith(`${prefix}/`)) {
     return href('/[artistSlug]', { artistSlug });
   }
+  const has = artistSections(to.features);
   // Detail pages (a song, a venue) go to their section's index.
   switch (pathname.slice(prefix.length).split('/')[1]) {
     case 'songs':
+      if (!has.songs) break;
       return href('/artists/[artistSlug]/songs', { artistSlug });
     case 'venues':
+      if (!has.venues) break;
       return href('/artists/[artistSlug]/venues', { artistSlug });
     case 'tours':
+      if (!has.tours) break;
       return href('/artists/[artistSlug]/tours', { artistSlug });
     case 'recently-added':
       return href('/artists/[artistSlug]/recently-added', { artistSlug });
@@ -46,9 +55,8 @@ function sectionHref(pathname: string, fromSlug: string, artistSlug: string): st
       return href('/artists/[artistSlug]/today-in-history', { artistSlug });
     case 'top':
       return href('/artists/[artistSlug]/top', { artistSlug });
-    default:
-      return href('/artists/[artistSlug]', { artistSlug });
   }
+  return href('/artists/[artistSlug]', { artistSlug });
 }
 
 export default function ArtistPicker({
@@ -74,9 +82,9 @@ export default function ArtistPicker({
     if (!next) setQuery('');
   };
 
-  const select = (slug: string) => {
+  const select = (artist: ArtistListItem) => {
     onOpenChange(false);
-    if (slug !== current.slug) router.push(sectionHref(pathname, current.slug, slug));
+    if (artist.slug !== current.slug) router.push(sectionHref(pathname, current.slug, artist));
   };
 
   const item = (artist: ArtistListItem) => (
@@ -84,7 +92,7 @@ export default function ArtistPicker({
       key={artist.slug}
       value={artist.slug}
       data-checked={artist.slug === current.slug}
-      onSelect={select}
+      onSelect={() => select(artist)}
     >
       {artist.name}
     </CommandItem>
