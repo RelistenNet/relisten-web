@@ -16,17 +16,12 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/base/shadcn/popover';
 import { loadArchive, searchArtists } from '@/lib/archiveArtists';
 import { artistSections } from '@/lib/artistSections';
-import {
-  artistPlays,
-  fromArtistRow,
-  groupArtists,
-  type ArtistListItem,
-  type ArtistRow,
-} from '@/lib/artistRows';
+import { artistPlays, groupArtists, type ArtistListItem } from '@/lib/artistRows';
+import { usePrimaryArtists } from './primaryArtistsContext';
 
 // The artist at the start of the artist tabs: names whose sections the tabs
-// are, and switches artist. Lists the primary artists (the artists column's
-// rows, sent with the page), featured first, then by plays; a search also
+// are, and switches artist. Lists the primary artists (from the layout, shared
+// with the artists column), featured first, then by plays; a search also
 // covers the archive, fetched on the first search.
 
 const MAX_RESULTS = 50;
@@ -63,20 +58,15 @@ function sectionHref(pathname: string, fromSlug: string, to: ArtistListItem): st
   return href('/artists/[artistSlug]', { artistSlug });
 }
 
-export default function ArtistPicker({
-  rows,
-  current,
-}: {
-  rows: ArtistRow[];
-  current: { slug: string; name: string };
-}) {
+export default function ArtistPicker({ current }: { current: { slug: string; name: string } }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const pathname = usePathname();
   const router = useRouter();
+  const primary = usePrimaryArtists();
   const artists = useMemo(
-    () => rows.map(fromArtistRow).sort((a, b) => artistPlays(b) - artistPlays(a)),
-    [rows]
+    () => [...primary].sort((a, b) => artistPlays(b) - artistPlays(a)),
+    [primary]
   );
 
   const search = query.trim();

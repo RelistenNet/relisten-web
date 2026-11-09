@@ -1,18 +1,13 @@
 'use client';
 
 import cn from '@/lib/cn';
-import { fromArtistRow, type ArtistRow } from '@/lib/artistRows';
+import { usePrimaryArtists } from '@/shell/primaryArtistsContext';
 import { loadArchive } from '@/lib/archiveArtists';
 import { useSegmentParams } from '@timber-js/app/client';
 import { X } from 'lucide-react';
-import { Suspense, use, useMemo, useRef, useState, useTransition } from 'react';
+import { Suspense, use, useRef, useState, useTransition } from 'react';
 import { browser } from 'react-dom';
 import ArtistsColumnWithControls, { type ArtistsTab } from './ArtistsColumnWithControls';
-
-type ArtistsSelectionTabProps = {
-  /** Primary (featured ≤ 1) artists, sent with the page shell. */
-  primary: ArtistRow[];
-};
 
 /**
  * The archive list is fetched and rendered in the browser only. The two
@@ -23,8 +18,8 @@ type ArtistsSelectionTabProps = {
  * those boundaries, so the archive arriving never remounts it: focus, caret
  * and scroll position are kept.
  */
-const ArtistsSelectionTab = ({ primary }: ArtistsSelectionTabProps) => {
-  const primaryArtists = useMemo(() => primary.map(fromArtistRow), [primary]);
+const ArtistsSelectionTab = () => {
+  const primaryArtists = usePrimaryArtists();
   const { artistSlug } = useSegmentParams('/(browse)/[artistSlug]');
 
   // An artist that isn't primary is an archive artist (or doesn't exist, in

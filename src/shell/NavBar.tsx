@@ -10,7 +10,6 @@ import BlogNavLink from '@/features/blog/BlogNavLink';
 // import GlobalSearch from './GlobalSearch';
 import { MenuIcon } from 'lucide-react';
 import ArtistTabs from './ArtistTabs';
-import { getArtistColumnRows } from '@/lib/artistColumnRows';
 import { DEFAULT_ARTIST_SLUG } from '@/lib/defaultArtist';
 import { getHeaders, getSegmentParams } from '@timber-js/app/server';
 import { UAParser } from 'ua-parser-js';
@@ -27,9 +26,8 @@ export const getUserAgent = async () => {
 };
 
 export default async function NavBar() {
-  const [artists, { primary }, userAgent, isInIframe] = await Promise.all([
+  const [artists, userAgent, isInIframe] = await Promise.all([
     loadArtists(),
-    getArtistColumnRows(),
     getUserAgent(),
     getIsInIframe(),
   ]);
@@ -148,7 +146,6 @@ export default async function NavBar() {
       {tabsArtist && (
         <ArtistTabs
           artist={{ slug: tabsArtist.slug, name: tabsArtist.name, features: tabsArtist.features }}
-          pickerRows={primary}
         />
       )}
       {isAndroid && <AndroidUpgradeNotification />}
