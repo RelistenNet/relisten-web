@@ -16,14 +16,18 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/base/shadcn/popover';
 import { loadArchive, searchArtists } from '@/lib/archiveArtists';
 import { artistSections } from '@/lib/artistSections';
-import { fromArtistRow, type ArtistListItem, type ArtistRow } from '@/lib/artistRows';
+import {
+  artistPlays,
+  fromArtistRow,
+  groupArtists,
+  type ArtistListItem,
+  type ArtistRow,
+} from '@/lib/artistRows';
 
 // The artist at the start of the artist tabs: names whose sections the tabs
 // are, and switches artist. Lists the primary artists (the artists column's
 // rows, sent with the page), featured first, then by plays; a search also
 // covers the archive, fetched on the first search.
-
-const plays = (a: ArtistListItem) => a.popularity?.windows?.['30d']?.plays ?? 0;
 
 const MAX_RESULTS = 50;
 
@@ -71,7 +75,7 @@ export default function ArtistPicker({
   const pathname = usePathname();
   const router = useRouter();
   const artists = useMemo(
-    () => rows.map(fromArtistRow).sort((a, b) => plays(b) - plays(a)),
+    () => rows.map(fromArtistRow).sort((a, b) => artistPlays(b) - artistPlays(a)),
     [rows]
   );
 
@@ -126,14 +130,11 @@ export default function ArtistPicker({
                 <MatchesWithArchive artists={artists} query={search} item={item} />
               </Suspense>
             ) : (
-              <>
-                <CommandGroup heading="Featured Artists">
-                  {artists.filter((a) => Number(a.featured) === 1).map(item)}
+              groupArtists(artists).map((group) => (
+                <CommandGroup key={group.key} heading={group.label}>
+                  {group.artists.map(item)}
                 </CommandGroup>
-                <CommandGroup heading="Primary Artists">
-                  {artists.filter((a) => Number(a.featured) !== 1).map(item)}
-                </CommandGroup>
-              </>
+              ))
             )}
           </CommandList>
         </Command>

@@ -92,3 +92,27 @@ export function fromArtistRow(row: ArtistRow): ArtistListItem {
 
 /** Primary (featured ≤ 1) artists are shown first and sent with the page shell. */
 export const isPrimaryArtist = (artist: Pick<Artist, 'featured'>) => Number(artist.featured) <= 1;
+
+/** An artist's plays over the last 30 days: what "popular" sorts by. */
+export const artistPlays = (artist: Pick<ArtistListItem, 'popularity'>) =>
+  artist.popularity?.windows?.['30d']?.plays ?? 0;
+
+const GROUPS = [
+  { key: 'featured', label: 'Featured Artists' },
+  { key: 'primary', label: 'Primary Artists' },
+  { key: 'archive', label: 'Archive Artists' },
+] as const;
+
+const groupIndex = (featured: Artist['featured']) =>
+  Number(featured) === 1 ? 0 : Number(featured) === 0 ? 1 : 2;
+
+/**
+ * Artists in their groups, as the artists column and the artist picker list
+ * them: featured (1), then primary (0), then archive. Keeps the order within
+ * each group; empty groups are left out.
+ */
+export function groupArtists<T extends Pick<ArtistListItem, 'featured'>>(artists: T[]) {
+  const groups = GROUPS.map((g) => ({ ...g, artists: [] as T[] }));
+  for (const artist of artists) groups[groupIndex(artist.featured)].artists.push(artist);
+  return groups.filter((g) => g.artists.length);
+}

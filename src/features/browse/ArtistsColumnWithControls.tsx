@@ -6,9 +6,8 @@ import { browser } from 'react-dom';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import { useSegmentParams } from '@timber-js/app/client';
 import { ArrowUp, ArrowDown } from 'lucide-react';
-import { groupBy } from '@/lib/utils';
 import Count from '@/ui/base/Count';
-import type { ArtistListItem } from '@/lib/artistRows';
+import { artistPlays, groupArtists, type ArtistListItem } from '@/lib/artistRows';
 import { useFilterState } from '@/hooks/useFilterState';
 import cn from '@/lib/cn';
 import ColumnWithToggleControls from '@/ui/base/ColumnWithToggleControls';
@@ -28,7 +27,6 @@ type Item =
 
 const HEADER_ESTIMATE = 28;
 const ROW_ESTIMATE = 45;
-const GROUP_ORDER: Record<string, number> = { '1': 0, '0': 1 };
 
 function HighlightText({ text, ranges }: { text: string; ranges: HighlightRanges }) {
   if (!ranges.length) return text;
@@ -197,22 +195,13 @@ function ArtistList({
   );
 
   const processedArtists = useMemo(() => {
-    const grouped = groupBy(artists, 'featured');
-    const sortedGroups = Object.entries(grouped).sort(
-      ([a], [b]) => (GROUP_ORDER[a] ?? 2) - (GROUP_ORDER[b] ?? 2)
-    );
-
     const dir = alphaAsc ? -1 : 1;
 
-    return sortedGroups.map(([type, groupArtists]) => {
-      const sorted = [...groupArtists];
+    return groupArtists(artists).map((group) => {
+      const sorted = [...group.artists];
       switch (sortBy) {
         case 'popularity':
-          sorted.sort((a, b) => {
-            const ap = a.popularity?.windows?.['30d']?.plays ?? 0;
-            const bp = b.popularity?.windows?.['30d']?.plays ?? 0;
-            return dir * (bp - ap);
-          });
+          sorted.sort((a, b) => dir * (artistPlays(b) - artistPlays(a)));
           break;
         case 'tapes':
           sorted.sort((a, b) => dir * (b.sourceCount - a.sourceCount));
@@ -220,31 +209,15 @@ function ArtistList({
         default:
           sorted.sort((a, b) => dir * (a.name || '').localeCompare(b.name || ''));
       }
-      return [type, sorted] as [string, ArtistListItem[]];
+      return { ...group, artists: sorted };
     });
   }, [artists, alphaAsc, sortBy]);
 
-  const groupLabel = (type: string) => {
-    switch (type) {
-      case '1':
-        return 'Featured Artists';
-      case '0':
-        return 'Primary Artists';
-      default:
-        return 'Archive Artists';
-    }
-  };
-
   const items = useMemo<Item[]>(() => {
     const out: Item[] = [];
-    for (const [type, groupArtists] of processedArtists) {
-      if (groupArtists.length === 0) continue;
-      out.push({
-        kind: 'header',
-        key: `header-${type}`,
-        label: groupLabel(type),
-      });
-      for (const artist of groupArtists) {
+    for (const group of processedArtists) {
+      out.push({ kind: 'header', key: `header-${group.key}`, label: group.label });
+      for (const artist of group.artists) {
         out.push({ kind: 'artist', key: `artist-${artist.slug}`, artist });
       }
     }

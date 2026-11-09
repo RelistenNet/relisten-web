@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fromArtistRow, isPrimaryArtist, toArtistRow } from './artistRows';
+import { fromArtistRow, groupArtists, isPrimaryArtist, toArtistRow } from './artistRows';
 import type { Artist } from '@/domain/types';
 
 const artist: Artist = {
@@ -69,5 +69,16 @@ describe('artist rows', () => {
     expect(isPrimaryArtist({ featured: 0 })).toBe(true);
     expect(isPrimaryArtist({ featured: 1 })).toBe(true);
     expect(isPrimaryArtist({ featured: 2 })).toBe(false);
+  });
+
+  it('groups featured, then primary, then archive, keeping order within each', () => {
+    const a = (slug: string, featured: number) => ({ slug, featured });
+    const groups = groupArtists([a('x', 2), a('p1', 0), a('f1', 1), a('p2', 0), a('y', 3)]);
+    expect(groups.map((g) => [g.label, g.artists.map((x) => x.slug)])).toEqual([
+      ['Featured Artists', ['f1']],
+      ['Primary Artists', ['p1', 'p2']],
+      ['Archive Artists', ['x', 'y']],
+    ]);
+    expect(groupArtists([a('p', 0)]).map((g) => g.key)).toEqual(['primary']);
   });
 });
