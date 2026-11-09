@@ -12,7 +12,8 @@ import { href } from '@timber-js/app/routes';
 const songLinks = (artistSlug: string, track: Track): QueueMenuLink[] =>
   (track.songs ?? []).map((song) => ({
     label: `See all ${song.name}`,
-    href: href('/artists/[artistSlug]/songs/[songSlug]', { artistSlug, songSlug: song.slug }),
+    // The song page redirects an id to the song's slug.
+    href: href('/artists/[artistSlug]/songs/[songSlug]', { artistSlug, songSlug: song.id }),
   }));
 
 /**

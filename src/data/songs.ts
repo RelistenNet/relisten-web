@@ -102,14 +102,25 @@ const importedSong = defineResource({
   }),
 });
 
+/** A song id (`song_…`): track menus link by id, since the API's track songs carry no slug. */
+const SONG_ID = /^song_[0-9a-hjkmnp-tv-z]{8}$/;
+
 /**
- * A song's page data: one request for canonical songs. Slugs the API doesn't
+ * A song's page data: one request for canonical songs. A song id (from a track
+ * menu) loads the song under its slug, so the page redirects there. Slugs the API doesn't
  * know as canonical songs (imported, setlist-only songs) fall back to the song
  * list: an imported song linked to a canonical one returns that song (its slug
  * differs, so the page redirects); otherwise the imported song. 404s otherwise.
  */
 export async function songDetail(artistSlug: string, songSlug: string): Promise<SongDetail> {
   const artistId = await artistIdForSlug(artistSlug);
+  if (SONG_ID.test(songSlug)) {
+    // The artist's song list is cached and small next to the song endpoints,
+    // which return every show even without tracks.
+    const slug = (await songs.orDeny(artistId)).find((s) => s.id === songSlug)?.slug;
+    if (!slug) deny(404);
+    return songBySlug.orDeny(artistId, slug);
+  }
   try {
     return await songBySlug.get(artistId, songSlug);
   } catch (err) {
