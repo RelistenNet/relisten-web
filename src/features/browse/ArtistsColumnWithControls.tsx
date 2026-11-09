@@ -14,7 +14,7 @@ import cn from '@/lib/cn';
 import ColumnWithToggleControls from '@/ui/base/ColumnWithToggleControls';
 import PopularityBadge from '@/ui/base/PopularityBadge';
 import type { HighlightRanges } from '@nozbe/microfuzz';
-import { searchArtists, type ArchiveLoader } from '@/lib/archiveArtists';
+import { loadArchive, searchArtists } from '@/lib/archiveArtists';
 import Row, { unwrapSegment } from '@/ui/base/Row';
 import RowHeader from '@/ui/base/RowHeader';
 
@@ -51,7 +51,6 @@ export type ArtistsTab = 'primary' | 'all';
 
 type ArtistsColumnWithControlsProps = {
   primaryArtists: ArtistListItem[];
-  loadArchive: ArchiveLoader;
   tab: ArtistsTab;
   searchQuery: string;
   subHeader?: React.ReactNode;
@@ -65,7 +64,6 @@ type ArtistsColumnWithControlsProps = {
  */
 const ArtistsColumnWithControls = ({
   primaryArtists,
-  loadArchive,
   tab,
   searchQuery,
   subHeader,
@@ -131,7 +129,7 @@ const ArtistsColumnWithControls = ({
       scrollContainerRef={setScrollEl}
     >
       <Suspense fallback={<ArtistList {...listProps} archiveArtists={null} />}>
-        <ArtistListWithArchive {...listProps} loadArchive={loadArchive} />
+        <ArtistListWithArchive {...listProps} />
       </Suspense>
     </ColumnWithToggleControls>
   );
@@ -151,10 +149,7 @@ type ArtistListProps = {
   isPending?: boolean;
 };
 
-function ArtistListWithArchive({
-  loadArchive,
-  ...props
-}: Omit<ArtistListProps, 'archiveArtists'> & { loadArchive: ArchiveLoader }) {
+function ArtistListWithArchive(props: Omit<ArtistListProps, 'archiveArtists'>) {
   use(browser());
   return <ArtistList {...props} archiveArtists={use(loadArchive())} />;
 }

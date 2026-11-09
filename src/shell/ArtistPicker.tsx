@@ -2,7 +2,8 @@
 
 import { href } from '@timber-js/app/routes';
 import { usePathname, useRouter } from '@timber-js/app/client';
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, use, useMemo, useState } from 'react';
+import { browser } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
 import {
   Command,
@@ -13,7 +14,7 @@ import {
   CommandList,
 } from '@/ui/base/shadcn/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/base/shadcn/popover';
-import { createArchiveLoader, searchArtists } from '@/lib/archiveArtists';
+import { loadArchive, searchArtists } from '@/lib/archiveArtists';
 import { fromArtistRow, type ArtistListItem, type ArtistRow } from '@/lib/artistRows';
 
 // The artist at the start of the artist tabs: names whose sections the tabs
@@ -59,8 +60,6 @@ export default function ArtistPicker({
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [loadArchive] = useState(createArchiveLoader);
-  const [archive, setArchive] = useState<ArtistListItem[] | null>(null);
   const pathname = usePathname();
   const router = useRouter();
   const artists = useMemo(
@@ -68,26 +67,7 @@ export default function ArtistPicker({
     [rows]
   );
 
-  const searching = query.trim() !== '';
-  useEffect(() => {
-    if (!searching || archive) return;
-    let live = true;
-    // A failed fetch searches the primary artists alone.
-    void loadArchive().then((rows) => live && setArchive(rows ?? []));
-    return () => {
-      live = false;
-    };
-  }, [searching, archive, loadArchive]);
-
-  const matches = useMemo(
-    () =>
-      searching
-        ? searchArtists([artists, archive ?? []], query.trim())
-            .slice(0, MAX_RESULTS)
-            .map((m) => m.artist)
-        : [],
-    [artists, archive, query, searching]
-  );
+  const search = query.trim();
 
   const onOpenChange = (next: boolean) => {
     setOpen(next);
@@ -131,11 +111,12 @@ export default function ArtistPicker({
             autoFocus
           />
           <CommandList className="max-h-80">
-            {searching ? (
-              <>
-                <CommandEmpty>{archive ? 'No artists found.' : 'Searching…'}</CommandEmpty>
-                {matches.map(item)}
-              </>
+            {search ? (
+              // The first search fetches the archive; until it arrives, the
+              // primary artists' matches show.
+              <Suspense fallback={<Matches artists={artists} query={search} item={item} />}>
+                <MatchesWithArchive artists={artists} query={search} item={item} />
+              </Suspense>
             ) : (
               <>
                 <CommandGroup heading="Featured Artists">
@@ -151,4 +132,27 @@ export default function ArtistPicker({
       </PopoverContent>
     </Popover>
   );
+}
+
+type MatchesProps = {
+  artists: ArtistListItem[];
+  query: string;
+  item: (artist: ArtistListItem) => React.ReactNode;
+  /** Absent while it loads; `null` if it failed, which searches the primary artists alone. */
+  archive?: ArtistListItem[] | null;
+};
+
+function Matches({ artists, archive, query, item }: MatchesProps) {
+  const matches = searchArtists([artists, archive ?? []], query).slice(0, MAX_RESULTS);
+  return (
+    <>
+      <CommandEmpty>{archive === undefined ? 'Searching…' : 'No artists found.'}</CommandEmpty>
+      {matches.map((m) => item(m.artist))}
+    </>
+  );
+}
+
+function MatchesWithArchive(props: Omit<MatchesProps, 'archive'>) {
+  use(browser());
+  return <Matches {...props} archive={use(loadArchive())} />;
 }

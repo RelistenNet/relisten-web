@@ -2,7 +2,7 @@
 
 import cn from '@/lib/cn';
 import { fromArtistRow, type ArtistRow } from '@/lib/artistRows';
-import { createArchiveLoader, type ArchiveLoader } from '@/lib/archiveArtists';
+import { loadArchive } from '@/lib/archiveArtists';
 import { useSegmentParams } from '@timber-js/app/client';
 import { X } from 'lucide-react';
 import { Suspense, use, useMemo, useRef, useState, useTransition } from 'react';
@@ -26,10 +26,6 @@ type ArtistsSelectionTabProps = {
 const ArtistsSelectionTab = ({ primary }: ArtistsSelectionTabProps) => {
   const primaryArtists = useMemo(() => primary.map(fromArtistRow), [primary]);
   const { artistSlug } = useSegmentParams('/(browse)/[artistSlug]');
-
-  // Held here, above the boundaries: a component that suspends on mount loses
-  // its state, which would start a new request on every retry.
-  const [loadArchive] = useState(createArchiveLoader);
 
   // An artist that isn't primary is an archive artist (or doesn't exist, in
   // which case the tab doesn't matter), so this needs only the primary list.
@@ -56,7 +52,7 @@ const ArtistsSelectionTab = ({ primary }: ArtistsSelectionTabProps) => {
         <>
           Archive Artists (
           <Suspense fallback="…">
-            <ArchiveCount loadArchive={loadArchive} />
+            <ArchiveCount />
           </Suspense>
           )
         </>
@@ -121,7 +117,6 @@ const ArtistsSelectionTab = ({ primary }: ArtistsSelectionTabProps) => {
   return (
     <ArtistsColumnWithControls
       primaryArtists={primaryArtists}
-      loadArchive={loadArchive}
       tab={tab}
       searchQuery={searchQuery}
       subHeader={subHeader}
@@ -130,7 +125,7 @@ const ArtistsSelectionTab = ({ primary }: ArtistsSelectionTabProps) => {
   );
 };
 
-function ArchiveCount({ loadArchive }: { loadArchive: ArchiveLoader }) {
+function ArchiveCount() {
   use(browser());
   return use(loadArchive())?.length ?? '…';
 }
