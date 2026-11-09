@@ -6,6 +6,7 @@ import { MapPinIcon } from 'lucide-react';
 import { useState } from 'react';
 import type { ShowDetail } from '@/domain/types';
 import cn from '@/lib/cn';
+import { albumArtSearchParams } from '@/lib/searchParams/albumArtSearchParams';
 import { durationToHHMMSS } from '@/lib/utils';
 import PopularityBadge from '@/ui/base/PopularityBadge';
 
@@ -33,7 +34,9 @@ export default function ShowHeader({
   /** Off in embeds, which stay on the show. */
   linkVenue: boolean;
 }) {
-  const [artFailed, setArtFailed] = useState(false);
+  // Which show's art failed, not whether: this header stays mounted as the
+  // track list moves between shows, and a flag would hide every later show's art.
+  const [failedArtId, setFailedArtId] = useState<string>();
   const { venue } = show;
 
   const venueContent = venue?.name && (
@@ -45,14 +48,18 @@ export default function ShowHeader({
 
   return (
     <div className="flex items-center gap-3 border-b border-hairline p-2">
-      {show.id && !artFailed && (
+      {show.id && show.id !== failedArtId && (
         <img
-          src={`/album-art/${show.id}.png?size=256`}
+          src={href(
+            '/album-art/[showId].png',
+            { showId: show.id },
+            albumArtSearchParams.buildSearchParams({ size: '256' })
+          )}
           alt=""
           width={64}
           height={64}
           loading="lazy"
-          onError={() => setArtFailed(true)}
+          onError={() => setFailedArtId(show.id)}
           className="size-16 shrink-0 rounded bg-surface-recessed"
         />
       )}
