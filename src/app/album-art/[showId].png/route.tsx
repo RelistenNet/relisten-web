@@ -1,4 +1,5 @@
 import { showById } from '@/data/shows';
+import { isMissing } from '@/data/resource';
 /* oxlint-disable react/no-unknown-property */
 import 'server-only';
 
@@ -53,7 +54,12 @@ export async function GET() {
 
   const [directory, show] = await Promise.all([
     getArtistDirectory(),
-    showById.orDeny(showId).catch(() => null),
+    // get, not orDeny: deny() in a route handler surfaces as a 500. Only a
+    // missing show is a 404; an API failure stays an error.
+    showById.get(showId).catch((err) => {
+      if (isMissing(err)) return null;
+      throw err;
+    }),
   ]);
 
   if (!show || !show.sources?.length) return new Response('Not Found', { status: 404 });
