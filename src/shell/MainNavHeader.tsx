@@ -6,10 +6,10 @@ import SecondaryNavBar from './SecondaryNavHeader';
 import { usePathname, useRouter } from '@timber-js/app/client';
 
 export default function MainNavHeader({
-  artistName,
+  artist,
   indexOverride,
 }: {
-  artistName?: string;
+  artist?: { slug: string; name: string };
   indexOverride?: string;
 }) {
   const pathname = usePathname();
@@ -33,7 +33,7 @@ export default function MainNavHeader({
         >
           RELISTEN
         </Link>
-        <SecondaryNavBar artistName={artistName} />
+        <SecondaryNavBar artist={artist} />
       </Flex>
       <Flex className="h-full pr-2 font-medium lg:hidden" center>
         <Link href={indexOverride ?? '/'} prefetch={false}>

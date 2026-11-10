@@ -9,8 +9,9 @@ import ArtistsSelectionTab from '@/features/browse/ArtistsSelectionTab';
 import { artistSections } from '@/lib/artistSections';
 import type { ArtistListItem } from '@/lib/artistRows';
 
-// The artist at the start of the artist tabs: names whose sections the tabs
-// are, and switches artist. Opens the same artist list as the browse view's
+// The artist the page is about, as a control that switches artist: the
+// header's title ("RELISTEN TO THE GRATEFUL DEAD") on wide screens, the start
+// of the artist tabs on narrow ones, where the title is hidden. Opens the same artist list as the browse view's
 // artists column (compact), whose rows here link to the same section for the
 // chosen artist. The popover mounts the list only while open, so each opening
 // starts with an empty filter.
@@ -47,7 +48,28 @@ function sectionHref(pathname: string, fromSlug: string, to: ArtistListItem): st
   return href('/artists/[artistSlug]', { artistSlug });
 }
 
-export default function ArtistPicker({ current }: { current: { slug: string; name: string } }) {
+const TRIGGER = {
+  // Reads as the title it replaces; the chevron and hover say it opens.
+  title: `
+    inline-flex cursor-pointer items-center gap-1 rounded px-1 -mx-1 uppercase
+    hover:bg-text-primary/5 hover:text-accent data-[state=open]:text-accent
+  `,
+  tab: `
+    flex h-7 max-w-56 cursor-pointer items-center gap-1 rounded-md border border-accent/40
+    bg-accent/10 px-2 font-medium text-text-primary hover:bg-accent/20
+  `,
+};
+
+export default function ArtistPicker({
+  current,
+  variant,
+  children = current.name,
+}: {
+  current: { slug: string; name: string };
+  variant: keyof typeof TRIGGER;
+  /** The trigger's label; the artist's name by default. */
+  children?: React.ReactNode;
+}) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -55,12 +77,9 @@ export default function ArtistPicker({ current }: { current: { slug: string; nam
     <Popover open={open} onOpenChange={setOpen} align="start" sideOffset={6}>
       <PopoverTrigger
         aria-label={`Artist: ${current.name}. Switch artist`}
-        className="
-          flex h-7 max-w-56 cursor-pointer items-center gap-1 rounded-md border border-accent/40
-          bg-accent/10 px-2 font-medium text-text-primary hover:bg-accent/20
-        "
+        className={TRIGGER[variant]}
       >
-        <span className="truncate">{current.name}</span>
+        <span className="truncate">{children}</span>
         <ChevronDown className="size-3.5 shrink-0 text-text-secondary" />
       </PopoverTrigger>
       <PopoverContent className="w-[min(380px,calc(100vw-1rem))] overflow-hidden p-0">

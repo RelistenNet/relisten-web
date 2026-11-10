@@ -25,7 +25,12 @@ export const getUserAgent = async () => {
   return UAParser(userAgent);
 };
 
-export default async function NavBar() {
+export default async function NavBar({
+  defaultToArtist = false,
+}: {
+  /** The browse layout: its root (/) browses the default artist, so the nav is about it there. */
+  defaultToArtist?: boolean;
+}) {
   const [artists, userAgent, isInIframe] = await Promise.all([
     loadArtists(),
     getUserAgent(),
@@ -36,8 +41,11 @@ export default async function NavBar() {
 
   const { artistSlug } = getSegmentParams() as { artistSlug?: string };
   const artist = artistSlug ? artists.find((a) => a.slug === artistSlug) : undefined;
-  const artistName = artist?.name;
-  const tabsArtist = artist ?? artists.find((a) => a.slug === DEFAULT_ARTIST_SLUG);
+  // The artist the page is about. Pages about no artist (the blog, live, …)
+  // get neither the title's picker nor the artist tabs.
+  const pageArtist =
+    artist ?? (defaultToArtist ? artists.find((a) => a.slug === DEFAULT_ARTIST_SLUG) : undefined);
+  const titleArtist = pageArtist && { slug: pageArtist.slug, name: pageArtist.name };
 
   return (
     <>
@@ -49,7 +57,7 @@ export default async function NavBar() {
           lg:grid-cols-[1fr_auto_1fr] lg:px-4
         "
       >
-        <MainNavHeader artistName={artistName} indexOverride={isInIframe ? '/wsp' : undefined} />
+        <MainNavHeader artist={titleArtist} indexOverride={isInIframe ? '/wsp' : undefined} />
         <div
           className="
             player overflow-hidden text-center
@@ -141,11 +149,9 @@ export default async function NavBar() {
           </div>
         </div>
       </div>
-      {/* Always present, so the layout doesn't jump between pages: the artist in
-          the URL, else the default artist (what / browses). */}
-      {tabsArtist && (
+      {pageArtist && (
         <ArtistTabs
-          artist={{ slug: tabsArtist.slug, name: tabsArtist.name, features: tabsArtist.features }}
+          artist={{ slug: pageArtist.slug, name: pageArtist.name, features: pageArtist.features }}
         />
       )}
       {isAndroid && <AndroidUpgradeNotification />}

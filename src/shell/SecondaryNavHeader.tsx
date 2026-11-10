@@ -1,12 +1,7 @@
 'use client';
 
-import { href } from '@timber-js/app/routes';
-import {
-  Link,
-  usePathname,
-  useSegmentParams,
-  useSelectedLayoutSegments,
-} from '@timber-js/app/client';
+import { Link, usePathname, useSelectedLayoutSegments } from '@timber-js/app/client';
+import ArtistPicker from './ArtistPicker';
 
 const pages = {
   'sonos': {
@@ -40,7 +35,8 @@ const pages = {
 };
 
 interface Props {
-  artistName?: string;
+  /** The page's artist: the URL's, or the default artist on the browse root. */
+  artist?: { slug: string; name: string };
 }
 
 const bandsWithThe = [
@@ -59,9 +55,8 @@ const bandsWithThe = [
   'tedeschi-trucks',
 ];
 
-export default function SecondaryNavBar({ artistName }: Props) {
+export default function SecondaryNavBar({ artist }: Props) {
   const pathname = usePathname();
-  const { artistSlug } = useSegmentParams() as { artistSlug?: string };
   const segments = useSelectedLayoutSegments();
 
   const pageMetadata = pages[segments[0]];
@@ -75,15 +70,14 @@ export default function SecondaryNavBar({ artistName }: Props) {
     );
   }
 
-  if (typeof artistSlug === 'string') {
-    if (!artistName) return null;
+  if (artist) {
     return (
       <>
         <span>TO</span>
-        <Link href={href('/[artistSlug]', { artistSlug })} className="uppercase">
-          {bandsWithThe.includes(artistSlug) ? 'THE ' : ''}
-          {artistName}
-        </Link>
+        <ArtistPicker current={artist} variant="title">
+          {bandsWithThe.includes(artist.slug) ? 'THE ' : ''}
+          {artist.name}
+        </ArtistPicker>
       </>
     );
   }

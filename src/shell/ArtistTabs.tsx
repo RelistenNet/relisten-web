@@ -69,8 +69,11 @@ export default function ArtistTabs({
       aria-label="Artist"
       className="flex h-9 items-center border-b border-b-hairline bg-surface-raised pl-2 text-sm lg:pl-4"
     >
-      <ArtistPicker current={artist} />
-      <span aria-hidden className="mx-2 h-4 w-px shrink-0 bg-hairline" />
+      {/* Wide screens have the picker in the header's title. */}
+      <div className="flex shrink-0 items-center lg:hidden">
+        <ArtistPicker current={artist} variant="tab" />
+        <span aria-hidden className="mx-2 h-4 w-px shrink-0 bg-hairline" />
+      </div>
       {/* The picker stays put; the tabs scroll when they don't fit. */}
       <ul
         role="list"
