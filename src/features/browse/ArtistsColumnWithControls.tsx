@@ -1,10 +1,8 @@
 'use client';
 
-import { href } from '@timber-js/app/routes';
 import React, { Fragment, type RefObject, Suspense, use, useMemo, useRef, useState } from 'react';
 import { browser } from 'react-dom';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
-import { useSegmentParams } from '@timber-js/app/client';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import Count from '@/ui/base/Count';
 import { artistPlays, groupArtists, type ArtistListItem } from '@/lib/artistRows';
@@ -14,7 +12,7 @@ import ColumnWithToggleControls from '@/ui/base/ColumnWithToggleControls';
 import PopularityBadge from '@/ui/base/PopularityBadge';
 import type { HighlightRanges } from '@nozbe/microfuzz';
 import { loadArchive, searchArtists } from '@/lib/archiveArtists';
-import Row, { unwrapSegment } from '@/ui/base/Row';
+import Row from '@/ui/base/Row';
 import RowHeader from '@/ui/base/RowHeader';
 
 const byObject = {
@@ -47,12 +45,25 @@ function HighlightText({ text, ranges }: { text: string; ranges: HighlightRanges
 
 export type ArtistsTab = 'primary' | 'all';
 
-type ArtistsColumnWithControlsProps = {
+/** Where an artist's row links, and which row is current. */
+export type ArtistLinks = {
+  /** The current artist: its row is marked active. */
+  currentSlug: string | undefined;
+  /** An artist's row link. */
+  hrefFor: (artist: ArtistListItem) => string;
+};
+
+type ArtistsColumnWithControlsProps = ArtistLinks & {
   primaryArtists: ArtistListItem[];
   tab: ArtistsTab;
   searchQuery: string;
   subHeader?: React.ReactNode;
   isPending?: boolean;
+  /**
+   * The artist picker's popover: a fixed height, and no heading bar (the sort
+   * toggles live on the browse view's column; the picker follows them).
+   */
+  compact?: boolean;
 };
 
 /**
@@ -66,6 +77,9 @@ const ArtistsColumnWithControls = ({
   searchQuery,
   subHeader,
   isPending,
+  compact = false,
+  currentSlug,
+  hrefFor,
 }: ArtistsColumnWithControlsProps) => {
   const { alphaAsc, sortBy, setSortBy } = useFilterState('root');
   const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
@@ -117,11 +131,14 @@ const ArtistsColumnWithControls = ({
     scrollEl,
     measurements,
     isPending,
+    currentSlug,
+    hrefFor,
   };
 
   return (
     <ColumnWithToggleControls
-      heading="Artists"
+      heading={compact ? undefined : 'Artists'}
+      className={compact ? 'h-[min(30rem,70dvh)] flex-none' : undefined}
       toggles={toggles}
       subHeader={subHeader}
       scrollContainerRef={setScrollEl}
@@ -133,7 +150,7 @@ const ArtistsColumnWithControls = ({
   );
 };
 
-type ArtistListProps = {
+type ArtistListProps = ArtistLinks & {
   primaryArtists: ArtistListItem[];
   /** `null` until the archive list has loaded (and in the server render). */
   archiveArtists: ArtistListItem[] | null;
@@ -185,10 +202,9 @@ function ArtistList({
   scrollEl,
   measurements,
   isPending,
+  currentSlug,
+  hrefFor,
 }: ArtistListProps) {
-  const params = useSegmentParams() as Record<string, string | string[] | undefined>;
-  const currentArtistSlug = unwrapSegment(params.artistSlug);
-
   const { artists, highlightRanges } = useMemo(
     () => selectArtists(primaryArtists, archiveArtists, tab, searchQuery),
     [primaryArtists, archiveArtists, tab, searchQuery]
@@ -247,11 +263,7 @@ function ArtistList({
       return <RowHeader>{item.label}</RowHeader>;
     }
     return (
-      <Row
-        href={href('/[artistSlug]', { artistSlug: item.artist.slug })}
-        active={item.artist.slug === currentArtistSlug}
-        refreshWhenCurrent
-      >
+      <Row href={hrefFor(item.artist)} active={item.artist.slug === currentSlug} refreshWhenCurrent>
         <div>
           <div>
             {item.artist.slug && highlightRanges?.has(item.artist.slug) ? (
