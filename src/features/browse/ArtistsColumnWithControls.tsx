@@ -3,7 +3,7 @@
 import React, { Fragment, type RefObject, Suspense, use, useMemo, useRef, useState } from 'react';
 import { browser } from 'react-dom';
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
-import { ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowUp, ArrowDown, LoaderCircle } from 'lucide-react';
 import Count from '@/ui/base/Count';
 import { artistPlays, groupArtists, type ArtistListItem } from '@/lib/artistRows';
 import { useFilterState } from '@/hooks/useFilterState';
@@ -20,6 +20,7 @@ const byObject = {
 };
 
 type Item =
+  | { kind: 'status'; key: string; failed: boolean }
   | { kind: 'header'; key: string; label: string }
   | { kind: 'artist'; key: string; artist: ArtistListItem };
 
@@ -143,7 +144,7 @@ const ArtistsColumnWithControls = ({
       subHeader={subHeader}
       scrollContainerRef={setScrollEl}
     >
-      <Suspense fallback={<ArtistList {...listProps} archiveArtists={null} />}>
+      <Suspense fallback={<ArtistList {...listProps} archiveArtists={undefined} />}>
         <ArtistListWithArchive {...listProps} />
       </Suspense>
     </ColumnWithToggleControls>
@@ -152,8 +153,11 @@ const ArtistsColumnWithControls = ({
 
 type ArtistListProps = ArtistLinks & {
   primaryArtists: ArtistListItem[];
-  /** `null` until the archive list has loaded (and in the server render). */
-  archiveArtists: ArtistListItem[] | null;
+  /**
+   * `undefined` until the archive list has loaded (and in the server render),
+   * `null` if it failed to.
+   */
+  archiveArtists: ArtistListItem[] | null | undefined;
   tab: ArtistsTab;
   searchQuery: string;
   sortBy: ReturnType<typeof useFilterState>['sortBy'];
@@ -172,7 +176,7 @@ function ArtistListWithArchive(props: Omit<ArtistListProps, 'archiveArtists'>) {
 /** The artists to show: the tab's list, or fuzzy matches across both lists while searching. */
 function selectArtists(
   primaryArtists: ArtistListItem[],
-  archiveArtists: ArtistListItem[] | null,
+  archiveArtists: ArtistListItem[] | null | undefined,
   tab: ArtistsTab,
   searchQuery: string
 ) {
@@ -231,6 +235,11 @@ function ArtistList({
 
   const items = useMemo<Item[]>(() => {
     const out: Item[] = [];
+    // The archive tab, or a search (which covers the archive), without the
+    // archive: a spinner while it loads, a line if it failed.
+    if (!archiveArtists && (tab === 'all' || searchQuery.trim())) {
+      out.push({ kind: 'status', key: 'status', failed: archiveArtists === null });
+    }
     for (const group of processedArtists) {
       out.push({ kind: 'header', key: `header-${group.key}`, label: group.label });
       for (const artist of group.artists) {
@@ -238,7 +247,7 @@ function ArtistList({
       }
     }
     return out;
-  }, [processedArtists]);
+  }, [processedArtists, archiveArtists, tab, searchQuery]);
 
   // TanStack Virtual returns mutable, unmemoizable values; the React Compiler knows and skips them.
   // oxlint-disable-next-line react/incompatible-library
@@ -253,12 +262,27 @@ function ArtistList({
     onChange: (instance) => {
       measurements.current = instance.measurementsCache;
     },
-    estimateSize: (i) => (items[i].kind === 'header' ? HEADER_ESTIMATE : ROW_ESTIMATE),
+    estimateSize: (i) => (items[i].kind === 'artist' ? ROW_ESTIMATE : HEADER_ESTIMATE),
     getItemKey: (i) => items[i].key,
     overscan: 8,
   });
 
   const renderItem = (item: Item) => {
+    if (item.kind === 'status') {
+      return item.failed ? (
+        <div className="px-3 py-2 text-xs text-foreground-muted lg:px-2">
+          {"Couldn't load archive artists."}
+        </div>
+      ) : (
+        <div
+          className="flex justify-center py-3"
+          role="status"
+          aria-label="Loading archive artists"
+        >
+          <LoaderCircle className="size-4 animate-spin text-foreground-muted" />
+        </div>
+      );
+    }
     if (item.kind === 'header') {
       return <RowHeader>{item.label}</RowHeader>;
     }

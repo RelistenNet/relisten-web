@@ -169,7 +169,8 @@ const ArtistsSelectionTab = ({
 
 function ArchiveCount() {
   use(browser());
-  return use(loadArchive())?.length ?? '…';
+  // Loading is the Suspense fallback's "…"; a failed load has no count.
+  return use(loadArchive())?.length ?? '–';
 }
 
 export default ArtistsSelectionTab;
