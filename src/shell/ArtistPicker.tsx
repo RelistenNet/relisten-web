@@ -52,7 +52,7 @@ const TRIGGER = {
   // Reads as the title it replaces; the chevron and hover say it opens.
   title: `
     inline-flex cursor-pointer items-center gap-1 rounded px-1 -mx-1 uppercase
-    hover:bg-text-primary/5 hover:text-accent data-[state=open]:text-accent
+    hover:bg-text-primary/5
   `,
   tab: `
     flex h-7 max-w-56 cursor-pointer items-center gap-1 rounded-md border border-accent/40
