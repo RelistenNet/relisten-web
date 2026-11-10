@@ -27,6 +27,22 @@ export function canAutoplay(): boolean {
   return isReturningListener();
 }
 
+// navigator.getAutoplayPolicy: Firefox only, and not in TypeScript's DOM types yet.
+type AutoplayPolicy = 'allowed' | 'allowed-muted' | 'disallowed';
+type PolicyNavigator = Navigator & { getAutoplayPolicy?: (type: 'mediaelement') => AutoplayPolicy };
+
+/**
+ * Whether the browser says it would refuse playback with sound. Only Firefox
+ * can be asked without calling play() (which starts the download); elsewhere
+ * this is false, the attempt finds out, and gapless drops what it started.
+ * 'allowed-muted' counts as refused: the player plays with sound.
+ */
+export function browserRefusesAutoplay(): boolean {
+  if (typeof window === 'undefined') return false;
+  const policy = (navigator as PolicyNavigator).getAutoplayPolicy?.('mediaelement');
+  return policy === 'disallowed' || policy === 'allowed-muted';
+}
+
 function isReturningListener(): boolean {
   if (automated()) return false;
   try {

@@ -7,7 +7,7 @@
 import type { Source } from '@/domain/types';
 import { showContext } from './queue/items';
 import { nextUpKey, type QueueItem } from './queue/model';
-import { canAutoplay } from './autoplay';
+import { browserRefusesAutoplay, canAutoplay } from './autoplay';
 import { getEngine, playbackActor, playerActor, startPlayback } from './runtime';
 import { showPlayPrompt } from './toasts';
 
@@ -60,8 +60,11 @@ export function playShow({
   if (startTime && startTime > 0) getEngine()?.startAt(start.key, startTime);
   playerActor.send({ type: 'PLAY_CONTEXT', ctx, startKey: start.key });
   if (!play) return;
-  if (canAutoplay()) startPlayback();
-  else showPlayPrompt({ blockedByBrowser: false, playNow: startPlayback });
+  if (!canAutoplay()) showPlayPrompt({ blockedByBrowser: false, playNow: startPlayback });
+  // The browser has said no already: prompt without an attempt, so nothing downloads.
+  else if (browserRefusesAutoplay())
+    showPlayPrompt({ blockedByBrowser: true, playNow: startPlayback });
+  else startPlayback();
 }
 
 /**

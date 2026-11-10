@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { canAutoplay, LISTENED_KEY, rememberListener } from './autoplay';
+import { browserRefusesAutoplay, canAutoplay, LISTENED_KEY, rememberListener } from './autoplay';
 
 function browser({
   activated = false,
@@ -73,5 +73,34 @@ describe('rememberListener', () => {
     const bot = browser({ activated: true, webdriver: true });
     rememberListener();
     expect(bot.has(LISTENED_KEY)).toBe(false);
+  });
+});
+
+describe('browserRefusesAutoplay', () => {
+  const withPolicy = (policy?: string) => {
+    vi.stubGlobal('window', {});
+    vi.stubGlobal(
+      'navigator',
+      policy === undefined
+        ? {}
+        : { getAutoplayPolicy: (type: string) => type === 'mediaelement' && policy }
+    );
+  };
+
+  it("is true when the browser says it would refuse sound ('disallowed' or 'allowed-muted')", () => {
+    withPolicy('disallowed');
+    expect(browserRefusesAutoplay()).toBe(true);
+    withPolicy('allowed-muted');
+    expect(browserRefusesAutoplay()).toBe(true);
+  });
+
+  it("is false when it says 'allowed'", () => {
+    withPolicy('allowed');
+    expect(browserRefusesAutoplay()).toBe(false);
+  });
+
+  it("is false where the browser can't be asked (Chrome, Safari)", () => {
+    withPolicy(undefined);
+    expect(browserRefusesAutoplay()).toBe(false);
   });
 });
