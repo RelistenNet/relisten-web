@@ -82,7 +82,14 @@ export default function ArtistPicker({
         <span className="truncate">{children}</span>
         <ChevronDown className="size-3.5 shrink-0 text-text-secondary" />
       </PopoverTrigger>
-      <PopoverContent className="w-[min(380px,calc(100vw-1rem))] overflow-hidden p-0">
+      <PopoverContent
+        // It opens over busy columns: a firmer edge and a deeper shadow than
+        // the default popover's hairline, in both themes.
+        className="
+          w-[min(380px,calc(100vw-1rem))] overflow-hidden p-0 shadow-2xl ring-2
+          shadow-black/25 ring-text-primary/15 dark:shadow-black/60
+        "
+      >
         <ArtistsSelectionTab
           compact
           currentSlug={current.slug}
