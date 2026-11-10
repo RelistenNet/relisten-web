@@ -112,6 +112,8 @@ export function createEngine(createQueue: QueueFactory, callbacks: EngineCallbac
     onError: (e) => callbacks.onError(e),
     onPlayBlocked: () => {
       reportPlaying();
+      // gapless dropped the loads the attempt started: the tracks aren't loading.
+      reportStatus(true);
       callbacks.onPlayBlocked();
     },
   });
