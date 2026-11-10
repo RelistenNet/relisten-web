@@ -1,11 +1,10 @@
 'use client';
 
-import { createContext, use, useMemo } from 'react';
+import { createContext, use, useState } from 'react';
 import { fromArtistRow, type ArtistListItem, type ArtistRow } from '@/lib/artistRows';
 
-// The primary artists, for everything under the nav: the artist picker on
-// every page, and the browse view's artists column. Sent once with the layout
-// rather than to each, so a browse page carries the list once.
+// The primary artists, for everything that lists artists: the artist pickers
+// and the browse view's artists column.
 
 const PrimaryArtistsContext = createContext<ArtistListItem[] | null>(null);
 
@@ -13,10 +12,18 @@ export function PrimaryArtistsProvider({
   rows,
   children,
 }: {
-  rows: ArtistRow[];
+  /** Sent with the document only; absent in RSC payloads. */
+  rows?: ArtistRow[];
   children: React.ReactNode;
 }) {
-  const artists = useMemo(() => rows.map(fromArtistRow), [rows]);
+  // In the root layout this mounts once per document, and only the document
+  // sends rows (RSC payloads omit them): keep the first, ignore the rest.
+  const [artists] = useState(() => {
+    // Mounting from an RSC payload (no rows) means the document's rows are lost.
+    if (!rows) throw new Error('PrimaryArtistsProvider mounted without rows');
+    return rows.map(fromArtistRow);
+  });
+
   return <PrimaryArtistsContext value={artists}>{children}</PrimaryArtistsContext>;
 }
 
