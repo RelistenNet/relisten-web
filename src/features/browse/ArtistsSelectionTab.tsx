@@ -65,9 +65,12 @@ const ArtistsSelectionTab = ({
       label: (
         <>
           Archive Artists (
-          <Suspense fallback="…">
-            <ArchiveCount />
-          </Suspense>
+          {/* Four digits wide whatever it holds, so the label doesn't shift when the count arrives. */}
+          <span className="inline-block min-w-[4ch] text-center tabular-nums">
+            <Suspense fallback="…">
+              <ArchiveCount />
+            </Suspense>
+          </span>
           )
         </>
       ),
