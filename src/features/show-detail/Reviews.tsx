@@ -17,7 +17,7 @@ export default async function Reviews({ source }: { source: Source }) {
   return (
     <section aria-labelledby="reviews" className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 id="reviews" className="mb-0 text-lg font-semibold text-text-primary">
+        <h2 id="reviews" className="mb-0 text-2xl font-semibold text-text-primary">
           Reviews
         </h2>
         <p className="mb-0 text-sm text-text-muted tabular-nums">
@@ -51,7 +51,9 @@ function ReviewList({ reviews }: { reviews: SourceReview[] }) {
       {reviews.map((review) => (
         <li key={review.id} className="flex flex-col gap-1 py-3">
           <div className="flex items-baseline justify-between gap-4">
-            <span className="min-w-0 font-medium text-text-primary">
+            <span
+              className={`min-w-0 font-medium text-text-primary ${!review.title && review.author ? 'italic' : ''}`}
+            >
               {review.title ?? review.author ?? 'Untitled'}
             </span>
             {review.rating !== undefined && <Rating rating={review.rating} />}
@@ -60,7 +62,7 @@ function ReviewList({ reviews }: { reviews: SourceReview[] }) {
             {review.body}
           </p>
           {review.title && review.author && (
-            <span className="text-xs text-text-muted">{review.author}</span>
+            <span className="text-xs text-text-muted italic">{review.author}</span>
           )}
         </li>
       ))}

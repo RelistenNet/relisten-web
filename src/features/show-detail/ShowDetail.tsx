@@ -15,7 +15,7 @@ import { VENUE_PILL } from '@/ui/shows/venuePill';
 import DataTable from '@/ui/table/DataTable';
 import { toTableState, type TableParams } from '@/ui/table/params';
 import { queryTable } from '@/ui/table/query';
-import { lengthColumn, playColumn, positionColumn, queueColumn, titleColumn } from './columns';
+import { lengthColumn, playColumn, queueColumn, titleColumn } from './columns';
 import { loadShowDetail, trackRows } from './load';
 import Reviews from './Reviews';
 import SourcesColumn from './SourcesColumn';
@@ -74,7 +74,7 @@ export default async function ShowDetail({
             params={params}
             spec={showTrackSpec}
             result={result}
-            columns={[playColumn, positionColumn, titleColumn, lengthColumn, queueColumn]}
+            columns={[playColumn, titleColumn, lengthColumn, queueColumn]}
             rowKey={(r) => r.id}
             rowHref={(r) => r.href}
             noun="song"

@@ -20,14 +20,6 @@ export const playColumn: Column<ShowTrackRow> = {
     ) : null,
 };
 
-export const positionColumn: Column<ShowTrackRow> = {
-  id: 'position',
-  width: 'w-14',
-  label: '#',
-  align: 'right',
-  cell: (r) => <span className="text-text-muted tabular-nums">{r.position}</span>,
-};
-
 export const titleColumn: Column<ShowTrackRow> = {
   id: 'title',
   label: 'Song',
