@@ -1,15 +1,15 @@
 import { href } from '@timber-js/app/routes';
 import { Link } from '@timber-js/app/client';
+import { deny } from '@timber-js/app/server';
 import { MapPinIcon } from 'lucide-react';
 import { Suspense } from 'react';
+import { findArtistBySlug } from '@/data/artists';
 import cn from '@/lib/cn';
 import { SongQueueProvider } from '@/player/SongQueue';
-import { albumArtSearchParams } from '@/lib/searchParams/albumArtSearchParams';
 import { fromSourceParam } from '@/lib/sourceParam';
-import { durationToHHMMSS } from '@/lib/utils';
 import { showLabel, songRowItem } from '@/player/queue/items';
-import PageHeader, { type StatItem } from '@/ui/base/PageHeader';
-import PopularityBadge from '@/ui/base/PopularityBadge';
+import ArtistCover from '@/ui/base/ArtistCover';
+import PageHeader from '@/ui/base/PageHeader';
 import { formatShowDate } from '@/ui/shows/stats';
 import { VENUE_PILL } from '@/ui/shows/venuePill';
 import DataTable from '@/ui/table/DataTable';
@@ -21,7 +21,7 @@ import Reviews from './Reviews';
 import SourcesColumn from './SourcesColumn';
 import { SHOW_FILTER_IDS, showSearchParams, showTrackSpec, type ShowTrackRow } from './spec';
 
-// A show: its venue and key numbers, then one tape's tracks in play order and its reviews.
+// A show: the artist, date, and venue, then one tape's tracks in play order and its reviews.
 
 export default async function ShowDetail({
   artistSlug,
@@ -30,10 +30,12 @@ export default async function ShowDetail({
   artistSlug: string;
   showDate: string;
 }) {
-  const [{ show, row, sources }, params] = await Promise.all([
+  const [{ show, row, sources }, artist, params] = await Promise.all([
     loadShowDetail(artistSlug, showDate),
+    findArtistBySlug(artistSlug),
     showSearchParams.get(),
   ]);
+  if (!artist) deny(404);
 
   // `?source=` picks the tape; the top-sorted one otherwise, as on the browse view.
   const wanted = fromSourceParam((params as TableParams).source as string | undefined);
@@ -49,45 +51,19 @@ export default async function ShowDetail({
   const visibleItems = result.rows.flatMap((r) => songRowItem(r) ?? []);
   const pathname = href('/artists/[artistSlug]/shows/[showDate]', { artistSlug, showDate });
 
-  const statItems: StatItem[] = [];
-  if (source?.duration) {
-    statItems.push({ label: 'Runtime', value: durationToHHMMSS(source.duration) });
-  }
-
   const venue = show.venue;
 
   return (
     <div className="detail-page flex flex-col gap-6">
       <PageHeader
-        cover={
-          // Decorative: the title names the show. The background shows if the art fails.
-          <img
-            src={href(
-              '/album-art/[showId].png',
-              { showId: show.id },
-              albumArtSearchParams.buildSearchParams({ size: '256' })
-            )}
-            alt=""
-            width={64}
-            height={64}
-            className="size-14 rounded-lg bg-surface-recessed sm:size-16"
-          />
+        cover={<ArtistCover artist={artist} />}
+        title={
+          <>
+            {artist.name}{' '}
+            <span className="font-normal text-text-muted">{formatShowDate(show.date)}</span>
+          </>
         }
-        title={formatShowDate(show.date)}
-        meta={[
-          venue?.name && <VenuePill key="venue" artistSlug={artistSlug} venue={venue} />,
-          venue?.location,
-          // The badge renders nothing without plays; skip it so no stray " · " shows.
-          !!show.popularity?.windows?.['30d']?.plays && (
-            <PopularityBadge
-              key="plays"
-              popularity={show.popularity}
-              className="inline-flex align-middle text-base tracking-normal text-text-muted sm:text-sm"
-            />
-          ),
-          show.tourName,
-        ]}
-        stats={statItems}
+        meta={[venue?.name && <VenuePill key="venue" artistSlug={artistSlug} venue={venue} />]}
       />
 
       {/* The tracks, with the show's tapes beside them as in the browse view; stacked below lg. */}
@@ -131,21 +107,28 @@ export default async function ShowDetail({
   );
 }
 
-/** The venue, linking to its page for this artist (as in the browse view's show header). */
+/** The venue and its location, linking to the venue's page for this artist (as in the browse view's show header). */
 function VenuePill({
   artistSlug,
   venue,
 }: {
   artistSlug: string;
-  venue: { name?: string; slug?: string };
+  venue: { name?: string; slug?: string; location?: string };
 }) {
+  const label = [venue.name, venue.location].filter(Boolean).join(', ');
   const content = (
     <>
       <MapPinIcon className="size-3.5 shrink-0 text-text-muted" aria-hidden />
       <span className="truncate">{venue.name}</span>
+      {venue.location && (
+        <span className="shrink-0 text-text-muted">
+          <span aria-hidden>· </span>
+          {venue.location}
+        </span>
+      )}
     </>
   );
-  // Inline in the meta line, beside the location.
+  // Inline in the meta line under the title.
   const className = cn(VENUE_PILL, 'inline-flex max-w-full px-2 py-0.5 align-middle text-sm');
   return venue.slug ? (
     <Link
@@ -153,13 +136,13 @@ function VenuePill({
         artistSlug,
         venueSlug: venue.slug,
       })}
-      title={venue.name}
+      title={label}
       className={cn(className, 'hover:bg-text-primary/10')}
     >
       {content}
     </Link>
   ) : (
-    <span className={className} title={venue.name}>
+    <span className={className} title={label}>
       {content}
     </span>
   );
