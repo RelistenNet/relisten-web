@@ -13,6 +13,8 @@ import Row from './Row';
 import RowHeader from './RowHeader';
 import Tag from './Tag';
 import { sortSources } from '@/lib/sortSources';
+import { fromSourceParam, toSourceParam } from '@/lib/sourceParam';
+import { pickSource } from '@/lib/songMatch';
 import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
 import { useAdminTools } from '@/hooks/useAdminTools';
 import { Link } from '@timber-js/app/client';
@@ -29,14 +31,16 @@ export type Props = Pick<RawParams, 'artistSlug' | 'year' | 'month' | 'day'> & {
   routePrefix?: string;
   quickHitSegment?: string;
   quickHitSlug?: string;
+  /** The song in focus (songs quick hit): picks the tape that has it by default. */
+  songId?: string;
 };
 
 interface SourceData {
   gaplessTracksMetadata: GaplessMetadata[];
-  activePlaybackSourceId: number | undefined;
-  activeSourceId: number | undefined;
+  activePlaybackSourceId: string | undefined;
+  activeSourceId: string | undefined;
   isActiveSourcePlaying: boolean;
-  activePlaybackTrackId?: number;
+  activePlaybackTrackId?: string;
   displayDate: string | undefined;
   activeSourceObj: Source | undefined;
   sourcesData: Source[];
@@ -48,10 +52,10 @@ export const useSourceData = ({
   day,
   show,
   source,
+  songId,
 }: Props & { source: string }): SourceData => {
-  const activePlaybackSourceId = useSelector(({ playback }: RootState) =>
-    playback.source ? parseInt(playback.source, 10) : undefined
-  );
+  // The store holds the full v4 source id (`source_…`).
+  const activePlaybackSourceId = useSelector(({ playback }: RootState) => playback.source);
   const activePlaybackTrackId = useSelector(({ playback }: RootState) => playback.activeTrack?.id);
   const gaplessTracksMetadata = useSelector(
     ({ playback }: RootState) => playback.gaplessTracksMetadata
@@ -61,12 +65,9 @@ export const useSourceData = ({
 
   const sourcesData = sortSources(show?.sources ?? []);
 
-  // `?source=` is normally the numeric id; v3 endpoints (e.g. the Live page's
-  // summary) only expose source uuids, so accept either.
-  const sourceByUuid = sourcesData.find((s) => s.uuid && s.uuid === source);
-  const activeSourceId = sourceByUuid?.id ?? (Number(source) || sourcesData[0]?.id);
-
-  const activeSourceObj = sourcesData.find((source) => source.id === activeSourceId);
+  // `?source=` is the v4 source id without its prefix. Without one, default to the
+  // top-sorted source (that has the song in focus, if there is one).
+  const activeSourceObj = pickSource(sourcesData, fromSourceParam(source), songId);
 
   return {
     gaplessTracksMetadata,
@@ -121,7 +122,7 @@ const SongsColumn = (props: Props) => {
                   )}
                   {adminTools && track.slug && (
                     <Link
-                      href={`/admin/clip/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${activeSourceObj.id}`}
+                      href={`/admin/clip/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${toSourceParam(activeSourceObj.id)}`}
                       prefetch={false}
                       title="Create clip"
                       className="
@@ -140,8 +141,8 @@ const SongsColumn = (props: Props) => {
                             slug: props.quickHitSlug,
                             date: `${props.year}-${props.month}-${props.day}`,
                             track: track.slug,
-                          }) + `&source=${activeSourceObj.id}`
-                        : `${props.routePrefix || ''}/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${activeSourceObj.id}`
+                          }) + `&source=${toSourceParam(activeSourceObj.id)}`
+                        : `${props.routePrefix || ''}/${props.artistSlug}/${props.year}/${props.month}/${props.day}/${track.slug}?source=${toSourceParam(activeSourceObj.id)}`
                     }
                     active={trackIsActive}
                   >

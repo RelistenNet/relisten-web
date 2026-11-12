@@ -16,8 +16,7 @@ export type Popularity = {
 };
 
 export type Artist = {
-  id: number;
-  uuid?: string;
+  id: string;
   name?: string;
   slug?: string;
   sort_name?: string;
@@ -34,18 +33,14 @@ export type Artist = {
 };
 
 export type Day = {
-  id: number;
+  id: string;
   artist?: Artist;
-  artist_id?: number;
-  artist_uuid?: string;
-  venue_id?: number;
+  artist_id?: string;
+  venue_id?: string;
   venue?: Venue;
-  venue_uuid?: string;
   tour_id?: null;
-  tour_uuid?: null;
   tour?: null;
-  year_id?: number;
-  year_uuid?: string;
+  year_id?: string;
   year?: Year;
   era_id?: null;
   era?: null;
@@ -57,7 +52,6 @@ export type Day = {
   has_soundboard_source?: boolean;
   has_streamable_flac_source?: boolean;
   source_count?: number;
-  uuid?: string;
   created_at?: string;
   updated_at?: string;
   artistName?: string;
@@ -65,8 +59,7 @@ export type Day = {
 
 export type Venue = {
   shows_at_venue?: number;
-  artist_id?: number;
-  artist_uuid?: string;
+  artist_id?: string;
   latitude?: null;
   longitude?: null;
   name?: string;
@@ -75,23 +68,20 @@ export type Venue = {
   slug?: string;
   past_names?: null;
   sortName?: string;
-  uuid?: string;
-  id: number;
+  id: string;
   created_at?: string;
   updated_at?: string;
 };
 
 export type Year = {
-  id: number;
+  id: string;
   show_count?: number;
   source_count?: number;
   duration?: number;
   avg_duration?: number;
   avg_rating?: number;
   year?: string;
-  artist_id?: number;
-  artist_uuid?: string;
-  uuid?: string;
+  artist_id?: string;
   created_at?: string;
   updated_at?: string;
   has_soundboard_source?: boolean;
@@ -99,7 +89,8 @@ export type Year = {
 };
 
 export type Features = {
-  id: number;
+  id?: string;
+  normalization?: boolean;
   descriptions?: boolean;
   eras?: boolean;
   multiple_sources?: boolean;
@@ -118,7 +109,7 @@ export type Features = {
   review_titles?: boolean;
   jam_charts?: boolean;
   setlist_data_incomplete?: boolean;
-  artist_id?: number;
+  artist_id?: string;
   track_names?: boolean;
   venue_past_names?: boolean;
   reviews_have_ratings?: boolean;
@@ -127,13 +118,12 @@ export type Features = {
 };
 
 export type Track = {
-  id: number;
-  source_id?: number;
-  source_uuid?: string;
-  source_set_id?: number;
-  source_set_uuid?: string;
-  artist_id?: number;
-  artist_uuid?: string;
+  id: string;
+  /** v4 songs this track was matched to (more than one for a segue/medley track). */
+  song_ids?: string[];
+  source_id?: string;
+  source_set_id?: string;
+  artist_id?: string;
   track_position?: number;
   duration?: number;
   title?: string;
@@ -142,25 +132,20 @@ export type Track = {
   mp3_md5?: string | null;
   flac_url?: string | null;
   flac_md5?: string | null;
-  uuid?: string;
   created_at?: string;
   updated_at?: string;
 };
 
 export type Show = {
-  id: number;
-  artist_id?: number;
-  artist_uuid?: string;
-  venue_id?: number;
+  id: string;
+  artist_id?: string;
+  venue_id?: string;
   venue?: Venue;
-  venue_uuid?: string | null;
-  tour_id?: number | null;
-  tour_uuid?: string | null;
+  tour_id?: string | null;
   tour?: Tour | null;
-  year_id?: number;
-  year_uuid?: string;
+  year_id?: string;
   year?: number | null;
-  era_id?: number | null;
+  era_id?: string | null;
   era?: null;
   date?: string;
   avg_rating?: number;
@@ -170,22 +155,18 @@ export type Show = {
   has_soundboard_source?: boolean;
   has_streamable_flac_source?: boolean;
   source_count?: number;
-  uuid?: string;
   created_at?: string;
   updated_at?: string;
   popularity?: Popularity | null;
 };
 
 export type TrackSource = {
-  id: number;
-  show_id?: number;
-  show_uuid?: null;
+  id: string;
+  show_id?: string;
   show?: Show;
   artist?: Artist;
-  artist_id?: number;
-  artist_uuid?: string;
-  venue_id?: number;
-  venue_uuid?: string | null;
+  artist_id?: string;
+  venue_id?: string;
   venue?: Venue;
   display_date?: string;
   is_soundboard?: boolean;
@@ -197,13 +178,12 @@ export type TrackSource = {
   avg_rating_weighted?: number;
   duration?: number;
   upstream_identifier?: string;
-  uuid?: string;
   created_at?: string;
   updated_at?: string;
 };
 
 export type LiveHistoryItem = {
-  id: number;
+  id: string;
   app_type_description: string;
   created_at: string;
   track: {
@@ -213,7 +193,7 @@ export type LiveHistoryItem = {
 };
 
 export type ArtistShows = {
-  id: number;
+  id: string;
   shows?: Show[];
   show_count?: number;
   source_count?: number;
@@ -221,49 +201,40 @@ export type ArtistShows = {
   avg_duration?: number;
   avg_rating?: number;
   year?: string;
-  artist_id?: number;
-  artist_uuid?: string;
-  uuid?: string;
+  artist_id?: string;
   created_at?: string;
   updated_at?: string;
 };
 
 export type Song = {
-  id: number;
+  id: string;
   shows_played_at?: number;
-  artist_id?: number;
-  artist_uuid?: string;
+  artist_id?: string;
   name?: string;
   slug?: string;
   upstream_identifier?: string;
   sortName?: string;
-  uuid?: string;
   created_at?: string;
   updated_at?: string;
 };
 
 export type Tour = {
-  id: number;
-  artist_id?: number;
-  artist_uuid?: string;
+  id: string;
+  artist_id?: string;
   start_date?: string;
   end_date?: string;
   name?: string;
   slug?: string;
   upstream_identifier?: string;
   shows_on_tour?: number;
-  uuid?: string;
   created_at?: string;
   updated_at?: string;
 };
 
 export type Set = {
-  id: number;
-  source_id?: number;
-  source_uuid?: string;
-  artist_id?: number;
-  artist_uuid?: string;
-  uuid?: string;
+  id: string;
+  source_id?: string;
+  artist_id?: string;
   index?: number;
   is_encore?: boolean;
   name?: string;
@@ -273,9 +244,9 @@ export type Set = {
 };
 
 export type Link = {
-  id: number;
-  source_id?: number;
-  upstream_source_id?: number;
+  id: string;
+  source_id?: string;
+  upstream_source_id?: string;
   for_reviews?: boolean;
   for_ratings?: boolean;
   for_source?: boolean;
@@ -286,12 +257,11 @@ export type Link = {
 };
 
 export type Source = {
-  id: number;
+  id: string;
   review_count?: number;
   sets?: Set[];
   links?: Link[];
-  show_id?: number;
-  show_uuid?: string;
+  show_id?: string;
   show?: null;
   description?: string;
   taper_notes?: string;
@@ -300,10 +270,8 @@ export type Source = {
   transferrer?: string;
   lineage?: string;
   flac_type?: string;
-  artist_id?: number;
-  artist_uuid?: string;
-  venue_id?: number;
-  venue_uuid?: string;
+  artist_id?: string;
+  venue_id?: string;
   venue?: null;
   display_date?: string;
   is_soundboard?: boolean;
@@ -315,7 +283,6 @@ export type Source = {
   avg_rating_weighted?: number;
   duration?: number;
   upstream_identifier?: string;
-  uuid?: string;
   created_at?: string;
   updated_at?: string;
 };
@@ -324,31 +291,28 @@ export type GaplessMetadata = {
   index?: number;
   playbackType?: string;
   metadata?: {
-    trackId?: number;
+    trackId?: string;
     [key: string]: unknown;
   };
   trackMetadata?: {
-    trackId?: number;
+    trackId?: string;
     [key: string]: unknown;
   };
   webAudioLoadingState?: string;
 };
 
 export type Tape = {
-  id: number;
+  id: string;
   sources?: Source[];
-  artist_id?: number;
-  artist_uuid?: string;
-  venue_id?: number;
+  popularity?: Popularity | null;
+  artist_id?: string;
+  venue_id?: string;
   venue?: Venue;
-  venue_uuid?: string;
-  tour_id?: number;
-  tour_uuid?: string;
+  tour_id?: string | null;
   tour?: Tour;
-  year_id?: number;
-  year_uuid?: string;
+  year_id?: string;
   year?: Year;
-  era_id?: null;
+  era_id?: string | null;
   era?: null;
   date?: string;
   avg_rating?: number;
@@ -358,7 +322,6 @@ export type Tape = {
   has_soundboard_source?: boolean;
   has_streamable_flac_source?: boolean;
   source_count?: number;
-  uuid?: string;
   created_at?: string;
   updated_at?: string;
 };
@@ -373,7 +336,7 @@ export type Playback = {
   month?: string | undefined;
   day?: string | undefined;
   gaplessTracksMetadata?: GaplessMetadata[];
-  currentTrackId?: number | undefined;
+  currentTrackId?: string | undefined;
   artistSlug?: string;
   activeTrack?: ActiveTrack;
 };

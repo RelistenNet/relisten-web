@@ -57,10 +57,10 @@ export const metadata = async () => {
           url: proxyStreamUrl(song?.mp3_url),
         },
       ],
-      images: show?.uuid
+      images: show?.id
         ? [
             {
-              url: `${METADATA_BASE.origin}/album-art/${show.uuid}.png`,
+              url: `${METADATA_BASE.origin}/album-art/${show.id}.png`,
               width: 550,
               height: 550,
             },

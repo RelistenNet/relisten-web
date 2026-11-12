@@ -1,5 +1,5 @@
 import RelistenAPI from '@/lib/RelistenAPI';
-import { mergePlays, slimPlays, slimSummary } from '@/lib/live';
+import { slimSummary } from '@/lib/live';
 import { getCurrentMonthDay } from '@/lib/timezone';
 import LiveListeners from './LiveListeners';
 import PlaybackFeed from './PlaybackFeed';
@@ -10,7 +10,7 @@ export default async function Page() {
 
   const [summary, history] = await Promise.all([
     RelistenAPI.fetchLiveSummary(today),
-    RelistenAPI.fetchLiveHistory(30),
+    RelistenAPI.fetchLivePlays(0, 30),
   ]);
 
   // Request-scoped server render: reading the clock once here is intended.
@@ -20,9 +20,7 @@ export default async function Page() {
     <LiveListeners
       initialSummary={slimSummary(summary, today)}
       today={today}
-      feed={
-        <PlaybackFeed initialPlays={mergePlays([], slimPlays(history))} renderedAt={renderedAt} />
-      }
+      feed={<PlaybackFeed initialPlays={history} renderedAt={renderedAt} />}
     />
   );
 }

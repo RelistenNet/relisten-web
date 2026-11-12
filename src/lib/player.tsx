@@ -5,10 +5,9 @@ import { splitShowDate } from './utils';
 import { scrobblePlay } from './scrobble';
 import { createListenTracker } from './listenTracker';
 import { updatePlayback } from '../redux/modules/playback';
-import { API_DOMAIN } from './constants';
-import { sortSources, sortTracksInSources } from './sortSources';
 import { proxyStreamUrl } from './proxyStreamUrl';
-import type { GaplessMetadata, Track } from '../types';
+import { toSourceParam } from './sourceParam';
+import type { GaplessMetadata, Source, Track } from '../types';
 import { toast } from 'sonner';
 import type { RootState, AppDispatch } from '../redux';
 import { replaceUrl } from '@timber-js/app/client';
@@ -123,11 +122,11 @@ function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Qu
           dismissAutoplayToast();
         }
         const track = store.getState().playback.tracks?.[info.index];
-        if (track?.uuid && listens.progress(track.uuid, info)) scrobblePlay(track.uuid);
+        if (track?.id && listens.progress(track.id, info)) scrobblePlay(track.id);
       }
       const activeTrackUpdate: Record<string, unknown> = info
         ? {
-            id: info.metadata?.trackId as number | undefined,
+            id: info.metadata?.trackId as string | undefined,
             index: info.index,
             currentTime: info.currentTime,
             isPaused: info.isPaused,
@@ -186,14 +185,14 @@ function createQueue(options?: { playbackMethod?: 'HYBRID' | 'HTML5_ONLY' }): Qu
           const basePath = `/${artistSlug}/${year}/${month}/${day}/${songSlug}`;
           const prefixes = ['/embed-track', '/embed'];
           const routePrefix = prefixes.find((p) => window.location.pathname.startsWith(p)) ?? '';
-          const nextUrl = `${routePrefix}${basePath}?source=${source}`;
+          const nextUrl = `${routePrefix}${basePath}?source=${toSourceParam(source)}`;
 
           if (playback !== songSlug) {
             store.dispatch(updatePlayback({ songSlug, artistSlug, year, month, day, source }));
           }
 
           if (songSlug && !routePrefix) {
-            window.localStorage.lastPlayedUrl = `${basePath}?source=${source}`;
+            window.localStorage.lastPlayedUrl = `${basePath}?source=${toSourceParam(source)}`;
             window.localStorage.lastPlayedTrackTitle = track.title ?? '';
             window.localStorage.lastPlayedArtistName = playback.artistName ?? '';
             window.localStorage.lastPlayedShowDate = playback.showDate ?? '';
@@ -291,20 +290,18 @@ export function initGaplessPlayer(nextStore: { dispatch: AppDispatch; getState: 
   if (!restored) return;
 
   restoreController = new AbortController();
-  fetch(
-    `${API_DOMAIN}/api/v2/artists/${restored.artistSlug}/years/${restored.year}/${restored.showDate}`,
-    {
-      signal: restoreController.signal,
-    }
-  )
-    .then((res) => (res.ok ? res.json() : null))
-    .then((show) => {
-      if (!show?.sources?.length) return clearRestoredPlaceholder();
-      const sorted = sortSources(show.sources);
-      sortTracksInSources(sorted);
-      const activeSourceId = Number(restored.source) || sorted[0].id;
-      const activeSource = sorted.find((s) => s.id === activeSourceId);
+  const qs = new URLSearchParams({
+    artist: restored.artistSlug,
+    date: restored.showDate,
+    source: restored.source ?? '',
+  });
+  fetch(`/api/restore?${qs}`, { signal: restoreController.signal })
+    .then((res) => (res.ok ? (res.json() as Promise<{ source: Source | null }>) : null))
+    .then((data) => {
+      const activeSource = data?.source;
       if (!activeSource) return clearRestoredPlaceholder();
+      // Saved state may hold a pre-v4 source id; the server resolved it.
+      store?.dispatch(updatePlayback({ source: activeSource.id }));
       const allTracks = activeSource.sets?.flatMap((set) => set.tracks ?? []).filter(Boolean) ?? [];
       restoreController = null;
       loadTracks(allTracks, restored.songSlug, {

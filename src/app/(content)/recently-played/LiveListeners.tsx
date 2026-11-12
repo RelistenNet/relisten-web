@@ -80,7 +80,7 @@ export default function LiveListeners({ initialSummary, today, feed }: Props) {
           ) : (
             <div className="divide-y divide-hairline overflow-hidden rounded-lg border border-hairline bg-surface">
               {shown.map((artist) => (
-                <ArtistRow key={artist.artistUuid} artist={artist} />
+                <ArtistRow key={artist.artistId} artist={artist} />
               ))}
               {more.length > 0 && (
                 <details className="group/more">
@@ -95,7 +95,7 @@ export default function LiveListeners({ initialSummary, today, feed }: Props) {
                   </summary>
                   <div className="divide-y divide-hairline">
                     {more.map((artist) => (
-                      <ArtistRow key={artist.artistUuid} artist={artist} />
+                      <ArtistRow key={artist.artistId} artist={artist} />
                     ))}
                   </div>
                 </details>
@@ -111,7 +111,7 @@ export default function LiveListeners({ initialSummary, today, feed }: Props) {
 const artistHref = ({ artistSlug, topShow }: LiveArtist) => {
   if (!topShow) return `/${artistSlug}`;
   const { year, month, day } = splitShowDate(topShow.displayDate);
-  const source = topShow.sourceUuid ? `?source=${topShow.sourceUuid}` : '';
+  const source = topShow.sourceParam ? `?source=${topShow.sourceParam}` : '';
   return `/${artistSlug}/${year}/${month}/${day}${source}`;
 };
 
