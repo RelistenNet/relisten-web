@@ -4,10 +4,11 @@ on: workflow_dispatch
 
 permissions:
   contents: read
+  id-token: write
   packages: write
 
 env:
-  IMAGE_NAME: relistennet/relisten-web
+  IMAGE_NAME: relistennet/relisten-web-timber
   REGISTRY: ghcr.io
   KEEP_GHCR_SHA_VERSIONS: '5'
 
@@ -125,5 +126,5 @@ jobs:
       - name: Restart relisten3 deployment
         run: |
           set -euo pipefail
-          kubectl -n default rollout restart deployment/relisten-web
-          kubectl -n default rollout status deployment/relisten-web --timeout=10m
+          kubectl -n default rollout restart deployment/relisten-web-timber
+          kubectl -n default rollout status deployment/relisten-web-timber --timeout=10m
