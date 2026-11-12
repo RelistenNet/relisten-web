@@ -7,14 +7,55 @@ import { toast } from 'sonner';
 const defer = (fn: () => void) => queueMicrotask(fn);
 
 let autoplayToastVisible = false;
+let failureToastVisible = false;
 
-export function showAudioError(): void {
+/**
+ * A track couldn't play (or is stuck loading), with a best guess at why.
+ * One at a time: a newer failure replaces the toast.
+ */
+export function showPlaybackFailure({
+  title,
+  description,
+  stalled = false,
+  skip,
+}: {
+  title: string;
+  description: string;
+  /** Still trying (slow), rather than failed. */
+  stalled?: boolean;
+  /** Skip to the next entry, if there is one. */
+  skip?: () => void;
+}): void {
+  failureToastVisible = true;
+  const show = stalled ? toast.warning : toast.error;
   defer(() =>
-    toast.error('There was an error loading your audio', {
+    show(stalled ? `"${title}" is taking a while to load` : `Can't play "${title}"`, {
       toasterId: 'audio-error',
+      id: 'playback-failure',
+      description,
       duration: Infinity,
+      ...(skip
+        ? {
+            action: {
+              label: 'Skip',
+              onClick: () => {
+                skip();
+                dismissPlaybackFailure();
+              },
+            },
+          }
+        : {}),
+      onDismiss: () => {
+        failureToastVisible = false;
+      },
     })
   );
+}
+
+export function dismissPlaybackFailure(): void {
+  if (!failureToastVisible) return;
+  failureToastVisible = false;
+  defer(() => toast.dismiss('playback-failure'));
 }
 
 export function dismissAutoplayToast(): void {

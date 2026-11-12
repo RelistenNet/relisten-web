@@ -3,6 +3,7 @@ import { Link } from '@timber-js/app/client';
 import Flex from '@/ui/base/Flex';
 import Menu from './Menu';
 import Player from '@/player/PlayerBar';
+import { Toaster } from 'sonner';
 import * as Popover from '@/ui/base/Popover';
 import MainNavHeader from './MainNavHeader';
 import AndroidUpgradeNotification from './AndroidUpgradeNotification';
@@ -49,6 +50,8 @@ export default async function NavBar({
 
   return (
     <>
+      {/* The player's toasts (playback failures, play prompts), wherever the player is. */}
+      <Toaster id="audio-error" position="top-center" offset="54px" richColors closeButton />
       <div
         className="
           navigation relative grid h-[50px] max-h-[50px] min-h-[50px] grid-cols-[auto_1fr_auto]

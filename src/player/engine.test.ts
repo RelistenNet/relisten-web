@@ -172,6 +172,15 @@ describe('engine.sync', () => {
     expect(goto.mock.calls[1][1]?.startTime).toBeUndefined();
   });
 
+  it('starts a surviving current entry at a pending start time (a reload of its track page)', () => {
+    const { q, engine } = setup();
+    engine.sync({ entries: [entry('a'), entry('b')], currentKey: 'b' });
+    const goto = vi.spyOn(q, 'goto');
+    engine.startAt('b', 42);
+    engine.sync({ entries: [entry('a'), entry('b'), entry('c')], currentKey: 'b' });
+    expect(goto).toHaveBeenCalledWith('b', expect.objectContaining({ startTime: 42 }));
+  });
+
   it('stops when nothing is current, instead of restarting a played entry', async () => {
     const { q, cb, engine } = setup();
     engine.sync({ entries: [entry('a'), entry('b')], currentKey: 'b' });

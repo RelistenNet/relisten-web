@@ -45,7 +45,6 @@ const bandsWithThe = [
   'disco-biscuits',
   'drive-by-truckers',
   'g-nome',
-  'grateful-dead',
   'jazz-mandolin-project',
   'phish',
   'sci',

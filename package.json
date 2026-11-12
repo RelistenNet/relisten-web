@@ -44,7 +44,7 @@
     "cmdk": "^1.1.1",
     "css-anchor-kit": "^1.4.0",
     "date-fns": "^4.4.0",
-    "gapless": "5.0.0-alpha.1",
+    "gapless": "5.0.0-alpha.2",
     "isomorphic-fetch": "3.0.0",
     "ky": "^2.2.0",
     "lucide-react": "^1.70.0",

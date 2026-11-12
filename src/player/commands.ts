@@ -7,13 +7,13 @@
 import type { Source } from '@/domain/types';
 import { showContext } from './queue/items';
 import { nextUpKey, type QueueItem } from './queue/model';
-import { canAutoplay } from './autoplay';
+import { browserRefusesAutoplay, canAutoplay } from './autoplay';
 import { getEngine, playbackActor, playerActor, startPlayback } from './runtime';
 import { showPlayPrompt } from './toasts';
 
 /**
  * Play a tape from one of its tracks (a show page, or an embed). Next up is
- * kept. Playing the track that's already current just resumes it.
+ * kept. The track that's already current is left as it is (playing or paused).
  *
  * This is the one path a page load takes (the URL means "play this"), so it
  * plays only after the visitor has interacted with the page (canAutoplay);
@@ -47,15 +47,24 @@ export function playShow({
   // is. Rebuilding the context would undo the listener's removes and moves,
   // and a Next up entry would be swapped for its context copy, moving the
   // cursor and skipping tracks.
+  //
+  // Playback is left alone too: this runs again whenever the URL follows
+  // playback (a skip or a remove while paused mustn't resume), and the
+  // search params lag a render behind the path, so a `?t=` from the link
+  // that started playback would seek the next track.
   const current = playerActor.getSnapshot().context.queue.current;
   const alreadyCurrent =
     current?.item.trackId === start.trackId && current.item.sourceId === start.sourceId;
-  if (!alreadyCurrent) playerActor.send({ type: 'PLAY_CONTEXT', ctx, startKey: start.key });
-  const engine = getEngine();
-  if (startTime && startTime > 0) engine?.seek(startTime);
+  if (alreadyCurrent) return;
+  // The entry isn't loaded yet: start it at `startTime` when the engine makes it current.
+  if (startTime && startTime > 0) getEngine()?.startAt(start.key, startTime);
+  playerActor.send({ type: 'PLAY_CONTEXT', ctx, startKey: start.key });
   if (!play) return;
-  if (canAutoplay()) startPlayback();
-  else showPlayPrompt({ blockedByBrowser: false, playNow: startPlayback });
+  if (!canAutoplay()) showPlayPrompt({ blockedByBrowser: false, playNow: startPlayback });
+  // The browser has said no already: prompt without an attempt, so nothing downloads.
+  else if (browserRefusesAutoplay())
+    showPlayPrompt({ blockedByBrowser: true, playNow: startPlayback });
+  else startPlayback();
 }
 
 /**

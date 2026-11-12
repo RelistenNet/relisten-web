@@ -76,11 +76,16 @@ export function compose(state: QueueState): QueueItem[] {
 
 /**
  * Play a context from `startKey` (a key of one of `ctx.items`, else the
- * first). Next up is kept. Items with a key already in the context, or in
- * Next up, are dropped: gapless needs unique keys.
+ * first). Next up is kept, except the start entry (moved there from a
+ * context). Other items with a key already in the context, or in Next up,
+ * are dropped: gapless needs unique keys.
  */
 export function playContext(state: QueueState, ctx: QueueContext, startKey: string): QueueState {
-  const seen = new Set(state.upNext.map((i) => i.key));
+  // The requested entry plays from the context even if it was moved into Next up.
+  const upNext = ctx.items.some((i) => i.key === startKey)
+    ? state.upNext.filter((i) => i.key !== startKey)
+    : state.upNext;
+  const seen = new Set(upNext.map((i) => i.key));
   const items: QueueItem[] = [];
   for (const item of ctx.items) {
     if (seen.has(item.key)) continue;
@@ -88,9 +93,10 @@ export function playContext(state: QueueState, ctx: QueueContext, startKey: stri
     items.push(item);
   }
   const start = items.find((i) => i.key === startKey) ?? items[0];
-  if (!start) return { ...state, context: { ...ctx, items }, cursor: null };
+  if (!start) return { ...state, upNext, context: { ...ctx, items }, cursor: null };
   return {
     ...state,
+    upNext,
     context: { ...ctx, items },
     current: { key: start.key, from: 'context', item: start },
     cursor: start.key,
@@ -252,8 +258,11 @@ export function move(state: QueueState, key: string, after: string | null): Queu
     ...base,
     context: { ...ctx, items: [...items.slice(0, at), item, ...items.slice(at)] },
   };
-  // Moving the cursor keeps it the cursor.
-  return state.cursor === key ? { ...moved, cursor: key } : moved;
+  // The current entry is the cursor, and stays it wherever it goes. Moving the
+  // cursor while Next up plays (a played entry) leaves the cursor on the entry
+  // before it (withoutContextEntry), so the context continues from where it
+  // was, and the moved entry plays again where it lands.
+  return isCurrent ? { ...moved, cursor: key } : moved;
 }
 
 /**

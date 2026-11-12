@@ -30,7 +30,7 @@ export type QueueMode = 'booting' | 'ready' | 'embed';
 export type PlayerState = { mode: QueueMode; queue: QueueState };
 
 export type PlayerEvent =
-  /** The saved queue, read after hydration. Ignored if the page already started playback. */
+  /** The saved queue, read after hydration. Ignored if the page started another track (see restores). */
   | { type: 'HYDRATE'; saved: QueueState | null }
   | { type: 'EMBED' }
   | { type: 'PLAY_CONTEXT'; ctx: QueueContext; startKey: string }
@@ -44,13 +44,28 @@ export type PlayerEvent =
 
 export const initialPlayer: PlayerState = { mode: 'booting', queue: emptyQueue };
 
+/**
+ * Whether hydrating takes the saved queue over what the page started while
+ * booting: when the page started nothing, or started the saved current track
+ * (a reload of a track page: the URL follows playback, so it names that track).
+ */
+export function restores(page: QueueState, saved: QueueState | null): saved is QueueState {
+  if (!saved) return false;
+  const started = page.current?.item;
+  if (!started) return true;
+  const was = saved.current?.item;
+  return !!was && was.trackId === started.trackId && was.sourceId === started.sourceId;
+}
+
 export function playerTransition(state: PlayerState, event: PlayerEvent): PlayerState {
   const withQueue = (queue: QueueState) => (queue === state.queue ? state : { ...state, queue });
   switch (event.type) {
     case 'HYDRATE': {
       if (state.mode !== 'booting') return state;
-      const pageStarted = !!state.queue.current;
-      return { mode: 'ready', queue: pageStarted || !event.saved ? state.queue : event.saved };
+      return {
+        mode: 'ready',
+        queue: restores(state.queue, event.saved) ? event.saved : state.queue,
+      };
     }
     case 'EMBED':
       return state.mode === 'booting' ? { ...state, mode: 'embed' } : state;

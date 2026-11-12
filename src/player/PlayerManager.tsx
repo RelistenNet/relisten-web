@@ -30,8 +30,9 @@ let embedLoadSynced = false;
 
 /**
  * A track page's URL means "play this tape from this track". The queue keeps
- * Next up; the same tape keeps its loaded audio; the track already playing
- * just resumes (which is also what happens when the URL follows playback).
+ * Next up; the same tape keeps its loaded audio; the track already current is
+ * left alone, playing or paused (which is also what happens when the URL
+ * follows playback).
  */
 export default function PlayerManager(props: PlayerManagerProps) {
   const pathname = usePathname();
@@ -79,9 +80,12 @@ export default function PlayerManager(props: PlayerManagerProps) {
     });
   });
 
+  // trackSlugs by value: a refresh hands over a new array with the same slugs,
+  // which mustn't replay the tape.
+  const trackSlugsKey = props.trackSlugs?.join('\n');
   useEffect(() => {
     syncPlayer();
-  }, [pathname, sourceId, activeSourceObj, props.trackSlugs, songSlug]);
+  }, [pathname, sourceId, activeSourceObj, trackSlugsKey, songSlug]);
 
   return null;
 }
