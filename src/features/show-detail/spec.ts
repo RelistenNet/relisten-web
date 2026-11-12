@@ -18,11 +18,8 @@ export const SHOW_FILTER_IDS = [] as const;
 export const showSearchParams = tableSearchParams(['source']);
 
 export const showTrackSpec: TableSpec<ShowTrackRow> = {
-  sorts: {
-    position: (r) => r.position,
-    title: (r) => r.trackTitle,
-    length: (r) => r.songDuration,
-  },
+  // Play order only: the table has no sortable columns.
+  sorts: { position: (r) => r.position },
   defaultSort: { id: 'position', dir: 'asc' },
   searchText: (r) => r.trackTitle ?? '',
   filters: [],

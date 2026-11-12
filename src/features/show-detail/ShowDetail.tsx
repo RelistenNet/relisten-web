@@ -8,13 +8,12 @@ import { fromSourceParam } from '@/lib/sourceParam';
 import { durationToHHMMSS, numberFormat } from '@/lib/utils';
 import { showLabel, songRowItem } from '@/player/queue/items';
 import PageHeader, { type StatItem } from '@/ui/base/PageHeader';
-import { showColumns } from '@/ui/shows/columns';
 import { formatShowDate } from '@/ui/shows/stats';
 import { VENUE_PILL } from '@/ui/shows/venuePill';
 import DataTable from '@/ui/table/DataTable';
 import { toTableState, type TableParams } from '@/ui/table/params';
 import { queryTable } from '@/ui/table/query';
-import { playColumn, positionColumn, queueColumn, titleColumn } from './columns';
+import { lengthColumn, playColumn, positionColumn, queueColumn, titleColumn } from './columns';
 import { loadShowDetail, trackRows } from './load';
 import SourcesColumn from './SourcesColumn';
 import { SHOW_FILTER_IDS, showSearchParams, showTrackSpec, type ShowTrackRow } from './spec';
@@ -38,7 +37,11 @@ export default async function ShowDetail({
   const source = sources.find((s) => s.id === wanted) ?? sources[0];
   const rows = source ? trackRows(row, source) : [];
 
-  const result = queryTable(rows, showTrackSpec, toTableState(params, SHOW_FILTER_IDS));
+  const result = queryTable(rows, showTrackSpec, {
+    ...toTableState(params, SHOW_FILTER_IDS),
+    // Always play order: a stray `?sort=` (e.g. `-position`) doesn't reorder the tape.
+    sort: undefined,
+  });
   // A row's play button queues the tracks on screen, in table order.
   const visibleItems = result.rows.flatMap((r) => songRowItem(r) ?? []);
   const pathname = href('/artists/[artistSlug]/shows/[showDate]', { artistSlug, showDate });
@@ -100,7 +103,7 @@ export default async function ShowDetail({
             params={params}
             spec={showTrackSpec}
             result={result}
-            columns={[playColumn, positionColumn, titleColumn, showColumns.length, queueColumn]}
+            columns={[playColumn, positionColumn, titleColumn, lengthColumn, queueColumn]}
             rowKey={(r) => r.id}
             rowHref={(r) => r.href}
             noun="song"
