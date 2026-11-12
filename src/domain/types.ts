@@ -147,7 +147,11 @@ export type Track = PlayableTrack & {
   songs?: TrackSong[];
 };
 
-export type TrackSong = { slug: string; name: string };
+/**
+ * A song a track plays. By id: the API's track songs carry no slug, and the
+ * song page resolves an id to the song's slug.
+ */
+export type TrackSong = { id: string; name: string };
 
 /** A row of an artist's song list. */
 export type SongListItem = {

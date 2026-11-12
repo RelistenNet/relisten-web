@@ -80,6 +80,39 @@ describe('toTrack', () => {
     expect(t.slug).toBeUndefined();
     expect(t.duration).toBeUndefined();
   });
+
+  it("carries the file's matched songs, once each", () => {
+    const part = (state: 'matched' | 'non_song', id?: string, name?: string) => ({
+      ordinal: 0,
+      text: name ?? null,
+      qualifiers: null,
+      notes: null,
+      segue_after: false,
+      song: id ? { id, artist_id: 'artist_x', name: name ?? null, kind: 'song' as const } : null,
+      state,
+    });
+    const t = toTrack({
+      ...firstTrack,
+      normalization: {
+        state: 'interpreted',
+        reason: null,
+        parts: [
+          part('matched', 'song_aaaaaaaa', 'Scarlet Begonias'),
+          part('matched', 'song_bbbbbbbb', 'Fire on the Mountain'),
+          part('matched', 'song_aaaaaaaa', 'Scarlet Begonias'),
+          part('non_song'),
+        ],
+      },
+    });
+    expect(t.songs).toEqual([
+      { id: 'song_aaaaaaaa', name: 'Scarlet Begonias' },
+      { id: 'song_bbbbbbbb', name: 'Fire on the Mountain' },
+    ]);
+  });
+
+  it('has no songs for a file that plays none', () => {
+    expect(toTrack(firstTrack)).not.toHaveProperty('songs');
+  });
 });
 
 describe('toShowDetail', () => {

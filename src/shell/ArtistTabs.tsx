@@ -6,7 +6,6 @@ import cn from '@/lib/cn';
 import { artistSections } from '@/lib/artistSections';
 import { DEFAULT_ARTIST_SLUG } from '@/lib/defaultArtist';
 import ArtistPicker from './ArtistPicker';
-import type { ArtistRow } from '@/lib/artistRows';
 import type { ArtistFeatures } from '@/domain/types';
 
 // The artist's sections, under the nav bar on every page: the artist in the URL
@@ -59,10 +58,8 @@ function tabsFor(artistSlug: string, features?: Partial<ArtistFeatures>): Tab[] 
 
 export default function ArtistTabs({
   artist,
-  pickerRows,
 }: {
   artist: { slug: string; name: string; features?: Partial<ArtistFeatures> };
-  pickerRows: ArtistRow[];
 }) {
   const pathname = usePathname();
   const tabs = tabsFor(artist.slug, artist.features);
@@ -72,8 +69,11 @@ export default function ArtistTabs({
       aria-label="Artist"
       className="flex h-9 items-center border-b border-b-hairline bg-surface-raised pl-2 text-sm lg:pl-4"
     >
-      <ArtistPicker rows={pickerRows} current={artist} />
-      <span aria-hidden className="mx-2 h-4 w-px shrink-0 bg-hairline" />
+      {/* Wide screens have the picker in the header's title. */}
+      <div className="flex shrink-0 items-center lg:hidden">
+        <ArtistPicker current={artist} variant="tab" />
+        <span aria-hidden className="mx-2 h-4 w-px shrink-0 bg-hairline" />
+      </div>
       {/* The picker stays put; the tabs scroll when they don't fit. */}
       <ul
         role="list"

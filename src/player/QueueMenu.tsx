@@ -66,7 +66,14 @@ export default function QueueMenu({
             </Menu.Item>
             {!!links?.length && <Menu.Separator className="mx-2 my-1 h-px bg-hairline" />}
             {links?.map((link) => (
-              <Menu.LinkItem key={link.href} className={ITEM} render={<Link href={link.href} />}>
+              // LinkItem stays open by default (built for full page loads); a
+              // client navigation leaves the page behind, so close it.
+              <Menu.LinkItem
+                key={link.href}
+                className={ITEM}
+                closeOnClick
+                render={<Link href={link.href} />}
+              >
                 <MusicIcon size={16} className="shrink-0 text-text-muted" aria-hidden />
                 {link.label}
               </Menu.LinkItem>

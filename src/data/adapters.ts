@@ -26,6 +26,7 @@ import type {
   SourceSet,
   TourSummary,
   Track,
+  TrackSong,
   YearSummary,
 } from '@/domain/types';
 
@@ -144,17 +145,35 @@ export const toTourSummary = (t: Omit<TourResource, 'shows'>): TourSummary | nul
       }
     : null;
 
+/**
+ * The songs a file plays (a segue file holds several), from its normalization.
+ * Files that aren't songs (tuning, banter) have none.
+ */
+const trackSongs = (t: TrackResource): TrackSong[] => {
+  const songs = new Map<string, TrackSong>();
+  for (const part of t.normalization?.parts ?? []) {
+    if (part.state === 'matched' && part.song && !songs.has(part.song.id)) {
+      songs.set(part.song.id, { id: part.song.id, name: part.song.name ?? part.text ?? '' });
+    }
+  }
+  return [...songs.values()];
+};
+
 // Only what the player and track lists read; md5s and set/artist ids aren't used.
-export const toTrack = (t: TrackResource): Track => ({
-  id: t.id,
-  sourceId: t.source_id,
-  position: t.track_position,
-  title: opt(t.title),
-  slug: opt(t.slug),
-  duration: opt(t.duration),
-  mp3Url: t.mp3_url,
-  flacUrl: t.flac_url,
-});
+export const toTrack = (t: TrackResource): Track => {
+  const songs = trackSongs(t);
+  return {
+    id: t.id,
+    sourceId: t.source_id,
+    position: t.track_position,
+    title: opt(t.title),
+    slug: opt(t.slug),
+    duration: opt(t.duration),
+    mp3Url: t.mp3_url,
+    flacUrl: t.flac_url,
+    ...(songs.length && { songs }),
+  };
+};
 
 const toSet = (s: SourceSetResource): SourceSet => ({
   id: s.id,
