@@ -11,6 +11,7 @@ import type {
   PopularityResource,
   ShowSummaryResource,
   SourceResource,
+  SourceReviewResource,
   SourceSetResource,
   TourResource,
   TrackResource,
@@ -23,6 +24,7 @@ import type {
   Popularity,
   Source,
   SourceLink,
+  SourceReview,
   SourceSet,
   TourSummary,
   Track,
@@ -202,3 +204,26 @@ export const toSource = (s: SourceResource): Source => ({
   links: (s.links ?? []).map(toLink),
   sets: (s.sets ?? []).map(toSet),
 });
+
+/** Upstream reviews can carry HTML (links, line breaks); the page shows plain text. */
+const stripTags = (html: string) =>
+  html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .trim();
+
+/** Reviews with no text are dropped. A rating of 0 is upstream's "no rating". */
+export const toSourceReviews = (reviews: SourceReviewResource[]): SourceReview[] =>
+  reviews.flatMap((r) => {
+    const body = stripTags(r.review ?? '');
+    if (!body) return [];
+    return [
+      {
+        id: r.id,
+        rating: r.rating || undefined,
+        title: r.title?.trim() || undefined,
+        body,
+        author: r.author?.trim() || undefined,
+      },
+    ];
+  });

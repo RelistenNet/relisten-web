@@ -1,11 +1,12 @@
 import { href } from '@timber-js/app/routes';
 import { Link } from '@timber-js/app/client';
 import { MapPinIcon } from 'lucide-react';
+import { Suspense } from 'react';
 import cn from '@/lib/cn';
 import { SongQueueProvider } from '@/player/SongQueue';
 import { albumArtSearchParams } from '@/lib/searchParams/albumArtSearchParams';
 import { fromSourceParam } from '@/lib/sourceParam';
-import { durationToHHMMSS, numberFormat } from '@/lib/utils';
+import { durationToHHMMSS } from '@/lib/utils';
 import { showLabel, songRowItem } from '@/player/queue/items';
 import PageHeader, { type StatItem } from '@/ui/base/PageHeader';
 import PopularityBadge from '@/ui/base/PopularityBadge';
@@ -16,10 +17,11 @@ import { toTableState, type TableParams } from '@/ui/table/params';
 import { queryTable } from '@/ui/table/query';
 import { lengthColumn, playColumn, positionColumn, queueColumn, titleColumn } from './columns';
 import { loadShowDetail, trackRows } from './load';
+import Reviews from './Reviews';
 import SourcesColumn from './SourcesColumn';
 import { SHOW_FILTER_IDS, showSearchParams, showTrackSpec, type ShowTrackRow } from './spec';
 
-// A show: its venue and key numbers, then one tape's tracks in play order.
+// A show: its venue and key numbers, then one tape's tracks in play order and its reviews.
 
 export default async function ShowDetail({
   artistSlug,
@@ -50,14 +52,6 @@ export default async function ShowDetail({
   const statItems: StatItem[] = [];
   if (source?.duration) {
     statItems.push({ label: 'Runtime', value: durationToHHMMSS(source.duration) });
-  }
-  if (source && source.avgRating > 0) {
-    const ratings = source.numRatings || source.numReviews;
-    statItems.push({
-      label: 'Rating',
-      value: source.avgRating.toFixed(2),
-      detail: ratings ? `${numberFormat.format(ratings)} ratings` : undefined,
-    });
   }
 
   const venue = show.venue;
@@ -126,6 +120,13 @@ export default async function ShowDetail({
           />
         </div>
       </div>
+
+      {/* Streams in after the tracks: a busy tape has hundreds of reviews. */}
+      {source && source.numReviews > 0 && (
+        <Suspense fallback={null}>
+          <Reviews source={source} />
+        </Suspense>
+      )}
     </div>
   );
 }
