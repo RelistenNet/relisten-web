@@ -1,12 +1,12 @@
-import Tooltip from '@/ui/base/Tooltip';
-import { durationToHHMMSS } from '@/lib/utils';
 import type { ShowRow } from '@/ui/shows/rows';
 import type { Column } from '@/ui/table/types';
-import PlayTrackButton from './PlayTrackButton';
+import PlayTrackButton from '@/player/PlayTrackButton';
 import QueueMenu from '@/player/QueueMenu';
 import { songRowItem } from '@/player/queue/items';
+import { href } from '@timber-js/app/routes';
+import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
 
-// Columns only song pages have: playing a performance in place, and its length.
+// Columns only song pages have: playing a performance in place, and queueing it.
 
 export const playColumn: Column<ShowRow> = {
   id: 'play',
@@ -31,38 +31,26 @@ export const playColumn: Column<ShowRow> = {
     ) : null,
 };
 
-export const lengthColumn: Column<ShowRow> = {
-  id: 'length',
-  width: 'w-24',
-  label: 'Length',
-  sortable: true,
-  firstDir: 'desc',
-  align: 'right',
-  // "~": measured from files that also hold other songs (a segue), so it runs long.
-  // The tooltip names the whole file, so it's clear what the "~" length covers.
-  cell: (r) => {
-    if (!r.songDuration) return '—';
-    const length = durationToHHMMSS(Math.round(r.songDuration));
-    if (!r.songDurationApprox) return length;
-    return (
-      <Tooltip
-        content={r.trackTitle ?? 'Measured from a file that includes other songs'}
-        align="left"
-      >
-        <span tabIndex={0} className="cursor-help underline decoration-dotted underline-offset-4">
-          ~{length}
-        </span>
-      </Tooltip>
-    );
-  },
-};
-
-/** Play next / Add to queue for a performance. */
+/** Play next / Add to queue for a performance, and a link to its show (on the performance's tape). */
 export const queueColumn: Column<ShowRow> = {
   id: 'queue',
   width: 'w-14',
   label: 'Queue',
   srOnlyLabel: true,
   align: 'right',
-  cell: (r) => <QueueMenu item={songRowItem(r)} />,
+  cell: (r) => (
+    <QueueMenu
+      item={songRowItem(r)}
+      links={[
+        {
+          label: 'View show',
+          href: href(
+            '/artists/[artistSlug]/shows/[showDate]',
+            { artistSlug: r.artistSlug, showDate: r.date },
+            sourceQuery(r.track?.sourceId)
+          ),
+        },
+      ]}
+    />
+  ),
 };

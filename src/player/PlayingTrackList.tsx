@@ -4,17 +4,8 @@ import { useCallback, useMemo } from 'react';
 import type { SongsShow, SongsSource, SongsTrack } from '@/lib/showProjection';
 import TrackList, { type PlayingTrack, type Props } from '@/ui/shows/TrackList';
 import { useCurrentItem, useTrackStatuses } from './hooks';
-import { showTrackItem } from './queue/items';
-import QueueMenu, { type QueueMenuLink } from './QueueMenu';
-import { href } from '@timber-js/app/routes';
-
-/** A link per song: a file can hold several (a segue). */
-const songLinks = (artistSlug: string, track: SongsTrack): QueueMenuLink[] =>
-  (track.songs ?? []).map((song) => ({
-    label: `See all ${song.name}`,
-    // The song page redirects an id to the song's slug.
-    href: href('/artists/[artistSlug]/songs/[songSlug]', { artistSlug, songSlug: song.id }),
-  }));
+import { showTrackItem, songLinks } from './queue/items';
+import QueueMenu from './QueueMenu';
 
 /**
  * A tape's track list, marking the playing track and its tracks' load states,
@@ -44,7 +35,7 @@ export default function PlayingTrackList({
             artistSlug,
             artistName,
           })}
-          links={songLinks(artistSlug, track)}
+          links={songLinks(artistSlug, track.songs)}
         />
       ) : null,
     [canQueue, show, artistSlug, artistName]

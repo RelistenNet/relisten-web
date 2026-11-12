@@ -40,6 +40,8 @@ export default defineSchema({
     // guid() rather than uuid(): accepts any 8-4-4-4-12 hex without enforcing
     // RFC version/variant bits.
     '[showId]': z.union([z.string().regex(/^show_[0-7][0-9a-hjkmnp-tv-z]{25}$/), z.guid()]),
+    // A show page's date: YYYY-MM-DD.
+    '[showDate]': z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     '[slug]': codec.string,
 
     '[...days]': codec.catchAll(slugSegment),
