@@ -2,7 +2,7 @@ import { findArtistBySlug } from '@/data/artists';
 import { loadRandomShow } from '@/features/browse/load';
 import BrowseColumn from '@/features/browse/BrowseColumn';
 import ShowsColumn from '@/features/browse/ShowsColumn';
-import TapesColumn from '@/features/browse/TapesColumn';
+import TapesColumn from '@/ui/shows/TapesColumn';
 import TrackList from '@/player/PlayingTrackList';
 import { songsProjection, tapesProjection } from '@/lib/showProjection';
 import { splitShowDate } from '@/lib/utils';

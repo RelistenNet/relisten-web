@@ -31,8 +31,8 @@ export default function PageHeader({ cover, title, meta, aside, stats, children 
 
   return (
     <header className="flex flex-col gap-5">
-      {/* Title on the left, stats top right; the stats wrap under the title when the row is too narrow. */}
-      <div className="flex flex-wrap items-start justify-between gap-x-10 gap-y-5">
+      {/* Title on the left, stats on the right, centered on each other; the stats wrap under the title when the row is too narrow. */}
+      <div className="flex flex-wrap items-center justify-between gap-x-10 gap-y-5">
         <div className="flex max-w-full min-w-0 items-center gap-5">
           {cover && <div className="shrink-0">{cover}</div>}
           <div className="flex min-w-0 flex-col gap-0.5">
@@ -70,7 +70,8 @@ function StatList({ items }: { items: StatItem[] }) {
         <div
           key={item.label}
           className={cn(
-            'flex min-w-0 flex-col sm:px-6',
+            // Cells stretch to the tallest, so the hairlines match; a shorter cell's text sits in the middle.
+            'flex min-w-0 flex-col justify-center sm:px-6',
             i === 0 ? 'sm:pl-0' : 'sm:border-l sm:border-hairline',
             i === items.length - 1 && 'sm:pr-0'
           )}

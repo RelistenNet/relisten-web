@@ -4,10 +4,11 @@ import { MapPinIcon } from 'lucide-react';
 import cn from '@/lib/cn';
 import { SongQueueProvider } from '@/player/SongQueue';
 import { albumArtSearchParams } from '@/lib/searchParams/albumArtSearchParams';
-import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
 import { fromSourceParam } from '@/lib/sourceParam';
-import { durationToHHMMSS, numberFormat, splitShowDate } from '@/lib/utils';
+import { durationToHHMMSS, numberFormat } from '@/lib/utils';
 import { showLabel, songRowItem } from '@/player/queue/items';
+import type { Source } from '@/domain/types';
+import Tag from '@/ui/base/Tag';
 import PageHeader, { type StatItem } from '@/ui/base/PageHeader';
 import { showColumns } from '@/ui/shows/columns';
 import { formatShowDate } from '@/ui/shows/stats';
@@ -17,6 +18,7 @@ import { toTableState, type TableParams } from '@/ui/table/params';
 import { queryTable } from '@/ui/table/query';
 import { playColumn, positionColumn, queueColumn, titleColumn } from './columns';
 import { loadShowDetail, trackRows } from './load';
+import SourcePicker from './SourcePicker';
 import { SHOW_FILTER_IDS, showSearchParams, showTrackSpec, type ShowTrackRow } from './spec';
 
 // A show: its venue and key numbers, then one tape's tracks in play order.
@@ -42,12 +44,6 @@ export default async function ShowDetail({
   // A row's play button queues the tracks on screen, in table order.
   const visibleItems = result.rows.flatMap((r) => songRowItem(r) ?? []);
   const pathname = href('/artists/[artistSlug]/shows/[showDate]', { artistSlug, showDate });
-  const { year, month, day } = splitShowDate(show.date);
-  const browseHref = href(
-    '/[artistSlug]/[year]/[month]/[day]',
-    { artistSlug, year, month, day },
-    sourceQuery(source?.id)
-  );
   const setCount = source?.sets.length ?? 0;
 
   const statItems: StatItem[] = [
@@ -58,22 +54,31 @@ export default async function ShowDetail({
     },
   ];
   if (source?.duration) {
+    statItems.push({ label: 'Length', value: durationToHHMMSS(source.duration) });
+  }
+  if (source) {
+    const credit = sourceCredit(source);
     statItems.push({
-      label: 'Length',
-      value: durationToHHMMSS(source.duration),
-      detail: source.isSoundboard ? 'Soundboard' : undefined,
+      label: 'Source',
+      value: (
+        <span title={credit?.name}>
+          {credit?.name ?? `${sources.indexOf(source) + 1} of ${sources.length}`}
+          {source.isSoundboard && <Tag className="ml-2 align-middle">SBD</Tag>}
+        </span>
+      ),
+      // With other tapes to pick from, the picker takes the line the credit's role would.
+      detail:
+        sources.length > 1 ? (
+          <SourcePicker
+            artistSlug={artistSlug}
+            showDate={showDate}
+            sources={sources.map((s) => ({ ...s, sets: [] }))}
+          />
+        ) : (
+          credit?.role
+        ),
     });
   }
-  statItems.push({
-    label: 'Tapes',
-    value: numberFormat.format(show.tapes),
-    detail:
-      show.tapes > 1 ? (
-        <Link href={browseHref} className="hover:text-accent">
-          Compare tapes
-        </Link>
-      ) : undefined,
-  });
   if (source && source.avgRating > 0) {
     const ratings = source.numRatings || source.numReviews;
     statItems.push({
@@ -127,6 +132,14 @@ export default async function ShowDetail({
       </SongQueueProvider>
     </div>
   );
+}
+
+/** Who made the tape: its taper, else its transferrer. Archive.org's "unknown" counts as none. */
+function sourceCredit(source: Source) {
+  const known = (name?: string) => !!name && !/unknown/i.test(name);
+  if (known(source.taper)) return { name: source.taper, role: 'Taper' };
+  if (known(source.transferrer)) return { name: source.transferrer, role: 'Transferrer' };
+  return undefined;
 }
 
 /** The venue, linking to its page for this artist (as in the browse view's show header). */

@@ -1,7 +1,7 @@
 import { findArtistBySlug } from '@/data/artists';
 import BrowseColumn from '@/features/browse/BrowseColumn';
 import { loadShow } from '@/features/browse/load';
-import TapesColumn from '@/features/browse/TapesColumn';
+import TapesColumn from '@/ui/shows/TapesColumn';
 import TrackList from '@/player/PlayingTrackList';
 import { songsProjection, tapesProjection } from '@/lib/showProjection';
 import { createShowDate } from '@/lib/utils';
