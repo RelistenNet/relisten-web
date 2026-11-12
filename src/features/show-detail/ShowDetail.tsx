@@ -7,8 +7,6 @@ import { albumArtSearchParams } from '@/lib/searchParams/albumArtSearchParams';
 import { fromSourceParam } from '@/lib/sourceParam';
 import { durationToHHMMSS, numberFormat } from '@/lib/utils';
 import { showLabel, songRowItem } from '@/player/queue/items';
-import type { Source } from '@/domain/types';
-import Tag from '@/ui/base/Tag';
 import PageHeader, { type StatItem } from '@/ui/base/PageHeader';
 import { showColumns } from '@/ui/shows/columns';
 import { formatShowDate } from '@/ui/shows/stats';
@@ -18,7 +16,7 @@ import { toTableState, type TableParams } from '@/ui/table/params';
 import { queryTable } from '@/ui/table/query';
 import { playColumn, positionColumn, queueColumn, titleColumn } from './columns';
 import { loadShowDetail, trackRows } from './load';
-import SourcePicker from './SourcePicker';
+import SourcesColumn from './SourcesColumn';
 import { SHOW_FILTER_IDS, showSearchParams, showTrackSpec, type ShowTrackRow } from './spec';
 
 // A show: its venue and key numbers, then one tape's tracks in play order.
@@ -55,29 +53,6 @@ export default async function ShowDetail({
   ];
   if (source?.duration) {
     statItems.push({ label: 'Length', value: durationToHHMMSS(source.duration) });
-  }
-  if (source) {
-    const credit = sourceCredit(source);
-    statItems.push({
-      label: 'Source',
-      value: (
-        <span title={credit?.name}>
-          {credit?.name ?? `${sources.indexOf(source) + 1} of ${sources.length}`}
-          {source.isSoundboard && <Tag className="ml-2 align-middle">SBD</Tag>}
-        </span>
-      ),
-      // With other tapes to pick from, the picker takes the line the credit's role would.
-      detail:
-        sources.length > 1 ? (
-          <SourcePicker
-            artistSlug={artistSlug}
-            showDate={showDate}
-            sources={sources.map((s) => ({ ...s, sets: [] }))}
-          />
-        ) : (
-          credit?.role
-        ),
-    });
   }
   if (source && source.avgRating > 0) {
     const ratings = source.numRatings || source.numReviews;
@@ -117,29 +92,38 @@ export default async function ShowDetail({
         stats={statItems}
       />
 
-      <SongQueueProvider label={showLabel(row.artistName, show.date)} items={visibleItems}>
-        <DataTable<ShowTrackRow>
-          pathname={pathname}
-          params={params}
-          spec={showTrackSpec}
-          result={result}
-          columns={[playColumn, positionColumn, titleColumn, showColumns.length, queueColumn]}
-          rowKey={(r) => r.id}
-          rowHref={(r) => r.href}
-          noun="song"
-          controls={false}
-        />
-      </SongQueueProvider>
+      {/* The tracks, with the show's tapes beside them as in the browse view; stacked below lg. */}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+        <SongQueueProvider label={showLabel(row.artistName, show.date)} items={visibleItems}>
+          <DataTable<ShowTrackRow>
+            pathname={pathname}
+            params={params}
+            spec={showTrackSpec}
+            result={result}
+            columns={[playColumn, positionColumn, titleColumn, showColumns.length, queueColumn]}
+            rowKey={(r) => r.id}
+            rowHref={(r) => r.href}
+            noun="song"
+            controls={false}
+          />
+        </SongQueueProvider>
+        {/* Sticky and scrolling on its own on lg, under the 50px nav bar and the page's margin. */}
+        <div
+          className="
+            flex flex-col overflow-hidden rounded-lg border border-hairline
+            lg:sticky lg:top-6 lg:max-h-[calc(100dvh-50px-3rem)]
+            [&_.relisten-column]:min-h-0
+          "
+        >
+          <SourcesColumn
+            artistSlug={artistSlug}
+            showDate={showDate}
+            sources={sources.map((s) => ({ ...s, sets: [] }))}
+          />
+        </div>
+      </div>
     </div>
   );
-}
-
-/** Who made the tape: its taper, else its transferrer. Archive.org's "unknown" counts as none. */
-function sourceCredit(source: Source) {
-  const known = (name?: string) => !!name && !/unknown/i.test(name);
-  if (known(source.taper)) return { name: source.taper, role: 'Taper' };
-  if (known(source.transferrer)) return { name: source.transferrer, role: 'Transferrer' };
-  return undefined;
 }
 
 /** The venue, linking to its page for this artist (as in the browse view's show header). */
@@ -160,7 +144,10 @@ function VenuePill({
   const className = cn(VENUE_PILL, 'inline-flex max-w-full px-2 py-0.5 align-middle text-sm');
   return venue.slug ? (
     <Link
-      href={href('/artists/[artistSlug]/venues/[venueSlug]', { artistSlug, venueSlug: venue.slug })}
+      href={href('/artists/[artistSlug]/venues/[venueSlug]', {
+        artistSlug,
+        venueSlug: venue.slug,
+      })}
       title={venue.name}
       className={cn(className, 'hover:bg-text-primary/10')}
     >
