@@ -43,5 +43,9 @@ export const toBrowseShowSummaries = (shows: ShowSummaryResource[] | null | unde
 export function toShowDetail(s: ShowResource): ShowDetail {
   const sources = sortSources((s.sources ?? []).map(toSource));
   sortTracksInSources(sources);
-  return { ...summaryOf(s, s.display_date ?? ''), sources };
+  return {
+    ...summaryOf(s, s.display_date ?? ''),
+    popularity: toPopularity(s.popularity),
+    sources,
+  };
 }

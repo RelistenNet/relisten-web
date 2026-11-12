@@ -1,7 +1,8 @@
 'use client';
 
 import { Menu } from '@base-ui/react/menu';
-import { EllipsisVerticalIcon, ListEndIcon, ListStartIcon } from 'lucide-react';
+import { Link } from '@timber-js/app/client';
+import { EllipsisVerticalIcon, ListEndIcon, ListStartIcon, MusicIcon } from 'lucide-react';
 import cn from '@/lib/cn';
 import { addToQueue, playNext } from './commands';
 import type { QueueItem } from './queue/model';
@@ -11,12 +12,17 @@ const ITEM = `
   select-none data-highlighted:bg-surface-hover sm:py-1.5 sm:pr-2.5 sm:pl-2 sm:text-sm
 `;
 
-/** A track's "⋯" menu: Play next, Add to queue. */
+/** A page the menu links to, below the queue actions. */
+export type QueueMenuLink = { label: string; href: string };
+
+/** A track's "⋯" menu: Play next, Add to queue, then any links (its songs' pages). */
 export default function QueueMenu({
   item,
+  links,
   className,
 }: {
   item: QueueItem | null;
+  links?: QueueMenuLink[];
   className?: string;
 }) {
   if (!item) return null;
@@ -58,6 +64,20 @@ export default function QueueMenu({
               <ListEndIcon size={16} className="shrink-0 text-text-muted" aria-hidden />
               Add to queue
             </Menu.Item>
+            {!!links?.length && <Menu.Separator className="mx-2 my-1 h-px bg-hairline" />}
+            {links?.map((link) => (
+              // LinkItem stays open by default (built for full page loads); a
+              // client navigation leaves the page behind, so close it.
+              <Menu.LinkItem
+                key={link.href}
+                className={ITEM}
+                closeOnClick
+                render={<Link href={link.href} />}
+              >
+                <MusicIcon size={16} className="shrink-0 text-text-muted" aria-hidden />
+                {link.label}
+              </Menu.LinkItem>
+            ))}
           </Menu.Popup>
         </Menu.Positioner>
       </Menu.Portal>

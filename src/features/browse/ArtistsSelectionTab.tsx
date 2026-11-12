@@ -1,36 +1,30 @@
 'use client';
 
 import cn from '@/lib/cn';
-import { fromArtistRow, type ArtistListItem, type ArtistRow } from '@/lib/artistRows';
-import { useSegmentParams } from '@timber-js/app/client';
+import { usePrimaryArtists } from '@/shell/primaryArtistsContext';
+import { loadArchive } from '@/lib/archiveArtists';
 import { X } from 'lucide-react';
-import { Suspense, use, useMemo, useRef, useState, useTransition } from 'react';
+import { Suspense, use, useRef, useState, useTransition } from 'react';
 import { browser } from 'react-dom';
 import ArtistsColumnWithControls, {
-  type ArchiveLoader,
+  type ArtistLinks,
   type ArtistsTab,
 } from './ArtistsColumnWithControls';
 
-type ArtistsSelectionTabProps = {
-  /** Primary (featured ≤ 1) artists, sent with the page shell. */
-  primary: ArtistRow[];
+type ArtistsSelectionTabProps = ArtistLinks & {
+  /**
+   * The artist picker's popover rather than the browse view's column: a fixed
+   * height, a focused filter, arrow keys between rows, and `onNavigate` when a
+   * row is followed (to close the popover).
+   */
+  compact?: boolean;
+  onNavigate?: () => void;
 };
 
 /**
- * A loader for the archive list: fetches on the first call and returns that
- * same request afterwards. Resolves to `null` on failure instead of
- * rejecting, since `use()` would throw a rejection to the error boundary.
- */
-function createArchiveLoader(): ArchiveLoader {
-  let request: Promise<ArtistListItem[] | null> | undefined;
-  return () =>
-    (request ??= fetch('/api/artists/archive')
-      .then((res) => (res.ok ? (res.json() as Promise<ArtistRow[]>) : null))
-      .then((rows) => rows && rows.map(fromArtistRow))
-      .catch(() => null));
-}
-
-/**
+ * Every artist list: the browse view's artists column, and (compact) the
+ * artist picker's popover.
+ *
  * The archive list is fetched and rendered in the browser only. The two
  * things that need it, the artist list and the archive tab's count, each read
  * it under their own Suspense boundary, whose fallback (what the server
@@ -39,13 +33,13 @@ function createArchiveLoader(): ArchiveLoader {
  * those boundaries, so the archive arriving never remounts it: focus, caret
  * and scroll position are kept.
  */
-const ArtistsSelectionTab = ({ primary }: ArtistsSelectionTabProps) => {
-  const primaryArtists = useMemo(() => primary.map(fromArtistRow), [primary]);
-  const { artistSlug } = useSegmentParams('/(browse)/[artistSlug]');
-
-  // Held here, above the boundaries: a component that suspends on mount loses
-  // its state, which would start a new request on every retry.
-  const [loadArchive] = useState(createArchiveLoader);
+const ArtistsSelectionTab = ({
+  currentSlug: artistSlug,
+  hrefFor,
+  compact = false,
+  onNavigate,
+}: ArtistsSelectionTabProps) => {
+  const primaryArtists = usePrimaryArtists();
 
   // An artist that isn't primary is an archive artist (or doesn't exist, in
   // which case the tab doesn't matter), so this needs only the primary list.
@@ -71,9 +65,12 @@ const ArtistsSelectionTab = ({ primary }: ArtistsSelectionTabProps) => {
       label: (
         <>
           Archive Artists (
-          <Suspense fallback="…">
-            <ArchiveCount loadArchive={loadArchive} />
-          </Suspense>
+          {/* Four digits wide whatever it holds, so the label doesn't shift when the count arrives. */}
+          <span className="inline-block min-w-[4ch] text-center tabular-nums">
+            <Suspense fallback="…">
+              <ArchiveCount />
+            </Suspense>
+          </span>
           )
         </>
       ),
@@ -111,6 +108,7 @@ const ArtistsSelectionTab = ({ primary }: ArtistsSelectionTabProps) => {
         <input
           ref={searchInputRef}
           type="text"
+          autoFocus={compact}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Filter artists…"
@@ -134,21 +132,48 @@ const ArtistsSelectionTab = ({ primary }: ArtistsSelectionTabProps) => {
     </>
   );
 
-  return (
+  const column = (
     <ArtistsColumnWithControls
       primaryArtists={primaryArtists}
-      loadArchive={loadArchive}
       tab={tab}
       searchQuery={searchQuery}
       subHeader={subHeader}
       isPending={isPending}
+      compact={compact}
+      currentSlug={artistSlug}
+      hrefFor={hrefFor}
     />
+  );
+  if (!compact) return column;
+
+  // Arrow keys move between the filter and the rows' links. The list is
+  // virtualized, but focusing a row scrolls it into view, which renders the
+  // rows beyond it.
+  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    const links = [...e.currentTarget.querySelectorAll<HTMLAnchorElement>('a[href]')];
+    const at = links.indexOf(document.activeElement as HTMLAnchorElement);
+    const next = e.key === 'ArrowDown' ? at + 1 : at - 1;
+    e.preventDefault();
+    if (next < 0) searchInputRef.current?.focus();
+    else links[Math.min(next, links.length - 1)]?.focus();
+  };
+
+  return (
+    // Bubbling: runs after the row's own click handler has started the navigation.
+    <div
+      onKeyDown={onKeyDown}
+      onClick={(e) => (e.target as Element).closest('a[href]') && onNavigate?.()}
+    >
+      {column}
+    </div>
   );
 };
 
-function ArchiveCount({ loadArchive }: { loadArchive: ArchiveLoader }) {
+function ArchiveCount() {
   use(browser());
-  return use(loadArchive())?.length ?? '…';
+  // Loading is the Suspense fallback's "…"; a failed load has no count.
+  return use(loadArchive())?.length ?? '–';
 }
 
 export default ArtistsSelectionTab;

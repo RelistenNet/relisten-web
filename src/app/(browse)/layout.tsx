@@ -21,7 +21,7 @@ export default function BrowseLayout({
 }) {
   return (
     <Flex column className="lg:h-dvh">
-      <NavBar />
+      <NavBar defaultToArtist />
       <MobileBrowseNav />
       <BrowseContainer>
         <div className="browse-col">{artists}</div>

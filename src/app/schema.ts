@@ -24,7 +24,12 @@ export default defineSchema({
     '[artistSlug]': z.string().regex(SLUG),
     '[day]': z.string().regex(MONTH_OR_DAY),
     '[month]': z.string().regex(MONTH_OR_DAY),
-    '[songSlug]': z.string().regex(SLUG),
+    // A song slug, or a song id (song_…): track menus link by id, since the
+    // API's track songs carry no slug. The page redirects an id to its slug.
+    '[songSlug]': z.union([
+      z.string().regex(SLUG),
+      z.string().regex(/^song_[0-9a-hjkmnp-tv-z]{8}$/),
+    ]),
     '[tourSlug]': z.string().regex(SLUG),
     // Canonical venue slugs, or an imported venue's id (imported_venue_…).
     '[venueSlug]': z.string().regex(/^[a-z0-9_-]+$/i),
