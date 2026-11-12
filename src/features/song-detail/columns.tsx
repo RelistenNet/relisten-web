@@ -3,8 +3,6 @@ import type { Column } from '@/ui/table/types';
 import PlayTrackButton from '@/player/PlayTrackButton';
 import QueueMenu from '@/player/QueueMenu';
 import { songRowItem } from '@/player/queue/items';
-import { href } from '@timber-js/app/routes';
-import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
 
 // Columns only song pages have: playing a performance in place, and queueing it.
 
@@ -31,26 +29,12 @@ export const playColumn: Column<ShowRow> = {
     ) : null,
 };
 
-/** Play next / Add to queue for a performance, and a link to its show (on the performance's tape). */
+/** Play next / Add to queue for a performance. */
 export const queueColumn: Column<ShowRow> = {
   id: 'queue',
   width: 'w-14',
   label: 'Queue',
   srOnlyLabel: true,
   align: 'right',
-  cell: (r) => (
-    <QueueMenu
-      item={songRowItem(r)}
-      links={[
-        {
-          label: 'View show',
-          href: href(
-            '/artists/[artistSlug]/shows/[showDate]',
-            { artistSlug: r.artistSlug, showDate: r.date },
-            sourceQuery(r.track?.sourceId)
-          ),
-        },
-      ]}
-    />
-  ),
+  cell: (r) => <QueueMenu item={songRowItem(r)} />,
 };

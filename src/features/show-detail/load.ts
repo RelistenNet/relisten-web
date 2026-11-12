@@ -23,7 +23,7 @@ export const loadShowDetail = cache(async (artistSlug: string, date: string) => 
   return { show, row, sources: sortSources(show.sources) };
 });
 
-/** A tape's tracks as rows, in play order. Each links to its track page on the browse view. */
+/** A tape's tracks as rows, in play order. Each links to its track (or show) page on the browse view. */
 export const trackRows = (show: ShowRow, source: Source): ShowTrackRow[] => {
   const { year, month, day } = splitShowDate(show.date);
   return source.sets.flatMap((set) =>
@@ -36,7 +36,11 @@ export const trackRows = (show: ShowRow, source: Source): ShowTrackRow[] => {
             { artistSlug: show.artistSlug, year, month, day, songSlug: track.slug },
             sourceQuery(source.id)
           )
-        : show.href,
+        : href(
+            '/[artistSlug]/[year]/[month]/[day]',
+            { artistSlug: show.artistSlug, year, month, day },
+            sourceQuery(source.id)
+          ),
       track,
       trackTitle: track.title,
       songDuration: track.duration ?? null,
