@@ -8,6 +8,7 @@ import { fromSourceParam } from '@/lib/sourceParam';
 import { durationToHHMMSS, numberFormat } from '@/lib/utils';
 import { showLabel, songRowItem } from '@/player/queue/items';
 import PageHeader, { type StatItem } from '@/ui/base/PageHeader';
+import PopularityBadge from '@/ui/base/PopularityBadge';
 import { formatShowDate } from '@/ui/shows/stats';
 import { VENUE_PILL } from '@/ui/shows/venuePill';
 import DataTable from '@/ui/table/DataTable';
@@ -45,17 +46,10 @@ export default async function ShowDetail({
   // A row's play button queues the tracks on screen, in table order.
   const visibleItems = result.rows.flatMap((r) => songRowItem(r) ?? []);
   const pathname = href('/artists/[artistSlug]/shows/[showDate]', { artistSlug, showDate });
-  const setCount = source?.sets.length ?? 0;
 
-  const statItems: StatItem[] = [
-    {
-      label: 'Songs',
-      value: numberFormat.format(rows.length),
-      detail: setCount > 1 ? `${setCount} sets` : undefined,
-    },
-  ];
+  const statItems: StatItem[] = [];
   if (source?.duration) {
-    statItems.push({ label: 'Length', value: durationToHHMMSS(source.duration) });
+    statItems.push({ label: 'Runtime', value: durationToHHMMSS(source.duration) });
   }
   if (source && source.avgRating > 0) {
     const ratings = source.numRatings || source.numReviews;
@@ -65,7 +59,6 @@ export default async function ShowDetail({
       detail: ratings ? `${numberFormat.format(ratings)} ratings` : undefined,
     });
   }
-  statItems.push({ label: 'Plays (30d)', value: numberFormat.format(show.plays30d) });
 
   const venue = show.venue;
 
@@ -90,6 +83,14 @@ export default async function ShowDetail({
         meta={[
           venue?.name && <VenuePill key="venue" artistSlug={artistSlug} venue={venue} />,
           venue?.location,
+          // The badge renders nothing without plays; skip it so no stray " · " shows.
+          !!show.popularity?.windows?.['30d']?.plays && (
+            <PopularityBadge
+              key="plays"
+              popularity={show.popularity}
+              className="inline-flex align-middle text-base tracking-normal text-text-muted sm:text-sm"
+            />
+          ),
           show.tourName,
         ]}
         stats={statItems}

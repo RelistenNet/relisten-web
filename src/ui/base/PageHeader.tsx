@@ -40,14 +40,15 @@ export default function PageHeader({ cover, title, meta, aside, stats, children 
               {title}
             </h1>
             {metaItems.length > 0 && (
-              <p className="mb-0 text-base text-pretty text-text-muted sm:text-sm">
+              // A div, not a p: items can be block elements (a tooltip trigger).
+              <div className="text-base text-pretty text-text-muted sm:text-sm">
                 {metaItems.map((item, i) => (
                   <Fragment key={i}>
                     {i > 0 && <span aria-hidden> · </span>}
                     {item}
                   </Fragment>
                 ))}
-              </p>
+              </div>
             )}
             {aside && <div className="mt-2 flex">{aside}</div>}
           </div>
