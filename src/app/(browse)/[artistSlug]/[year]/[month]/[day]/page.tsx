@@ -1,10 +1,12 @@
+import BrowseColumn from '@/features/browse/BrowseColumn';
 import { loadArtists, loadShow } from '@/features/browse/load';
 import { METADATA_BASE } from '@/lib/constants';
 import { createShowDate } from '@/lib/utils';
 import { getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 
-export default () => null;
+// The show layout renders its columns; the main column is empty until a song is picked.
+export default () => <BrowseColumn />;
 
 export const metadata = async () => {
   const params = getSegmentParams(SEGMENT_PATH);

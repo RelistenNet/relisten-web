@@ -5,4 +5,5 @@ export default defineConfig({
   output: 'server',
   adapter: nitro({ preset: 'node-server' }),
   pageExtensions: ['tsx', 'ts', 'jsx', 'js', 'mdx'],
+  layoutDefaults: { lifetime: 'document', key: { headers: ['user-agent'] } },
 });

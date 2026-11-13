@@ -1,3 +1,4 @@
+import BrowseColumn from '@/features/browse/BrowseColumn';
 import { loadArtists, loadShow } from '@/features/browse/load';
 import { METADATA_BASE } from '@/lib/constants';
 import PlayerManager from '@/player/PlayerManager';
@@ -28,7 +29,11 @@ export default async function Page() {
   const artistName = artists?.find((a) => a.slug === artistSlug)?.name;
   const { source } = sourceSearchParamsLoader.get();
 
-  return <PlayerManager {...params} show={show} artistName={artistName} source={source} />;
+  return (
+    <BrowseColumn>
+      <PlayerManager {...params} show={show} artistName={artistName} source={source} />
+    </BrowseColumn>
+  );
 }
 
 export const metadata = async () => {
