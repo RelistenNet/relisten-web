@@ -22,11 +22,13 @@ type Props = {
   /** Controls under the title's meta line (a date picker, a scope select). */
   aside?: ReactNode;
   stats?: StatItem[];
+  /** Controls at the right end of the title row (a link to another view of the page). */
+  actions?: ReactNode;
   /** Full-width content under the title row, such as a YearChart. */
   children?: ReactNode;
 };
 
-export default function PageHeader({ cover, title, meta, aside, stats, children }: Props) {
+export default function PageHeader({ cover, title, meta, aside, stats, actions, children }: Props) {
   const metaItems = meta?.filter(Boolean) ?? [];
 
   return (
@@ -54,6 +56,7 @@ export default function PageHeader({ cover, title, meta, aside, stats, children 
           </div>
         </div>
         {stats && stats.length > 0 && <StatList items={stats} />}
+        {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
       </div>
       {children}
     </header>

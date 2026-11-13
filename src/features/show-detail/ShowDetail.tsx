@@ -1,12 +1,14 @@
 import { href } from '@timber-js/app/routes';
 import { Link } from '@timber-js/app/client';
 import { deny } from '@timber-js/app/server';
-import { MapPinIcon } from 'lucide-react';
+import { LibraryIcon, MapPinIcon } from 'lucide-react';
 import { Suspense } from 'react';
 import { findArtistBySlug } from '@/data/artists';
 import cn from '@/lib/cn';
 import { SongQueueProvider } from '@/player/SongQueue';
 import { fromSourceParam } from '@/lib/sourceParam';
+import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
+import { splitShowDate } from '@/lib/utils';
 import { showLabel, songRowItem } from '@/player/queue/items';
 import ArtistCover from '@/ui/base/ArtistCover';
 import PageHeader from '@/ui/base/PageHeader';
@@ -63,6 +65,23 @@ export default async function ShowDetail({
           </>
         }
         meta={[venue?.name && <VenuePill key="venue" artistSlug={artistSlug} venue={venue} />]}
+        actions={
+          // The same show and tape in the column browser.
+          <Link
+            href={href(
+              '/[artistSlug]/[year]/[month]/[day]',
+              { artistSlug, ...splitShowDate(showDate) },
+              sourceQuery(source?.id)
+            )}
+            className="
+              inline-flex items-center gap-1.5 rounded-lg border border-hairline px-3 py-1.5 text-sm
+              font-medium text-text-primary transition-colors hover:bg-surface-hover
+            "
+          >
+            <LibraryIcon className="size-4 text-text-muted" aria-hidden />
+            Browse Show
+          </Link>
+        }
       />
 
       {/* The tracks, with the show's tapes beside them as in the browse view; stacked below lg. */}
