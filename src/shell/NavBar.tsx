@@ -12,18 +12,8 @@ import BlogNavLink from '@/features/blog/BlogNavLink';
 import { MenuIcon } from 'lucide-react';
 import ArtistTabs from './ArtistTabs';
 import { DEFAULT_ARTIST_SLUG } from '@/lib/defaultArtist';
-import { getHeaders, getSegmentParams } from '@timber-js/app/server';
-import { UAParser } from 'ua-parser-js';
+import { getSegmentParams } from '@timber-js/app/server';
 import { hasRecentPost } from '@/lib/blog/getPosts';
-
-export const getUserAgent = async () => {
-  const headersList = await getHeaders();
-  const userAgent = headersList.get('user-agent');
-
-  if (!userAgent) return null;
-
-  return UAParser(userAgent);
-};
 
 export default async function NavBar({
   defaultToArtist = false,
@@ -38,8 +28,7 @@ export default async function NavBar({
    */
   artistSlug?: string | null;
 }) {
-  const [artists, userAgent] = await Promise.all([loadArtists(), getUserAgent()]);
-  const isAndroid = /android/i.test(userAgent?.ua || '');
+  const artists = await loadArtists();
   const blogHasNew = hasRecentPost();
 
   const artistSlug =
@@ -162,7 +151,7 @@ export default async function NavBar({
           artist={{ slug: pageArtist.slug, name: pageArtist.name, features: pageArtist.features }}
         />
       )}
-      {isAndroid && <AndroidUpgradeNotification />}
+      <AndroidUpgradeNotification />
     </>
   );
 }

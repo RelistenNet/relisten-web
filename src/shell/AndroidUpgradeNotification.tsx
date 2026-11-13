@@ -11,11 +11,19 @@ function subscribe(listener: () => void) {
   return () => listeners.delete(listener);
 }
 
+function isAndroid() {
+  // Chromium exposes the platform as a structured client hint; others only have the UA string.
+  const platform = (navigator as Navigator & { userAgentData?: { platform: string } }).userAgentData
+    ?.platform;
+  return platform ? platform === 'Android' : /\bAndroid\b/i.test(navigator.userAgent);
+}
+
 export default function AndroidUpgradeNotification() {
-  // Hidden on the server and until localStorage says it hasn't been dismissed.
+  // Hidden on the server, and on the client unless this is Android and
+  // localStorage says it hasn't been dismissed.
   const alertVisible = useSyncExternalStore(
     subscribe,
-    () => !localStorage.getItem(DISMISSED_KEY),
+    () => isAndroid() && !localStorage.getItem(DISMISSED_KEY),
     () => false
   );
 
