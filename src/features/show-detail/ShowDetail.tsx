@@ -11,7 +11,6 @@ import { showLabel, songRowItem } from '@/player/queue/items';
 import ArtistCover from '@/ui/base/ArtistCover';
 import PageHeader from '@/ui/base/PageHeader';
 import { formatShowDate } from '@/ui/shows/stats';
-import { VENUE_PILL } from '@/ui/shows/venuePill';
 import DataTable from '@/ui/table/DataTable';
 import { toTableState, type TableParams } from '@/ui/table/params';
 import { queryTable } from '@/ui/table/query';
@@ -129,7 +128,10 @@ function VenuePill({
     </>
   );
   // Inline in the meta line under the title.
-  const className = cn(VENUE_PILL, 'inline-flex max-w-full px-2 py-0.5 align-middle text-sm');
+  const className = `
+    inline-flex max-w-full min-w-0 items-center gap-1 self-start rounded bg-text-primary/5 px-2
+    py-0.5 align-middle text-sm text-text-primary transition-colors
+  `;
   return venue.slug ? (
     <Link
       href={href('/artists/[artistSlug]/venues/[venueSlug]', {
