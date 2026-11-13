@@ -43,7 +43,6 @@ export default defineSchema({
     '[slug]': codec.string,
 
     '[...days]': codec.catchAll(slugSegment),
-    '[...years]': codec.catchAll(slugSegment),
 
     '[[...rest]]': codec.optionalCatchAll(slugSegment),
   },
