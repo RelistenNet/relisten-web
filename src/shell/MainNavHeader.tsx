@@ -4,14 +4,11 @@ import { Link } from '@timber-js/app/client';
 import Flex from '@/ui/base/Flex';
 import SecondaryNavBar from './SecondaryNavHeader';
 import { usePathname, useRouter } from '@timber-js/app/client';
+import { useIsInIframe } from '@/lib/useIsInIframe';
 
-export default function MainNavHeader({
-  artist,
-  indexOverride,
-}: {
-  artist?: { slug: string; name: string };
-  indexOverride?: string;
-}) {
+export default function MainNavHeader({ artist }: { artist?: { slug: string; name: string } }) {
+  // Embedded players link home to the embed index.
+  const indexOverride = useIsInIframe() ? '/wsp' : undefined;
   const pathname = usePathname();
   const router = useRouter();
 

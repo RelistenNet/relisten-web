@@ -1,11 +1,16 @@
 import BrowseContainer from '@/features/browse/BrowseContainer';
 import Flex from '@/ui/base/Flex';
-import NavBar from '@/shell/NavBar';
 import { ReactNode } from 'react';
 import MobileBrowseNav from '@/features/browse/MobileBrowseNav';
+import type { LayoutOptions } from '@timber-js/app/server';
+
+// Rendered once per document. The nav that depends on the artist and the
+// user agent is the @nav slot, a 'document' segment with a key of its own.
+export const layoutOptions = { lifetime: 'document' } satisfies LayoutOptions;
 
 export default function BrowseLayout({
   children,
+  nav,
   artists,
   years,
   shows,
@@ -13,6 +18,7 @@ export default function BrowseLayout({
   sources,
 }: {
   children: ReactNode;
+  nav: ReactNode;
   artists: ReactNode;
   years: ReactNode;
   shows: ReactNode;
@@ -21,7 +27,7 @@ export default function BrowseLayout({
 }) {
   return (
     <Flex column className="lg:h-dvh">
-      <NavBar defaultToArtist />
+      {nav}
       <MobileBrowseNav />
       <BrowseContainer>
         <div className="browse-col">{artists}</div>
