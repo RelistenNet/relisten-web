@@ -5,5 +5,4 @@ export default defineConfig({
   output: 'server',
   adapter: nitro({ preset: 'node-server' }),
   pageExtensions: ['tsx', 'ts', 'jsx', 'js', 'mdx'],
-  clientSegmentCache: true,
 });
