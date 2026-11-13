@@ -6,6 +6,7 @@ import cn from '@/lib/cn';
 import { artistSections } from '@/lib/artistSections';
 import { DEFAULT_ARTIST_SLUG } from '@/lib/defaultArtist';
 import ArtistPicker from './ArtistPicker';
+import { WithBrowsingArtist, type NavArtist } from './browsingArtistContext';
 import type { ArtistFeatures } from '@/domain/types';
 
 // The artist's sections, under the nav bar on every page: the artist in the URL
@@ -56,11 +57,11 @@ function tabsFor(artistSlug: string, features?: Partial<ArtistFeatures>): Tab[] 
   return tabs;
 }
 
-export default function ArtistTabs({
-  artist,
-}: {
-  artist: { slug: string; name: string; features?: Partial<ArtistFeatures> };
-}) {
+export default function ArtistTabs() {
+  return <WithBrowsingArtist>{(artist) => <Tabs artist={artist} />}</WithBrowsingArtist>;
+}
+
+function Tabs({ artist }: { artist: NavArtist }) {
   const pathname = usePathname();
   const tabs = tabsFor(artist.slug, artist.features);
 
@@ -69,15 +70,15 @@ export default function ArtistTabs({
       aria-label="Artist"
       className="flex h-9 items-center border-b border-b-hairline bg-surface-raised pl-2 text-sm lg:pl-4"
     >
-      {/* Wide screens have the picker in the header's title. */}
-      <div className="flex shrink-0 items-center lg:hidden">
-        <ArtistPicker current={artist} variant="tab" />
-        <span aria-hidden className="mx-2 h-4 w-px shrink-0 bg-hairline" />
+      <div className="flex shrink-0 items-center">
+        <ArtistPicker current={artist} />
+        {/* ml-3, and mr-1 plus the first tab's px-2.5: about 12px either side. */}
+        <span aria-hidden className="mr-1 ml-3 h-4 w-px shrink-0 bg-hairline" />
       </div>
       {/* The picker stays put; the tabs scroll when they don't fit. */}
       <ul
         role="list"
-        className="flex h-full min-w-0 items-stretch gap-1 overflow-x-auto pr-2 whitespace-nowrap lg:pr-4"
+        className="flex h-full min-w-0 items-stretch gap-0.5 overflow-x-auto pr-2 whitespace-nowrap lg:pr-4"
       >
         {tabs.map((tab) => {
           const active = tab.isActive(pathname);
@@ -87,7 +88,7 @@ export default function ArtistTabs({
                 href={tab.href}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'relative flex items-center px-2 text-text-secondary hover:text-text-primary',
+                  'relative flex items-center px-2.5 text-text-secondary hover:text-text-primary',
                   active && 'text-text-primary'
                 )}
               >

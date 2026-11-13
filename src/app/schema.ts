@@ -1,23 +1,11 @@
 import { defineSchema } from '@timber-js/app/params';
 import z from 'zod/v4';
 import { codec } from '@timber-js/app/codec';
-import type { Codec } from '@timber-js/app/codec';
 
 // Segment params flow into backend API URLs, so keep them to a strict
 // character set. Anything else is a 404 before it reaches the data layer (src/data).
 const SLUG = /^[a-z0-9-]+$/i;
 const MONTH_OR_DAY = /^[\dx]{1,2}$/i;
-
-const slugSegment: Codec<string> = {
-  parse(value) {
-    const str = Array.isArray(value) ? value[0] : value;
-    if (!str || !SLUG.test(str)) throw new Error(`Invalid segment: '${str}'`);
-    return str;
-  },
-  serialize(value) {
-    return value;
-  },
-};
 
 export default defineSchema({
   segmentParams: {
@@ -41,7 +29,5 @@ export default defineSchema({
     // RFC version/variant bits.
     '[showId]': z.union([z.string().regex(/^show_[0-7][0-9a-hjkmnp-tv-z]{25}$/), z.guid()]),
     '[slug]': codec.string,
-
-    '[[...rest]]': codec.optionalCatchAll(slugSegment),
   },
 });
