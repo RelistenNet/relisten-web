@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo } from 'react';
-import type { ShowDetail, Source, Track } from '@/domain/types';
+import type { SongsShow, SongsSource, SongsTrack } from '@/lib/showProjection';
 import TrackList, { type PlayingTrack, type Props } from '@/ui/shows/TrackList';
 import { useCurrentItem, useTrackStatuses } from './hooks';
 import { showTrackItem } from './queue/items';
@@ -9,7 +9,7 @@ import QueueMenu, { type QueueMenuLink } from './QueueMenu';
 import { href } from '@timber-js/app/routes';
 
 /** A link per song: a file can hold several (a segue). */
-const songLinks = (artistSlug: string, track: Track): QueueMenuLink[] =>
+const songLinks = (artistSlug: string, track: SongsTrack): QueueMenuLink[] =>
   (track.songs ?? []).map((song) => ({
     label: `See all ${song.name}`,
     // The song page redirects an id to the song's slug.
@@ -24,7 +24,7 @@ const songLinks = (artistSlug: string, track: Track): QueueMenuLink[] =>
 export default function PlayingTrackList({
   artistName,
   ...props
-}: Props & { show?: ShowDetail; artistName?: string }) {
+}: Props & { show?: SongsShow; artistName?: string }) {
   const current = useCurrentItem();
   const statuses = useTrackStatuses();
   const playing = useMemo<PlayingTrack | null>(
@@ -35,10 +35,15 @@ export default function PlayingTrackList({
   const { show, artistSlug, trackRoute } = props;
   const canQueue = !!show && !!artistSlug && !!artistName && (trackRoute ?? 'site') === 'site';
   const trackActions = useCallback(
-    (track: Track, _source: Source) =>
+    (track: SongsTrack, source: SongsSource) =>
       canQueue && show && artistSlug && artistName ? (
         <QueueMenu
-          item={showTrackItem({ show, track, artistSlug, artistName })}
+          item={showTrackItem({
+            show,
+            track: { ...track, sourceId: source.id },
+            artistSlug,
+            artistName,
+          })}
           links={songLinks(artistSlug, track)}
         />
       ) : null,

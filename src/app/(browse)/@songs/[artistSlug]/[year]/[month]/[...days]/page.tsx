@@ -1,6 +1,7 @@
 import { findArtistBySlug } from '@/data/artists';
 import { loadShow } from '@/features/browse/load';
 import TrackList from '@/player/PlayingTrackList';
+import { songsProjection } from '@/lib/showProjection';
 import { createShowDate } from '@/lib/utils';
 import { getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
@@ -22,7 +23,7 @@ export default async function SongsDaySlot() {
       year={year}
       month={month}
       day={days[0]}
-      show={show}
+      show={songsProjection(show)}
     />
   );
 }

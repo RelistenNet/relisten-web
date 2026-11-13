@@ -6,31 +6,34 @@ import { Fragment, type ReactNode } from 'react';
 import { durationToHHMMSS, removeLeadingZero } from '@/lib/utils';
 
 import { sourceQuery, sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
-import type { ShowDetail, Source, SourceSet, Track } from '@/domain/types';
+import type { SongsSet, SongsShow, SongsSource, SongsTrack } from '@/lib/showProjection';
 import Column from '@/ui/base/Column';
 import Row from '@/ui/base/Row';
 import RowHeader from '@/ui/base/RowHeader';
 import Tag from '@/ui/base/Tag';
-import { sortSources } from '@/lib/sortSources';
+import { sortSources, type SortableSource } from '@/lib/sortSources';
 import { fromSourceParam, toSourceParam } from '@/lib/sourceParam';
 import { useAdminTools } from '@/hooks/useAdminTools';
 import { Link } from '@timber-js/app/client';
-import ShowHeader, { type ShowHeaderShow } from './ShowHeader';
+import ShowHeader from './ShowHeader';
 
-const getSetTime = (set: SourceSet): string =>
+const getSetTime = (set: SongsSet): string =>
   durationToHHMMSS(
     set.tracks?.reduce((memo, next) => {
       return memo + (next?.duration ?? 0);
     }, 0)
   );
 
-export type Props = {
+/** Which show a column is for, from the URL. */
+export type ShowDateProps = {
   artistSlug?: string;
   year?: string;
   month?: string;
   day?: string;
-} & {
-  show?: Pick<ShowDetail, 'sources'> & ShowHeaderShow;
+};
+
+export type Props = ShowDateProps & {
+  show?: SongsShow;
   /** Which pages the track links go to (the site, or an embed). */
   trackRoute?: TrackRoute;
 };
@@ -46,20 +49,21 @@ export type PlayingTrack = {
   statuses: Record<string, TrackLoadState>;
 };
 
-interface SourceData {
+interface SourceData<S> {
   activeSourceId: string | undefined;
   displayDate: string | undefined;
-  activeSourceObj: Source | undefined;
-  sourcesData: Source[];
+  activeSourceObj: S | undefined;
+  sourcesData: S[];
 }
 
-export const useSourceData = ({
+/** A column's tapes in display order, and the one `?source=` picks. Each column passes its own slimmed tapes. */
+export const useSourceData = <S extends SortableSource>({
   year,
   month,
   day,
   show,
   source,
-}: Props & { source: string }): SourceData => {
+}: ShowDateProps & { show?: { sources: S[] }; source: string }): SourceData<S> => {
   const displayDate = year && month && day ? [year, month, day].join('-') : undefined;
 
   const sourcesData = sortSources(show?.sources ?? []);
@@ -83,7 +87,7 @@ const TrackList = ({
 }: Props & {
   playing?: PlayingTrack | null;
   /** Per-track controls beside the row (a "⋯" menu); src/ui doesn't know what they do. */
-  trackActions?: (track: Track, source: Source) => ReactNode;
+  trackActions?: (track: SongsTrack, source: SongsSource) => ReactNode;
 }) => {
   const [{ source: sourceId }] = sourceSearchParamsLoader.useQueryStates();
   const { activeSourceObj } = useSourceData({ ...props, source: sourceId });

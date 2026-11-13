@@ -7,12 +7,12 @@ import { durationToHHMMSS } from '@/lib/utils';
 
 import { sourceQuery, sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { toSourceParam } from '@/lib/sourceParam';
-import type { Source } from '@/domain/types';
+import type { TapesShow, TapesSource } from '@/lib/showProjection';
 import Column from '@/ui/base/Column';
 import Flex from '@/ui/base/Flex';
 import Row from '@/ui/base/Row';
 import RowHeader from '@/ui/base/RowHeader';
-import { Props, useSourceData } from '@/ui/shows/TrackList';
+import { type ShowDateProps, useSourceData } from '@/ui/shows/TrackList';
 import Tag from '@/ui/base/Tag';
 
 const exists = (str = ''): boolean => {
@@ -26,7 +26,7 @@ const pluralize = (str: string, count: number): string => {
   return str + 's';
 };
 
-const author = (sourceObj: Source) => {
+const author = (sourceObj: TapesSource) => {
   if (sourceObj.taper) {
     return `Taper: ${sourceObj.taper}`;
   }
@@ -37,7 +37,7 @@ const author = (sourceObj: Source) => {
   return undefined;
 };
 
-const TapesColumn = (props: Props) => {
+const TapesColumn = (props: ShowDateProps & { show?: TapesShow }) => {
   const [{ source: sourceId }] = sourceSearchParamsLoader.useQueryStates();
 
   const { artistSlug, year, month, day } = props;
@@ -46,7 +46,7 @@ const TapesColumn = (props: Props) => {
 
   return (
     <Column heading="Sources" className="tapes-column">
-      {sourcesData?.map((sourceObj: Source, idx: number) => (
+      {sourcesData?.map((sourceObj, idx) => (
         <div key={sourceObj.id}>
           <RowHeader>{author(sourceObj) || `Source ${idx + 1} of ${sourcesData.length}`}</RowHeader>
           <Row

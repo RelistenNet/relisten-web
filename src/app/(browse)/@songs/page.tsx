@@ -2,6 +2,7 @@ import { findArtistBySlug } from '@/data/artists';
 import { loadRandomShow } from '@/features/browse/load';
 import TrackList from '@/player/PlayingTrackList';
 import { DEFAULT_ARTIST_SLUG } from '@/lib/defaultArtist';
+import { songsProjection } from '@/lib/showProjection';
 import { splitShowDate } from '@/lib/utils';
 
 export default async function SongsDaySlot() {
@@ -21,7 +22,7 @@ export default async function SongsDaySlot() {
       year={year}
       month={month}
       day={day}
-      show={show}
+      show={songsProjection(show)}
     />
   );
 }
