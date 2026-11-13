@@ -42,8 +42,6 @@ export default defineSchema({
     '[showId]': z.union([z.string().regex(/^show_[0-7][0-9a-hjkmnp-tv-z]{25}$/), z.guid()]),
     '[slug]': codec.string,
 
-    '[...days]': codec.catchAll(slugSegment),
-
     '[[...rest]]': codec.optionalCatchAll(slugSegment),
   },
 });
