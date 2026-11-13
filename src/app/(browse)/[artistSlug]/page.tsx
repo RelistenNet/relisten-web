@@ -1,9 +1,12 @@
+import RandomShowColumns from '@/features/browse/RandomShowColumns';
 import { loadArtists } from '@/features/browse/load';
 import { getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 
+// /{artist}: a random show of the artist fills the columns after its years.
 export default function Page() {
-  return null;
+  const { artistSlug } = getSegmentParams(SEGMENT_PATH);
+  return <RandomShowColumns artistSlug={artistSlug} />;
 }
 
 export const metadata = async () => {

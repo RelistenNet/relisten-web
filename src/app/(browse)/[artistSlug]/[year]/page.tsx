@@ -1,11 +1,18 @@
+import BrowseColumn from '@/features/browse/BrowseColumn';
 import { loadArtist } from '@/features/browse/load';
 import { getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 
-// /{artist}/{year}: the browse columns (slots) render the year; this page only
-// supplies the title.
+// /{artist}/{year}: no show picked yet, so the songs, tapes and main columns
+// are empty.
 export default function YearPage() {
-  return null;
+  return (
+    <>
+      <BrowseColumn />
+      <BrowseColumn />
+      <BrowseColumn />
+    </>
+  );
 }
 
 export const metadata = async () => {
