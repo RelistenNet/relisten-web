@@ -23,6 +23,11 @@ export default async function Reviews({ source }: { source: Source }) {
         <p className="mb-0 text-sm text-text-muted tabular-nums">
           {source.avgRating > 0 && (
             <>
+              <StarIcon
+                size={14}
+                className="mr-1 inline-block fill-current align-[-2px] text-amber-500"
+                aria-hidden
+              />
               <span className="font-medium text-text-primary">{source.avgRating.toFixed(2)}</span>{' '}
               average
               {ratings ? ` of ${numberFormat.format(ratings)} ratings` : ''}
@@ -49,21 +54,23 @@ function ReviewList({ reviews }: { reviews: SourceReview[] }) {
   return (
     <ul role="list" className="flex flex-col divide-y divide-hairline">
       {reviews.map((review) => (
-        <li key={review.id} className="flex flex-col gap-1 py-3">
-          <div className="flex items-baseline justify-between gap-4">
-            <span
-              className={`min-w-0 font-medium text-text-primary ${!review.title && review.author ? 'italic' : ''}`}
+        <li key={review.id} className="flex flex-col gap-2 py-3">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <h3
+              className={`mb-0 min-w-0 text-lg font-medium text-text-primary ${!review.title && review.author ? 'italic' : ''}`}
             >
               {review.title ?? review.author ?? 'Untitled'}
-            </span>
-            {review.rating !== undefined && <Rating rating={review.rating} />}
+            </h3>
+            {review.title && review.author && (
+              <span className="text-sm text-text-muted italic">
+                by <span className="text-accent">{review.author}</span>
+              </span>
+            )}
           </div>
           <p className="mb-0 text-sm break-words whitespace-pre-line text-text-secondary">
             {review.body}
           </p>
-          {review.title && review.author && (
-            <span className="text-xs text-text-muted italic">{review.author}</span>
-          )}
+          {review.rating !== undefined && <Rating rating={review.rating} />}
         </li>
       ))}
     </ul>
@@ -72,8 +79,8 @@ function ReviewList({ reviews }: { reviews: SourceReview[] }) {
 
 function Rating({ rating }: { rating: number }) {
   return (
-    <span className="inline-flex shrink-0 items-center gap-1 text-sm text-text-muted tabular-nums">
-      <StarIcon size={12} className="fill-current" aria-hidden />
+    <span className="inline-flex shrink-0 items-center gap-1 text-base text-text-muted tabular-nums">
+      <StarIcon size={16} className="fill-current text-amber-500" aria-hidden />
       {rating}/10
     </span>
   );
