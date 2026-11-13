@@ -66,7 +66,7 @@ export default async function ShowDetail({
       />
 
       {/* The tracks, with the show's tapes beside them as in the browse view; stacked below lg. */}
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <SongQueueProvider label={showLabel(row.artistName, show.date)} items={visibleItems}>
           <DataTable<ShowTrackRow>
             pathname={pathname}
@@ -80,19 +80,22 @@ export default async function ShowDetail({
             controls={false}
           />
         </SongQueueProvider>
-        {/* Sticky and scrolling on its own on lg, under the 50px nav bar and the page's margin. */}
-        <div
-          className="
-            flex flex-col overflow-hidden rounded-lg border border-hairline
-            lg:sticky lg:top-6 lg:max-h-[calc(100dvh-50px-3rem)]
-            [&_.relisten-column]:min-h-0
-          "
-        >
-          <SourcesColumn
-            artistSlug={artistSlug}
-            showDate={showDate}
-            sources={sources.map((s) => ({ ...s, sets: [] }))}
-          />
+        {/* On lg, size-contained so the row takes the tracks' height alone: the tapes stretch to
+            it at most, sticky under the 50px nav bar and the page's margin, and scroll past it. */}
+        <div className="lg:[contain:size]">
+          <div
+            className="
+              flex flex-col overflow-hidden rounded-lg border border-hairline
+              lg:sticky lg:top-6 lg:max-h-[min(100%,calc(100dvh-50px-3rem))]
+              [&_.relisten-column]:min-h-0
+            "
+          >
+            <SourcesColumn
+              artistSlug={artistSlug}
+              showDate={showDate}
+              sources={sources.map((s) => ({ ...s, sets: [] }))}
+            />
+          </div>
         </div>
       </div>
 
