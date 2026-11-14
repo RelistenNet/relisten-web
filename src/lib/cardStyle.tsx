@@ -38,8 +38,14 @@ export function SpacedText({
 // Pinned fontsource version; fonts are fetched once per process and reused.
 const FONT_BASE = 'https://cdn.jsdelivr.net/fontsource/fonts/roboto@5.3.0';
 
+// The pending fetch is shared by every image request, so a hung CDN must
+// reject (clearing fontsPromise for a retry) rather than stall them all.
+const FONT_TIMEOUT_MS = 10_000;
+
 async function fetchFont(weight: number): Promise<ArrayBuffer> {
-  const res = await fetch(`${FONT_BASE}/latin-${weight}-normal.ttf`);
+  const res = await fetch(`${FONT_BASE}/latin-${weight}-normal.ttf`, {
+    signal: AbortSignal.timeout(FONT_TIMEOUT_MS),
+  });
   if (!res.ok) throw new Error(`Failed to load Roboto ${weight}: ${res.status}`);
   return res.arrayBuffer();
 }

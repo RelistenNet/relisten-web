@@ -1,6 +1,8 @@
+import { browserStorage } from '@/lib/browserStorage';
+
 /** The volume saved in localStorage (0–1), or `fallback` if none is saved or it's unreadable. */
 export function savedVolume(
-  storage: Pick<Storage, 'getItem'> | undefined = globalThis.localStorage,
+  storage: Pick<Storage, 'getItem'> | undefined = browserStorage(),
   fallback = 1
 ): number {
   try {

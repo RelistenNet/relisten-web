@@ -14,14 +14,15 @@ const inIframe = () => window.self !== window.top;
 const automated = () => navigator.webdriver === true;
 
 /**
- * Whether a page may start playback without a click. Embedded players defer
- * to the host page, which grants autoplay through the iframe's `allow`
- * attribute. If the browser still blocks it, gapless reports it and the
- * "Autoplay blocked" prompt appears.
+ * Whether a page may start playback without a click. Iframes get no exemption:
+ * any site can frame any page (the browse layout supports it), and a crawler
+ * rendering that site would otherwise play and scrobble. Embeds don't need
+ * one: they load paused, and a click inside the frame activates it.
+ * If the browser still blocks it, gapless reports it and the "Autoplay
+ * blocked" prompt appears.
  */
 export function canAutoplay(): boolean {
   if (typeof window === 'undefined') return false;
-  if (inIframe()) return true;
   // No userActivation API: assume no interaction (crawlers mustn't autoplay).
   if (navigator.userActivation?.hasBeenActive) return true;
   return isReturningListener();

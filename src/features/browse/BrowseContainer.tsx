@@ -2,6 +2,7 @@
 
 import { useSelectedLayoutSegments } from '@timber-js/app/client';
 import cn from '@/lib/cn';
+import { useIsInIframe } from '@/lib/useIsInIframe';
 import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
@@ -23,7 +24,7 @@ export default function BrowseContainer({
   children: ReactNode;
   className?: string;
 }) {
-  const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
+  const isInIframe = useIsInIframe();
   const segments = useSelectedLayoutSegments();
   const activeColumn = getActiveColumn(segments);
 

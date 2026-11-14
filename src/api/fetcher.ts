@@ -6,10 +6,19 @@ import { API_DOMAIN, SERVER_API_DOMAIN } from '@/lib/constants';
  * and returns the shape orval's fetch client expects ({ data, status, headers }).
  *
  * No caching here: server callers wrap these in timber's `cache.data`.
+ *
+ * Every call is aborted after API_TIMEOUT_MS (a caller's own signal can abort
+ * it sooner). timber holds the response until the shell resolves, so a stalled
+ * call would otherwise hang the page; instead it rejects with a TimeoutError
+ * and the nearest error boundary renders.
  */
+export const API_TIMEOUT_MS = 10_000;
+
 export async function relistenFetch<T>(url: string, init?: RequestInit): Promise<T> {
   const origin = typeof window === 'undefined' ? SERVER_API_DOMAIN : API_DOMAIN;
-  const res = await fetch(`${origin}${url}`, init);
+  const timeout = AbortSignal.timeout(API_TIMEOUT_MS);
+  const signal = init?.signal ? AbortSignal.any([init.signal, timeout]) : timeout;
+  const res = await fetch(`${origin}${url}`, { ...init, signal });
   const body = [204, 205, 304].includes(res.status) ? null : await res.text();
   const data = body ? JSON.parse(body) : null;
   return { data, status: res.status, headers: res.headers } as T;

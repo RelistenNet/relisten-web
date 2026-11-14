@@ -43,8 +43,13 @@ describe('canAutoplay', () => {
     expect(canAutoplay()).toBe(false);
   });
 
-  it('an embed defers to the host page', () => {
+  it('a framed page without interaction may not (a crawler rendering the host site)', () => {
     browser({ iframe: true });
+    expect(canAutoplay()).toBe(false);
+  });
+
+  it('a framed page may after an interaction inside the frame', () => {
+    browser({ iframe: true, activated: true });
     expect(canAutoplay()).toBe(true);
   });
 

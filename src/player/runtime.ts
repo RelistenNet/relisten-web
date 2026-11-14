@@ -30,6 +30,9 @@ import { savedVolume } from './volume';
 import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
 import { trackHref, type TrackRoute } from '@/ui/shows/trackHref';
 import { splitShowDate } from '@/lib/utils';
+import { browserStorage } from '@/lib/browserStorage';
+
+const NO_STORAGE = { getItem: () => null, setItem: () => {} };
 
 declare global {
   interface Window {
@@ -224,7 +227,8 @@ if (isBrowser) {
   engine.setVolume(volume);
   playbackActor.send({ type: 'VOLUME', volume });
 
-  storage = createQueueStorage({ storage: window.localStorage });
+  // Blocked storage: run with nothing saved rather than fail to start the player.
+  storage = createQueueStorage({ storage: browserStorage() ?? NO_STORAGE });
   window.addEventListener('pagehide', () => storage?.flush());
 
   // ---- reacting to the machine ----------------------------------------------

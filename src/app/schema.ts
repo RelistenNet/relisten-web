@@ -21,9 +21,8 @@ export default defineSchema({
     '[tourSlug]': z.string().regex(SLUG),
     // Canonical venue slugs, or an imported venue's id (imported_venue_…).
     '[venueSlug]': z.string().regex(/^[a-z0-9_-]+$/i),
-    // Not just /^\d{4}$/: the old section URLs (/gd/top, /gd/songs, …) must still
-    // match so the browse middleware can redirect them to their detail pages.
-    '[year]': z.string().regex(SLUG),
+    // A four-digit year: anything else (/gd/top, /gd/foobar) is a 404 here.
+    '[year]': z.string().regex(/^\d{4}$/),
     // A v4 show id, or a pre-v4 show uuid from social cards cached before v4.
     // guid() rather than uuid(): accepts any 8-4-4-4-12 hex without enforcing
     // RFC version/variant bits.

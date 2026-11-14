@@ -63,7 +63,9 @@ export default function EmbedHeader({ compact = false }: { compact?: boolean }) 
           </a>
         </>
       )}
-      <div className="absolute top-1/2 right-1.5 -translate-y-1/2">
+      {/* Centered with flex, not a translate: a transformed ancestor breaks the
+          CSS-anchored tooltip in Firefox. */}
+      <div className="absolute inset-y-0 right-1.5 flex items-center">
         <Tooltip content="Continue listening to this show" align="top" contentClassName="w-52">
           <a
             href="https://relisten.net"

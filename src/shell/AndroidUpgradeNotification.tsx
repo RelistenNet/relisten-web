@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from 'react';
 import Flex from '@/ui/base/Flex';
+import { readStorage, writeStorage } from '@/lib/browserStorage';
 
 const DISMISSED_KEY = 'relistenAndroidNotificationDismissed';
 const listeners = new Set<() => void>();
@@ -23,12 +24,13 @@ export default function AndroidUpgradeNotification() {
   // localStorage says it hasn't been dismissed.
   const alertVisible = useSyncExternalStore(
     subscribe,
-    () => isAndroid() && !localStorage.getItem(DISMISSED_KEY),
+    () => isAndroid() && !readStorage(DISMISSED_KEY),
     () => false
   );
 
   const dismissAlert = () => {
-    localStorage.setItem(DISMISSED_KEY, 'true');
+    // If storage is blocked, the dismissal lasts only until the next load.
+    writeStorage(DISMISSED_KEY, 'true');
     listeners.forEach((listener) => listener());
   };
 
