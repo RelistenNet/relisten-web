@@ -52,19 +52,14 @@ function sectionHref(pathname: string, fromSlug: string, to: ArtistListItem): st
   return href('/artists/[artistSlug]', { artistSlug });
 }
 
-// A fixed width, so switching artist (or an archive artist's name arriving)
-// doesn't shift the tabs; a longer name is truncated.
+// A fixed width, so switching artist doesn't shift the tabs; a longer name is
+// truncated.
 const TRIGGER = `
   flex h-6 w-36 cursor-pointer items-center gap-1 rounded-md border border-accent/40
   bg-accent/10 pr-1.5 pl-2 text-[13px] font-medium text-text-primary hover:bg-accent/20
 `;
 
-export default function ArtistPicker({
-  current,
-}: {
-  /** The artist; its name is empty while an archive artist's row loads. */
-  current: { slug: string; name: string };
-}) {
+export default function ArtistPicker({ current }: { current: { slug: string; name: string } }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   // On a site page, choosing an artist switches the one browsed in place.
@@ -92,11 +87,7 @@ export default function ArtistPicker({
   return (
     <Popover open={open} onOpenChange={setOpen} align="start" sideOffset={6}>
       <PopoverTrigger aria-label={`Artist: ${current.name}. Switch artist`} className={TRIGGER}>
-        {current.name ? (
-          <span className="min-w-0 flex-1 truncate text-left">{current.name}</span>
-        ) : (
-          <span aria-hidden className="h-3 flex-1 animate-pulse rounded-sm bg-text-primary/15" />
-        )}
+        <span className="min-w-0 flex-1 truncate text-left">{current.name}</span>
         <ChevronDown className="size-3.5 shrink-0 text-text-secondary" />
       </PopoverTrigger>
       <PopoverContent

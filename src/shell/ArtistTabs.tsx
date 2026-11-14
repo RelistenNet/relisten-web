@@ -6,7 +6,7 @@ import cn from '@/lib/cn';
 import { artistSections } from '@/lib/artistSections';
 import { DEFAULT_ARTIST_SLUG } from '@/lib/defaultArtist';
 import ArtistPicker from './ArtistPicker';
-import { WithBrowsingArtist, type NavArtist } from './browsingArtistContext';
+import { useBrowsingArtistRow } from './browsingArtistContext';
 import type { ArtistFeatures } from '@/domain/types';
 
 // The artist's sections, under the nav bar on every page: the artist in the URL
@@ -58,10 +58,7 @@ function tabsFor(artistSlug: string, features?: Partial<ArtistFeatures>): Tab[] 
 }
 
 export default function ArtistTabs() {
-  return <WithBrowsingArtist>{(artist) => <Tabs artist={artist} />}</WithBrowsingArtist>;
-}
-
-function Tabs({ artist }: { artist: NavArtist }) {
+  const artist = useBrowsingArtistRow();
   const pathname = usePathname();
   const tabs = tabsFor(artist.slug, artist.features);
 

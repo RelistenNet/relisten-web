@@ -4,7 +4,6 @@ import type { LayoutOptions, Metadata } from '@timber-js/app/server';
 import { METADATA_BASE } from '@/lib/constants';
 import Providers from './Providers';
 import PrimaryArtists from '@/shell/PrimaryArtists';
-import { BrowsingArtistProvider } from '@/shell/browsingArtistContext';
 import { roboto } from '../fonts';
 import { themeCookie } from '../lib/themeCookie';
 
@@ -32,9 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* In the root, so every document seeds it: client navigations omit
             the rows and reuse the document's copy. */}
         <PrimaryArtists>
-          <BrowsingArtistProvider>
-            <Providers>{children}</Providers>
-          </BrowsingArtistProvider>
+          <Providers>{children}</Providers>
         </PrimaryArtists>
       </body>
     </html>

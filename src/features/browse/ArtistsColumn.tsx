@@ -13,7 +13,7 @@ import ArtistsSelectionTab from './ArtistsSelectionTab';
 const browseHref = (artist: ArtistListItem) => href('/[artistSlug]', { artistSlug: artist.slug });
 
 const ArtistsColumn = () => {
-  const { artistSlug } = useSegmentParams('/(browse)/[artistSlug]');
+  const { artistSlug } = useSegmentParams('/(main)/(shell)/(browse)/[artistSlug]');
   return <ArtistsSelectionTab currentSlug={artistSlug} hrefFor={browseHref} />;
 };
 

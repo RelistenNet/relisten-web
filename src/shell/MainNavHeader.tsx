@@ -17,15 +17,10 @@ export default function MainNavHeader() {
   const router = useRouter();
   // Home is the browse view of the artist being browsed; / browses the default.
   const { browsing } = useBrowsingArtist();
-  const home =
-    indexOverride ??
-    (browsing.slug !== DEFAULT_ARTIST_SLUG
-      ? href('/[artistSlug]', { artistSlug: browsing.slug })
-      : '/');
 
   const onClickNav = () => {
     // trigger RSC refresh if clicking nav again
-    if (pathname === home) {
+    if (pathname === '/') {
       router.refresh();
     }
   };
@@ -34,7 +29,7 @@ export default function MainNavHeader() {
     <>
       <Flex className="left h-full flex-1 items-center text-lg font-medium whitespace-nowrap max-lg:hidden lg:gap-1.5">
         <Link
-          href={home}
+          href="/"
           // The line is sized to the brand mark (text-lg).
           className="flex items-center gap-2 text-center tracking-wide"
           prefetch={false}
@@ -46,7 +41,7 @@ export default function MainNavHeader() {
         <SecondaryNavBar />
       </Flex>
       <Flex className="h-full pr-2 font-medium lg:hidden" center>
-        <Link href={home} prefetch={false} aria-label="Relisten">
+        <Link href="/" prefetch={false} aria-label="Relisten">
           <BrandMark className="size-7 text-[17px]" />
         </Link>
       </Flex>
