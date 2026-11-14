@@ -2,7 +2,6 @@
 
 import { useSelectedLayoutSegments } from '@timber-js/app/client';
 import cn from '@/lib/cn';
-import { useIsInIframe } from '@/lib/useIsInIframe';
 import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
@@ -24,7 +23,6 @@ export default function BrowseContainer({
   children: ReactNode;
   className?: string;
 }) {
-  const isInIframe = useIsInIframe();
   const segments = useSelectedLayoutSegments();
   const activeColumn = getActiveColumn(segments);
 
@@ -87,9 +85,6 @@ export default function BrowseContainer({
           lg:grid-rows-1 lg:gap-x-4 lg:overflow-hidden lg:overflow-y-auto lg:px-4
           lg:[&_.relisten-column]:border-x lg:[&_.relisten-column]:border-hairline
         `,
-        {
-          ['lg:grid-cols-4']: isInIframe,
-        },
         className
       )}
     >
