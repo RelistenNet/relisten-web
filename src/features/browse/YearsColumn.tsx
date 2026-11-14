@@ -1,7 +1,6 @@
 import { loadArtists, loadYears } from './load';
 import { deny } from '@timber-js/app/server';
 import YearsColumnWithControls from './YearsColumnWithControls';
-import TodayInHistoryRow from './TodayInHistoryRow';
 import RowHeader from '@/ui/base/RowHeader';
 
 const YearsColumn = async ({ artistSlug }: { artistSlug: string }) => {
@@ -18,7 +17,6 @@ const YearsColumn = async ({ artistSlug }: { artistSlug: string }) => {
       artistName={artist?.name}
       artistYears={artistYears || []}
     >
-      <TodayInHistoryRow key="today" artistSlug={artistSlug} />
       <RowHeader key="years-header">Years</RowHeader>
     </YearsColumnWithControls>
   );

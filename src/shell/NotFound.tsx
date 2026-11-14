@@ -1,7 +1,7 @@
 'use client';
 
-// The 404 page for every route group that has one (see app/(browse)/404.tsx,
-// app/(content)/404.tsx).
+// The 404 page: app/404.tsx, and app/(main)/(shell)/404.tsx, which keeps the nav
+// without the browse or content layouts (no artists column on a 404).
 
 import { Link } from '@timber-js/app/client';
 import { ArrowDown } from 'lucide-react';

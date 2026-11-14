@@ -2,66 +2,68 @@
 
 import { trackHref, type TrackRoute } from './trackHref';
 import { href } from '@timber-js/app/routes';
-import { Fragment } from 'react';
+import { Fragment, type ReactNode } from 'react';
 import { durationToHHMMSS, removeLeadingZero } from '@/lib/utils';
 
 import { sourceQuery, sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
-import { useSelector } from 'react-redux';
-import type { ShowDetail, Source, SourceSet } from '@/domain/types';
-import type { GaplessMetadata } from '@/redux/modules/playback';
-import type { RootState } from '@/redux';
+import type { SongsSet, SongsShow, SongsSource, SongsTrack } from '@/lib/showProjection';
 import Column from '@/ui/base/Column';
 import Row from '@/ui/base/Row';
 import RowHeader from '@/ui/base/RowHeader';
 import Tag from '@/ui/base/Tag';
-import { sortSources } from '@/lib/sortSources';
+import { sortSources, type SortableSource } from '@/lib/sortSources';
 import { fromSourceParam, toSourceParam } from '@/lib/sourceParam';
 import { useAdminTools } from '@/hooks/useAdminTools';
 import { Link } from '@timber-js/app/client';
+import ShowHeader from './ShowHeader';
 
-const getSetTime = (set: SourceSet): string =>
+const getSetTime = (set: SongsSet): string =>
   durationToHHMMSS(
     set.tracks?.reduce((memo, next) => {
       return memo + (next?.duration ?? 0);
     }, 0)
   );
 
-export type Props = {
+/** Which show a column is for, from the URL. */
+export type ShowDateProps = {
   artistSlug?: string;
   year?: string;
   month?: string;
   day?: string;
-} & {
-  show?: Pick<ShowDetail, 'sources'>;
+};
+
+export type Props = ShowDateProps & {
+  show?: SongsShow;
   /** Which pages the track links go to (the site, or an embed). */
   trackRoute?: TrackRoute;
 };
 
-interface SourceData {
-  gaplessTracksMetadata: GaplessMetadata[];
-  activePlaybackSourceId: string | undefined;
+/** Web Audio load state of a track ('LOADED' means it can play gaplessly). */
+export type TrackLoadState = 'NONE' | 'LOADING' | 'LOADED' | 'ERROR';
+
+/** What's playing, from the player (src/ui doesn't read the player itself). */
+export type PlayingTrack = {
+  trackId: string;
+  sourceId: string;
+  /** Load states by track id, for the playing tape. */
+  statuses: Record<string, TrackLoadState>;
+};
+
+interface SourceData<S> {
   activeSourceId: string | undefined;
-  isActiveSourcePlaying: boolean;
-  activePlaybackTrackId?: string;
   displayDate: string | undefined;
-  activeSourceObj: Source | undefined;
-  sourcesData: Source[];
+  activeSourceObj: S | undefined;
+  sourcesData: S[];
 }
 
-export const useSourceData = ({
+/** A column's tapes in display order, and the one `?source=` picks. Each column passes its own slimmed tapes. */
+export const useSourceData = <S extends SortableSource>({
   year,
   month,
   day,
   show,
   source,
-}: Props & { source: string }): SourceData => {
-  // The store holds the full v4 source id (`source_…`).
-  const activePlaybackSourceId = useSelector(({ playback }: RootState) => playback.source);
-  const activePlaybackTrackId = useSelector(({ playback }: RootState) => playback.activeTrack?.id);
-  const gaplessTracksMetadata = useSelector(
-    ({ playback }: RootState) => playback.gaplessTracksMetadata
-  );
-
+}: ShowDateProps & { show?: { sources: S[] }; source: string }): SourceData<S> => {
   const displayDate = year && month && day ? [year, month, day].join('-') : undefined;
 
   const sourcesData = sortSources(show?.sources ?? []);
@@ -71,24 +73,26 @@ export const useSourceData = ({
   const activeSourceObj = sourcesData.find((s) => s.id === wantedSourceId) ?? sourcesData[0];
 
   return {
-    gaplessTracksMetadata,
-    activePlaybackSourceId,
     activeSourceId: activeSourceObj?.id,
-    activePlaybackTrackId,
-    isActiveSourcePlaying: activeSourceObj?.id === activePlaybackSourceId,
     displayDate,
     activeSourceObj,
     sourcesData,
   };
 };
 
-const TrackList = (props: Props) => {
+const TrackList = ({
+  playing,
+  trackActions,
+  ...props
+}: Props & {
+  playing?: PlayingTrack | null;
+  /** Per-track controls beside the row (a "⋯" menu); src/ui doesn't know what they do. */
+  trackActions?: (track: SongsTrack, source: SongsSource) => ReactNode;
+}) => {
   const [{ source: sourceId }] = sourceSearchParamsLoader.useQueryStates();
-  const { gaplessTracksMetadata, isActiveSourcePlaying, activeSourceObj, activePlaybackTrackId } =
-    useSourceData({
-      ...props,
-      source: sourceId,
-    });
+  const { activeSourceObj } = useSourceData({ ...props, source: sourceId });
+  // Both are full v4 ids (`source_…`, `track_…`).
+  const isActiveSourcePlaying = !!playing && activeSourceObj?.id === playing.sourceId;
   const adminTools = useAdminTools();
   const { artistSlug, year, month, day } = props;
   const show = artistSlug && year && month && day ? { artistSlug, year, month, day } : null;
@@ -103,77 +107,81 @@ const TrackList = (props: Props) => {
           : 'Songs'
       }
     >
+      {activeSourceObj && props.show && (
+        <ShowHeader
+          show={props.show}
+          artistSlug={artistSlug}
+          duration={activeSourceObj.duration}
+          linkVenue={(props.trackRoute ?? 'site') === 'site'}
+        />
+      )}
       {activeSourceObj &&
         activeSourceObj.sets?.map((set, setIdx) => (
           <Fragment key={set.id}>
             {set.tracks?.map((track, trackIdx) => {
-              const trackIsActive = track.id === activePlaybackTrackId && isActiveSourcePlaying;
+              const trackIsActive = isActiveSourcePlaying && track.id === playing.trackId;
 
-              const trackMetadata = isActiveSourcePlaying
-                ? gaplessTracksMetadata.find(
-                    (gaplessTrack) =>
-                      gaplessTrack.trackMetadata && gaplessTrack.trackMetadata.trackId === track.id
-                  )
-                : null;
+              const loadState = isActiveSourcePlaying ? playing.statuses[track.id] : undefined;
 
+              const actions = trackActions?.(track, activeSourceObj);
               return (
-                <div key={track.id} className="relative">
+                <div key={track.id}>
                   {trackIdx === 0 && Number(activeSourceObj.sets?.length) > 1 && (
                     <RowHeader>
                       {set.name || `Set ${setIdx + 1}`} <div>{getSetTime(set)}</div>
                     </RowHeader>
                   )}
-                  {adminTools && show && track.slug && (
-                    <Link
-                      href={href(
-                        '/admin/clip/[artistSlug]/[year]/[month]/[day]/[songSlug]',
-                        { ...show, songSlug: track.slug },
-                        sourceQuery(activeSourceObj.id)
-                      )}
-                      prefetch={false}
-                      title="Create clip"
-                      className="
-                        absolute top-1/2 right-1 z-10 -translate-y-1/2 rounded bg-surface px-1.5
-                        py-0.5 text-xs hover:bg-surface-hover
-                      "
+                  <div className="relative">
+                    {adminTools && show && track.slug && (
+                      <Link
+                        href={href(
+                          '/admin/clip/[artistSlug]/[year]/[month]/[day]/[songSlug]',
+                          { ...show, songSlug: track.slug },
+                          sourceQuery(activeSourceObj.id)
+                        )}
+                        prefetch={false}
+                        title="Create clip"
+                        className="
+                          absolute top-1/2 right-10 z-10 -translate-y-1/2 rounded bg-surface px-1.5
+                          py-0.5 text-xs hover:bg-surface-hover
+                        "
+                      >
+                        {'✂'}
+                      </Link>
+                    )}
+                    <Row
+                      key={track.id}
+                      href={
+                        show && track.slug
+                          ? trackHref(
+                              props.trackRoute ?? 'site',
+                              { ...show, songSlug: track.slug },
+                              sourceQuery(activeSourceObj.id)
+                            )
+                          : undefined
+                      }
+                      active={trackIsActive}
                     >
-                      {'✂'}
-                    </Link>
-                  )}
-                  <Row
-                    key={track.id}
-                    href={
-                      show && track.slug
-                        ? trackHref(
-                            props.trackRoute ?? 'site',
-                            { ...show, songSlug: track.slug },
-                            sourceQuery(activeSourceObj.id)
-                          )
-                        : undefined
-                    }
-                    active={trackIsActive}
-                  >
-                    <div>
-                      <div>{track.title}</div>
-                      {track.duration && (
-                        <div className="text-xxs text-foreground-muted">
-                          {durationToHHMMSS(track.duration)}
-                        </div>
-                      )}
-                    </div>
-                    <div className="shrink-0 text-right">
-                      {trackMetadata &&
-                        (() => {
-                          if (trackMetadata.webAudioLoadingState === 'LOADED')
-                            return <Tag variant="success">{'\u2713'} GAPLESS</Tag>;
-                          if (trackMetadata.webAudioLoadingState === 'LOADING')
-                            return <Tag variant="warning">LOADING</Tag>;
-                          if (trackMetadata.webAudioLoadingState === 'ERROR')
-                            return <Tag variant="error">ERROR</Tag>;
-                          return null;
-                        })()}
-                    </div>
-                  </Row>
+                      <div>
+                        <div>{track.title}</div>
+                        {track.duration && (
+                          <div className="text-xxs text-foreground-muted">
+                            {durationToHHMMSS(track.duration)}
+                          </div>
+                        )}
+                      </div>
+                      <div className={actions ? 'shrink-0 pr-9 text-right' : 'shrink-0 text-right'}>
+                        {loadState === 'LOADED' && <Tag variant="success">{'\u2713'} GAPLESS</Tag>}
+                        {loadState === 'LOADING' && <Tag variant="warning">LOADING</Tag>}
+                        {loadState === 'ERROR' && <Tag variant="error">ERROR</Tag>}
+                      </div>
+                    </Row>
+                    {actions && (
+                      <div className="absolute top-1/2 right-1 z-10 -translate-y-1/2">
+                        {actions}
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}

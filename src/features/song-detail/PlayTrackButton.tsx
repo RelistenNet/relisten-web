@@ -1,58 +1,44 @@
 'use client';
 
 import { Pause, Play } from 'lucide-react';
-import { useSelector } from 'react-redux';
-import player, { loadTracks } from '@/player/player';
-import type { PlayableTrack } from '@/ui/shows/rows';
-import { splitShowDate } from '@/lib/utils';
-import type { RootState } from '@/redux';
-import { store } from '@/redux';
-import { updatePlayback } from '@/redux/modules/playback';
+import type { PlayableTrack } from '@/domain/types';
+import type { ShowRow } from '@/ui/shows/rows';
+import { playSongRows, togglePlayPause } from '@/player/commands';
+import { useCurrentItem, useIsPlaying } from '@/player/hooks';
+import { useSongQueue } from './SongQueue';
+import { songRowItem } from '@/player/queue/items';
 
 type Props = {
+  row: ShowRow;
   track: PlayableTrack;
-  artistSlug: string;
-  artistName: string;
-  /** YYYY-MM-DD */
-  date: string;
   /** Screen-reader label, e.g. "Play 2025-07-27 (5 of 6)". */
   label: string;
 };
 
 /**
- * Plays one performance in place: the file goes straight into the player, no
- * navigation. While it's the current track, the button pauses and resumes.
+ * Plays a performance in place, then the rest of the performances on screen,
+ * in table order. While it's the current track, the button pauses and resumes.
  */
-export default function PlayTrackButton({ track, artistSlug, artistName, date, label }: Props) {
-  const isCurrent = useSelector(({ playback }: RootState) => playback.activeTrack?.id === track.id);
-  const isPlaying = useSelector(
-    ({ playback }: RootState) => isCurrent && !playback.activeTrack?.isPaused
-  );
+export default function PlayTrackButton({ row, track, label }: Props) {
+  const isCurrent = useCurrentItem()?.trackId === track.id;
+  const isPlaying = useIsPlaying() && isCurrent;
+  const queue = useSongQueue();
 
   if (!track.mp3Url) return null;
 
   const play = () => {
     if (isCurrent) {
-      player.togglePlayPause?.();
+      togglePlayPause();
       return;
     }
-    const { year, month, day } = splitShowDate(date);
-    // The same playback context a show page sets, so the player bar, saved
-    // state, and scrobbles all describe this track.
-    store.dispatch(
-      updatePlayback({
-        artistSlug,
-        artistName,
-        year,
-        month,
-        day,
-        showDate: date,
-        songSlug: track.slug,
-        source: track.sourceId,
-        paused: false,
-      })
-    );
-    loadTracks([track], track.slug, { playImmediately: true });
+    // Outside the song table's provider, queue just this row.
+    const own = songRowItem({ ...row, track });
+    const items = queue?.items.length ? queue.items : own ? [own] : [];
+    playSongRows({
+      items,
+      label: queue?.label ?? track.title ?? '',
+      startTrackId: track.id,
+    });
   };
 
   const Icon = isPlaying ? Pause : Play;

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Link } from '@timber-js/app/client';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import cn from '@/lib/cn';
@@ -20,6 +21,17 @@ type Props<Row> = {
   result: TableResult<Row>;
   columns: Column<Row>[];
   rowKey: (row: Row) => string;
+  /**
+   * Where a row goes: the whole row becomes a click target for it. The cell's
+   * own link stays the one keyboard and screen readers use; the row-wide link
+   * is a pointer convenience, hidden from them.
+   */
+  rowHref?: (row: Row) => string;
+  /**
+   * The table's minimum width (a class); narrower screens scroll it sideways.
+   * Tables with few columns can fit a phone with a smaller one.
+   */
+  minWidth?: string;
   /** "show" → "1–25 of 332 shows". */
   noun: string;
   searchPlaceholder: string;
@@ -31,6 +43,9 @@ type Props<Row> = {
 };
 
 const hideClass = { sm: 'max-sm:hidden', md: 'max-md:hidden' } as const;
+/** The sort ids a column's header offers. */
+const sortIdsOf = <Row,>(col: Column<Row>) =>
+  col.sorts ? col.sorts.map((x) => x.id) : col.sortable ? [col.id] : [];
 const plural = (n: number, noun: string) => `${noun}${n === 1 ? '' : 's'}`;
 const RESULTS_ID = 'results';
 
@@ -41,6 +56,8 @@ export default function DataTable<Row>({
   result,
   columns,
   rowKey,
+  rowHref,
+  minWidth = 'min-w-[36rem]',
   noun,
   searchPlaceholder,
   chipFilters = [],
@@ -107,11 +124,16 @@ export default function DataTable<Row>({
       <TablePending className="flex flex-col gap-3">
         {pager('Pagination, top')}
 
-        <div className="-mx-4 -my-2 overflow-x-auto">
-          <div className="inline-block min-w-full px-4 py-2 align-middle">
+        <div className="overflow-x-auto rounded-xl border border-hairline bg-text-primary/[0.015] shadow-sm">
+          <div className="inline-block min-w-full align-middle">
             {/* Fixed layout: column widths come from the <colgroup>, not the rows on
                 screen, so paging, sorting, and filtering never shift them. */}
-            <table className="w-full min-w-[36rem] table-fixed text-left text-base sm:text-sm">
+            <table
+              className={cn(
+                'w-full table-fixed border-separate border-spacing-0 text-left text-base sm:text-sm',
+                minWidth
+              )}
+            >
               <colgroup>
                 {columns.map((col) => (
                   <col
@@ -121,7 +143,7 @@ export default function DataTable<Row>({
                 ))}
               </colgroup>
               <thead>
-                <tr className="border-b border-hairline">
+                <tr>
                   {columns.map((col) => {
                     const sorts =
                       col.sorts ??
@@ -151,7 +173,7 @@ export default function DataTable<Row>({
                           {/* Always rendered (invisible when inactive) so changing the sort
                               never shifts the header. */}
                           <Arrow
-                            className={cn('size-4 shrink-0', !active && 'invisible')}
+                            className={cn('size-3.5 shrink-0', !active && 'invisible')}
                             aria-hidden
                           />
                         </Link>
@@ -169,7 +191,10 @@ export default function DataTable<Row>({
                             : undefined
                         }
                         className={cn(
-                          'py-2 pr-4 font-medium whitespace-nowrap text-text-secondary last:pr-0',
+                          `
+                            h-9 border-b border-hairline px-3 text-[11px] font-semibold
+                            tracking-wide whitespace-nowrap text-column-subheader-text uppercase
+                          `,
                           col.align === 'right' && 'text-right',
                           col.hideBelow && hideClass[col.hideBelow]
                         )}
@@ -188,7 +213,7 @@ export default function DataTable<Row>({
                   })}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-hairline">
+              <tbody>
                 {result.rows.length === 0 && (
                   <tr>
                     <td colSpan={columns.length} className="py-10 text-center text-text-muted">
@@ -213,22 +238,58 @@ export default function DataTable<Row>({
                     </td>
                   </tr>
                 )}
-                {result.rows.map((row) => (
-                  <tr key={rowKey(row)}>
-                    {columns.map((col) => (
-                      <td
-                        key={col.id}
-                        className={cn(
-                          'truncate py-2 pr-4 text-text-primary tabular-nums last:pr-0',
-                          col.align === 'right' && 'text-right',
-                          col.hideBelow && hideClass[col.hideBelow]
-                        )}
-                      >
-                        {col.cell(row)}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
+                {result.rows.map((row) => {
+                  const rowLink = rowHref?.(row);
+                  return (
+                    <tr
+                      key={rowKey(row)}
+                      className={cn(
+                        // Links and buttons in cells sit above the row-wide link.
+                        `
+                          even:bg-text-primary/[0.02] hover:bg-text-primary/[0.05]
+                          [&_a,&_button,&_[tabindex]]:relative [&_a,&_button,&_[tabindex]]:z-10
+                        `,
+                        rowLink && 'relative'
+                      )}
+                    >
+                      {columns.map((col, i) => {
+                        const sorted = sortIdsOf(col).includes(result.sort.id);
+                        return (
+                          <td
+                            key={col.id}
+                            className={cn(
+                              'h-11 truncate px-3 py-1.5 tabular-nums',
+                              col.align === 'right' && 'text-right',
+                              // The main column (the one without a fixed width, which takes the
+                              // rest of the row) and the column the list is ranked by are full
+                              // strength; the rest are secondary.
+                              !col.width || sorted ? 'text-text-primary' : 'text-text-muted',
+                              col.hideBelow && hideClass[col.hideBelow]
+                            )}
+                          >
+                            {i === 0 && rowLink && (
+                              <Link
+                                href={rowLink}
+                                tabIndex={-1}
+                                aria-hidden
+                                className="absolute! inset-0 z-0!"
+                              />
+                            )}
+                            {col.bar ? (
+                              <Bar
+                                fraction={col.bar.max > 0 ? col.bar.value(row) / col.bar.max : 0}
+                              >
+                                {col.cell(row)}
+                              </Bar>
+                            ) : (
+                              col.cell(row)
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -236,6 +297,21 @@ export default function DataTable<Row>({
 
         {pager('Pagination, bottom', RESULTS_ID)}
       </TablePending>
+    </div>
+  );
+}
+
+/** A number with a bar to its left, its length a fraction of the column's largest. */
+function Bar({ fraction, children }: { fraction: number; children: ReactNode }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="h-1.5 min-w-0 flex-1 max-sm:hidden" aria-hidden>
+        <div
+          className="ml-auto h-full rounded-full bg-accent/40"
+          style={{ width: `${Math.min(1, Math.max(0, fraction)) * 100}%` }}
+        />
+      </div>
+      <span className="min-w-[6ch] shrink-0">{children}</span>
     </div>
   );
 }

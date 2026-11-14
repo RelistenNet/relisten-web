@@ -6,76 +6,117 @@ import { Link } from '@timber-js/app/client';
 import React, { Suspense, use, useRef, useState } from 'react';
 import { browser } from 'react-dom';
 
-import type { RootState } from '@/redux';
-import { FastForwardIcon, ListMusicIcon, PauseIcon, PlayIcon, RewindIcon } from 'lucide-react';
-import { useSelector } from 'react-redux';
-import player from './player';
+import { FastForwardIcon, PauseIcon, PlayIcon, RewindIcon } from 'lucide-react';
+import { next, previous, seek, setVolume as setPlayerVolume, togglePlayPause } from './commands';
+import { useCurrentItem, useIsPlaying, usePlayback } from './hooks';
+import QueueButton from './QueuePanel';
 import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '@/lib/utils';
 import Flex from '@/ui/base/Flex';
+
+/** Seconds into the playing track, or 0. */
+const useCurrentTime = () => usePlayback((p) => p.currentTime);
+/** The playing track's length: the file's once known, else the item's. */
+function useDuration(fallback: number | undefined) {
+  const duration = usePlayback((p) => p.duration);
+  return Number.isFinite(duration) && duration > 0 ? duration : (fallback ?? 0);
+}
+
+function Elapsed() {
+  return <div>{durationToHHMMSS(useCurrentTime())}</div>;
+}
+
+function Remaining({ fallback }: { fallback?: number }) {
+  const [showRemaining, setShowRemaining] = useState(false);
+  const currentTime = usePlayback((p) => (showRemaining ? p.currentTime : 0));
+  const duration = useDuration(fallback);
+  return (
+    <div onClick={() => setShowRemaining((r) => !r)} className="cursor-pointer">
+      {durationToHHMMSS(showRemaining ? currentTime - duration : duration)}
+    </div>
+  );
+}
+
+function Progress({ fallback }: { fallback?: number }) {
+  const currentTime = useCurrentTime();
+  const duration = useDuration(fallback);
+  const percent = duration ? currentTime / duration : 0;
+  const hoverTextRef = useRef<HTMLSpanElement>(null);
+
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    seek(((e.clientX - rect.left) / rect.width) * duration);
+  };
+
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    e.currentTarget.style.setProperty('--hover-x', `${x}px`);
+    if (hoverTextRef.current) {
+      hoverTextRef.current.textContent = durationToHHMMSS((x / rect.width) * duration);
+    }
+  };
+
+  return (
+    <div
+      className="
+        group absolute bottom-0 left-0 z-1 h-1 w-full cursor-pointer touch-none bg-hairline
+        before:absolute before:-top-2 before:left-0 before:h-3 before:w-full
+        before:content-['']
+      "
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      style={{ opacity: currentTime < 0.1 ? 0.8 : 1 }}
+    >
+      <div
+        className="absolute bottom-0 left-0 h-1 bg-accent"
+        style={{ width: `${percent * 100}%` }}
+      />
+      <div
+        className="absolute bottom-0 left-0 z-1 h-2 w-[3px] bg-text-primary"
+        style={{ left: `${percent * 100}%` }}
+      />
+      <div
+        className="
+          pointer-events-none absolute bottom-full z-2 mb-2 hidden -translate-x-1/2 rounded-md
+          bg-surface-raised px-2.5 py-1 text-xs text-text-primary tabular-nums shadow-lg
+          ring-1 ring-hairline group-hover:block
+        "
+        style={{ left: 'var(--hover-x)' }}
+      >
+        <span ref={hoverTextRef} />
+        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-surface-raised" />
+      </div>
+    </div>
+  );
+}
 
 function PlayerInner() {
   use(browser());
 
-  const playerRef = useRef<HTMLDivElement>(null);
-  const playback = useSelector((state: RootState) => state.playback);
-  const [showRemainingDuration, setShowRemainingDuration] = useState(false);
-  const hoverTextRef = useRef<HTMLSpanElement>(null);
-  const [volume, setVolume] = useState(localStorage.volume || 1);
+  const activeTrack = useCurrentItem();
+  const isPlaying = useIsPlaying();
+  const volume = usePlayback((p) => p.volume);
 
-  const { year, month, day } = splitShowDate(playback.showDate);
-  const { artistSlug, source } = playback;
+  const { year, month, day } = splitShowDate(activeTrack?.date);
+  const artistSlug = activeTrack?.artistSlug;
   // The playing show's page, on the playing tape.
   const showHref =
     artistSlug && year && month && day
       ? href(
           '/[artistSlug]/[year]/[month]/[day]',
           { artistSlug, year, month, day },
-          sourceQuery(source)
+          sourceQuery(activeTrack?.sourceId)
         )
       : href('/');
-  const artistName = playback.artistName;
-  const activeTrack = playback.tracks.find(
-    (_track, idx: number) => idx === playback.activeTrack.index
-  );
-  const progressPercent = playback.activeTrack.duration
-    ? (playback.activeTrack.currentTime ?? 0) / playback.activeTrack.duration
-    : 0;
-  const onPlayPauseClick = () => {
-    player.togglePlayPause();
-  };
-
-  const onProgressClick = (e: React.PointerEvent) => {
-    const rect = playerRef.current?.getBoundingClientRect();
-
-    if (!rect) return;
-
-    const percentage = (e.clientX - rect.left) / rect.width;
-
-    player.seek(percentage * (playback?.activeTrack?.duration ?? 0));
-  };
-
-  const onProgressPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const time = (x / rect.width) * (playback.activeTrack.duration ?? 0);
-    e.currentTarget.style.setProperty('--hover-x', `${x}px`);
-    if (hoverTextRef.current) hoverTextRef.current.textContent = durationToHHMMSS(time);
-  };
-
-  const toggleRemainingDuration = () => {
-    setShowRemainingDuration((t) => !t);
-  };
+  const artistName = activeTrack?.artistName;
 
   const updateVolume = (e: React.PointerEvent<HTMLElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const height = rect.height;
-    const nextVolume = (height - (e.clientY - rect.top)) / height;
-
-    setVolume(Math.max(0, Math.min(1, nextVolume)));
-
-    player.setVolume(Math.max(0, Math.min(1, nextVolume)));
-
-    localStorage.volume = Math.max(0, Math.min(1, nextVolume));
+    const nextVolume = Math.max(
+      0,
+      Math.min(1, (rect.height - (e.clientY - rect.top)) / rect.height)
+    );
+    setPlayerVolume(nextVolume);
   };
 
   return (
@@ -93,9 +134,9 @@ function PlayerInner() {
             playpause min-w-[44px] cursor-pointer items-center justify-center text-text-muted
             active:text-text-primary lg:w-[40px] lg:min-w-0
           "
-          onClick={onPlayPauseClick}
+          onClick={() => togglePlayPause()}
         >
-          {playback.activeTrack.isPaused ? (
+          {!isPlaying ? (
             <PlayIcon
               size={20}
               className="fas fa fa-play fill-text-muted active:fill-text-primary"
@@ -109,7 +150,7 @@ function PlayerInner() {
         </Flex>
       )}
       {activeTrack && (
-        <div className="relative h-full flex-1" ref={playerRef}>
+        <div className="relative h-full flex-1">
           <Flex className="info h-full justify-center transition-all duration-[1s] ease-in-out">
             <div
               className="
@@ -117,10 +158,10 @@ function PlayerInner() {
               text-[0.8em] text-text-muted
             "
             >
-              <div className="-m-2 cursor-pointer p-2" onClick={() => player.previous()}>
+              <div className="-m-2 cursor-pointer p-2" onClick={() => previous()}>
                 <RewindIcon className="fill-text-muted" size={16} />
               </div>
-              <div>{durationToHHMMSS(playback.activeTrack.currentTime)}</div>
+              <Elapsed />
             </div>
             <Flex column className="justify-center pb-1">
               <div className="song-title relative top-1 text-center text-[1em] text-text-primary">
@@ -140,48 +181,13 @@ function PlayerInner() {
               text-right text-[0.8em] text-text-muted
             "
             >
-              <div className="-m-2 cursor-pointer p-2" onClick={() => player.next()}>
+              <div className="-m-2 cursor-pointer p-2" onClick={() => next()}>
                 <FastForwardIcon className="fill-text-muted" size={16} />
               </div>
-              <div onClick={toggleRemainingDuration} className="cursor-pointer">
-                {durationToHHMMSS(
-                  showRemainingDuration
-                    ? (playback.activeTrack.currentTime ?? 0) - (playback.activeTrack.duration ?? 0)
-                    : (playback.activeTrack.duration ?? 0)
-                )}
-              </div>
+              <Remaining fallback={activeTrack.duration} />
             </div>
           </Flex>
-          <div
-            className="
-              group absolute bottom-0 left-0 z-1 h-1 w-full cursor-pointer touch-none bg-hairline
-              before:absolute before:-top-2 before:left-0 before:h-3 before:w-full
-              before:content-['']
-            "
-            onPointerDown={onProgressClick}
-            onPointerMove={onProgressPointerMove}
-            style={{ opacity: (playback.activeTrack.currentTime ?? 0) < 0.1 ? 0.8 : 1 }}
-          >
-            <div
-              className="absolute bottom-0 left-0 h-1 bg-accent"
-              style={{ width: `${progressPercent * 100}%` }}
-            />
-            <div
-              className="absolute bottom-0 left-0 z-1 h-2 w-[3px] bg-text-primary"
-              style={{ left: `${progressPercent * 100}%` }}
-            />
-            <div
-              className="
-                pointer-events-none absolute bottom-full z-2 mb-2 hidden -translate-x-1/2 rounded-md
-                bg-surface-raised px-2.5 py-1 text-xs text-text-primary tabular-nums shadow-lg
-                ring-1 ring-hairline group-hover:block
-              "
-              style={{ left: 'var(--hover-x)' }}
-            >
-              <span ref={hoverTextRef} />
-              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-surface-raised" />
-            </div>
-          </div>
+          <Progress fallback={activeTrack.duration} />
         </div>
       )}
       {activeTrack && (
@@ -199,19 +205,7 @@ function PlayerInner() {
           </div>
         </div>
       )}
-      {activeTrack && (
-        <Link
-          href={showHref}
-          className="
-            flex w-[40px] cursor-pointer items-center justify-center self-center text-text-muted
-            active:text-text-primary max-lg:hidden
-          "
-        >
-          <div>
-            <ListMusicIcon size={22} />
-          </div>
-        </Link>
-      )}
+      {activeTrack && <QueueButton />}
     </Flex>
   );
 }

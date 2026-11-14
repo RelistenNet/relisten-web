@@ -3,6 +3,8 @@ import { durationToHHMMSS } from '@/lib/utils';
 import type { ShowRow } from '@/ui/shows/rows';
 import type { Column } from '@/ui/table/types';
 import PlayTrackButton from './PlayTrackButton';
+import QueueMenu from '@/player/QueueMenu';
+import { songRowItem } from '@/player/queue/items';
 
 // Columns only song pages have: playing a performance in place, and its length.
 
@@ -16,10 +18,8 @@ export const playColumn: Column<ShowRow> = {
     r.track ? (
       <div className="flex flex-col items-center">
         <PlayTrackButton
+          row={r}
           track={r.track}
-          artistSlug={r.artistSlug}
-          artistName={r.artistName}
-          date={r.date}
           label={`Play ${r.date}${r.performance ? ` (${r.performance.index} of ${r.performance.of})` : ''}`}
         />
         {r.performance && (
@@ -55,4 +55,14 @@ export const lengthColumn: Column<ShowRow> = {
       </Tooltip>
     );
   },
+};
+
+/** Play next / Add to queue for a performance. */
+export const queueColumn: Column<ShowRow> = {
+  id: 'queue',
+  width: 'w-14',
+  label: 'Queue',
+  srOnlyLabel: true,
+  align: 'right',
+  cell: (r) => <QueueMenu item={songRowItem(r)} />,
 };

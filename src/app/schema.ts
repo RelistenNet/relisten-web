@@ -1,30 +1,23 @@
 import { defineSchema } from '@timber-js/app/params';
 import z from 'zod/v4';
 import { codec } from '@timber-js/app/codec';
-import type { Codec } from '@timber-js/app/codec';
 
 // Segment params flow into backend API URLs, so keep them to a strict
 // character set. Anything else is a 404 before it reaches the data layer (src/data).
 const SLUG = /^[a-z0-9-]+$/i;
 const MONTH_OR_DAY = /^[\dx]{1,2}$/i;
 
-const slugSegment: Codec<string> = {
-  parse(value) {
-    const str = Array.isArray(value) ? value[0] : value;
-    if (!str || !SLUG.test(str)) throw new Error(`Invalid segment: '${str}'`);
-    return str;
-  },
-  serialize(value) {
-    return value;
-  },
-};
-
 export default defineSchema({
   segmentParams: {
     '[artistSlug]': z.string().regex(SLUG),
     '[day]': z.string().regex(MONTH_OR_DAY),
     '[month]': z.string().regex(MONTH_OR_DAY),
-    '[songSlug]': z.string().regex(SLUG),
+    // A song slug, or a song id (song_…): track menus link by id, since the
+    // API's track songs carry no slug. The page redirects an id to its slug.
+    '[songSlug]': z.union([
+      z.string().regex(SLUG),
+      z.string().regex(/^song_[0-9a-hjkmnp-tv-z]{8}$/),
+    ]),
     '[tourSlug]': z.string().regex(SLUG),
     // Canonical venue slugs, or an imported venue's id (imported_venue_…).
     '[venueSlug]': z.string().regex(/^[a-z0-9_-]+$/i),
@@ -36,10 +29,5 @@ export default defineSchema({
     // RFC version/variant bits.
     '[showId]': z.union([z.string().regex(/^show_[0-7][0-9a-hjkmnp-tv-z]{25}$/), z.guid()]),
     '[slug]': codec.string,
-
-    '[...days]': codec.catchAll(slugSegment),
-    '[...years]': codec.catchAll(slugSegment),
-
-    '[[...rest]]': codec.optionalCatchAll(slugSegment),
   },
 });

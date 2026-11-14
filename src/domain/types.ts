@@ -83,7 +83,7 @@ export type ShowSummary = {
   addedAt: string;
   /** Browse view only (a year's shows): average tape length, in seconds. */
   avgDuration?: number | null;
-  /** Browse view only (a year's shows): the full popularity windows, for the badge. */
+  /** A year's shows and show pages: the full popularity windows, for the badge. */
   popularity?: Popularity | null;
 };
 
@@ -143,7 +143,15 @@ export type Track = PlayableTrack & {
   /** 1-based, within the tape. */
   position: number;
   flacUrl: string | null;
+  /** The songs the file plays (a segue file holds several), for links to their pages. */
+  songs?: TrackSong[];
 };
+
+/**
+ * A song a track plays. By id: the API's track songs carry no slug, and the
+ * song page resolves an id to the song's slug.
+ */
+export type TrackSong = { id: string; name: string };
 
 /** A row of an artist's song list. */
 export type SongListItem = {

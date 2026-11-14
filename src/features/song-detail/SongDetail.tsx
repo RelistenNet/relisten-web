@@ -1,32 +1,24 @@
 import { href } from '@timber-js/app/routes';
 import { loadSong } from './load';
 import { findArtistBySlug } from '@/data/artists';
-import { lengthColumn, playColumn } from './columns';
+import { lengthColumn, playColumn, queueColumn } from './columns';
 import DataTable from '@/ui/table/DataTable';
-import { showColumns, showFilters, showSearchText, showSorts } from '@/ui/shows/columns';
+import { showColumns } from '@/ui/shows/columns';
 import ArtistCover from '@/ui/base/ArtistCover';
 import PageHeader, { type StatItem } from '@/ui/base/PageHeader';
 import YearChart from '@/ui/base/YearChart';
-import { tableHref, tableSearchParams, toTableState, type TableParams } from '@/ui/table/params';
+import { tableHref, toTableState, type TableParams } from '@/ui/table/params';
 import { formatShare, formatShowDate, showStats, timeAgo } from '@/ui/shows/stats';
 import { durationToHHMMSS, numberFormat } from '@/lib/utils';
-import { queryTable, type TableSpec } from '@/ui/table/query';
+import { queryTable } from '@/ui/table/query';
 import type { ShowRow } from '@/ui/shows/rows';
+import { SONG_FILTER_IDS, songSearchParams, songSpec } from './spec';
+import { SongQueueProvider } from './SongQueue';
+import { songRowItem } from '@/player/queue/items';
 import { Link } from '@timber-js/app/client';
 import { redirect } from '@timber-js/app/server';
 
 // Every show an artist played a song at. Songs are artist-specific in v4.
-
-const FILTER_IDS = ['year', 'sbd'] as const;
-const searchParams = tableSearchParams(FILTER_IDS);
-
-const songSpec: TableSpec<ShowRow> = {
-  sorts: showSorts,
-  defaultSort: { id: 'date', dir: 'desc' },
-  searchText: showSearchText,
-  filters: [showFilters.year, showFilters.sbd],
-  pageSize: 25,
-};
 
 export default async function SongDetail({
   artistSlug,
@@ -38,7 +30,7 @@ export default async function SongDetail({
   const [song, artist, params] = await Promise.all([
     loadSong(artistSlug, songSlug),
     findArtistBySlug(artistSlug),
-    searchParams.get(),
+    songSearchParams.get(),
   ]);
 
   // A merged song, or a setlist-only song linked to its canonical song: the API
@@ -49,7 +41,9 @@ export default async function SongDetail({
     });
   }
 
-  const result = queryTable(song.rows, songSpec, toTableState(params, FILTER_IDS));
+  const result = queryTable(song.rows, songSpec, toTableState(params, SONG_FILTER_IDS));
+  // A row's play button queues the performances on screen, in table order.
+  const visibleItems = result.rows.flatMap((row) => songRowItem(row) ?? []);
   const stats = showStats(song.rows);
   const pathname = href('/artists/[artistSlug]/songs/[songSlug]', { artistSlug, songSlug });
   const artistShows = artist?.showCount ?? 0;
@@ -117,23 +111,27 @@ export default async function SongDetail({
         />
       </PageHeader>
 
-      <DataTable
-        pathname={pathname}
-        params={params}
-        spec={songSpec}
-        result={result}
-        columns={[
-          ...(song.imported ? [] : [playColumn]),
-          showColumns.show,
-          ...(song.imported ? [] : [lengthColumn]),
-          showColumns.tapes,
-          showColumns.plays,
-        ]}
-        rowKey={(r) => r.id}
-        noun="performance"
-        searchPlaceholder="Search venues, cities, dates"
-        chipFilters={['year']}
-      />
+      <SongQueueProvider label={song.name ?? songSlug} items={visibleItems}>
+        <DataTable
+          pathname={pathname}
+          params={params}
+          spec={songSpec}
+          result={result}
+          columns={[
+            ...(song.imported ? [] : [playColumn]),
+            showColumns.show,
+            ...(song.imported ? [] : [lengthColumn]),
+            showColumns.tapes,
+            showColumns.plays,
+            ...(song.imported ? [] : [queueColumn]),
+          ]}
+          rowKey={(r) => r.id}
+          rowHref={(r) => r.href}
+          noun="performance"
+          searchPlaceholder="Search venues, cities, dates"
+          chipFilters={['year']}
+        />
+      </SongQueueProvider>
     </div>
   );
 }

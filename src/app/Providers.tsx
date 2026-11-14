@@ -1,35 +1,39 @@
 'use client';
 
-import player, { restoreLastPlayback } from '@/player/player';
+import { next, previous, togglePlayPause } from '@/player/commands';
+import { hydratePlayer } from '@/player/runtime';
 import { PropsWithChildren, useEffect } from 'react';
-import { Provider } from 'react-redux';
-import { store } from '../redux';
 import AdminToolsInit from '@/shell/AdminToolsInit';
 import { TooltipHost } from '@/ui/base/Tooltip';
 
+// Shortcuts would steal these elements' keystrokes.
+const TYPING_TARGET = 'input, textarea, select, [contenteditable]:not([contenteditable="false"])';
+// Controls that Space activates. Only when focused from the keyboard: a mouse
+// click leaves a button focused in Chrome, and Space should still pause then.
+const SPACE_TARGET =
+  ':is(button, summary, [role="button"], [role="checkbox"], [role="switch"], [role="menuitem"], [role="option"], [role="tab"]):focus-visible';
+
 export default function Providers({ children }: PropsWithChildren) {
-  // After hydration, so the restored track doesn't change the first client render.
-  useEffect(restoreLastPlayback, []);
+  // After hydration, so the restored queue doesn't change the first client render.
+  // Children's effects run first, so a track page has already started playing.
+  useEffect(hydratePlayer, []);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      // Guard: player proxy returns undefined for methods when
-      // initGaplessPlayer() hasn't been called yet (no track loaded).
-      if (!player.togglePlayPause) return;
-
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable)
-        return;
+      const target = e.target instanceof Element ? e.target : null;
+      if (target?.closest(TYPING_TARGET)) return;
 
       if (e.code === 'Space') {
+        // A focused control's own Space (click a button, toggle a checkbox) wins.
+        if (target?.matches(SPACE_TARGET)) return;
         e.preventDefault();
-        player.togglePlayPause();
+        togglePlayPause();
       }
       if (e.code === 'ArrowRight') {
-        player.next();
+        next();
       }
       if (e.code === 'ArrowLeft') {
-        player.previous();
+        previous();
       }
     };
     document.addEventListener('keydown', onKeyDown);
@@ -38,9 +42,9 @@ export default function Providers({ children }: PropsWithChildren) {
   }, []);
 
   return (
-    <Provider store={store}>
+    <>
       <AdminToolsInit />
       <TooltipHost>{children}</TooltipHost>
-    </Provider>
+    </>
   );
 }

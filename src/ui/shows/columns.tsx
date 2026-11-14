@@ -19,7 +19,7 @@ export const showColumns = {
     firstDir: 'desc',
     cell: (r) => (
       <span className="inline-flex items-center gap-1">
-        <Link href={r.href} className="text-accent hover:underline">
+        <Link href={r.href} className="font-medium hover:underline">
           {r.date}
         </Link>
         {r.sbd && <Tag>SBD</Tag>}
@@ -37,7 +37,7 @@ export const showColumns = {
     cell: (r) => (
       <div className="flex min-w-0 flex-col">
         <span className="flex min-w-0 items-center gap-1">
-          <Link href={r.href} className="text-accent hover:underline">
+          <Link href={r.href} className="font-medium hover:underline">
             {r.date}
           </Link>
           {r.sbd && <Tag>SBD</Tag>}

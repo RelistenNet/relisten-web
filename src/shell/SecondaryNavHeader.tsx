@@ -1,92 +1,37 @@
 'use client';
 
-import { href } from '@timber-js/app/routes';
-import {
-  Link,
-  usePathname,
-  useSegmentParams,
-  useSelectedLayoutSegments,
-} from '@timber-js/app/client';
+import { Link, usePathname } from '@timber-js/app/client';
+import { useBrowsingArtist } from './browsingArtistContext';
 
+// The site's pages' titles, by first path segment: "RELISTEN TO TODAY IN HISTORY".
 const pages = {
-  'sonos': {
-    prefix: 'ON',
-    title: 'SONOS',
-  },
-  'app': {
-    prefix: 'ON THE',
-    title: 'GO',
-  },
-  'today': {
-    prefix: 'TO',
-    title: 'TODAY IN HISTORY',
-  },
-  'recently-played': {
-    prefix: 'WITH',
-    title: 'OTHERS',
-  },
-  'chat': {
-    prefix: 'WITH',
-    title: 'US',
-  },
-  'about': {
-    prefix: 'TO',
-    title: 'OUR LIFE STORY',
-  },
-  'blog': {
-    prefix: 'TO',
-    title: 'OUR BLOG',
-  },
+  'sonos': { prefix: 'ON', title: 'SONOS' },
+  'app': { prefix: 'ON THE', title: 'GO' },
+  'today': { prefix: 'TO', title: 'TODAY IN HISTORY' },
+  'recently-played': { prefix: 'WITH', title: 'OTHERS' },
+  'venues': { prefix: 'AT', title: 'EVERY VENUE' },
+  'chat': { prefix: 'WITH', title: 'US' },
+  'about': { prefix: 'TO', title: 'OUR LIFE STORY' },
+  'blog': { prefix: 'TO', title: 'OUR BLOG' },
 };
 
-interface Props {
-  artistName?: string;
-}
-
-const bandsWithThe = [
-  'duo',
-  'bernie-worrell',
-  'disco-biscuits',
-  'drive-by-truckers',
-  'g-nome',
-  'grateful-dead',
-  'jazz-mandolin-project',
-  'phish',
-  'sci',
-  'smashing-pumpkins',
-  'steve-kimock-band',
-  'stringdusters',
-  'tedeschi-trucks',
-];
-
-export default function SecondaryNavBar({ artistName }: Props) {
+/**
+ * The header title after RELISTEN, on the site's pages only: the
+ * page's own ("TO TODAY IN HISTORY"). Elsewhere the header is just RELISTEN;
+ * the artist is the artist tabs', below.
+ */
+export default function SecondaryNavBar() {
   const pathname = usePathname();
-  const { artistSlug } = useSegmentParams() as { artistSlug?: string };
-  const segments = useSelectedLayoutSegments();
+  if (!useBrowsingArtist().onSitePage) return null;
 
-  const pageMetadata = pages[segments[0]];
-
-  if (pageMetadata) {
-    return (
-      <>
-        <span className="to">{pageMetadata.prefix}</span>
-        <Link href={pathname}>{pageMetadata.title}</Link>
-      </>
-    );
-  }
-
-  if (typeof artistSlug === 'string') {
-    if (!artistName) return null;
-    return (
-      <>
-        <span>TO</span>
-        <Link href={href('/[artistSlug]', { artistSlug })} className="uppercase">
-          {bandsWithThe.includes(artistSlug) ? 'THE ' : ''}
-          {artistName}
-        </Link>
-      </>
-    );
-  }
-
-  return null;
+  // The first path segment, not useSelectedLayoutSegments(): this renders in
+  // layouts at different depths, and the pathname reads the same from each.
+  const page = pages[pathname.split('/')[1] as keyof typeof pages];
+  if (!page) return null;
+  return (
+    <>
+      <span className="to">{page.prefix}</span>
+      <Link href={pathname}>{page.title}</Link>
+    </>
+  );
 }

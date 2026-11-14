@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fromArtistRow, isPrimaryArtist, toArtistRow } from './artistRows';
+import { fromArtistRow, groupArtists, isPrimaryArtist, toArtistRow } from './artistRows';
 import type { Artist } from '@/domain/types';
 
 const artist: Artist = {
@@ -9,6 +9,7 @@ const artist: Artist = {
   showCount: 2400,
   sourceCount: 17000,
   featured: 1,
+  features: { normalization: true, perSourceVenues: true } as Artist['features'],
   popularity: {
     momentumScore: 3.2,
     trendRatio: 1.1,
@@ -29,6 +30,12 @@ describe('artist rows', () => {
       featured: 1,
       showCount: 2400,
       sourceCount: 17000,
+      features: {
+        normalization: true,
+        perShowVenues: false,
+        perSourceVenues: true,
+        tours: false,
+      },
       popularity: {
         windows: {
           '48h': { plays: 120, hours: 0.4, hotScore: 0 },
@@ -42,13 +49,13 @@ describe('artist rows', () => {
   it('rounds hours to what formatHours displays', () => {
     const row = toArtistRow(artist);
     // 0.4h displays as 24m; whole hours above that.
-    expect(Math.round((row[6] as number) * 60)).toBe(24);
-    expect(row[8]).toBe(62);
+    expect(Math.round((row[7] as number) * 60)).toBe(24);
+    expect(row[9]).toBe(62);
   });
 
   it('omits windows for artists without popularity', () => {
     const row = toArtistRow({ ...artist, popularity: null });
-    expect(row).toEqual(['grateful-dead', 'Grateful Dead', 1, 2400, 17000]);
+    expect(row).toEqual(['grateful-dead', 'Grateful Dead', 1, 2400, 17000, 0b0101]);
     expect(fromArtistRow(row).popularity).toBeNull();
   });
 
@@ -62,5 +69,16 @@ describe('artist rows', () => {
     expect(isPrimaryArtist({ featured: 0 })).toBe(true);
     expect(isPrimaryArtist({ featured: 1 })).toBe(true);
     expect(isPrimaryArtist({ featured: 2 })).toBe(false);
+  });
+
+  it('groups featured, then primary, then archive, keeping order within each', () => {
+    const a = (slug: string, featured: number) => ({ slug, featured });
+    const groups = groupArtists([a('x', 2), a('p1', 0), a('f1', 1), a('p2', 0), a('y', 3)]);
+    expect(groups.map((g) => [g.label, g.artists.map((x) => x.slug)])).toEqual([
+      ['Featured Artists', ['f1']],
+      ['Primary Artists', ['p1', 'p2']],
+      ['Archive Artists', ['x', 'y']],
+    ]);
+    expect(groupArtists([a('p', 0)]).map((g) => g.key)).toEqual(['primary']);
   });
 });

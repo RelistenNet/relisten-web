@@ -3,7 +3,7 @@
 import { href } from '@timber-js/app/routes';
 import type { YearSummary } from '@/domain/types';
 import { PropsWithChildren, useMemo } from 'react';
-import { useSegmentParams } from '@timber-js/app/client';
+import { Link, useSegmentParams } from '@timber-js/app/client';
 import { useFilterState } from '@/hooks/useFilterState';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import sortActiveBands from '@/lib/sortActiveBands';
@@ -79,7 +79,15 @@ const YearsColumnWithControls = ({
 
   return (
     <ColumnWithToggleControls
-      heading={artistName ?? 'Years'}
+      heading={
+        artistName && artistSlug ? (
+          <Link href={href('/artists/[artistSlug]', { artistSlug })} className="hover:underline">
+            {artistName}
+          </Link>
+        ) : (
+          (artistName ?? 'Years')
+        )
+      }
       toggles={toggles}
       filteredCount={processedYears.length}
       totalCount={artistYears.length}

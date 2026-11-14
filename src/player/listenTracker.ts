@@ -6,7 +6,8 @@ type Progress = { currentTime: number; isPaused: boolean };
 /**
  * Decides when the current track has been listened to long enough to count as a
  * play. Feed it every progress update; `progress` returns true exactly once per
- * track, the moment it crosses the threshold.
+ * id (a queue entry key, so two queued copies of a track each count), the
+ * moment it crosses the threshold.
  *
  * Heard time is real time that passed while the track was unpaused and its
  * position moved forward. Each step counts as the smaller of the two, so a seek
@@ -27,10 +28,10 @@ export function createListenTracker(now: () => number = () => performance.now() 
   let counted = false;
 
   return {
-    progress(trackId: string, { currentTime, isPaused }: Progress): boolean {
+    progress(id: string, { currentTime, isPaused }: Progress): boolean {
       const at = now();
-      if (trackId !== current) {
-        current = trackId;
+      if (id !== current) {
+        current = id;
         heard = 0;
         counted = false;
         wasPaused = true;
