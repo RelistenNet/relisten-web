@@ -1,0 +1,28 @@
+name: Preview dispatch
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, labeled, unlabeled, closed]
+  delete:
+permissions:
+  contents: read
+  actions: write
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+          persist-credentials: false
+          path: trusted
+      - name: Dispatch the event PR if it is currently eligible
+        if: github.event.pull_request.number != null
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREVIEW_PR: ${{ github.event.pull_request.number }}
+        run: python3 trusted/.github/previews/automation/build.py dispatch --pr "$PREVIEW_PR"
+      - name: Request a serialized full reconciliation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run preview-control.yml --repo RelistenNet/relisten-web --ref master

@@ -7,7 +7,7 @@ export default async function EmbedShowPage() {
 
   if (!artistSlug || !year || !month || !day) {
     return (
-      <div className="flex h-screen items-center justify-center text-gray-500">
+      <div className="flex h-[calc(100vh-var(--preview-banner-height,0px))] items-center justify-center text-gray-500">
         Invalid show parameters
       </div>
     );
@@ -27,7 +27,7 @@ export default async function EmbedShowPage() {
 
   if (!firstTrack) {
     return (
-      <div className="flex h-screen items-center justify-center text-gray-500">
+      <div className="flex h-[calc(100vh-var(--preview-banner-height,0px))] items-center justify-center text-gray-500">
         No songs available for this show
       </div>
     );

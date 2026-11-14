@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-14",
+  "applicationSourceCommit": "ff1a033ef1b60faa4bc43ff2df8e360294931472",
+  "localImageId": "sha256:e62979319ad359c8b0b40d8a7a3c3fc74a894eaf3ce3ee08b75499a750112189",
+  "architecture": "amd64",
+  "sameImageBothModes": true,
+  "containerUser": "1001:1001",
+  "readOnlyRoot": true,
+  "capabilitiesDropped": "ALL",
+  "previewIndicator": true,
+  "ordinaryIndicator": false,
+  "unrelatedEnvironmentSentinelSerialized": false,
+  "adversarialBranchRenderedLiterally": true,
+  "clientNavigation": "/phish",
+  "smallViewportWidth": 320,
+  "metadataTopPixels": 5.5,
+  "horizontalOverflow": false,
+  "aboutViewport": [1280, 720],
+  "aboutDocumentHeight": 720,
+  "embedViewport": [375, 400],
+  "embedBottomPixels": 400
+}
