@@ -1,5 +1,5 @@
 {
-  "infrastructureCommit": "3973b17660949b901b2874b1e05d96f77290d49c",
+  "infrastructureCommit": "4dfa2295f05551909cc2f99ce562b4f2e674c059",
   "files": {
     "automation/README.md": "835d0a788cc7f0674e46fec41ae1a1e2fcdc876fe3f41dadb23c846f543d99d2",
     "render.py": "d2c14fb3d2b767df20a3fe483156a7d08a9bbe13bebc397daaeecb37efb24666",
@@ -12,7 +12,7 @@
     "automation/package_proof.py": "85b6aa6c216fa1a3b9c846a15f34e215d82b9a542a1d5156faf3b0d7cb06025e",
     "automation/authority.py": "fa644e826ea294944ccbc89fb5e870a3057f5753ce3bb1e7b14310998e59f891",
     "automation/github.py": "5dd37ae29b3f1a0ac3bfe77ed1d1765d635e7fb35770f930c64cadb61d105c96",
-    "automation/publish.py": "e5665f249217ef5bacea74911d8087bd065e221bb0d17a42ae016dfa59dc06d0"
+    "automation/publish.py": "e0b4bf1147365887a263edee9ff8574ae5c3889d498d53a4605222bc52242ef5"
   },
   "workflows": {
     "preview-build.yml": "76c9f77739714ec3d40b790d3641d9b06766f2d300b7c5474534330d9874e4a2",
