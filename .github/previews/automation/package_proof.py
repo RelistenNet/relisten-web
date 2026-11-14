@@ -1,6 +1,7 @@
-"""Publish then delete an explicitly disposable image using the real CI token."""
+"""Bootstrap a zero-layer package anchor or prove disposable version deletion."""
 
 from datetime import datetime, timezone
+import argparse
 import hashlib
 import io
 import json
@@ -13,7 +14,7 @@ from github import GitHub, REPO, REPO_ID
 from publish import PACKAGE, copy_oci, require_private_package
 
 
-def create_empty_oci(path):
+def create_empty_oci(path, *, anchor=False):
     def encoded(value):
         return json.dumps(value, separators=(",", ":")).encode()
 
@@ -25,9 +26,13 @@ def create_empty_oci(path):
             "config": {
                 "Labels": {
                     "org.opencontainers.image.source": "https://github.com/" + REPO,
-                    "relisten.net/disposable-cleanup-proof": os.environ[
-                        "GITHUB_RUN_ID"
-                    ],
+                    **(
+                        {"relisten.net/preview-package-anchor": "1"}
+                        if anchor
+                        else {
+                            "relisten.net/disposable-cleanup-proof": os.environ["GITHUB_RUN_ID"]
+                        }
+                    ),
                 }
             },
             "rootfs": {"type": "layers", "diff_ids": []},
@@ -74,16 +79,29 @@ def create_empty_oci(path):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--bootstrap-anchor", action="store_true")
+    args = parser.parse_args()
     gh = GitHub()
     gh.current_default()
     require_private_package(gh)
+    if args.bootstrap_anchor and any(
+        "package-anchor" in v["metadata"]["container"]["tags"]
+        for v in gh.pages("/orgs/RelistenNet/packages/container/" + PACKAGE + "/versions")
+    ):
+        raise ValueError("Package anchor already exists; verify its pinned digest instead")
+    tag = (
+        "package-anchor"
+        if args.bootstrap_anchor
+        else "cleanup-proof-" + os.environ["GITHUB_RUN_ID"]
+    )
     with tempfile.TemporaryDirectory(prefix="preview-package-proof-") as temporary:
         directory = Path(temporary)
-        create_empty_oci(directory / "image.oci.tar")
+        create_empty_oci(directory / "image.oci.tar", anchor=args.bootstrap_anchor)
         digest = copy_oci(
             gh,
             directory,
-            "cleanup-proof-" + os.environ["GITHUB_RUN_ID"],
+            tag,
             before_publish=lambda: require_private_package(gh),
         )
     package = gh.request("/orgs/RelistenNet/packages/container/" + PACKAGE)
@@ -94,11 +112,19 @@ def main():
         for v in versions
         if v["name"] == digest
         and v["metadata"]["container"]["tags"]
-        == ["cleanup-proof-" + os.environ["GITHUB_RUN_ID"]]
+        == [tag]
     ]
     if len(matches) != 1:
         raise ValueError("Cannot identify disposable cleanup proof version")
     version = matches[0]
+    if args.bootstrap_anchor:
+        print(json.dumps({
+            "packageId": package["id"],
+            "packageAnchorDigest": digest,
+            "emptyImage": True,
+            "versionId": version["id"],
+        }))
+        return
     gh.request(
         f"/orgs/RelistenNet/packages/container/{PACKAGE}/versions/{version['id']}",
         "DELETE",
