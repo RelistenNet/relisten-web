@@ -44,7 +44,15 @@ The operator verifies the private preview package repository link once and pins
 its immutable ID in environment variable `PREVIEW_PACKAGE_ID`. Publishing and
 deletion fail closed on an ID or visibility change.
 
-Package cleanup retains deployed, rollback and pending digests, plus any actual
+GHCR rejects deletion of its last tagged version. Bootstrap one trusted zero-layer
+`package-anchor` image and pin its digest in `PREVIEW_PACKAGE_ANCHOR_DIGEST`.
+Cleanup retains that empty marker so every branch image can be removed without
+recreating the private package or its permissions. Missing/absent pins fail closed.
+Provision it once with `preview-control.yml` input `bootstrap_anchor=true`, verify
+the reported empty-image digest, then store that environment variable before a
+regular control scan. The bootstrap refuses to overwrite an existing anchor tag.
+
+Package cleanup retains the empty marker, deployed, rollback and pending digests, plus any actual
 preview Deployment image. First-observed-unreferenced marks persist across runs;
 versions become eligible after 15 minutes. Marks drain in batches of 128 so an
 outage backlog cannot prevent its own cleanup. Logs report the waiting backlog;

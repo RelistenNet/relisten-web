@@ -4,6 +4,11 @@ on:
     - cron: '*/5 * * * *'
   workflow_dispatch:
     inputs:
+      bootstrap_anchor:
+        description: Provision the trusted zero-layer package anchor once before previews
+        required: false
+        type: boolean
+        default: false
       build_run_id:
         description: Optional completed preview build to reconcile; waits for final workflow status
         required: false
@@ -64,11 +69,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PREVIEW_PACKAGE_ID: ${{ vars.PREVIEW_PACKAGE_ID }}
+          PREVIEW_PACKAGE_ANCHOR_DIGEST: ${{ vars.PREVIEW_PACKAGE_ANCHOR_DIGEST }}
+          PREVIEW_BOOTSTRAP_ANCHOR: ${{ inputs.bootstrap_anchor }}
           PREVIEW_RUN_ID: ${{ inputs.build_run_id }}
           PREVIEW_RETRY: ${{ inputs.retry }}
           PREVIEW_PACKAGE_PROOF: ${{ inputs.package_proof }}
         run: |
           python3 trusted/.github/previews/automation/authority.py
+          if [ "$PREVIEW_BOOTSTRAP_ANCHOR" = true ]; then
+            python3 trusted/.github/previews/automation/package_proof.py --bootstrap-anchor
+            exit 0
+          fi
           if [ "$PREVIEW_PACKAGE_PROOF" = true ]; then
             python3 trusted/.github/previews/automation/package_proof.py
             exit 0

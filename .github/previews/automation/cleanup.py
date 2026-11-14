@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import math
+import os
 import re
 import urllib.request
 
@@ -64,6 +65,10 @@ class Registry:
 
 def cleanup_images(gh, registry, protected, marks=None, checkpoint=None, now=None):
     now = now or datetime.now(timezone.utc)
+    anchor = os.environ.get("PREVIEW_PACKAGE_ANCHOR_DIGEST", "")
+    if not re.fullmatch(r"sha256:[a-f0-9]{64}", anchor):
+        raise ValueError("Pin the operator-verified empty preview package anchor")
+    protected = set(protected) | {IMAGE + "@" + anchor}
     require_private_package(gh)
     versions = gh.pages("/orgs/RelistenNet/packages/container/" + PACKAGE + "/versions")
     # Keep children while any surviving index references them, including partial
