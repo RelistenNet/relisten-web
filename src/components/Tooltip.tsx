@@ -6,6 +6,7 @@ import {
   type KeyboardEvent,
   type ReactNode,
   type SyntheticEvent,
+  Component,
   createContext,
   useCallback,
   useContext,
@@ -52,9 +53,52 @@ const TooltipApiContext = createContext<TooltipApi | null>(null);
 // styles) was a large share of those pages' HTML and SSR time.
 const ANCHOR_NAME = '--tooltip-anchor';
 
+// Browsers without the Popover API (Safari < 17, Firefox < 125) get no
+// tooltips: calling showPopover there throws, and since TooltipHost wraps the
+// whole app in Providers, that error unmounts everything, player included.
+const supportsPopover = () =>
+  typeof HTMLElement !== 'undefined' && typeof HTMLElement.prototype.showPopover === 'function';
+
 // The popover mounts when a tooltip is shown and unmounts when it's hidden
-// (which closes it), so showing it on attach is all it needs.
-const showOnAttach = (popover: HTMLDivElement | null) => popover?.showPopover();
+// (which closes it), so showing it on attach is all it needs. A tooltip must
+// never take the page down, so failures (e.g. InvalidStateError) are swallowed.
+const showOnAttach = (popover: HTMLDivElement | null) => {
+  if (!popover || popover.matches(':popover-open')) return;
+  try {
+    popover.showPopover();
+  } catch {
+    // Not worth an error boundary: the tooltip just doesn't show.
+  }
+};
+
+/**
+ * Contains a failing tooltip. TooltipHost sits above the whole app, so an error
+ * that escaped it would remount everything, including PlayerManager, which
+ * reloads the queue and restarts the song. On error this renders nothing and
+ * tries again once `resetKey` changes (the next tooltip shown).
+ */
+type BoundaryProps = { children: ReactNode; resetKey: unknown };
+type BoundaryState = { failed: boolean; resetKey: unknown };
+
+class TooltipBoundary extends Component<BoundaryProps, BoundaryState> {
+  state: BoundaryState = { failed: false, resetKey: this.props.resetKey };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  static getDerivedStateFromProps(props: BoundaryProps, state: BoundaryState) {
+    return props.resetKey === state.resetKey ? null : { failed: false, resetKey: props.resetKey };
+  }
+
+  componentDidCatch(error: unknown) {
+    console.error('Tooltip failed to render:', error);
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
 
 /** Renders the app's one tooltip. Mount once, around everything that uses `<Tooltip>`. */
 export function TooltipHost({ children }: { children: ReactNode }) {
@@ -73,6 +117,7 @@ export function TooltipHost({ children }: { children: ReactNode }) {
     };
     return {
       show(trigger, next) {
+        if (!supportsPopover()) return;
         detach();
         trigger.style.setProperty('anchor-name', ANCHOR_NAME);
         trigger.setAttribute('aria-describedby', id);
@@ -92,36 +137,41 @@ export function TooltipHost({ children }: { children: ReactNode }) {
   return (
     <TooltipApiContext.Provider value={api}>
       {children}
-      {shown && (
-        <div
-          ref={showOnAttach}
-          id={id}
-          // `hint` closes on Escape without closing other popovers. Browsers
-          // without it treat the value as `manual`; triggers handle Escape too.
-          popover="hint"
-          onToggle={(e) => e.newState === 'closed' && api.hide()}
-          role="tooltip"
-          style={{
-            // Undo the UA popover's `inset: 0`, which would pin the unanchored sides.
-            inset: 'auto',
-            ...buildAnchorStyles(ANCHOR_NAME, { placement: shown.placement, offset: 4 }).floating,
-          }}
-          // `anchored-safe` keeps the tooltip clear of the notch / home indicator.
-          data-side={side}
-          data-align={alignment}
-          className={cn(
-            shown.contentClassName,
-            // Non-interactive: the tooltip often overlaps the next row's trigger, and
-            // if it caught the pointer, hovering that trigger would never open its tooltip.
-            'anchored-safe pointer-events-none rounded-sm border p-2 text-sm shadow-lg',
-            shown.theme === 'light'
-              ? 'border-gray-200 bg-white text-gray-900'
-              : 'border-foreground-muted/20 bg-surface-raised text-text-primary'
-          )}
-        >
-          {shown.content}
-        </div>
-      )}
+      <TooltipBoundary resetKey={shown}>
+        {shown && (
+          <div
+            ref={showOnAttach}
+            id={id}
+            // `hint` closes on Escape without closing other popovers. Browsers
+            // without it treat the value as `manual`; triggers handle Escape too.
+            popover="hint"
+            onToggle={(e) => e.newState === 'closed' && api.hide()}
+            role="tooltip"
+            style={{
+              // Undo the UA popover's `inset: 0`, which would pin the unanchored sides.
+              inset: 'auto',
+              ...buildAnchorStyles(ANCHOR_NAME, {
+                placement: shown.placement,
+                offset: 4,
+              }).floating,
+            }}
+            // `anchored-safe` keeps the tooltip clear of the notch / home indicator.
+            data-side={side}
+            data-align={alignment}
+            className={cn(
+              shown.contentClassName,
+              // Non-interactive: the tooltip often overlaps the next row's trigger, and
+              // if it caught the pointer, hovering that trigger would never open its tooltip.
+              'anchored-safe pointer-events-none rounded-sm border p-2 text-sm shadow-lg',
+              shown.theme === 'light'
+                ? 'border-gray-200 bg-white text-gray-900'
+                : 'border-foreground-muted/20 bg-surface-raised text-text-primary'
+            )}
+          >
+            {shown.content}
+          </div>
+        )}
+      </TooltipBoundary>
     </TooltipApiContext.Provider>
   );
 }
