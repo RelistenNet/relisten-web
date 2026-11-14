@@ -139,7 +139,7 @@ _Seen:_ a3781be, 1f7adcd, e9aae61, 4da35b7 (restore and save raced explicit play
 That means the Relisten API, audio loading and anything else over the network. timber holds the response until the shell resolves, so one stalled API call outside `<Suspense>` hangs the whole page. Put a time limit on each call, and decide what happens when it fails: a 404, an error boundary, a retry, or an empty state. `src/lib/poller.ts` gets this right (an `AbortSignal` with `timeoutMs`).
 
 - _Check:_ for each new network call, what's its timeout, and what does the user see when it fails or hangs?
-- _Known gap:_ `relistenFetch` in `src/api/fetcher.ts` has no timeout or abort signal.
+- _Seen:_ 19c2495 (`relistenFetch` and the card font fetch had no timeout; the font promise is shared, so one hung request stalled every image).
 
 ### 13. A missing thing is a real 404, not a 500
 
