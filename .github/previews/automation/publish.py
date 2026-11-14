@@ -5,6 +5,8 @@ import base64
 import os
 from pathlib import Path
 import re
+import shutil
+import tarfile
 import subprocess
 import tempfile
 import urllib.request
@@ -136,10 +138,43 @@ def download(gh, artifact, destination):
             output.write(chunk)
 
 
+def unpack_oci(directory):
+    """Copy only OCI layout files; archive ownership, modes and links are untrusted."""
+    layout = directory / "oci"
+    layout.mkdir(mode=0o700)
+    seen = set()
+    total = 0
+    with tarfile.open(directory / "image.oci.tar", "r:") as archive:
+        for member in archive:
+            name = member.name.removeprefix("./").rstrip("/")
+            if name in seen or len(seen) >= 100_000:
+                raise ValueError("Duplicate or excessive OCI archive entries")
+            seen.add(name)
+            if member.isdir() and name in {"blobs", "blobs/sha256"}:
+                continue
+            if (
+                not member.isfile()
+                or member.issparse()
+                or not (
+                    name in {"oci-layout", "index.json"}
+                    or re.fullmatch(r"blobs/sha256/[a-f0-9]{64}", name)
+                )
+            ):
+                raise ValueError("Unexpected OCI layout entry")
+            total += member.size
+            if not 0 <= member.size <= MAX_ARCHIVE or total > MAX_ARCHIVE:
+                raise ValueError("OCI layout exceeds size limit")
+            target = layout / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with archive.extractfile(member) as incoming, target.open("xb") as output:
+                shutil.copyfileobj(incoming, output, length=1024 * 1024)
+    if not {"oci-layout", "index.json"} <= seen:
+        raise ValueError("Incomplete OCI layout")
+
+
 def skopeo(directory, arguments, network=True):
-    # OCI archives need extraction scratch space. Keep the container root read
-    # only and use a task-owned disk directory, removed with the surrounding
-    # TemporaryDirectory. A tmpfs would count the whole image against RAM.
+    # Keep parsing/copy scratch on task-owned disk rather than the read-only
+    # container root or a tmpfs charged against the container memory limit.
     (directory / "scratch").mkdir(exist_ok=True)
     name = "preview-oci-" + uuid.uuid4().hex
     command = [
@@ -181,6 +216,7 @@ def skopeo(directory, arguments, network=True):
 
 
 def copy_oci(gh, directory, tag, before_publish=None):
+    unpack_oci(directory)
     auth = directory / "auth.json"
     auth.write_text(
         json.dumps(
@@ -202,7 +238,7 @@ def copy_oci(gh, directory, tag, before_publish=None):
             "inspect",
             "--format",
             "{{.Architecture}}/{{.Os}}",
-            "oci-archive:/work/image.oci.tar",
+            "oci:/work/oci",
         ],
         network=False,
     ).strip()
@@ -227,7 +263,7 @@ def copy_oci(gh, directory, tag, before_publish=None):
             "/work/auth.json",
             "--digestfile",
             "/work/digest",
-            "oci-archive:/work/image.oci.tar",
+            "oci:/work/oci",
             "docker://" + IMAGE + ":" + tag,
         ],
     )
