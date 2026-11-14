@@ -1,5 +1,9 @@
 /* oxlint-disable react/no-unknown-property */
 import 'server-only';
+import { Buffer } from 'node:buffer';
+import robotoRegular from '@fontsource/roboto/files/roboto-latin-400-normal.woff2?inline';
+import robotoBold from '@fontsource/roboto/files/roboto-latin-700-normal.woff2?inline';
+import robotoBlack from '@fontsource/roboto/files/roboto-latin-900-normal.woff2?inline';
 
 /**
  * Shared look for generated images (album art, OG cards): navy ground,
@@ -35,40 +39,21 @@ export function SpacedText({
   );
 }
 
-// Pinned fontsource version; fonts are fetched once per process and reused.
-const FONT_BASE = 'https://cdn.jsdelivr.net/fontsource/fonts/roboto@5.3.0';
-
-// The pending fetch is shared by every image request, so a hung CDN must
-// reject (clearing fontsPromise for a retry) rather than stall them all.
-const FONT_TIMEOUT_MS = 10_000;
-
-async function fetchFont(weight: number): Promise<ArrayBuffer> {
-  const res = await fetch(`${FONT_BASE}/latin-${weight}-normal.ttf`, {
-    signal: AbortSignal.timeout(FONT_TIMEOUT_MS),
-  });
-  if (!res.ok) throw new Error(`Failed to load Roboto ${weight}: ${res.status}`);
-  return res.arrayBuffer();
+// Inline imports keep the fonts inside the server bundle: image generation
+// needs neither CDN access nor a Host-derived request back to this app.
+function fontData(dataUrl: string) {
+  return Buffer.from(dataUrl.split(',')[1], 'base64');
 }
 
-let fontsPromise: Promise<[ArrayBuffer, ArrayBuffer, ArrayBuffer]> | undefined;
-
-function loadFontData() {
-  fontsPromise ??= Promise.all([fetchFont(400), fetchFont(700), fetchFont(900)]).catch((err) => {
-    // Don't cache failures; retry on the next request.
-    fontsPromise = undefined;
-    throw err;
-  });
-  return fontsPromise;
-}
+const cardFonts = [
+  { name: 'Roboto', data: fontData(robotoRegular), weight: 400 as const, style: 'normal' as const },
+  { name: 'Roboto', data: fontData(robotoBold), weight: 700 as const, style: 'normal' as const },
+  { name: 'Roboto', data: fontData(robotoBlack), weight: 900 as const, style: 'normal' as const },
+];
 
 /** Roboto 400/700/900 in the shape takumi's `fonts` option expects. */
 export async function loadCardFonts() {
-  const [regular, bold, black] = await loadFontData();
-  return [
-    { name: 'Roboto', data: regular, weight: 400 as const, style: 'normal' as const },
-    { name: 'Roboto', data: bold, weight: 700 as const, style: 'normal' as const },
-    { name: 'Roboto', data: black, weight: 900 as const, style: 'normal' as const },
-  ];
+  return cardFonts;
 }
 
 /** A spaced uppercase label flanked by hairline rules. */

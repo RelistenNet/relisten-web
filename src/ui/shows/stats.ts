@@ -1,17 +1,23 @@
-import { format, formatDistanceToNowStrict } from 'date-fns';
+import { format, formatDistanceToNowStrict, isValid, parseISO } from 'date-fns';
 import type { ShowRow } from './rows';
 
 // Summary numbers for a detail page header, from its full (unfiltered) rows.
 
-/** "Jun 6, 1997" from "1997-06-06", without timezone shifts. */
+function completeShowDate(date: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+  const parsed = parseISO(date);
+  return isValid(parsed) ? parsed : null;
+}
+
+/** Format complete dates without timezone shifts; retain unknown components. */
 export const formatShowDate = (date: string) => {
-  const [y, m, d] = date.split('-').map(Number);
-  return format(new Date(y, m - 1, d), 'MMM d, yyyy');
+  const parsed = completeShowDate(date);
+  return parsed ? format(parsed, 'MMM d, yyyy') : date;
 };
 
 export const timeAgo = (date: string) => {
-  const [y, m, d] = date.split('-').map(Number);
-  return formatDistanceToNowStrict(new Date(y, m - 1, d), { addSuffix: true });
+  const parsed = completeShowDate(date);
+  return parsed ? formatDistanceToNowStrict(parsed, { addSuffix: true }) : undefined;
 };
 
 /** "12%", or "<1%" for a share too small to round up to 1. */
