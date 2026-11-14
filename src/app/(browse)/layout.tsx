@@ -21,7 +21,7 @@ export default function BrowseLayout({
   sources: ReactNode;
 }) {
   return (
-    <Flex column className="lg:h-dvh">
+    <Flex column className="lg:h-[calc(100dvh-var(--preview-banner-height,0px))]">
       <Toaster id="audio-error" position="top-center" offset="54px" richColors closeButton />
       <NavBar />
       <MobileBrowseNav />
