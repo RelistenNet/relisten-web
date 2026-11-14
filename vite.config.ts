@@ -4,6 +4,12 @@ import { timber } from '@timber-js/app';
 
 const serverExternals = ['takumi-js', '@takumi-rs/core', '@mdx-js/rollup', 'rollup', 'fsevents'];
 
+// Oldest browsers we support, listed on /about. Tailwind v4's CSS
+// (@property, color-mix(), cascade layers) sets the floor; Vite's default
+// JS target is the same except Firefox, which Tailwind raises to 128.
+// Keep this and the About page in sync.
+const browserTarget = ['chrome111', 'edge111', 'firefox128', 'safari16.4', 'ios16.4'];
+
 export default defineConfig({
   legacy: {
     inconsistentCjsInterop: true,
@@ -20,6 +26,12 @@ export default defineConfig({
     external: serverExternals,
   },
   environments: {
+    client: {
+      build: {
+        target: browserTarget,
+        cssTarget: browserTarget,
+      },
+    },
     rsc: {
       resolve: {
         external: serverExternals,

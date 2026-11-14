@@ -71,6 +71,16 @@ const About = () => (
       contribute. Or you can always open an issue on Github with questions or bugs.
     </p>
 
+    <h3>Supported Browsers</h3>
+
+    {/* Keep in sync with browserTarget in vite.config.ts. */}
+    <p>
+      Relisten works in Chrome and Edge 111+, Safari 16.4+ (including on iPhone and iPad), and
+      Firefox 128+. Some extras, like hover tooltips, need newer versions. If something isn’t
+      working, updating your browser is a good first step, and please tell us which browser and
+      version you’re using when you report a problem.
+    </p>
+
     <h3>Thank You & Enjoy</h3>
 
     <p>
