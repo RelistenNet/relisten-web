@@ -1,13 +1,13 @@
 name: Preview control
 on:
-  workflow_run:
-    # Completed runs can report their dynamic run-name as the workflow name.
-    workflows: [Preview build, 'Preview PR *']
-    types: [completed]
   schedule:
     - cron: '*/5 * * * *'
   workflow_dispatch:
     inputs:
+      build_run_id:
+        description: Optional completed preview build to reconcile; waits for final workflow status
+        required: false
+        type: string
       package_proof:
         description: Publish and delete a disposable preview-package version to prove cleanup authority
         required: false
@@ -24,10 +24,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   reconcile:
-    if: >-
-      github.ref == 'refs/heads/master' &&
-      (github.event_name != 'workflow_run' ||
-       github.event.workflow_run.path == '.github/workflows/preview-build.yml')
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: relisten-previews
@@ -64,7 +61,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PREVIEW_PACKAGE_ID: ${{ vars.PREVIEW_PACKAGE_ID }}
-          PREVIEW_RUN_ID: ${{ github.event.workflow_run.id }}
+          PREVIEW_RUN_ID: ${{ inputs.build_run_id }}
           PREVIEW_RETRY: ${{ inputs.retry }}
           PREVIEW_PACKAGE_PROOF: ${{ inputs.package_proof }}
         run: |
