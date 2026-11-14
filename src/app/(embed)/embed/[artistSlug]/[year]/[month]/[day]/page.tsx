@@ -1,4 +1,3 @@
-import { playImmediatelySearchParamsLoader } from '@/lib/searchParams/playImmediatelySearchParam';
 import { href } from '@timber-js/app/routes';
 import { loadShow } from '@/features/browse/load';
 import { deny, getSegmentParams, redirect } from '@timber-js/app/server';
@@ -36,11 +35,13 @@ export default async function EmbedShowPage() {
   }
 
   redirect(
-    href(
-      '/embed/[artistSlug]/[year]/[month]/[day]/[songSlug]',
-      { artistSlug, year, month, day, songSlug: firstTrack.slug },
-      playImmediatelySearchParamsLoader.buildSearchParams({ playImmediately: false })
-    )
+    href('/embed/[artistSlug]/[year]/[month]/[day]/[songSlug]', {
+      artistSlug,
+      year,
+      month,
+      day,
+      songSlug: firstTrack.slug,
+    })
   );
 }
 

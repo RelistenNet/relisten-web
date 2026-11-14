@@ -7,31 +7,31 @@ import { toSourceParam } from '@/lib/sourceParam';
 /** A track link that opens at the playing tape and position. */
 const shareSearchParams = sourceSearchParamsLoader.extend(tSearchParamsLoader.codecs);
 import { ExternalLinkIcon } from 'lucide-react';
-import { useSelector } from 'react-redux';
-import player from '@/player/player';
+import { pause } from '@/player/commands';
+import { useCurrentItem } from '@/player/hooks';
+import { playbackActor } from '@/player/runtime';
 import { splitShowDate } from '@/lib/utils';
-import type { RootState } from '@/redux';
 import Tooltip from '@/ui/base/Tooltip';
 import { formatTimeParam } from '@/lib/timeParam';
 
 export default function EmbedHeader({ compact = false }: { compact?: boolean }) {
-  const playback = useSelector((state: RootState) => state.playback);
-  const isPhish = playback.artistSlug === 'phish';
+  const current = useCurrentItem();
+  const isPhish = current?.artistSlug === 'phish';
 
   const popout = (e: React.MouseEvent) => {
     e.preventDefault();
 
-    const { artistSlug, showDate, songSlug, source, activeTrack } = playback;
-    const hasTrack = artistSlug && showDate && songSlug;
-
-    if (hasTrack) {
-      const { year, month, day } = splitShowDate(showDate);
+    if (current?.trackSlug) {
+      const { artistSlug, trackSlug, sourceId } = current;
+      const { year, month, day } = splitShowDate(current.date);
+      // Read at click time: position isn't worth re-rendering the header for.
+      const { currentTime } = playbackActor.getSnapshot().context;
       const url = shareSearchParams.href(
-        `https://relisten.net/${artistSlug}/${year}/${month}/${day}/${songSlug}`,
-        { source: toSourceParam(source), t: activeTrack?.currentTime || 0 }
+        `https://relisten.net/${artistSlug}/${year}/${month}/${day}/${trackSlug}`,
+        { source: toSourceParam(sourceId), t: currentTime || 0 }
       );
       window.open(url, '_blank');
-      player.pause();
+      pause();
     } else {
       window.open('https://relisten.net', '_blank');
     }

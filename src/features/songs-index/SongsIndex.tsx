@@ -34,16 +34,15 @@ export default async function SongsIndex({ artistSlug }: { artistSlug: string })
   if (!artist) deny(404);
 
   const result = queryTable(songs, spec, toTableState(params, FILTER_IDS));
+  const songHref = (s: SongListItem) =>
+    href('/artists/[artistSlug]/songs/[songSlug]', { artistSlug, songSlug: s.slug });
   const columns: Column<SongListItem>[] = [
     {
       id: 'name',
       label: 'Song',
       sortable: true,
       cell: (s) => (
-        <Link
-          href={href('/artists/[artistSlug]/songs/[songSlug]', { artistSlug, songSlug: s.slug })}
-          className="text-accent hover:underline"
-        >
+        <Link href={songHref(s)} className="font-medium hover:underline">
           {s.name}
         </Link>
       ),
@@ -54,7 +53,8 @@ export default async function SongsIndex({ artistSlug }: { artistSlug: string })
       sortable: true,
       firstDir: 'desc',
       align: 'right',
-      width: 'w-24',
+      width: 'w-20 sm:w-64',
+      bar: { value: (s) => s.showCount, max: Math.max(0, ...songs.map((s) => s.showCount)) },
       cell: (s) => numberFormat.format(s.showCount),
     },
   ];
@@ -73,6 +73,8 @@ export default async function SongsIndex({ artistSlug }: { artistSlug: string })
         result={result}
         columns={columns}
         rowKey={(s) => s.id}
+        rowHref={songHref}
+        minWidth="min-w-0"
         noun="song"
         searchPlaceholder="Search songs"
       />

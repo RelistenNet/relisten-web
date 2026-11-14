@@ -1,10 +1,10 @@
-import Tooltip from '@/ui/base/Tooltip';
-import { durationToHHMMSS } from '@/lib/utils';
 import type { ShowRow } from '@/ui/shows/rows';
 import type { Column } from '@/ui/table/types';
-import PlayTrackButton from './PlayTrackButton';
+import PlayTrackButton from '@/player/PlayTrackButton';
+import QueueMenu from '@/player/QueueMenu';
+import { songRowItem } from '@/player/queue/items';
 
-// Columns only song pages have: playing a performance in place, and its length.
+// Columns only song pages have: playing a performance in place, and queueing it.
 
 export const playColumn: Column<ShowRow> = {
   id: 'play',
@@ -16,10 +16,8 @@ export const playColumn: Column<ShowRow> = {
     r.track ? (
       <div className="flex flex-col items-center">
         <PlayTrackButton
+          row={r}
           track={r.track}
-          artistSlug={r.artistSlug}
-          artistName={r.artistName}
-          date={r.date}
           label={`Play ${r.date}${r.performance ? ` (${r.performance.index} of ${r.performance.of})` : ''}`}
         />
         {r.performance && (
@@ -31,28 +29,12 @@ export const playColumn: Column<ShowRow> = {
     ) : null,
 };
 
-export const lengthColumn: Column<ShowRow> = {
-  id: 'length',
-  width: 'w-24',
-  label: 'Length',
-  sortable: true,
-  firstDir: 'desc',
+/** Play next / Add to queue for a performance. */
+export const queueColumn: Column<ShowRow> = {
+  id: 'queue',
+  width: 'w-14',
+  label: 'Queue',
+  srOnlyLabel: true,
   align: 'right',
-  // "~": measured from files that also hold other songs (a segue), so it runs long.
-  // The tooltip names the whole file, so it's clear what the "~" length covers.
-  cell: (r) => {
-    if (!r.songDuration) return '—';
-    const length = durationToHHMMSS(Math.round(r.songDuration));
-    if (!r.songDurationApprox) return length;
-    return (
-      <Tooltip
-        content={r.trackTitle ?? 'Measured from a file that includes other songs'}
-        align="left"
-      >
-        <span tabIndex={0} className="cursor-help underline decoration-dotted underline-offset-4">
-          ~{length}
-        </span>
-      </Tooltip>
-    );
-  },
+  cell: (r) => <QueueMenu item={songRowItem(r)} />,
 };

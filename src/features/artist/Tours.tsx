@@ -49,7 +49,7 @@ export default async function Tours({ artistSlug }: { artistSlug: string }) {
       cell: (t) => (
         <Link
           href={href('/artists/[artistSlug]/tours/[tourSlug]', { artistSlug, tourSlug: t.slug })}
-          className="text-accent hover:underline"
+          className="font-medium hover:underline"
         >
           {t.name}
         </Link>
@@ -89,6 +89,9 @@ export default async function Tours({ artistSlug }: { artistSlug: string }) {
         result={result}
         columns={columns}
         rowKey={(t) => t.id}
+        rowHref={(t) =>
+          href('/artists/[artistSlug]/tours/[tourSlug]', { artistSlug, tourSlug: t.slug })
+        }
         noun="tour"
         searchPlaceholder="Search tours"
       />

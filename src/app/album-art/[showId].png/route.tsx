@@ -1,12 +1,12 @@
 import { showById } from '@/data/shows';
+import { isMissing } from '@/data/resource';
 /* oxlint-disable react/no-unknown-property */
 import 'server-only';
 
 import { getArtistDirectory } from '@/data/artists';
 import { resolveLegacyShow } from '@/data/legacy';
 import { ImageResponse } from 'takumi-js/response';
-import { defineSearchParams } from '@timber-js/app/search-params';
-import { z } from 'zod/v4';
+import { albumArtSearchParams } from '@/lib/searchParams/albumArtSearchParams';
 import { getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 import { SpacedText, loadCardFonts } from '@/lib/cardStyle';
@@ -39,18 +39,11 @@ function parseDisplayDate(displayDate: string) {
   return { month: '', day: '', year: displayDate };
 }
 
-const searchParams = defineSearchParams({
-  // Small allow-list so each show has at most a few distinct renders.
-  // Anything else falls back to the default.
-  size: z.enum(['256', '512', '1024']).default('1024').transform(Number),
-  debug: z.stringbool().default(false),
-});
-
 export async function GET() {
   const { showId: rawShowId } = getSegmentParams(SEGMENT_PATH);
 
-  const params = searchParams.get();
-  const size = params.size;
+  const params = albumArtSearchParams.get();
+  const size = Number(params.size);
   // Debug overlay is a layout aid; only honor it in development.
   const debug = params.debug && process.env.NODE_ENV === 'development';
 
@@ -61,7 +54,12 @@ export async function GET() {
 
   const [directory, show] = await Promise.all([
     getArtistDirectory(),
-    showById.orDeny(showId).catch(() => null),
+    // get, not orDeny: deny() in a route handler surfaces as a 500. Only a
+    // missing show is a 404; an API failure stays an error.
+    showById.get(showId).catch((err) => {
+      if (isMissing(err)) return null;
+      throw err;
+    }),
   ]);
 
   if (!show || !show.sources?.length) return new Response('Not Found', { status: 404 });

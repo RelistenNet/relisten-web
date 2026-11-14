@@ -24,6 +24,11 @@ export type Column<Row> = {
   width?: string;
   /** Hide on narrow screens. */
   hideBelow?: 'sm' | 'md';
+  /**
+   * Draw a bar beside the number, its length the row's value over `max` (the
+   * largest across every row, not just this page, so pages compare).
+   */
+  bar?: { value: (row: Row) => number; max: number };
   cell: (row: Row) => ReactNode;
 };
 

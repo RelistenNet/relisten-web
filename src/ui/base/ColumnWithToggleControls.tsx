@@ -5,6 +5,7 @@ import { ArrowUp, ArrowDown } from 'lucide-react';
 import React, { useRef } from 'react';
 import Flex from './Flex';
 import Scroller from './Scroller';
+import { columnHeading } from './Column';
 import { simplePluralize } from '@/lib/utils';
 
 type ToggleConfig = {
@@ -18,7 +19,8 @@ type ToggleConfig = {
 };
 
 type ColumnWithToggleControlsProps = {
-  heading?: string;
+  /** See columnHeading. */
+  heading?: React.ReactNode;
   children?: React.ReactNode;
   className?: string;
   toggles?: ToggleConfig[];
@@ -57,16 +59,18 @@ const ColumnWithToggleControls = ({
     >
       <Scroller containerRef={ref} />
       {heading && (
-        <Flex
+        // The title is centered in the space beside the toggles, and truncated
+        // when it doesn't fit there.
+        <div
           className="
-          min-h-[44px] w-full items-center justify-between border-b border-hairline bg-column-header
-          px-3 text-base font-medium text-column-header-text capitalize lg:min-h-[32px] lg:px-2
-          lg:text-sm
+          grid min-h-[44px] w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2
+          border-b border-hairline bg-column-header px-3 text-base font-medium
+          text-column-header-text capitalize lg:min-h-[32px] lg:px-2 lg:text-sm
         "
         >
-          <span className="flex-1 text-center">{heading?.replaceAll('-', ' ')}</span>
+          <span className="truncate text-center">{columnHeading(heading)}</span>
 
-          <Flex className="absolute right-2 gap-1">
+          <Flex className="gap-1 whitespace-nowrap">
             {toggles.map((toggle, index) => (
               <button
                 key={index}
@@ -102,7 +106,7 @@ const ColumnWithToggleControls = ({
               </button>
             ))}
           </Flex>
-        </Flex>
+        </div>
       )}
       {subHeader}
       <Flex ref={scrollContainerRef} column className="flex-1 overflow-x-hidden overflow-y-auto">

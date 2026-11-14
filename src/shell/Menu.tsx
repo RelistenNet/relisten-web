@@ -1,17 +1,15 @@
 import Row from '@/ui/base/Row';
+import { siteSections } from './siteSections';
 
-// TODO: replace this with shadcn/radix
-
+// The site sections, for the nav bar's menu popover below xl.
 const Menu = () => (
-  <div className="mt-2 mr-2 w-[120px] rounded-sm border border-hairline bg-surface shadow-lg">
+  <>
     <Row href="/">Home</Row>
-    <Row href="/blog">Blog</Row>
-    <Row href="/about">About</Row>
-    <Row href="/today">Today</Row>
-    <Row href="/recently-played">Live</Row>
-    <Row href="/venues">Venues</Row>
-    <Row href="/app">Apps</Row>
-    <Row href="/chat">Chat</Row>
+    {siteSections.map((section) => (
+      <Row key={section.href} href={section.href}>
+        {section.label}
+      </Row>
+    ))}
     <a
       href="https://github.com/relistennet/relisten-web"
       target="_blank"
@@ -23,7 +21,7 @@ const Menu = () => (
     >
       GitHub
     </a>
-  </div>
+  </>
 );
 
 export default Menu;

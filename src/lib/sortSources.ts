@@ -10,7 +10,20 @@ const getEtreeId = (s = '') =>
 
 // tapes: TODO: GD sort (charlie miller, sbd + etree id, weighted average), sbd + etree id, weighted avg, asc, desc
 // for now, hardcode sort: sbd, charlie miller, etree id, weighted average
-export const sortSources = (sources: Source[]) => {
+
+/** What the sort reads: a column's slimmed tapes keep these, so every column orders tapes alike. */
+export type SortableSource = Pick<
+  Source,
+  | 'id'
+  | 'isSoundboard'
+  | 'taper'
+  | 'transferrer'
+  | 'source'
+  | 'upstreamIdentifier'
+  | 'avgRatingWeighted'
+>;
+
+export const sortSources = <S extends SortableSource>(sources: S[]): S[] => {
   if (!sources) return [];
 
   return [...sources].sort((a, b) => {
@@ -19,7 +32,7 @@ export const sortSources = (sources: Source[]) => {
     if (sbd !== 0) return sbd;
 
     // 2. Charlie Miller (GD) / Pete Costello (JRAD) first
-    const specialTaper = (t: Source) =>
+    const specialTaper = (t: SortableSource) =>
       /(charlie miller)|(peter costello)/i.test([t.taper, t.transferrer, t.source].join(''));
     const taper = Number(specialTaper(b)) - Number(specialTaper(a));
     if (taper !== 0) return taper;

@@ -1,46 +1,28 @@
-import { loadArtists } from '@/features/browse/load';
 import { Link } from '@timber-js/app/client';
-import Flex from '@/ui/base/Flex';
 import Menu from './Menu';
 import Player from '@/player/PlayerBar';
-import * as Popover from '@/ui/base/Popover';
+import { Toaster } from 'sonner';
+import { Popover, PopoverContent, PopoverTrigger } from '@/ui/base/shadcn/popover';
 import MainNavHeader from './MainNavHeader';
 import AndroidUpgradeNotification from './AndroidUpgradeNotification';
 import BlogNavLink from '@/features/blog/BlogNavLink';
 // import GlobalSearch from './GlobalSearch';
 import { MenuIcon } from 'lucide-react';
 import ArtistTabs from './ArtistTabs';
-import { DEFAULT_ARTIST_SLUG } from '@/lib/defaultArtist';
-import { getHeaders, getSegmentParams } from '@timber-js/app/server';
-import { UAParser } from 'ua-parser-js';
-import { getIsInIframe } from '@/lib/isInIframe';
+import { siteSections } from './siteSections';
 import { hasRecentPost } from '@/lib/blog/getPosts';
 
-export const getUserAgent = async () => {
-  const headersList = await getHeaders();
-  const userAgent = headersList.get('user-agent');
-
-  if (!userAgent) return null;
-
-  return UAParser(userAgent);
-};
-
-export default async function NavBar() {
-  const [artists, userAgent, isInIframe] = await Promise.all([
-    loadArtists(),
-    getUserAgent(),
-    getIsInIframe(),
-  ]);
-  const isAndroid = /android/i.test(userAgent?.ua || '');
+// The same on every page: what depends on the page (the artist, the site
+// page's title, active tabs) the client components read from the URL and the
+// browsing artist (browsingArtistContext). So a 'document' layout renders it
+// once, re-rendered only when the user agent changes.
+export default function NavBar() {
   const blogHasNew = hasRecentPost();
-
-  const { artistSlug } = getSegmentParams() as { artistSlug?: string };
-  const artist = artistSlug ? artists.find((a) => a.slug === artistSlug) : undefined;
-  const artistName = artist?.name;
-  const tabsArtist = artist ?? artists.find((a) => a.slug === DEFAULT_ARTIST_SLUG);
 
   return (
     <>
+      {/* The player's toasts (playback failures, play prompts), wherever the player is. */}
+      <Toaster id="audio-error" position="top-center" offset="54px" richColors closeButton />
       <div
         className="
           navigation relative grid h-[50px] max-h-[50px] min-h-[50px] grid-cols-[auto_1fr_auto]
@@ -49,7 +31,7 @@ export default async function NavBar() {
           lg:grid-cols-[1fr_auto_1fr] lg:px-4
         "
       >
-        <MainNavHeader artistName={artistName} indexOverride={isInIframe ? '/wsp' : undefined} />
+        <MainNavHeader />
         <div
           className="
             player overflow-hidden text-center
@@ -63,37 +45,24 @@ export default async function NavBar() {
         <div className="flex items-center justify-self-end">
           {/* <GlobalSearch /> */}
 
-          <Popover.Root>
-            <Popover.Trigger
+          <Popover align="end" sideOffset={0}>
+            <PopoverTrigger
+              aria-label="Menu"
               className="
-                ml-2 h-full w-min cursor-pointer content-end items-center
-                text-center font-medium
+                ml-2 flex h-full w-min cursor-pointer items-center
+                active:relative active:top-px active:text-foreground
                 xl:hidden
               "
             >
-              <Flex
-                className="
-                  h-full cursor-pointer content-end items-center text-center font-medium
-                  xl:hidden
-                "
-              >
-                <div
-                  className="
-                    ml-auto flex h-full items-center
-                    active:relative active:top-px active:text-foreground
-                  "
-                >
-                  <MenuIcon />
-                </div>
-              </Flex>
-            </Popover.Trigger>
-            {/* <Popover.Anchor /> */}
-            <Popover.Portal>
-              <Popover.Content>
-                <Menu />
-              </Popover.Content>
-            </Popover.Portal>
-          </Popover.Root>
+              <MenuIcon />
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-[120px] gap-0 overflow-hidden rounded-sm bg-surface p-0"
+              arrowClassName="hidden"
+            >
+              <Menu />
+            </PopoverContent>
+          </Popover>
 
           <div
             className="
@@ -102,25 +71,20 @@ export default async function NavBar() {
               xl:flex
             "
           >
-            <Link className="nav-btn" href="/today" prefetch={false}>
-              Today
-            </Link>
-            <Link className="nav-btn whitespace-nowrap" href="/recently-played" prefetch={false}>
-              Live
-            </Link>
-            <Link className="nav-btn" href="/venues" prefetch={false}>
-              Venues
-            </Link>
-            <Link className="nav-btn" href="/chat" prefetch={false}>
-              Chat
-            </Link>
-            <Link className="nav-btn" href="/app" prefetch={false}>
-              Apps
-            </Link>
-            <BlogNavLink hasNewPost={blogHasNew} />
-            <Link className="nav-btn" href="/about" prefetch={false}>
-              About
-            </Link>
+            {siteSections.map((section) =>
+              section.label === 'Blog' ? (
+                <BlogNavLink key={section.href} hasNewPost={blogHasNew} />
+              ) : (
+                <Link
+                  key={section.href}
+                  className="nav-btn whitespace-nowrap"
+                  href={section.href}
+                  prefetch={false}
+                >
+                  {section.label}
+                </Link>
+              )
+            )}
             <a
               className="nav-btn"
               href="https://github.com/RelistenNet/relisten-web"
@@ -141,12 +105,8 @@ export default async function NavBar() {
           </div>
         </div>
       </div>
-      {/* Always present, so the layout doesn't jump between pages: the artist in
-          the URL, else the default artist (what / browses). */}
-      {tabsArtist?.slug && (
-        <ArtistTabs artistSlug={tabsArtist.slug} features={tabsArtist.features} />
-      )}
-      {isAndroid && <AndroidUpgradeNotification />}
+      <ArtistTabs />
+      <AndroidUpgradeNotification />
     </>
   );
 }

@@ -1,11 +1,10 @@
 import { href } from '@timber-js/app/routes';
 import { loadArtists, loadShow } from '@/features/browse/load';
 import PlayerManager from '@/player/PlayerManager';
-import TrackList from '@/ui/shows/TrackList';
+import TrackList from '@/player/PlayingTrackList';
 import { proxyStreamUrl } from '@/player/proxyStreamUrl';
 import { createShowDate } from '@/lib/utils';
 import { deny, getSegmentParams } from '@timber-js/app/server';
-import { playImmediatelySearchParamsLoader } from '@/lib/searchParams/playImmediatelySearchParam';
 import { SEGMENT_PATH } from './$segment';
 
 export default async function EmbedSongPage() {
@@ -26,10 +25,6 @@ export default async function EmbedSongPage() {
 
   const artistName = artists?.find((a) => a.slug === artistSlug)?.name;
 
-  // Parse search params on server
-  const parsedSearchParams = await playImmediatelySearchParamsLoader.get();
-  const playImmediately = parsedSearchParams.playImmediately ?? true;
-
   return (
     <div className="flex h-full">
       <div className="w-full shrink-0 overflow-y-auto border-r px-2">
@@ -43,11 +38,11 @@ export default async function EmbedSongPage() {
         />
       </div>
       <PlayerManager
+        embed
         {...resolvedParams}
         show={show}
         artistName={artistName}
         trackRoute="embed"
-        playImmediately={playImmediately}
       />
     </div>
   );

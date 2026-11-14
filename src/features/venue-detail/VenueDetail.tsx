@@ -87,7 +87,7 @@ export default async function VenueDetail({
         title={artistSlug ? `${artistName} at ${venue.name}` : venue.name}
         meta={[
           venue.location,
-          venue.otherNames.length > 0 && `Also known as ${venue.otherNames.join(', ')}`,
+          // venue.otherNames.length > 0 && `Also known as ${venue.otherNames.join(', ')}`,
         ]}
         aside={
           artists.length > 1 && (
@@ -117,6 +117,7 @@ export default async function VenueDetail({
           showColumns.plays,
         ]}
         rowKey={(r) => r.id}
+        rowHref={(r) => r.href}
         noun="show"
         searchPlaceholder={artistSlug ? 'Search dates' : 'Search artists, dates'}
         chipFilters={['year']}

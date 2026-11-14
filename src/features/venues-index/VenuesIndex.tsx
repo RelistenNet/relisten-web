@@ -63,20 +63,17 @@ export default async function VenuesIndex({ artistSlug }: { artistSlug?: string 
 
   const spec = artistSlug ? baseSpec : allVenuesSpec;
   const result = queryTable(list, spec, toTableState(params, FILTER_IDS));
+  const venueHref = (v: VenueListItem) =>
+    artistSlug
+      ? href('/artists/[artistSlug]/venues/[venueSlug]', { artistSlug, venueSlug: v.slug })
+      : href('/venues/[venueSlug]', { venueSlug: v.slug });
   const columns: Column<VenueListItem>[] = [
     {
       id: 'name',
       label: 'Venue',
       sortable: true,
       cell: (v) => (
-        <Link
-          href={
-            artistSlug
-              ? href('/artists/[artistSlug]/venues/[venueSlug]', { artistSlug, venueSlug: v.slug })
-              : href('/venues/[venueSlug]', { venueSlug: v.slug })
-          }
-          className="text-accent hover:underline"
-        >
+        <Link href={venueHref(v)} className="font-medium hover:underline">
           {v.name}
         </Link>
       ),
@@ -95,7 +92,8 @@ export default async function VenuesIndex({ artistSlug }: { artistSlug?: string 
       sortable: true,
       firstDir: 'desc',
       align: 'right',
-      width: 'w-24',
+      width: 'w-20 sm:w-56',
+      bar: { value: (v) => v.showCount, max: Math.max(0, ...list.map((v) => v.showCount)) },
       cell: (v) => numberFormat.format(v.showCount),
     },
   ];
@@ -129,6 +127,8 @@ export default async function VenuesIndex({ artistSlug }: { artistSlug?: string 
         result={result}
         columns={columns}
         rowKey={(v) => v.id}
+        rowHref={venueHref}
+        minWidth="min-w-0"
         noun="venue"
         searchPlaceholder="Search venues, cities"
       />

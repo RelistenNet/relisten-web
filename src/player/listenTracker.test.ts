@@ -19,6 +19,12 @@ function play(step: ReturnType<typeof setup>, uuid: string, from: number, to: nu
 }
 
 describe('createListenTracker', () => {
+  it('counts each id separately (two queued copies of a track)', () => {
+    const step = setup();
+    expect(play(step, 'next:t1:1', 0, 6)).toBe(true);
+    expect(play(step, 't1', 0, 6)).toBe(true);
+  });
+
   it('counts a play after 5 seconds of listening, once', () => {
     const step = setup();
     expect(play(step, 'a', 0, 4.8)).toBe(false);

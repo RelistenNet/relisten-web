@@ -55,14 +55,3 @@ export const simplePluralize = (str: string, count = 0): string => {
 export const splitPluralize = (str: string, count = 0): [string, string] => {
   return [numberFormat.format(count ?? 0), count === 1 ? str : str + 's'];
 };
-
-export const groupBy = function <T>(xs: T[], key: keyof T): Record<string, T[]> {
-  return xs.reduce(
-    (rv, x) => {
-      const keyValue = String(x[key]);
-      (rv[keyValue] = rv[keyValue] || []).push(x);
-      return rv;
-    },
-    {} as Record<string, T[]>
-  );
-};

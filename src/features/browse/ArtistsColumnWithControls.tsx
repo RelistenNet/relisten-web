@@ -1,20 +1,17 @@
 'use client';
 
-import { href } from '@timber-js/app/routes';
-import React, { Fragment, type RefObject, Suspense, use, useMemo, useRef, useState } from 'react';
-import { browser } from 'react-dom';
-import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
-import { useSegmentParams } from '@timber-js/app/client';
-import { ArrowUp, ArrowDown } from 'lucide-react';
-import { groupBy } from '@/lib/utils';
+import React, { Fragment, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { ArrowUp, ArrowDown, LoaderCircle } from 'lucide-react';
 import Count from '@/ui/base/Count';
-import type { ArtistListItem } from '@/lib/artistRows';
+import { artistPlays, groupArtists, type ArtistListItem } from '@/lib/artistRows';
 import { useFilterState } from '@/hooks/useFilterState';
 import cn from '@/lib/cn';
 import ColumnWithToggleControls from '@/ui/base/ColumnWithToggleControls';
 import PopularityBadge from '@/ui/base/PopularityBadge';
-import { fuzzyMatch, type HighlightRanges } from '@nozbe/microfuzz';
-import Row, { unwrapSegment } from '@/ui/base/Row';
+import type { HighlightRanges } from '@nozbe/microfuzz';
+import { searchArtists, useArchiveArtists } from '@/lib/archiveArtists';
+import Row from '@/ui/base/Row';
 import RowHeader from '@/ui/base/RowHeader';
 
 const byObject = {
@@ -22,12 +19,12 @@ const byObject = {
 };
 
 type Item =
+  | { kind: 'status'; key: string; failed: boolean }
   | { kind: 'header'; key: string; label: string }
   | { kind: 'artist'; key: string; artist: ArtistListItem };
 
 const HEADER_ESTIMATE = 28;
 const ROW_ESTIMATE = 45;
-const GROUP_ORDER: Record<string, number> = { '1': 0, '0': 1 };
 
 function HighlightText({ text, ranges }: { text: string; ranges: HighlightRanges }) {
   if (!ranges.length) return text;
@@ -48,36 +45,46 @@ function HighlightText({ text, ranges }: { text: string; ranges: HighlightRanges
 
 export type ArtistsTab = 'primary' | 'all';
 
-/** Returns the archive list (`null` if it failed to load); the same promise on every call. */
-export type ArchiveLoader = () => Promise<ArtistListItem[] | null>;
+/** Where an artist's row links, and which row is current. */
+export type ArtistLinks = {
+  /** The current artist: its row is marked active. */
+  currentSlug: string | undefined;
+  /** An artist's row link. */
+  hrefFor: (artist: ArtistListItem) => string;
+};
 
-type ArtistsColumnWithControlsProps = {
+type ArtistsColumnWithControlsProps = ArtistLinks & {
   primaryArtists: ArtistListItem[];
-  loadArchive: ArchiveLoader;
   tab: ArtistsTab;
   searchQuery: string;
   subHeader?: React.ReactNode;
   isPending?: boolean;
+  /**
+   * The artist picker's popover: a fixed height, and no heading bar (the sort
+   * toggles live on the browse view's column; the picker follows them).
+   */
+  compact?: boolean;
 };
 
 /**
- * The column frame: heading, sort toggles, sub-header and scroll container.
- * Only the list inside it waits on the archive, under its own Suspense
- * boundary, so none of the frame remounts when the archive arrives.
+ * The column frame: heading, sort toggles, sub-header and scroll container,
+ * around the list. The list renders the primary artists right away and takes
+ * the archive as data when it arrives, without remounting: the virtualizer
+ * keeps its measurements, so no row moves.
  */
 const ArtistsColumnWithControls = ({
   primaryArtists,
-  loadArchive,
   tab,
   searchQuery,
   subHeader,
   isPending,
+  compact = false,
+  currentSlug,
+  hrefFor,
 }: ArtistsColumnWithControlsProps) => {
   const { alphaAsc, sortBy, setSortBy } = useFilterState('root');
   const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
-  // Row measurements, kept here so the list that replaces the fallback when
-  // the archive arrives lays out exactly like the one it replaces.
-  const measurements = useRef<VirtualItem[]>([]);
+  const archiveArtists = useArchiveArtists();
 
   const dirIcon = alphaAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
 
@@ -114,57 +121,49 @@ const ArtistsColumnWithControls = ({
     },
   ];
 
-  const listProps = {
-    primaryArtists,
-    tab,
-    searchQuery,
-    sortBy,
-    alphaAsc,
-    scrollEl,
-    measurements,
-    isPending,
-  };
-
   return (
     <ColumnWithToggleControls
-      heading="Artists"
+      heading={compact ? undefined : 'Artists'}
+      className={compact ? 'h-[min(30rem,70dvh)] flex-none' : undefined}
       toggles={toggles}
       subHeader={subHeader}
       scrollContainerRef={setScrollEl}
     >
-      <Suspense fallback={<ArtistList {...listProps} archiveArtists={null} />}>
-        <ArtistListWithArchive {...listProps} loadArchive={loadArchive} />
-      </Suspense>
+      <ArtistList
+        primaryArtists={primaryArtists}
+        archiveArtists={archiveArtists}
+        tab={tab}
+        searchQuery={searchQuery}
+        sortBy={sortBy}
+        alphaAsc={alphaAsc}
+        scrollEl={scrollEl}
+        isPending={isPending}
+        currentSlug={currentSlug}
+        hrefFor={hrefFor}
+      />
     </ColumnWithToggleControls>
   );
 };
 
-type ArtistListProps = {
+type ArtistListProps = ArtistLinks & {
   primaryArtists: ArtistListItem[];
-  /** `null` until the archive list has loaded (and in the server render). */
-  archiveArtists: ArtistListItem[] | null;
+  /**
+   * `undefined` until the archive list has loaded (and in the server render),
+   * `null` if it failed to.
+   */
+  archiveArtists: ArtistListItem[] | null | undefined;
   tab: ArtistsTab;
   searchQuery: string;
   sortBy: ReturnType<typeof useFilterState>['sortBy'];
   alphaAsc: boolean;
   scrollEl: HTMLDivElement | null;
-  /** The latest row measurements, shared by successive lists. */
-  measurements: RefObject<VirtualItem[]>;
   isPending?: boolean;
 };
-
-function ArtistListWithArchive({
-  loadArchive,
-  ...props
-}: Omit<ArtistListProps, 'archiveArtists'> & { loadArchive: ArchiveLoader }) {
-  use(browser());
-  return <ArtistList {...props} archiveArtists={use(loadArchive())} />;
-}
 
 /** The artists to show: the tab's list, or fuzzy matches across both lists while searching. */
 function selectArtists(
   primaryArtists: ArtistListItem[],
-  archiveArtists: ArtistListItem[] | null,
+  archiveArtists: ArtistListItem[] | null | undefined,
   tab: ArtistsTab,
   searchQuery: string
 ) {
@@ -175,20 +174,13 @@ function selectArtists(
       highlightRanges: new Map<string, HighlightRanges>(),
     };
   }
+  const matches = searchArtists([primaryArtists, archiveArtists ?? []], query);
   const highlightRanges = new Map<string, HighlightRanges>();
-  const scored: { artist: ArtistListItem; score: number }[] = [];
-  for (const list of [primaryArtists, archiveArtists ?? []]) {
-    for (const artist of list) {
-      const result = fuzzyMatch(artist.name || '', query);
-      if (result) {
-        scored.push({ artist, score: result.score });
-        const [nameRanges] = result.matches;
-        if (artist.slug && nameRanges) highlightRanges.set(artist.slug, nameRanges);
-      }
-    }
+  for (const { artist, result } of matches) {
+    const [nameRanges] = result.matches;
+    if (artist.slug && nameRanges) highlightRanges.set(artist.slug, nameRanges);
   }
-  scored.sort((a, b) => a.score - b.score);
-  return { artists: scored.map((s) => s.artist), highlightRanges };
+  return { artists: matches.map((m) => m.artist), highlightRanges };
 }
 
 function ArtistList({
@@ -199,34 +191,27 @@ function ArtistList({
   sortBy,
   alphaAsc,
   scrollEl,
-  measurements,
   isPending,
+  currentSlug,
+  hrefFor,
 }: ArtistListProps) {
-  const params = useSegmentParams() as Record<string, string | string[] | undefined>;
-  const currentArtistSlug = unwrapSegment(params.artistSlug);
-
+  const listRef = useRef<HTMLDivElement>(null);
+  // Heights of the in-flow rows rendered before the scroll container attaches
+  // (the server render, and hydration), by item key.
+  const inFlowSizes = useRef(new Map<string, number>());
   const { artists, highlightRanges } = useMemo(
     () => selectArtists(primaryArtists, archiveArtists, tab, searchQuery),
     [primaryArtists, archiveArtists, tab, searchQuery]
   );
 
   const processedArtists = useMemo(() => {
-    const grouped = groupBy(artists, 'featured');
-    const sortedGroups = Object.entries(grouped).sort(
-      ([a], [b]) => (GROUP_ORDER[a] ?? 2) - (GROUP_ORDER[b] ?? 2)
-    );
-
     const dir = alphaAsc ? -1 : 1;
 
-    return sortedGroups.map(([type, groupArtists]) => {
-      const sorted = [...groupArtists];
+    return groupArtists(artists).map((group) => {
+      const sorted = [...group.artists];
       switch (sortBy) {
         case 'popularity':
-          sorted.sort((a, b) => {
-            const ap = a.popularity?.windows?.['30d']?.plays ?? 0;
-            const bp = b.popularity?.windows?.['30d']?.plays ?? 0;
-            return dir * (bp - ap);
-          });
+          sorted.sort((a, b) => dir * (artistPlays(b) - artistPlays(a)));
           break;
         case 'tapes':
           sorted.sort((a, b) => dir * (b.sourceCount - a.sourceCount));
@@ -234,65 +219,72 @@ function ArtistList({
         default:
           sorted.sort((a, b) => dir * (a.name || '').localeCompare(b.name || ''));
       }
-      return [type, sorted] as [string, ArtistListItem[]];
+      return { ...group, artists: sorted };
     });
   }, [artists, alphaAsc, sortBy]);
 
-  const groupLabel = (type: string) => {
-    switch (type) {
-      case '1':
-        return 'Featured Artists';
-      case '0':
-        return 'Primary Artists';
-      default:
-        return 'Archive Artists';
-    }
-  };
-
   const items = useMemo<Item[]>(() => {
     const out: Item[] = [];
-    for (const [type, groupArtists] of processedArtists) {
-      if (groupArtists.length === 0) continue;
-      out.push({
-        kind: 'header',
-        key: `header-${type}`,
-        label: groupLabel(type),
-      });
-      for (const artist of groupArtists) {
+    // The archive tab, or a search (which covers the archive), without the
+    // archive: a spinner while it loads, a line if it failed.
+    if (!archiveArtists && (tab === 'all' || searchQuery.trim())) {
+      out.push({ kind: 'status', key: 'status', failed: archiveArtists === null });
+    }
+    for (const group of processedArtists) {
+      out.push({ kind: 'header', key: `header-${group.key}`, label: group.label });
+      for (const artist of group.artists) {
         out.push({ kind: 'artist', key: `artist-${artist.slug}`, artist });
       }
     }
     return out;
-  }, [processedArtists]);
+  }, [processedArtists, archiveArtists, tab, searchQuery]);
 
   // TanStack Virtual returns mutable, unmemoizable values; the React Compiler knows and skips them.
   // oxlint-disable-next-line react/incompatible-library
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => scrollEl,
-    // This list remounts when the archive arrives, but the scroll container
-    // doesn't: start from the container's offset (a virtualizer scrolls to
-    // `initialOffset` when it attaches) and from the rows already measured.
-    initialOffset: () => scrollEl?.scrollTop ?? 0,
-    initialMeasurementsCache: measurements.current,
-    onChange: (instance) => {
-      measurements.current = instance.measurementsCache;
-    },
-    estimateSize: (i) => (items[i].kind === 'header' ? HEADER_ESTIMATE : ROW_ESTIMATE),
+    // Rows the in-flow render measured start at their real height, so
+    // switching to absolutely positioned rows moves none of them.
+    estimateSize: (i) =>
+      inFlowSizes.current.get(items[i].key) ??
+      (items[i].kind === 'artist' ? ROW_ESTIMATE : HEADER_ESTIMATE),
     getItemKey: (i) => items[i].key,
     overscan: 8,
   });
 
+  // Record the in-flow rows' heights in the commit that renders them, ahead of
+  // the re-render that virtualizes them (the scroll container's ref, which
+  // triggers it, attaches after its descendants' layout effects run).
+  useLayoutEffect(() => {
+    if (scrollEl || !listRef.current) return;
+    const rows = listRef.current.children;
+    for (let i = 0; i < rows.length && i < items.length; i++) {
+      inFlowSizes.current.set(items[i].key, rows[i].getBoundingClientRect().height);
+    }
+  }, [scrollEl, items]);
+
   const renderItem = (item: Item) => {
+    if (item.kind === 'status') {
+      return item.failed ? (
+        <div className="px-3 py-2 text-xs text-foreground-muted lg:px-2">
+          {"Couldn't load archive artists."}
+        </div>
+      ) : (
+        <div
+          className="flex justify-center py-3"
+          role="status"
+          aria-label="Loading archive artists"
+        >
+          <LoaderCircle className="size-4 animate-spin text-foreground-muted" />
+        </div>
+      );
+    }
     if (item.kind === 'header') {
       return <RowHeader>{item.label}</RowHeader>;
     }
     return (
-      <Row
-        href={href('/[artistSlug]', { artistSlug: item.artist.slug })}
-        active={item.artist.slug === currentArtistSlug}
-        refreshWhenCurrent
-      >
+      <Row href={hrefFor(item.artist)} active={item.artist.slug === currentSlug} refreshWhenCurrent>
         <div>
           <div>
             {item.artist.slug && highlightRanges?.has(item.artist.slug) ? (
@@ -321,6 +313,7 @@ function ArtistList({
 
   return (
     <div
+      ref={listRef}
       className={cn('relative transition-opacity', { 'opacity-40': isPending })}
       style={{ minHeight: virtualizer.getTotalSize() }}
     >
