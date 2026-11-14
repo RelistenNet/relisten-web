@@ -16,8 +16,10 @@ Three workflows separate authority:
   at `master`. No Tailscale, cluster, package, or environment credential.
 - `preview-build.yml`: validates current same-repository PR, `preview` label and
   author's current effective push permission; builds the exact source head in
-  Docker with read-only repository access. Exports one-day OCI artifacts.
-- `preview-control.yml`: serialized default-ref completion/scheduled/manual
+  Docker with read-only repository access. Exports one-day OCI artifacts. A
+  separate notification runner has only Actions write access and explicitly
+  dispatches control; branch code never runs on that runner.
+- `preview-control.yml`: serialized default-ref dispatched/scheduled/manual
   reconciliation. Rechecks run identity, orchestration/source heads, author ID
   and current permission before publishing or deploying. Copies bytes through
   pinned Skopeo without starting the branch image. Uses preview-scoped cluster

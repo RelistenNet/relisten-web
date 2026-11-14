@@ -746,7 +746,16 @@ def main():
     parser.add_argument("--retry", type=int)
     parser.add_argument("--context", default="relisten3-k3s")
     args = parser.parse_args()
-    controller = Controller(Cluster(args.context), GitHub())
+    gh = GitHub()
+    if args.run_id:
+        # The separate notification job dispatches before its workflow finishes.
+        # Wait for the authoritative final result, including failed build attempts.
+        poll(
+            lambda: gh.request(f"/repos/{REPO}/actions/runs/{args.run_id}")["status"]
+            == "completed",
+            timeout=180,
+        )
+    controller = Controller(Cluster(args.context), gh)
     controller.reconcile(args.run_id, args.retry)
     from cleanup import Registry, cleanup_images, cleanup_artifacts
 
