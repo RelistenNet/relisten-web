@@ -7,6 +7,7 @@ from datetime import datetime
 import os
 from pathlib import Path
 import re
+import ssl
 import subprocess
 import sys
 import time
@@ -45,6 +46,27 @@ def get_https(url):
     if len(raw) > 16 * 1024:
         raise ValueError("Private response exceeds limit")
     return json.loads(raw)
+
+
+def wait_web_startup(origin):
+    # A new Tailscale hostname can accept TCP before its first certificate is
+    # issued. Allow issuance to finish without accepting an unverified peer.
+    def check():
+        try:
+            with urllib.request.urlopen(origin + "/api/status", timeout=60) as response:
+                if response.status != 200 or response.read(128) != b"success":
+                    raise ValueError("Web startup smoke failed")
+        except urllib.error.HTTPError:
+            raise
+        except urllib.error.URLError as error:
+            if isinstance(error.reason, ssl.SSLCertVerificationError):
+                raise
+            return False
+        except (TimeoutError, ConnectionError):
+            return False
+        return True
+
+    poll(check, timeout=300)
 
 
 def read_state(raw):
@@ -383,9 +405,7 @@ class Controller:
         ):
             raise ValueError("Rolled-out image identity mismatch")
         origin = "https://" + preview_host(number)
-        with urllib.request.urlopen(origin + "/api/status", timeout=15) as response:
-            if response.status != 200 or response.read(128) != b"success":
-                raise ValueError("Web startup smoke failed")
+        wait_web_startup(origin)
         request = urllib.request.Request(origin + "/auth/session/start?return_to=%2F")
 
         class NoRedirect(urllib.request.HTTPRedirectHandler):
