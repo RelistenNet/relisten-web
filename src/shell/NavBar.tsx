@@ -1,9 +1,8 @@
 import { Link } from '@timber-js/app/client';
-import Flex from '@/ui/base/Flex';
 import Menu from './Menu';
 import Player from '@/player/PlayerBar';
 import { Toaster } from 'sonner';
-import * as Popover from '@/ui/base/Popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/ui/base/shadcn/popover';
 import MainNavHeader from './MainNavHeader';
 import AndroidUpgradeNotification from './AndroidUpgradeNotification';
 import BlogNavLink from '@/features/blog/BlogNavLink';
@@ -46,37 +45,24 @@ export default function NavBar() {
         <div className="flex items-center justify-self-end">
           {/* <GlobalSearch /> */}
 
-          <Popover.Root>
-            <Popover.Trigger
+          <Popover align="end" sideOffset={0}>
+            <PopoverTrigger
+              aria-label="Menu"
               className="
-                ml-2 h-full w-min cursor-pointer content-end items-center
-                text-center font-medium
+                ml-2 flex h-full w-min cursor-pointer items-center
+                active:relative active:top-px active:text-foreground
                 xl:hidden
               "
             >
-              <Flex
-                className="
-                  h-full cursor-pointer content-end items-center text-center font-medium
-                  xl:hidden
-                "
-              >
-                <div
-                  className="
-                    ml-auto flex h-full items-center
-                    active:relative active:top-px active:text-foreground
-                  "
-                >
-                  <MenuIcon />
-                </div>
-              </Flex>
-            </Popover.Trigger>
-            {/* <Popover.Anchor /> */}
-            <Popover.Portal>
-              <Popover.Content>
-                <Menu />
-              </Popover.Content>
-            </Popover.Portal>
-          </Popover.Root>
+              <MenuIcon />
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-[120px] gap-0 overflow-hidden rounded-sm bg-surface p-0"
+              arrowClassName="hidden"
+            >
+              <Menu />
+            </PopoverContent>
+          </Popover>
 
           <div
             className="

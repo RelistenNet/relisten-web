@@ -1,6 +1,13 @@
 'use client';
 
-import { CheckIcon, CircleAlertIcon, GripVerticalIcon, ListMusicIcon, XIcon } from 'lucide-react';
+import {
+  ArrowUpRightIcon,
+  CheckIcon,
+  CircleAlertIcon,
+  GripVerticalIcon,
+  ListMusicIcon,
+  XIcon,
+} from 'lucide-react';
 import driver from '@switz/driver';
 import { Link } from '@timber-js/app/client';
 import { href } from '@timber-js/app/routes';
@@ -18,7 +25,7 @@ import { queueView, type QueueItem } from './queue/model';
 // The queue: a popover off the player bar's queue button, as plain rows like a
 // show's track list. Played, now playing, Next up (drag or arrow keys to
 // reorder, remove), then the rest of the show or song list. Picking a row plays it;
-// its title links to the track's page.
+// its arrow links to the track's page.
 
 /** A 48×48 touch target on a smaller button (coarse pointers only). */
 const TouchTarget = () => (
@@ -37,10 +44,8 @@ const ICON_BUTTON = `
 /** The player bar's queue button, with the popover it opens. */
 export default function QueueButton() {
   const count = useQueue((q) => q.upNext.length);
-  const [open, setOpen] = useState(false);
-
   return (
-    <Popover open={open} onOpenChange={setOpen} align="end" sideOffset={4}>
+    <Popover align="end" sideOffset={4}>
       <PopoverTrigger
         aria-label={count ? `Queue, ${count} up next` : 'Queue'}
         className="
@@ -77,7 +82,7 @@ export default function QueueButton() {
             overflow-hidden rounded-lg
           "
         >
-          <QueueContents onNavigate={() => setOpen(false)} />
+          <QueueContents />
         </div>
       </PopoverContent>
     </Popover>
@@ -97,7 +102,7 @@ const formatDate = (date: string) => {
       });
 };
 
-function QueueContents({ onNavigate }: { onNavigate: () => void }) {
+function QueueContents() {
   const queue = useQueue((q) => q);
   const view = useMemo(() => queueView(queue), [queue]);
   const { played, current, upNext, rest } = view;
@@ -153,7 +158,6 @@ function QueueContents({ onNavigate }: { onNavigate: () => void }) {
         show={showOf(item)}
         current={kind === 'current'}
         played={kind === 'played'}
-        onNavigate={onNavigate}
         actions={
           <>
             {item.key !== fixed && (
@@ -288,7 +292,7 @@ function LoadState({ entryKey, hidden }: { entryKey: string; hidden: boolean }) 
         <Tooltip
           content={load.label}
           align="top"
-          className="flex size-4 items-center justify-center"
+          className="relative flex size-4 items-center justify-center"
         >
           {load.icon}
           <span className="sr-only">{load.label}</span>
@@ -309,12 +313,11 @@ const trackHref = (item: QueueItem) => {
 };
 
 /**
- * A row: picking it plays it, and its title links to the track's page. Every
+ * A row: picking it plays it, and its arrow links to the track's page. Every
  * row has the same columns, so they line up across sections: number (or
- * playing bars), title and show, load state, duration, then room for the drag
- * handle and remove button. A link can't sit inside a button, so a click
- * anywhere on the row plays it, and the number is the button for keyboards
- * and screen readers.
+ * playing bars), title and show, load state, duration, the arrow, then room
+ * for the drag handle and remove button. A link can't sit inside a button, so
+ * the button is laid over the whole row and the link sits above it.
  */
 function QueueRow({
   ref,
@@ -323,7 +326,6 @@ function QueueRow({
   show,
   current = false,
   played = false,
-  onNavigate,
   actions,
   className,
   style,
@@ -337,8 +339,6 @@ function QueueRow({
   current?: boolean;
   /** Already played: dimmed. */
   played?: boolean;
-  /** Called when the title link is followed (closes the panel). */
-  onNavigate?: () => void;
   /** The drag handle and remove button, for entries still to come. */
   actions?: React.ReactNode;
   className?: string;
@@ -358,47 +358,32 @@ function QueueRow({
       style={style}
     >
       {current && <div className="absolute inset-y-0 left-0 w-1 bg-accent" aria-hidden />}
-      {/* Its click handles the number's button too (keyboard and screen readers), by bubbling. */}
-      <div
+      {/* Covers the row; the load state, link and actions sit above it (`relative`, later in the DOM). */}
+      <button
+        type="button"
         onClick={() => jumpTo(item.key)}
+        aria-current={current || undefined}
+        aria-label={`Play ${item.title}, ${show}`}
+        className="
+          absolute inset-0 cursor-pointer focus-visible:outline-2
+          focus-visible:-outline-offset-2 focus-visible:outline-accent
+        "
+      />
+      <div
         className={cn(
           `
-            flex min-w-0 flex-1 cursor-pointer items-center gap-2 self-stretch py-1.5 text-left
-            leading-tight tabular-nums
+            flex min-w-0 flex-1 items-center gap-2 self-stretch py-1.5 text-left leading-tight
+            tabular-nums
           `,
           played && 'text-text-muted'
         )}
       >
-        <button
-          type="button"
-          aria-current={current || undefined}
-          aria-label={`Play ${item.title}, ${show}`}
-          className="
-            flex w-7 shrink-0 justify-end text-xs text-text-muted focus-visible:outline-2
-            focus-visible:outline-offset-2 focus-visible:outline-accent
-          "
-        >
+        <span className="flex w-7 shrink-0 justify-end text-xs text-text-muted" aria-hidden>
           {current ? <PlayingBars /> : number}
-        </button>
+        </span>
         <span className="min-w-0 flex-1">
           <span className={cn('block truncate', current && 'font-medium text-accent')}>
-            {item.trackSlug ? (
-              <Link
-                href={trackHref(item)}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onNavigate?.();
-                }}
-                className="
-                  text-inherit no-underline hover:underline focus-visible:outline-2
-                  focus-visible:outline-offset-2 focus-visible:outline-accent
-                "
-              >
-                {item.title}
-              </Link>
-            ) : (
-              item.title
-            )}
+            {item.title}
           </span>
           <span className="block truncate text-xxs text-text-muted">{show}</span>
         </span>
@@ -407,7 +392,20 @@ function QueueRow({
           {item.duration ? durationToHHMMSS(item.duration) : null}
         </span>
       </div>
-      <span className="flex w-[4.25rem] shrink-0 items-center justify-end pr-1">{actions}</span>
+      {/* Its own column, so it lines up on rows without a drag handle. */}
+      <span className="relative flex w-8 shrink-0 justify-center">
+        {item.trackSlug && (
+          <Tooltip content="Go to track" align="top" className="relative flex">
+            <Link href={trackHref(item)} aria-label={`Go to ${item.title}`} className={ICON_BUTTON}>
+              <ArrowUpRightIcon size={16} className="shrink-0" aria-hidden />
+              <TouchTarget />
+            </Link>
+          </Tooltip>
+        )}
+      </span>
+      <span className="relative flex w-[4.25rem] shrink-0 items-center justify-end pr-1">
+        {actions}
+      </span>
     </li>
   );
 }
