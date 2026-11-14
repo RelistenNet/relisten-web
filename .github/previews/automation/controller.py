@@ -757,7 +757,7 @@ def main():
         )
     controller = Controller(Cluster(args.context), gh)
     controller.reconcile(args.run_id, args.retry)
-    from cleanup import Registry, cleanup_images, cleanup_artifacts
+    from cleanup import Registry, cleanup_images, cleanup_artifacts, next_cleanup_at
 
     protected = {
         candidate["image"]
@@ -788,6 +788,10 @@ def main():
         checkpoint_marks,
     )
     artifacts = cleanup_artifacts(controller.gh)
+    cleanup_at = next_cleanup_at(controller.state["unreferencedImages"])
+    if cleanup_at is not None and os.environ.get("GITHUB_OUTPUT"):
+        with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+            output.write(f"cleanup_at={cleanup_at}\n")
     print(
         json.dumps(
             {

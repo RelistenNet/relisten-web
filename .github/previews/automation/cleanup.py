@@ -4,11 +4,24 @@ import base64
 from datetime import datetime, timezone
 import hashlib
 import json
+import math
 import re
 import urllib.request
 
 from github import BUILD_PATH, REPO
 from publish import IMAGE, PACKAGE, require_private_package
+
+GRACE_SECONDS = 900
+
+
+def next_cleanup_at(marks):
+    """First whole UTC second when a persisted unreferenced image is eligible."""
+    if not marks:
+        return None
+    return math.ceil(
+        min(datetime.fromisoformat(stamp).timestamp() for stamp in marks.values())
+        + GRACE_SECONDS
+    )
 
 
 def age_seconds(value, now):
@@ -53,28 +66,36 @@ def cleanup_images(gh, registry, protected, marks=None, checkpoint=None, now=Non
     now = now or datetime.now(timezone.utc)
     require_private_package(gh)
     versions = gh.pages("/orgs/RelistenNet/packages/container/" + PACKAGE + "/versions")
-    # Account for every index edge, including orphaned partial publishes. Keeping
-    # its child manifests until the next scan avoids deleting a referenced child
-    # while the parent DELETE is pending or fails.
-    referenced = set()
+    # Keep children while any surviving index references them, including partial
+    # publishes that never became a deployed image.
     available = {version["name"] for version in versions}
-    for version in versions:
-        manifest = registry.manifest(version["name"])
-        referenced.update(child["digest"] for child in manifest.get("manifests", []))
+    children = {
+        version["name"]: {
+            child["digest"]
+            for child in registry.manifest(version["name"]).get("manifests", [])
+        }
+        for version in versions
+    }
+    protected_digests = set()
     for image in protected:
         if not image.startswith(IMAGE + "@"):
             raise ValueError("Unexpected protected image")
         digest = image.split("@")[1]
         if digest not in available:
             raise ValueError("Protected image is absent from preview package")
-        # An authenticated cold manifest read above verifies that it can still
-        # be pulled before any pruning. Production packages are never consulted.
-        referenced.add(digest)
+        protected_digests.add(digest)
+
+    def unreferenced_images():
+        referenced = set(protected_digests)
+        for parent in available:
+            referenced.update(children[parent])
+        return available - referenced
+
     # Persist when protection was first observed absent, rather than using
     # publication age. An old working image still receives a full grace period
     # after retirement or replacement.
     marks = marks or {}
-    unreferenced = available - referenced
+    unreferenced = unreferenced_images()
     # Drain bounded batches so a prolonged outage cannot fill the registry and
     # permanently prevent the cleanup that would shrink that backlog.
     updated = dict(
@@ -87,11 +108,13 @@ def cleanup_images(gh, registry, protected, marks=None, checkpoint=None, now=Non
             key=lambda pair: pair[1],
         )[:128]
     )
-    for digest in sorted(unreferenced - updated.keys()):
-        if len(updated) == 128:
-            break
-        updated[digest] = now.isoformat()
-    awaiting_batch = len(unreferenced - updated.keys())
+    def enroll_unreferenced():
+        for digest in sorted(unreferenced - updated.keys()):
+            if len(updated) == 128:
+                break
+            updated[digest] = now.isoformat()
+
+    enroll_unreferenced()
     if checkpoint:
         checkpoint(dict(updated))
     require_private_package(gh)
@@ -99,7 +122,7 @@ def cleanup_images(gh, registry, protected, marks=None, checkpoint=None, now=Non
     for version in versions:
         if (
             version["name"] not in updated
-            or age_seconds(updated[version["name"]], now) < 900
+            or age_seconds(updated[version["name"]], now) < GRACE_SECONDS
         ):
             continue
         gh.request(
@@ -108,6 +131,13 @@ def cleanup_images(gh, registry, protected, marks=None, checkpoint=None, now=Non
         )
         deleted.append(version["id"])
         updated.pop(version["name"], None)
+        available.remove(version["name"])
+    # A deleted index can expose children that were protected at scan admission.
+    # Enroll those only after successful parent deletion, with a fresh grace.
+    unreferenced = unreferenced_images()
+    # A full batch must leave another timed wakeup, even without cron/events.
+    enroll_unreferenced()
+    awaiting_batch = len(unreferenced - updated.keys())
     if checkpoint:
         checkpoint(dict(updated))
     print(
