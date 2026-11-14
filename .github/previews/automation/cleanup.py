@@ -8,7 +8,7 @@ import re
 import urllib.request
 
 from github import BUILD_PATH, REPO
-from publish import IMAGE, PACKAGE
+from publish import IMAGE, PACKAGE, require_private_package
 
 
 def age_seconds(value, now):
@@ -51,9 +51,7 @@ class Registry:
 
 def cleanup_images(gh, registry, protected, marks=None, checkpoint=None, now=None):
     now = now or datetime.now(timezone.utc)
-    package = gh.request("/orgs/RelistenNet/packages/container/" + PACKAGE)
-    if package["visibility"] != "private":
-        raise ValueError("Unexpected preview package visibility")
+    require_private_package(gh)
     versions = gh.pages("/orgs/RelistenNet/packages/container/" + PACKAGE + "/versions")
     # Account for every index edge, including orphaned partial publishes. Keeping
     # its child manifests until the next scan avoids deleting a referenced child
@@ -96,6 +94,7 @@ def cleanup_images(gh, registry, protected, marks=None, checkpoint=None, now=Non
     awaiting_batch = len(unreferenced - updated.keys())
     if checkpoint:
         checkpoint(dict(updated))
+    require_private_package(gh)
     deleted = []
     for version in versions:
         if (

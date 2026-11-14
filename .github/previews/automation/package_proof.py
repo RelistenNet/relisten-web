@@ -76,19 +76,18 @@ def create_empty_oci(path):
 def main():
     gh = GitHub()
     gh.current_default()
-    require_private_package(gh, allow_missing=True)
+    require_private_package(gh)
     with tempfile.TemporaryDirectory(prefix="preview-package-proof-") as temporary:
         directory = Path(temporary)
         create_empty_oci(directory / "image.oci.tar")
-        digest = copy_oci(gh, directory, "cleanup-proof-" + os.environ["GITHUB_RUN_ID"])
-    package = gh.request("/orgs/RelistenNet/packages/container/" + PACKAGE)
-    if (
-        package["visibility"] != "private"
-        or package.get("repository", {}).get("id") != REPO_ID
-    ):
-        raise ValueError(
-            "Preview package must be private and linked to the web repository"
+        digest = copy_oci(
+            gh,
+            directory,
+            "cleanup-proof-" + os.environ["GITHUB_RUN_ID"],
+            before_publish=lambda: require_private_package(gh),
         )
+    package = gh.request("/orgs/RelistenNet/packages/container/" + PACKAGE)
+    require_private_package(gh)
     versions = gh.pages("/orgs/RelistenNet/packages/container/" + PACKAGE + "/versions")
     matches = [
         v
@@ -113,7 +112,8 @@ def main():
         json.dumps(
             {
                 "privatePackage": PACKAGE,
-                "repositoryId": REPO_ID,
+                "sourceRepositoryId": REPO_ID,
+                "packageId": package["id"],
                 "disposableVersionDeleted": version["id"],
             }
         )

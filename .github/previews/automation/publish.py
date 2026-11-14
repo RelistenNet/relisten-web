@@ -11,7 +11,7 @@ import urllib.request
 import zipfile
 import uuid
 
-from github import BUILD_PATH, DEFAULT, REPO, REPO_ID, SHA, GitHubError
+from github import BUILD_PATH, DEFAULT, REPO, REPO_ID, SHA
 
 PACKAGE = "relisten-web-preview"
 IMAGE = "ghcr.io/relistennet/" + PACKAGE
@@ -180,7 +180,7 @@ def skopeo(directory, arguments, network=True):
         )
 
 
-def copy_oci(gh, directory, tag):
+def copy_oci(gh, directory, tag, before_publish=None):
     auth = directory / "auth.json"
     auth.write_text(
         json.dumps(
@@ -208,6 +208,10 @@ def copy_oci(gh, directory, tag):
     ).strip()
     if actual != "amd64/linux":
         raise ValueError("Preview image must target linux/amd64")
+    # Inspection can take time; renew eligibility/privacy immediately before
+    # the network write, rather than relying on the earlier admission check.
+    if before_publish:
+        before_publish()
     # Flatten to one manifest. No branch image is ever started here.
     skopeo(
         directory,
@@ -233,19 +237,26 @@ def copy_oci(gh, directory, tag):
     return digest
 
 
-def require_private_package(gh, allow_missing=False):
-    try:
-        package = gh.request("/orgs/RelistenNet/packages/container/" + PACKAGE)
-    except GitHubError as error:
-        if allow_missing and error.status == 404:
-            return
-        raise
+def require_private_package(gh):
+    expected = os.environ.get("PREVIEW_PACKAGE_ID", "")
+    if not re.fullmatch(r"[1-9][0-9]{0,19}", expected) or os.environ.get(
+        "GITHUB_REPOSITORY_ID"
+    ) != str(REPO_ID):
+        raise ValueError(
+            "Preview package access requires the operator-verified package ID and source repository"
+        )
+    package = gh.request("/orgs/RelistenNet/packages/container/" + PACKAGE)
+    # GitHub's workflow token omits the linked repository field even with
+    # contents:read. The operator verifies that link once with its account and
+    # pins the immutable package ID in this environment. Deletion/recreation or
+    # visibility drift must not silently substitute a different resource.
     if (
         package["visibility"] != "private"
-        or (package.get("repository") or {}).get("id") != REPO_ID
+        or package["id"] != int(expected)
+        or package["name"] != PACKAGE
     ):
         raise ValueError(
-            "Preview package must be private and linked to the web repository"
+            "Preview package identity or visibility differs from the operator-verified package"
         )
 
 
@@ -276,9 +287,13 @@ def publish(gh, run, default_sha):
         if pr["user"]["id"] != metadata["authorId"]:
             raise ValueError("PR author identity changed")
         tag = f"pr-{metadata['pr']}-{metadata['headSha']}"
-        gh.require(metadata["pr"], metadata["headSha"])
-        require_private_package(gh)
-        digest = copy_oci(gh, directory, tag)
+
+        def authorize_publication():
+            gh.require(metadata["pr"], metadata["headSha"])
+            require_private_package(gh)
+
+        authorize_publication()
+        digest = copy_oci(gh, directory, tag, before_publish=authorize_publication)
         require_private_package(gh)
         gh.require(metadata["pr"], metadata["headSha"])
         candidate = {

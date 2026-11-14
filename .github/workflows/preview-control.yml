@@ -59,6 +59,7 @@ jobs:
       - name: Verify effective authority and reconcile the full current PR set
         env:
           GH_TOKEN: ${{ github.token }}
+          PREVIEW_PACKAGE_ID: ${{ vars.PREVIEW_PACKAGE_ID }}
           PREVIEW_RUN_ID: ${{ github.event.workflow_run.id }}
           PREVIEW_RETRY: ${{ inputs.retry }}
           PREVIEW_PACKAGE_PROOF: ${{ inputs.package_proof }}

@@ -38,6 +38,10 @@ Ingress and workload resources with UID preconditions. An independent sweep
 finds labelled resources missing from the registry. Failed GitHub reads abort;
 they are never interpreted as an empty eligible set.
 
+The operator verifies the private preview package repository link once and pins
+its immutable ID in environment variable `PREVIEW_PACKAGE_ID`. Publishing and
+deletion fail closed on an ID or visibility change.
+
 Package cleanup retains deployed, rollback and pending digests, plus any actual
 preview Deployment image. First-observed-unreferenced marks persist across runs;
 versions become eligible after 15 minutes. Marks drain in batches of 128 so an
