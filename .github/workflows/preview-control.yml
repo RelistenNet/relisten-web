@@ -1,0 +1,77 @@
+name: Preview control
+on:
+  workflow_run:
+    workflows: [Preview build]
+    types: [completed]
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+    inputs:
+      package_proof:
+        description: Publish and delete a disposable preview-package version to prove cleanup authority
+        required: false
+        type: boolean
+        default: false
+      retry:
+        description: Optional PR number to explicitly retry at its current head
+        required: false
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: relisten-private-preview-control
+  cancel-in-progress: false
+jobs:
+  reconcile:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: relisten-previews
+    permissions:
+      contents: read
+      actions: write
+      packages: write
+      id-token: write
+      statuses: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          path: trusted
+      - uses: tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c # v4.4.0
+        with:
+          oauth-client-id: ${{ vars.TS_PREVIEW_CLIENT_ID }}
+          audience: ${{ vars.TS_PREVIEW_AUDIENCE }}
+          tags: tag:relisten-preview-ci
+          version: '1.104.1'
+      - uses: azure/setup-kubectl@bda439f5f36b99b262ebdcd3613869bddb064c8e # v5.2.0
+        with:
+          version: v1.36.2
+      - name: Configure preview-scoped Kubernetes identity
+        env:
+          PREVIEW_KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        run: |
+          install -m 700 -d "$RUNNER_TEMP/preview-kube"
+          printf '%s' "$PREVIEW_KUBE_CONFIG" > "$RUNNER_TEMP/preview-kube/config"
+          chmod 600 "$RUNNER_TEMP/preview-kube/config"
+          echo "KUBECONFIG=$RUNNER_TEMP/preview-kube/config" >> "$GITHUB_ENV"
+      - name: Verify effective authority and reconcile the full current PR set
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREVIEW_RUN_ID: ${{ github.event.workflow_run.id }}
+          PREVIEW_RETRY: ${{ inputs.retry }}
+          PREVIEW_PACKAGE_PROOF: ${{ inputs.package_proof }}
+        run: |
+          python3 trusted/.github/previews/automation/authority.py
+          if [ "$PREVIEW_PACKAGE_PROOF" = true ]; then
+            python3 trusted/.github/previews/automation/package_proof.py
+            exit 0
+          fi
+          args=()
+          if [ -n "$PREVIEW_RUN_ID" ]; then args+=(--run-id "$PREVIEW_RUN_ID"); fi
+          if [ -n "$PREVIEW_RETRY" ]; then args+=(--retry "$PREVIEW_RETRY"); fi
+          python3 trusted/.github/previews/automation/controller.py "${args[@]}"
+      - name: Remove local Kubernetes credential
+        if: always()
+        run: rm -f "$RUNNER_TEMP/preview-kube/config"

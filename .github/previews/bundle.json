@@ -1,0 +1,22 @@
+{
+  "infrastructureCommit": "5c87963640cadba6daf23649039fc5cd31e8ab8d",
+  "files": {
+    "automation/README.md": "80cceeae5fd52238f4c634a644f5dd7098cff4eaf07c652e147dff41a349df9a",
+    "render.py": "d2c14fb3d2b767df20a3fe483156a7d08a9bbe13bebc397daaeecb37efb24666",
+    "gateway/identity.py": "09467da0582bf748c0ca2a2088a7bdfbba7588d8c5ef787694667040986aa8c9",
+    "gateway/gateway.py": "46db608f065190b498e56582961b3394002f476667f38bd59125ca5f65eca56a",
+    "pilot/control.py": "ae7506a41235bb3064069b0c0068ae3b6219ec9f607103b2c34395ba93b11763",
+    "automation/build.py": "3bb5c8d5b96c481ce891c2a54752a8f55378cb5b1b2eb3248ca8b1b5052ad7b1",
+    "automation/controller.py": "5bd94e4ddbb6df1803cce08f00eb5ce34b15c0cad694ee0eafb33915dfc9bda4",
+    "automation/cleanup.py": "1133f5eeb08c4aa7529ba544537c5e035f2b351c24390d7cc97aa66ced902c93",
+    "automation/package_proof.py": "3b823b7b3ce99566226bca5527881a440711df0ba4d3e2f240310305d605e35c",
+    "automation/authority.py": "fa644e826ea294944ccbc89fb5e870a3057f5753ce3bb1e7b14310998e59f891",
+    "automation/github.py": "5dd37ae29b3f1a0ac3bfe77ed1d1765d635e7fb35770f930c64cadb61d105c96",
+    "automation/publish.py": "8a44019150c071cdbdec1476b3fb65936ab993a66d068b388f53c4ec330db88b"
+  },
+  "workflows": {
+    "preview-build.yml": "76c9f77739714ec3d40b790d3641d9b06766f2d300b7c5474534330d9874e4a2",
+    "preview-control.yml": "305fb03f7ea38a7c98577af1ee2225ed264c1c46ce5c1f6be038b7881ff82cae",
+    "preview-dispatch.yml": "63113280a025eb63666bba928dda560e3b239e96af49f94ec24cbae99bdb8fc9"
+  }
+}

@@ -1,0 +1,57 @@
+name: Preview build
+run-name: Preview PR ${{ inputs.pr }} ${{ inputs.head }}
+on:
+  workflow_dispatch:
+    inputs:
+      pr:
+        required: true
+        type: string
+      head:
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: preview-build-${{ inputs.pr }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          path: trusted
+      - name: Verify current author permission and exact source head
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREVIEW_PR: ${{ inputs.pr }}
+          PREVIEW_HEAD: ${{ inputs.head }}
+        run: python3 trusted/.github/previews/automation/build.py gate --pr "$PREVIEW_PR" --head "$PREVIEW_HEAD"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.gate.outputs.head }}
+          persist-credentials: false
+          path: source
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build branch code inside Docker without publishing credentials
+        run: |
+          mkdir -p "$RUNNER_TEMP/preview-output"
+          docker buildx build --platform linux/amd64 --provenance=false --sbom=false \
+            --output "type=oci,dest=$RUNNER_TEMP/preview-output/image.oci.tar" ./source
+      - name: Record trusted orchestration provenance after rechecking eligibility
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREVIEW_PR: ${{ inputs.pr }}
+          PREVIEW_HEAD: ${{ inputs.head }}
+        run: python3 trusted/.github/previews/automation/build.py metadata --pr "$PREVIEW_PR" --head "$PREVIEW_HEAD" --output "$RUNNER_TEMP/preview-output/metadata.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: preview-oci-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/preview-output/*
+          retention-days: 1
+          compression-level: 0
+          if-no-files-found: error
