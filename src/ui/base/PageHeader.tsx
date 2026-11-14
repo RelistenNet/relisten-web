@@ -22,17 +22,19 @@ type Props = {
   /** Controls under the title's meta line (a date picker, a scope select). */
   aside?: ReactNode;
   stats?: StatItem[];
+  /** Controls at the right end of the title row (a link to another view of the page). */
+  actions?: ReactNode;
   /** Full-width content under the title row, such as a YearChart. */
   children?: ReactNode;
 };
 
-export default function PageHeader({ cover, title, meta, aside, stats, children }: Props) {
+export default function PageHeader({ cover, title, meta, aside, stats, actions, children }: Props) {
   const metaItems = meta?.filter(Boolean) ?? [];
 
   return (
     <header className="flex flex-col gap-5">
-      {/* Title on the left, stats top right; the stats wrap under the title when the row is too narrow. */}
-      <div className="flex flex-wrap items-start justify-between gap-x-10 gap-y-5">
+      {/* Title on the left, stats on the right, centered on each other; the stats wrap under the title when the row is too narrow. */}
+      <div className="flex flex-wrap items-center justify-between gap-x-10 gap-y-5">
         <div className="flex max-w-full min-w-0 items-center gap-5">
           {cover && <div className="shrink-0">{cover}</div>}
           <div className="flex min-w-0 flex-col gap-0.5">
@@ -40,19 +42,21 @@ export default function PageHeader({ cover, title, meta, aside, stats, children 
               {title}
             </h1>
             {metaItems.length > 0 && (
-              <p className="mb-0 text-base text-pretty text-text-muted sm:text-sm">
+              // A div, not a p: items can be block elements (a tooltip trigger).
+              <div className="text-base text-pretty text-text-muted sm:text-sm">
                 {metaItems.map((item, i) => (
                   <Fragment key={i}>
                     {i > 0 && <span aria-hidden> · </span>}
                     {item}
                   </Fragment>
                 ))}
-              </p>
+              </div>
             )}
             {aside && <div className="mt-2 flex">{aside}</div>}
           </div>
         </div>
         {stats && stats.length > 0 && <StatList items={stats} />}
+        {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
       </div>
       {children}
     </header>
@@ -70,7 +74,8 @@ function StatList({ items }: { items: StatItem[] }) {
         <div
           key={item.label}
           className={cn(
-            'flex min-w-0 flex-col sm:px-6',
+            // Cells stretch to the tallest, so the hairlines match; a shorter cell's text sits in the middle.
+            'flex min-w-0 flex-col justify-center sm:px-6',
             i === 0 ? 'sm:pl-0' : 'sm:border-l sm:border-hairline',
             i === items.length - 1 && 'sm:pr-0'
           )}

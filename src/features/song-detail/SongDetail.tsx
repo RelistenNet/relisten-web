@@ -1,7 +1,7 @@
 import { href } from '@timber-js/app/routes';
 import { loadSong } from './load';
 import { findArtistBySlug } from '@/data/artists';
-import { lengthColumn, playColumn, queueColumn } from './columns';
+import { playColumn, queueColumn } from './columns';
 import DataTable from '@/ui/table/DataTable';
 import { showColumns } from '@/ui/shows/columns';
 import ArtistCover from '@/ui/base/ArtistCover';
@@ -13,7 +13,7 @@ import { durationToHHMMSS, numberFormat } from '@/lib/utils';
 import { queryTable } from '@/ui/table/query';
 import type { ShowRow } from '@/ui/shows/rows';
 import { SONG_FILTER_IDS, songSearchParams, songSpec } from './spec';
-import { SongQueueProvider } from './SongQueue';
+import { SongQueueProvider } from '@/player/SongQueue';
 import { songRowItem } from '@/player/queue/items';
 import { Link } from '@timber-js/app/client';
 import { redirect } from '@timber-js/app/server';
@@ -120,7 +120,7 @@ export default async function SongDetail({
           columns={[
             ...(song.imported ? [] : [playColumn]),
             showColumns.show,
-            ...(song.imported ? [] : [lengthColumn]),
+            ...(song.imported ? [] : [showColumns.length]),
             showColumns.tapes,
             showColumns.plays,
             ...(song.imported ? [] : [queueColumn]),

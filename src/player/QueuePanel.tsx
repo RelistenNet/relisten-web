@@ -2,9 +2,12 @@
 
 import { CheckIcon, CircleAlertIcon, GripVerticalIcon, ListMusicIcon, XIcon } from 'lucide-react';
 import driver from '@switz/driver';
+import { Link } from '@timber-js/app/client';
+import { href } from '@timber-js/app/routes';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import cn from '@/lib/cn';
-import { durationToHHMMSS } from '@/lib/utils';
+import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
+import { durationToHHMMSS, splitShowDate } from '@/lib/utils';
 import RowHeader from '@/ui/base/RowHeader';
 import Tooltip from '@/ui/base/Tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/base/shadcn/popover';
@@ -14,7 +17,8 @@ import { queueView, type QueueItem } from './queue/model';
 
 // The queue: a popover off the player bar's queue button, as plain rows like a
 // show's track list. Played, now playing, Next up (drag or arrow keys to
-// reorder, remove), then the rest of the show or song list. Picking a row plays it.
+// reorder, remove), then the rest of the show or song list. Picking a row plays it;
+// its title links to the track's page.
 
 /** A 48×48 touch target on a smaller button (coarse pointers only). */
 const TouchTarget = () => (
@@ -33,9 +37,10 @@ const ICON_BUTTON = `
 /** The player bar's queue button, with the popover it opens. */
 export default function QueueButton() {
   const count = useQueue((q) => q.upNext.length);
+  const [open, setOpen] = useState(false);
 
   return (
-    <Popover align="end" sideOffset={4}>
+    <Popover open={open} onOpenChange={setOpen} align="end" sideOffset={4}>
       <PopoverTrigger
         aria-label={count ? `Queue, ${count} up next` : 'Queue'}
         className="
@@ -72,7 +77,7 @@ export default function QueueButton() {
             overflow-hidden rounded-lg
           "
         >
-          <QueueContents />
+          <QueueContents onNavigate={() => setOpen(false)} />
         </div>
       </PopoverContent>
     </Popover>
@@ -92,7 +97,7 @@ const formatDate = (date: string) => {
       });
 };
 
-function QueueContents() {
+function QueueContents({ onNavigate }: { onNavigate: () => void }) {
   const queue = useQueue((q) => q);
   const view = useMemo(() => queueView(queue), [queue]);
   const { played, current, upNext, rest } = view;
@@ -148,6 +153,7 @@ function QueueContents() {
         show={showOf(item)}
         current={kind === 'current'}
         played={kind === 'played'}
+        onNavigate={onNavigate}
         actions={
           <>
             {item.key !== fixed && (
@@ -292,10 +298,23 @@ function LoadState({ entryKey, hidden }: { entryKey: string; hidden: boolean }) 
   );
 }
 
+/** The track's page on the browse view, on the tape it plays from. */
+const trackHref = (item: QueueItem) => {
+  const { year, month, day } = splitShowDate(item.date);
+  return href(
+    '/[artistSlug]/[year]/[month]/[day]/[songSlug]',
+    { artistSlug: item.artistSlug, year, month, day, songSlug: item.trackSlug },
+    sourceQuery(item.sourceId)
+  );
+};
+
 /**
- * A row: picking it plays it. Every row has the same columns, so they line
- * up across sections: number (or playing bars), title and show, load state,
- * duration, then room for the drag handle and remove button.
+ * A row: picking it plays it, and its title links to the track's page. Every
+ * row has the same columns, so they line up across sections: number (or
+ * playing bars), title and show, load state, duration, then room for the drag
+ * handle and remove button. A link can't sit inside a button, so a click
+ * anywhere on the row plays it, and the number is the button for keyboards
+ * and screen readers.
  */
 function QueueRow({
   ref,
@@ -304,6 +323,7 @@ function QueueRow({
   show,
   current = false,
   played = false,
+  onNavigate,
   actions,
   className,
   style,
@@ -317,6 +337,8 @@ function QueueRow({
   current?: boolean;
   /** Already played: dimmed. */
   played?: boolean;
+  /** Called when the title link is followed (closes the panel). */
+  onNavigate?: () => void;
   /** The drag handle and remove button, for entries still to come. */
   actions?: React.ReactNode;
   className?: string;
@@ -336,25 +358,47 @@ function QueueRow({
       style={style}
     >
       {current && <div className="absolute inset-y-0 left-0 w-1 bg-accent" aria-hidden />}
-      <button
-        type="button"
+      {/* Its click handles the number's button too (keyboard and screen readers), by bubbling. */}
+      <div
         onClick={() => jumpTo(item.key)}
-        aria-current={current || undefined}
         className={cn(
           `
-            flex min-w-0 flex-1 items-center gap-2 self-stretch py-1.5 text-left leading-tight
-            tabular-nums focus-visible:outline-2 focus-visible:-outline-offset-2
-            focus-visible:outline-accent
+            flex min-w-0 flex-1 cursor-pointer items-center gap-2 self-stretch py-1.5 text-left
+            leading-tight tabular-nums
           `,
           played && 'text-text-muted'
         )}
       >
-        <span className="flex w-7 shrink-0 justify-end text-xs text-text-muted">
+        <button
+          type="button"
+          aria-current={current || undefined}
+          aria-label={`Play ${item.title}, ${show}`}
+          className="
+            flex w-7 shrink-0 justify-end text-xs text-text-muted focus-visible:outline-2
+            focus-visible:outline-offset-2 focus-visible:outline-accent
+          "
+        >
           {current ? <PlayingBars /> : number}
-        </span>
+        </button>
         <span className="min-w-0 flex-1">
           <span className={cn('block truncate', current && 'font-medium text-accent')}>
-            {item.title}
+            {item.trackSlug ? (
+              <Link
+                href={trackHref(item)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onNavigate?.();
+                }}
+                className="
+                  text-inherit no-underline hover:underline focus-visible:outline-2
+                  focus-visible:outline-offset-2 focus-visible:outline-accent
+                "
+              >
+                {item.title}
+              </Link>
+            ) : (
+              item.title
+            )}
           </span>
           <span className="block truncate text-xxs text-text-muted">{show}</span>
         </span>
@@ -362,7 +406,7 @@ function QueueRow({
         <span className="w-12 shrink-0 text-right text-xs text-text-muted">
           {item.duration ? durationToHHMMSS(item.duration) : null}
         </span>
-      </button>
+      </div>
       <span className="flex w-[4.25rem] shrink-0 items-center justify-end pr-1">{actions}</span>
     </li>
   );

@@ -10,12 +10,12 @@ import { albumArtSearchParams } from '@/lib/searchParams/albumArtSearchParams';
 import { durationToHHMMSS } from '@/lib/utils';
 import PopularityBadge from '@/ui/base/PopularityBadge';
 
-export type ShowHeaderShow = Partial<Pick<ShowDetail, 'id' | 'venue' | 'popularity'>>;
-
 const VENUE_PILL = `
   flex min-w-0 items-center gap-1 self-start rounded bg-text-primary/5 px-1.5 py-1 text-xs
   text-text-primary transition-colors
 `;
+
+export type ShowHeaderShow = Partial<Pick<ShowDetail, 'id' | 'venue' | 'popularity'>>;
 
 /**
  * The top of a show's track list: album art, the venue (linking to its page),

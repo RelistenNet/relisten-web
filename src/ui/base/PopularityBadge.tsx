@@ -6,18 +6,22 @@ import cn from '@/lib/cn';
 export default function PopularityBadge({
   popularity,
   align,
+  className,
 }: {
   popularity?: Popularity | null;
   align?: 'left' | 'right';
+  className?: string;
 }) {
   const plays = popularity?.windows?.['30d']?.plays;
   if (!plays) return null;
 
   return (
     <Tooltip
-      className={cn('flex items-center gap-1 text-xxs tracking-wide text-foreground-muted', {
-        ['justify-end']: align === 'right',
-      })}
+      className={cn(
+        'flex items-center gap-1 text-xxs tracking-wide text-foreground-muted',
+        { ['justify-end']: align === 'right' },
+        className
+      )}
       align={align}
       content={
         popularity?.windows && (

@@ -3,7 +3,8 @@
 // Tracks without an mp3 file aren't queued: there'd be nothing to play.
 // ---------------------------------------------------------------------------
 
-import type { PlayableTrack, Source } from '@/domain/types';
+import { href } from '@timber-js/app/routes';
+import type { PlayableTrack, Source, TrackSong } from '@/domain/types';
 import type { ShowRow } from '@/ui/shows/rows';
 import type { QueueContext, QueueItem } from './model';
 
@@ -100,3 +101,11 @@ function trackItem(
     mp3Url: t.mp3Url,
   };
 }
+
+/** A track menu's link per song: a file can hold several (a segue). */
+export const songLinks = (artistSlug: string, songs: readonly TrackSong[] = []) =>
+  songs.map((song) => ({
+    label: `See all ${song.name}`,
+    // The song page redirects an id to the song's slug.
+    href: href('/artists/[artistSlug]/songs/[songSlug]', { artistSlug, songSlug: song.id }),
+  }));
