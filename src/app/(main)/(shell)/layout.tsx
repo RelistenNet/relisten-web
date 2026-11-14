@@ -8,7 +8,7 @@ import NavBar from '@/shell/NavBar';
 // The nav reads its artist and title on the client (see browsingArtistContext).
 export default function MainLayout({ children }: { children: ReactNode }) {
   return (
-    <Flex column className="lg:h-dvh">
+    <Flex column className="lg:h-[calc(100dvh-var(--preview-banner-height,0px))]">
       <NavBar />
       {children}
     </Flex>
