@@ -14,11 +14,9 @@ import ArtistsColumnWithControls, {
 type ArtistsSelectionTabProps = ArtistLinks & {
   /**
    * The artist picker's popover rather than the browse view's column: a fixed
-   * height, a focused filter, arrow keys between rows, and `onNavigate` when a
-   * row is followed (to close the popover).
+   * height, a focused filter and arrow keys between rows.
    */
   compact?: boolean;
-  onNavigate?: () => void;
 };
 
 /**
@@ -37,7 +35,6 @@ const ArtistsSelectionTab = ({
   currentSlug: artistSlug,
   hrefFor,
   compact = false,
-  onNavigate,
 }: ArtistsSelectionTabProps) => {
   const primaryArtists = usePrimaryArtists();
 
@@ -159,15 +156,7 @@ const ArtistsSelectionTab = ({
     else links[Math.min(next, links.length - 1)]?.focus();
   };
 
-  return (
-    // Bubbling: runs after the row's own click handler has started the navigation.
-    <div
-      onKeyDown={onKeyDown}
-      onClick={(e) => (e.target as Element).closest('a[href]') && onNavigate?.()}
-    >
-      {column}
-    </div>
-  );
+  return <div onKeyDown={onKeyDown}>{column}</div>;
 };
 
 function ArchiveCount() {

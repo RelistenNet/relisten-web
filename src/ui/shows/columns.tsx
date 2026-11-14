@@ -2,7 +2,8 @@ import { href } from '@timber-js/app/routes';
 import { Link } from '@timber-js/app/client';
 import type { ShowRow } from './rows';
 import type { TableFilter, TableSpec } from '@/ui/table/query';
-import { numberFormat } from '@/lib/utils';
+import { durationToHHMMSS, numberFormat } from '@/lib/utils';
+import Tooltip from '@/ui/base/Tooltip';
 import Tag from '@/ui/base/Tag';
 import { formatShowDate } from './stats';
 import type { Column } from '@/ui/table/types';
@@ -63,6 +64,32 @@ export const showColumns = {
         </span>
       </div>
     ),
+  },
+  /** Song and show pages: a track's length. */
+  length: {
+    id: 'length',
+    width: 'w-24',
+    label: 'Length',
+    sortable: true,
+    firstDir: 'desc',
+    align: 'right',
+    // "~": measured from files that also hold other songs (a segue), so it runs long.
+    // The tooltip names the whole file, so it's clear what the "~" length covers.
+    cell: (r) => {
+      if (!r.songDuration) return '—';
+      const length = durationToHHMMSS(Math.round(r.songDuration));
+      if (!r.songDurationApprox) return length;
+      return (
+        <Tooltip
+          content={r.trackTitle ?? 'Measured from a file that includes other songs'}
+          align="left"
+        >
+          <span tabIndex={0} className="cursor-help underline decoration-dotted underline-offset-4">
+            ~{length}
+          </span>
+        </Tooltip>
+      );
+    },
   },
   artist: {
     id: 'artist',

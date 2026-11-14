@@ -34,7 +34,13 @@ type Props<Row> = {
   minWidth?: string;
   /** "show" → "1–25 of 332 shows". */
   noun: string;
-  searchPlaceholder: string;
+  /** Required unless `controls` is off. */
+  searchPlaceholder?: string;
+  /**
+   * The search box, filters, and pagers (default on). Off for short, fixed
+   * lists that always fit one page (a show's tracks): just the table.
+   */
+  controls?: boolean;
   /**
    * Filters the page sets some other way (the year chart filters by year):
    * shown as a removable chip while active instead of a control.
@@ -61,6 +67,7 @@ export default function DataTable<Row>({
   noun,
   searchPlaceholder,
   chipFilters = [],
+  controls = true,
 }: Props<Row>) {
   const toolbarFilters: ToolbarFilter[] = spec.filters.map((f): ToolbarFilter => {
     if (chipFilters.includes(f.id)) {
@@ -115,14 +122,16 @@ export default function DataTable<Row>({
   return (
     // The bottom pager links back here, so a new page starts at the top of the table.
     <div id={RESULTS_ID} className="flex scroll-mt-4 flex-col gap-4">
-      <TableToolbar
-        params={params}
-        filters={toolbarFilters}
-        searchPlaceholder={searchPlaceholder}
-      />
+      {controls && (
+        <TableToolbar
+          params={params}
+          filters={toolbarFilters}
+          searchPlaceholder={searchPlaceholder ?? ''}
+        />
+      )}
 
       <TablePending className="flex flex-col gap-3">
-        {pager('Pagination, top')}
+        {controls && pager('Pagination, top')}
 
         <div className="overflow-x-auto rounded-xl border border-hairline bg-text-primary/[0.015] shadow-sm">
           <div className="inline-block min-w-full align-middle">
@@ -295,7 +304,7 @@ export default function DataTable<Row>({
           </div>
         </div>
 
-        {pager('Pagination, bottom', RESULTS_ID)}
+        {controls && pager('Pagination, bottom', RESULTS_ID)}
       </TablePending>
     </div>
   );

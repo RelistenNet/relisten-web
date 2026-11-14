@@ -90,7 +90,7 @@ const TrackList = ({
   trackActions?: (track: SongsTrack, source: SongsSource) => ReactNode;
 }) => {
   const [{ source: sourceId }] = sourceSearchParamsLoader.useQueryStates();
-  const { activeSourceObj } = useSourceData({ ...props, source: sourceId });
+  const { activeSourceObj, displayDate } = useSourceData({ ...props, source: sourceId });
   // Both are full v4 ids (`source_…`, `track_…`).
   const isActiveSourcePlaying = !!playing && activeSourceObj?.id === playing.sourceId;
   const adminTools = useAdminTools();
@@ -100,11 +100,23 @@ const TrackList = ({
   return (
     <Column
       heading={
-        activeSourceObj
-          ? `${removeLeadingZero(props.month)}/${removeLeadingZero(props.day)}/${props.year?.slice(
-              2
-            )}`
-          : 'Songs'
+        activeSourceObj ? (
+          <ShowHeading
+            label={`${removeLeadingZero(props.month)}/${removeLeadingZero(props.day)}/${props.year?.slice(2)}`}
+            // The show's own page, on this tape. Embeds stay on the show.
+            href={
+              artistSlug && displayDate && (props.trackRoute ?? 'site') === 'site'
+                ? href(
+                    '/artists/[artistSlug]/shows/[showDate]',
+                    { artistSlug, showDate: displayDate },
+                    sourceQuery(activeSourceObj.id)
+                  )
+                : undefined
+            }
+          />
+        ) : (
+          'Songs'
+        )
       }
     >
       {activeSourceObj && props.show && (
@@ -198,5 +210,15 @@ const TrackList = ({
     </Column>
   );
 };
+
+/** The column's date heading, linking to the show's page when there is one. */
+const ShowHeading = ({ label, href }: { label: string; href?: string }) =>
+  href ? (
+    <Link href={href} className="hover:underline">
+      {label}
+    </Link>
+  ) : (
+    label
+  );
 
 export default TrackList;

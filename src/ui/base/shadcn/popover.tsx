@@ -13,7 +13,7 @@ import cn from '@/lib/cn';
 
 // A click-to-open popover: a native `popover="auto"` panel in the top layer,
 // placed with CSS anchor positioning (css-anchor-kit, like <Tooltip>). The
-// browser handles light dismiss and Escape. No transforms position it, so
+// browser handles light dismiss and Escape; following a link inside closes it. No transforms position it, so
 // anchored tooltips inside it land in the right place in every browser.
 
 type Side = 'top' | 'bottom' | 'left' | 'right';
@@ -64,6 +64,19 @@ function PopoverTrigger(props: React.ComponentProps<'button'>) {
 }
 
 /**
+ * Following a link inside the panel closes it: the popover usually sits in a
+ * persistent layout, so it would otherwise stay open over the new page. A
+ * click that opens a new tab or window leaves it open.
+ */
+function closeOnLinkClick(e: React.MouseEvent<HTMLElement>) {
+  if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  if (!(e.target as Element).closest('a[href]')) return;
+  // The `toggle` event this fires is async, so the link's own click handler
+  // still runs (and starts the navigation) before the children unmount.
+  e.currentTarget.hidePopover?.();
+}
+
+/**
  * The panel. Its children mount when it opens and unmount when it closes, so
  * `autoFocus` and on-open effects inside it run each time it opens.
  */
@@ -71,12 +84,17 @@ function PopoverContent({
   className,
   arrowClassName,
   children,
+  onClickCapture,
   ...props
 }: React.ComponentProps<'div'> & { arrowClassName?: string }) {
   const open = React.useContext(OpenContext);
   return (
     <AnchoredPopoverContent
       data-slot="popover-content"
+      onClickCapture={(e: React.MouseEvent<HTMLDivElement>) => {
+        onClickCapture?.(e);
+        closeOnLinkClick(e);
+      }}
       className={cn(
         `
           z-50 flex w-72 flex-col gap-2.5 overflow-visible rounded-lg bg-surface-raised p-2.5

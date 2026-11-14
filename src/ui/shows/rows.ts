@@ -1,6 +1,7 @@
 import { href } from '@timber-js/app/routes';
 import type { Artist, PlayableTrack, ShowSummary, SongDetail } from '@/domain/types';
 import { splitShowDate } from '@/lib/utils';
+import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
 
 // Table rows for detail pages: view models built per request from cached
 // domain data (src/data) plus the artist directory. Cheap for a few thousand
@@ -31,7 +32,7 @@ export type ShowRow = {
   plays30d: number;
   /** When the show first appeared on Relisten (ISO). */
   addedAt: string;
-  /** The show page. */
+  /** The show detail page. */
   href: string;
   /** Song pages only: this performance's length, in seconds. */
   songDuration?: number | null;
@@ -51,7 +52,7 @@ export type ArtistsById = ReadonlyMap<string, Artist>;
 export function showRow(show: ShowSummary, artists: ArtistsById): ShowRow | null {
   const artist = artists.get(show.artistId);
   if (!artist) return null;
-  const { year, month, day } = splitShowDate(show.date);
+  const { year } = splitShowDate(show.date);
   return {
     id: show.id,
     showId: show.id,
@@ -68,7 +69,10 @@ export function showRow(show: ShowSummary, artists: ArtistsById): ShowRow | null
     rating: show.rating,
     plays30d: show.plays30d,
     addedAt: show.addedAt,
-    href: href('/[artistSlug]/[year]/[month]/[day]', { artistSlug: artist.slug, year, month, day }),
+    href: href('/artists/[artistSlug]/shows/[showDate]', {
+      artistSlug: artist.slug,
+      showDate: show.date,
+    }),
   };
 }
 
@@ -84,6 +88,12 @@ export const songRows = (song: SongDetail, artists: ArtistsById): ShowRow[] =>
       {
         ...row,
         id: p.repeat ? `${row.showId}:${p.track?.id}` : row.showId,
+        // The show page, on this performance's tape.
+        href: href(
+          '/artists/[artistSlug]/shows/[showDate]',
+          { artistSlug: row.artistSlug, showDate: row.date },
+          sourceQuery(p.track?.sourceId)
+        ),
         track: p.track,
         trackTitle: p.track?.title,
         songDuration: p.duration,

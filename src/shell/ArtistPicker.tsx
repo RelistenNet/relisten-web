@@ -2,7 +2,7 @@
 
 import { href } from '@timber-js/app/routes';
 import { usePathname } from '@timber-js/app/client';
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/base/shadcn/popover';
 import ArtistsSelectionTab from '@/features/browse/ArtistsSelectionTab';
@@ -60,7 +60,6 @@ const TRIGGER = `
 `;
 
 export default function ArtistPicker({ current }: { current: { slug: string; name: string } }) {
-  const [open, setOpen] = useState(false);
   const pathname = usePathname();
   // On a site page, choosing an artist switches the one browsed in place.
   const { onSitePage: chooseInPlace, setArtist } = useBrowsingArtist();
@@ -80,12 +79,11 @@ export default function ArtistPicker({ current }: { current: { slug: string; nam
     if (!artist) return;
     e.preventDefault();
     e.stopPropagation();
-    setOpen(false);
     setArtist({ slug: artist.slug, name: artist.name, features: artist.features });
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen} align="start" sideOffset={6}>
+    <Popover align="start" sideOffset={6}>
       <PopoverTrigger aria-label={`Artist: ${current.name}. Switch artist`} className={TRIGGER}>
         <span className="min-w-0 flex-1 truncate text-left">{current.name}</span>
         <ChevronDown className="size-3.5 shrink-0 text-text-secondary" />
@@ -99,12 +97,7 @@ export default function ArtistPicker({ current }: { current: { slug: string; nam
         "
       >
         <div onClickCapture={chooseInPlace ? choose : undefined}>
-          <ArtistsSelectionTab
-            compact
-            currentSlug={current.slug}
-            hrefFor={hrefFor}
-            onNavigate={() => setOpen(false)}
-          />
+          <ArtistsSelectionTab compact currentSlug={current.slug} hrefFor={hrefFor} />
         </div>
       </PopoverContent>
     </Popover>

@@ -115,6 +115,17 @@ export type Source = {
 
 export type SourceLink = { url?: string; label?: string };
 
+/** A listener's review of one tape, imported from its upstream archive. */
+export type SourceReview = {
+  id: string;
+  /** Out of 10; undefined when the review has no rating. */
+  rating?: number;
+  title?: string;
+  /** Plain text: markup is stripped. */
+  body: string;
+  author?: string;
+};
+
 export type SourceSet = {
   id: string;
   index: number;

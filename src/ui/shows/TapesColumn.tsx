@@ -37,7 +37,14 @@ const author = (sourceObj: TapesSource) => {
   return undefined;
 };
 
-const TapesColumn = (props: ShowDateProps & { show?: TapesShow }) => {
+const TapesColumn = ({
+  hrefFor,
+  ...props
+}: ShowDateProps & {
+  show?: TapesShow;
+  /** Where a source's row links; the browse view's show by default. */
+  hrefFor?: (source: TapesSource) => string;
+}) => {
   const [{ source: sourceId }] = sourceSearchParamsLoader.useQueryStates();
 
   const { artistSlug, year, month, day } = props;
@@ -51,9 +58,11 @@ const TapesColumn = (props: ShowDateProps & { show?: TapesShow }) => {
           <RowHeader>{author(sourceObj) || `Source ${idx + 1} of ${sourcesData.length}`}</RowHeader>
           <Row
             href={
-              show
-                ? href('/[artistSlug]/[year]/[month]/[day]', show, sourceQuery(sourceObj.id))
-                : undefined
+              hrefFor
+                ? hrefFor(sourceObj)
+                : show
+                  ? href('/[artistSlug]/[year]/[month]/[day]', show, sourceQuery(sourceObj.id))
+                  : undefined
             }
             active={activeSourceId === sourceObj?.id}
           >

@@ -1,8 +1,7 @@
 'use client';
 
-import React, { Fragment, type RefObject, Suspense, use, useMemo, useRef, useState } from 'react';
-import { browser } from 'react-dom';
-import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
+import React, { Fragment, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { ArrowUp, ArrowDown, LoaderCircle } from 'lucide-react';
 import Count from '@/ui/base/Count';
 import { artistPlays, groupArtists, type ArtistListItem } from '@/lib/artistRows';
@@ -11,7 +10,7 @@ import cn from '@/lib/cn';
 import ColumnWithToggleControls from '@/ui/base/ColumnWithToggleControls';
 import PopularityBadge from '@/ui/base/PopularityBadge';
 import type { HighlightRanges } from '@nozbe/microfuzz';
-import { loadArchive, searchArtists } from '@/lib/archiveArtists';
+import { searchArtists, useArchiveArtists } from '@/lib/archiveArtists';
 import Row from '@/ui/base/Row';
 import RowHeader from '@/ui/base/RowHeader';
 
@@ -68,9 +67,10 @@ type ArtistsColumnWithControlsProps = ArtistLinks & {
 };
 
 /**
- * The column frame: heading, sort toggles, sub-header and scroll container.
- * Only the list inside it waits on the archive, under its own Suspense
- * boundary, so none of the frame remounts when the archive arrives.
+ * The column frame: heading, sort toggles, sub-header and scroll container,
+ * around the list. The list renders the primary artists right away and takes
+ * the archive as data when it arrives, without remounting: the virtualizer
+ * keeps its measurements, so no row moves.
  */
 const ArtistsColumnWithControls = ({
   primaryArtists,
@@ -84,9 +84,7 @@ const ArtistsColumnWithControls = ({
 }: ArtistsColumnWithControlsProps) => {
   const { alphaAsc, sortBy, setSortBy } = useFilterState('root');
   const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
-  // Row measurements, kept here so the list that replaces the fallback when
-  // the archive arrives lays out exactly like the one it replaces.
-  const measurements = useRef<VirtualItem[]>([]);
+  const archiveArtists = useArchiveArtists();
 
   const dirIcon = alphaAsc ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
 
@@ -123,19 +121,6 @@ const ArtistsColumnWithControls = ({
     },
   ];
 
-  const listProps = {
-    primaryArtists,
-    tab,
-    searchQuery,
-    sortBy,
-    alphaAsc,
-    scrollEl,
-    measurements,
-    isPending,
-    currentSlug,
-    hrefFor,
-  };
-
   return (
     <ColumnWithToggleControls
       heading={compact ? undefined : 'Artists'}
@@ -144,9 +129,18 @@ const ArtistsColumnWithControls = ({
       subHeader={subHeader}
       scrollContainerRef={setScrollEl}
     >
-      <Suspense fallback={<ArtistList {...listProps} archiveArtists={undefined} />}>
-        <ArtistListWithArchive {...listProps} />
-      </Suspense>
+      <ArtistList
+        primaryArtists={primaryArtists}
+        archiveArtists={archiveArtists}
+        tab={tab}
+        searchQuery={searchQuery}
+        sortBy={sortBy}
+        alphaAsc={alphaAsc}
+        scrollEl={scrollEl}
+        isPending={isPending}
+        currentSlug={currentSlug}
+        hrefFor={hrefFor}
+      />
     </ColumnWithToggleControls>
   );
 };
@@ -163,15 +157,8 @@ type ArtistListProps = ArtistLinks & {
   sortBy: ReturnType<typeof useFilterState>['sortBy'];
   alphaAsc: boolean;
   scrollEl: HTMLDivElement | null;
-  /** The latest row measurements, shared by successive lists. */
-  measurements: RefObject<VirtualItem[]>;
   isPending?: boolean;
 };
-
-function ArtistListWithArchive(props: Omit<ArtistListProps, 'archiveArtists'>) {
-  use(browser());
-  return <ArtistList {...props} archiveArtists={use(loadArchive())} />;
-}
 
 /** The artists to show: the tab's list, or fuzzy matches across both lists while searching. */
 function selectArtists(
@@ -204,11 +191,14 @@ function ArtistList({
   sortBy,
   alphaAsc,
   scrollEl,
-  measurements,
   isPending,
   currentSlug,
   hrefFor,
 }: ArtistListProps) {
+  const listRef = useRef<HTMLDivElement>(null);
+  // Heights of the in-flow rows rendered before the scroll container attaches
+  // (the server render, and hydration), by item key.
+  const inFlowSizes = useRef(new Map<string, number>());
   const { artists, highlightRanges } = useMemo(
     () => selectArtists(primaryArtists, archiveArtists, tab, searchQuery),
     [primaryArtists, archiveArtists, tab, searchQuery]
@@ -254,18 +244,25 @@ function ArtistList({
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => scrollEl,
-    // This list remounts when the archive arrives, but the scroll container
-    // doesn't: start from the container's offset (a virtualizer scrolls to
-    // `initialOffset` when it attaches) and from the rows already measured.
-    initialOffset: () => scrollEl?.scrollTop ?? 0,
-    initialMeasurementsCache: measurements.current,
-    onChange: (instance) => {
-      measurements.current = instance.measurementsCache;
-    },
-    estimateSize: (i) => (items[i].kind === 'artist' ? ROW_ESTIMATE : HEADER_ESTIMATE),
+    // Rows the in-flow render measured start at their real height, so
+    // switching to absolutely positioned rows moves none of them.
+    estimateSize: (i) =>
+      inFlowSizes.current.get(items[i].key) ??
+      (items[i].kind === 'artist' ? ROW_ESTIMATE : HEADER_ESTIMATE),
     getItemKey: (i) => items[i].key,
     overscan: 8,
   });
+
+  // Record the in-flow rows' heights in the commit that renders them, ahead of
+  // the re-render that virtualizes them (the scroll container's ref, which
+  // triggers it, attaches after its descendants' layout effects run).
+  useLayoutEffect(() => {
+    if (scrollEl || !listRef.current) return;
+    const rows = listRef.current.children;
+    for (let i = 0; i < rows.length && i < items.length; i++) {
+      inFlowSizes.current.set(items[i].key, rows[i].getBoundingClientRect().height);
+    }
+  }, [scrollEl, items]);
 
   const renderItem = (item: Item) => {
     if (item.kind === 'status') {
@@ -316,6 +313,7 @@ function ArtistList({
 
   return (
     <div
+      ref={listRef}
       className={cn('relative transition-opacity', { 'opacity-40': isPending })}
       style={{ minHeight: virtualizer.getTotalSize() }}
     >

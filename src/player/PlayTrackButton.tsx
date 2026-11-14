@@ -3,10 +3,10 @@
 import { Pause, Play } from 'lucide-react';
 import type { PlayableTrack } from '@/domain/types';
 import type { ShowRow } from '@/ui/shows/rows';
-import { playSongRows, togglePlayPause } from '@/player/commands';
-import { useCurrentItem, useIsPlaying } from '@/player/hooks';
+import { playSongRows, togglePlayPause } from './commands';
+import { useCurrentItem, useIsPlaying } from './hooks';
 import { useSongQueue } from './SongQueue';
-import { songRowItem } from '@/player/queue/items';
+import { songRowItem } from './queue/items';
 
 type Props = {
   row: ShowRow;
@@ -16,8 +16,8 @@ type Props = {
 };
 
 /**
- * Plays a performance in place, then the rest of the performances on screen,
- * in table order. While it's the current track, the button pauses and resumes.
+ * Plays a table row's track in place (a song's performance, a show's track),
+ * then the rest of the rows on screen, in table order. While it's the current track, the button pauses and resumes.
  */
 export default function PlayTrackButton({ row, track, label }: Props) {
   const isCurrent = useCurrentItem()?.trackId === track.id;
@@ -31,7 +31,7 @@ export default function PlayTrackButton({ row, track, label }: Props) {
       togglePlayPause();
       return;
     }
-    // Outside the song table's provider, queue just this row.
+    // Outside a table's provider, queue just this row.
     const own = songRowItem({ ...row, track });
     const items = queue?.items.length ? queue.items : own ? [own] : [];
     playSongRows({

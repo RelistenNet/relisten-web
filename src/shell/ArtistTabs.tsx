@@ -26,6 +26,7 @@ const SHOW_TOURS_TAB = false;
 
 function tabsFor(artistSlug: string, features?: Partial<ArtistFeatures>): Tab[] {
   const browse = href('/[artistSlug]', { artistSlug });
+  const overview = href('/artists/[artistSlug]', { artistSlug });
   const under = (prefix: string) => (path: string) =>
     path === prefix || path.startsWith(`${prefix}/`);
 
@@ -38,8 +39,9 @@ function tabsFor(artistSlug: string, features?: Partial<ArtistFeatures>): Tab[] 
     },
     {
       label: 'Overview',
-      href: href('/artists/[artistSlug]', { artistSlug }),
-      isActive: (p) => p === href('/artists/[artistSlug]', { artistSlug }),
+      href: overview,
+      // Show pages count as part of the overview.
+      isActive: (p) => p === overview || p.startsWith(`${overview}/shows/`),
     },
   ];
   const page = (label: string, href: string): Tab => ({ label, href, isActive: under(href) });

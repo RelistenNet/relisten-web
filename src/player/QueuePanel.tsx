@@ -2,9 +2,12 @@
 
 import { CheckIcon, CircleAlertIcon, GripVerticalIcon, ListMusicIcon, XIcon } from 'lucide-react';
 import driver from '@switz/driver';
+import { Link } from '@timber-js/app/client';
+import { href } from '@timber-js/app/routes';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import cn from '@/lib/cn';
-import { durationToHHMMSS } from '@/lib/utils';
+import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
+import { durationToHHMMSS, splitShowDate } from '@/lib/utils';
 import RowHeader from '@/ui/base/RowHeader';
 import Tooltip from '@/ui/base/Tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/base/shadcn/popover';
@@ -14,7 +17,8 @@ import { queueView, type QueueItem } from './queue/model';
 
 // The queue: a popover off the player bar's queue button, as plain rows like a
 // show's track list. Played, now playing, Next up (drag or arrow keys to
-// reorder, remove), then the rest of the show or song list. Picking a row plays it.
+// reorder, remove), then the rest of the show or song list. Picking a row plays it;
+// its date links to the show's page.
 
 /** A 48×48 touch target on a smaller button (coarse pointers only). */
 const TouchTarget = () => (
@@ -33,7 +37,6 @@ const ICON_BUTTON = `
 /** The player bar's queue button, with the popover it opens. */
 export default function QueueButton() {
   const count = useQueue((q) => q.upNext.length);
-
   return (
     <Popover align="end" sideOffset={4}>
       <PopoverTrigger
@@ -263,7 +266,7 @@ function LoadState({ entryKey, hidden }: { entryKey: string; hidden: boolean }) 
     derived: {
       label: {
         isReady: 'Gapless Ready',
-        isLoading: 'Loading Gapless',
+        isLoading: 'Loading',
         isFailed: 'Failed To Load',
       },
       icon: {
@@ -282,7 +285,7 @@ function LoadState({ entryKey, hidden }: { entryKey: string; hidden: boolean }) 
         <Tooltip
           content={load.label}
           align="top"
-          className="flex size-4 items-center justify-center"
+          className="relative flex size-4 items-center justify-center"
         >
           {load.icon}
           <span className="sr-only">{load.label}</span>
@@ -292,10 +295,22 @@ function LoadState({ entryKey, hidden }: { entryKey: string; hidden: boolean }) 
   );
 }
 
+/** The show's page on the browse view, on the tape it plays from. */
+const showHref = (item: QueueItem) => {
+  const { year, month, day } = splitShowDate(item.date);
+  return href(
+    '/[artistSlug]/[year]/[month]/[day]',
+    { artistSlug: item.artistSlug, year, month, day },
+    sourceQuery(item.sourceId)
+  );
+};
+
 /**
- * A row: picking it plays it. Every row has the same columns, so they line
- * up across sections: number (or playing bars), title and show, load state,
- * duration, then room for the drag handle and remove button.
+ * A row: picking it plays it, and its date links to the show's page. Every
+ * row has the same columns, so they line up across sections: number (or
+ * playing bars), title and show, load state, duration, then room for the drag
+ * handle and remove button. A link can't sit inside a button, so
+ * the button is laid over the whole row and the link sits above it.
  */
 function QueueRow({
   ref,
@@ -312,7 +327,7 @@ function QueueRow({
   item: QueueItem;
   /** Its position in the show or song list (none for Next up). */
   number?: number;
-  /** Artist, date and venue. */
+  /** Artist, date and venue, for the play button's label. */
   show: string;
   current?: boolean;
   /** Already played: dimmed. */
@@ -336,34 +351,55 @@ function QueueRow({
       style={style}
     >
       {current && <div className="absolute inset-y-0 left-0 w-1 bg-accent" aria-hidden />}
+      {/* Covers the row; the link, load state and actions sit above it (`relative`, later in the DOM). */}
       <button
         type="button"
         onClick={() => jumpTo(item.key)}
         aria-current={current || undefined}
+        aria-label={`Play ${item.title}, ${show}`}
+        className="
+          absolute inset-0 cursor-pointer focus-visible:outline-2
+          focus-visible:-outline-offset-2 focus-visible:outline-accent
+        "
+      />
+      <div
         className={cn(
           `
             flex min-w-0 flex-1 items-center gap-2 self-stretch py-1.5 text-left leading-tight
-            tabular-nums focus-visible:outline-2 focus-visible:-outline-offset-2
-            focus-visible:outline-accent
+            tabular-nums
           `,
           played && 'text-text-muted'
         )}
       >
-        <span className="flex w-7 shrink-0 justify-end text-xs text-text-muted">
+        <span className="flex w-7 shrink-0 justify-end text-xs text-text-muted" aria-hidden>
           {current ? <PlayingBars /> : number}
         </span>
         <span className="min-w-0 flex-1">
           <span className={cn('block truncate', current && 'font-medium text-accent')}>
             {item.title}
           </span>
-          <span className="block truncate text-xxs text-text-muted">{show}</span>
+          <span className="block truncate text-xxs text-text-muted">
+            {item.artistName && `${item.artistName} · `}
+            <Link
+              href={showHref(item)}
+              className="
+                relative text-inherit no-underline hover:underline focus-visible:outline-2
+                focus-visible:outline-offset-2 focus-visible:outline-accent
+              "
+            >
+              {formatDate(item.date)}
+            </Link>
+            {item.venue && ` · ${item.venue}`}
+          </span>
         </span>
         <LoadState entryKey={item.key} hidden={played} />
         <span className="w-12 shrink-0 text-right text-xs text-text-muted">
           {item.duration ? durationToHHMMSS(item.duration) : null}
         </span>
-      </button>
-      <span className="flex w-[4.25rem] shrink-0 items-center justify-end pr-1">{actions}</span>
+      </div>
+      <span className="relative flex w-[4.25rem] shrink-0 items-center justify-end pr-1">
+        {actions}
+      </span>
     </li>
   );
 }

@@ -1,10 +1,9 @@
 import Row from '@/ui/base/Row';
 import { siteSections } from './siteSections';
 
-// TODO: replace this with shadcn/radix
-
+// The site sections, for the nav bar's menu popover below xl.
 const Menu = () => (
-  <div className="mt-2 mr-2 w-[120px] rounded-sm border border-hairline bg-surface shadow-lg">
+  <>
     <Row href="/">Home</Row>
     {siteSections.map((section) => (
       <Row key={section.href} href={section.href}>
@@ -22,7 +21,7 @@ const Menu = () => (
     >
       GitHub
     </a>
-  </div>
+  </>
 );
 
 export default Menu;
