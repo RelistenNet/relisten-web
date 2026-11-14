@@ -1,10 +1,10 @@
-import PlayerManager from '@/components/PlayerManager';
-import SongsColumn from '@/components/SongsColumn';
-import { proxyStreamUrl } from '@/lib/proxyStreamUrl';
-import RelistenAPI from '@/lib/RelistenAPI';
+import { href } from '@timber-js/app/routes';
+import { loadArtists, loadShow } from '@/features/browse/load';
+import PlayerManager from '@/player/PlayerManager';
+import TrackList from '@/player/PlayingTrackList';
+import { proxyStreamUrl } from '@/player/proxyStreamUrl';
 import { createShowDate } from '@/lib/utils';
 import { deny, getSegmentParams } from '@timber-js/app/server';
-import { playImmediatelySearchParamsLoader } from '@/lib/searchParams/playImmediatelySearchParam';
 import { SEGMENT_PATH } from './$segment';
 
 export default async function EmbedSongPage() {
@@ -15,8 +15,8 @@ export default async function EmbedSongPage() {
   if (!year || !month || !day) return deny(404);
 
   const [show, artists] = await Promise.all([
-    RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day)),
-    RelistenAPI.fetchAllArtists(),
+    loadShow(artistSlug, createShowDate(year, month, day)),
+    loadArtists(),
   ]);
 
   if (!show) {
@@ -25,28 +25,24 @@ export default async function EmbedSongPage() {
 
   const artistName = artists?.find((a) => a.slug === artistSlug)?.name;
 
-  // Parse search params on server
-  const parsedSearchParams = await playImmediatelySearchParamsLoader.get();
-  const playImmediately = parsedSearchParams.playImmediately ?? true;
-
   return (
     <div className="flex h-full">
       <div className="w-full shrink-0 overflow-y-auto border-r px-2">
-        <SongsColumn
+        <TrackList
           artistSlug={artistSlug}
           year={year}
           month={month}
           day={day}
           show={show}
-          routePrefix="/embed"
+          trackRoute="embed"
         />
       </div>
       <PlayerManager
+        embed
         {...resolvedParams}
         show={show}
         artistName={artistName}
-        routePrefix="/embed"
-        playImmediately={playImmediately}
+        trackRoute="embed"
       />
     </div>
   );
@@ -54,7 +50,7 @@ export default async function EmbedSongPage() {
 
 export async function metadata() {
   const params = getSegmentParams(SEGMENT_PATH);
-  const artists = await RelistenAPI.fetchAllArtists();
+  const artists = await loadArtists();
   const artistSlug = params?.artistSlug as string | undefined;
   const year = params?.year as string | undefined;
   const month = params?.month as string | undefined;
@@ -63,9 +59,9 @@ export async function metadata() {
 
   const name = artists?.find((a) => a.slug === artistSlug)?.name;
 
-  if (!name || !year || !month || !day) return {};
+  if (!artistSlug || !name || !year || !month || !day || !songSlug) return {};
 
-  const show = await RelistenAPI.fetchShow(artistSlug, year, createShowDate(year, month, day));
+  const show = await loadShow(artistSlug, createShowDate(year, month, day));
 
   const songs = show?.sources
     ?.map((source) => source?.sets?.map((set) => set?.tracks).flat())
@@ -77,12 +73,18 @@ export async function metadata() {
     title: [song?.title, createShowDate(year, month, day), name].filter((x) => x).join(' | '),
     description: [show?.venue?.name, show?.venue?.location].filter((x) => x).join(' '),
     alternates: {
-      canonical: `/${artistSlug}/${year}/${month}/${day}/${songSlug}`,
+      canonical: href('/[artistSlug]/[year]/[month]/[day]/[songSlug]', {
+        artistSlug,
+        year,
+        month,
+        day,
+        songSlug,
+      }),
     },
     openGraph: {
       audio: [
         {
-          url: proxyStreamUrl(song?.mp3_url),
+          url: proxyStreamUrl(song?.mp3Url),
         },
       ],
     },

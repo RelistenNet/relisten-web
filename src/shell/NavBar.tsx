@@ -1,0 +1,112 @@
+import { Link } from '@timber-js/app/client';
+import Menu from './Menu';
+import Player from '@/player/PlayerBar';
+import { Toaster } from 'sonner';
+import { Popover, PopoverContent, PopoverTrigger } from '@/ui/base/shadcn/popover';
+import MainNavHeader from './MainNavHeader';
+import AndroidUpgradeNotification from './AndroidUpgradeNotification';
+import BlogNavLink from '@/features/blog/BlogNavLink';
+// import GlobalSearch from './GlobalSearch';
+import { MenuIcon } from 'lucide-react';
+import ArtistTabs from './ArtistTabs';
+import { siteSections } from './siteSections';
+import { hasRecentPost } from '@/lib/blog/getPosts';
+
+// The same on every page: what depends on the page (the artist, the site
+// page's title, active tabs) the client components read from the URL and the
+// browsing artist (browsingArtistContext). So a 'document' layout renders it
+// once, re-rendered only when the user agent changes.
+export default function NavBar() {
+  const blogHasNew = hasRecentPost();
+
+  return (
+    <>
+      {/* The player's toasts (playback failures, play prompts), wherever the player is. */}
+      <Toaster id="audio-error" position="top-center" offset="54px" richColors closeButton />
+      <div
+        className="
+          navigation relative grid h-[50px] max-h-[50px] min-h-[50px] grid-cols-[auto_1fr_auto]
+          border-b border-b-hairline bg-surface-raised px-2 text-text-primary
+          max-lg:sticky max-lg:top-0 max-lg:z-20
+          lg:grid-cols-[1fr_auto_1fr] lg:px-4
+        "
+      >
+        <MainNavHeader />
+        <div
+          className="
+            player overflow-hidden text-center
+            lg:max-w-[44vw] lg:min-w-[44vw] lg:justify-self-center
+            xl:max-w-[38vw] xl:min-w-[38vw]
+          "
+        >
+          <Player />
+        </div>
+
+        <div className="flex items-center justify-self-end">
+          {/* <GlobalSearch /> */}
+
+          <Popover align="end" sideOffset={0}>
+            <PopoverTrigger
+              aria-label="Menu"
+              className="
+                ml-2 flex h-full w-min cursor-pointer items-center
+                active:relative active:top-px active:text-foreground
+                xl:hidden
+              "
+            >
+              <MenuIcon />
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-[120px] gap-0 overflow-hidden rounded-sm bg-surface p-0"
+              arrowClassName="hidden"
+            >
+              <Menu />
+            </PopoverContent>
+          </Popover>
+
+          <div
+            className="
+              nav hidden h-full cursor-pointer items-center gap-0.5 text-center
+              text-sm font-medium text-text-secondary
+              xl:flex
+            "
+          >
+            {siteSections.map((section) =>
+              section.label === 'Blog' ? (
+                <BlogNavLink key={section.href} hasNewPost={blogHasNew} />
+              ) : (
+                <Link
+                  key={section.href}
+                  className="nav-btn whitespace-nowrap"
+                  href={section.href}
+                  prefetch={false}
+                >
+                  {section.label}
+                </Link>
+              )
+            )}
+            <a
+              className="nav-btn"
+              href="https://github.com/RelistenNet/relisten-web"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+      <ArtistTabs />
+      <AndroidUpgradeNotification />
+    </>
+  );
+}

@@ -1,0 +1,597 @@
+{
+  "shows": [
+    {
+      "show": {
+        "id": "show_2fpfvpfqwqxavn6qv4fk471hsg",
+        "artist_id": "artist_6aaf982021nrst0m68ew1djerc",
+        "year_id": "year_5btbkcve9j4aejexf0hmym1x4w",
+        "tour_id": "tour_4pa578jwqfhe0gg7wsbn0z5q3n",
+        "date": "1991-02-01T00:00:00Z",
+        "display_date": "1991-02-01",
+        "avg_rating": 6.946,
+        "avg_duration": 6344.0,
+        "most_recent_source_updated_at": "2026-10-02T17:55:21Z",
+        "has_soundboard_source": true,
+        "has_streamable_flac_source": false,
+        "source_count": 1,
+        "popularity": {
+          "momentum_score": 0.1272,
+          "trend_ratio": 0.0,
+          "windows": {
+            "48h": {
+              "plays": 0,
+              "hours": 0.0,
+              "hot_score": 0.0
+            },
+            "7d": {
+              "plays": 25,
+              "hours": 2.8236,
+              "hot_score": 5.0
+            },
+            "30d": {
+              "plays": 72,
+              "hours": 7.7997,
+              "hot_score": 8.4853
+            }
+          }
+        },
+        "created_at": "2026-08-19T14:26:52.679597Z",
+        "updated_at": "2026-11-05T07:06:28.668437Z",
+        "imported_venue": {
+          "show_count": 1,
+          "id": "imported_venue_1d9kmkf69wvp10gk6hknz9jgdx",
+          "artist_id": "artist_6aaf982021nrst0m68ew1djerc",
+          "latitude": 41.823098,
+          "longitude": -71.41099,
+          "name": "Alumnae Hall, Brown University",
+          "location": "Providence, RI",
+          "upstream_identifier": "926",
+          "slug": "alumnae-hall-brown-university",
+          "past_names": null,
+          "created_at": "2026-08-19T14:25:19.991445Z",
+          "updated_at": "2026-01-02T05:51:53Z"
+        },
+        "artist_venue": {
+          "id": "artist_venue_pk4zzt71",
+          "artist_id": "artist_6aaf982021nrst0m68ew1djerc",
+          "artist_show_count": 1,
+          "created_at": "2026-11-05T21:08:30.207902Z",
+          "updated_at": "2026-11-05T21:08:30.207902Z",
+          "venue": {
+            "id": "venue_e596bspm",
+            "slug": "alumnae-hall-brown-university-providence",
+            "global_show_count": 1,
+            "name": "Alumnae Hall, Brown University",
+            "kind": "site",
+            "parent_id": null,
+            "city": "Providence",
+            "region": "RI",
+            "country": "US",
+            "latitude": null,
+            "longitude": null,
+            "coordinate_precision": null,
+            "names": [
+              {
+                "name": "Alumnae Hall, Brown University",
+                "kind": "spelling"
+              }
+            ]
+          }
+        },
+        "tour": {
+          "id": "tour_4pa578jwqfhe0gg7wsbn0z5q3n",
+          "artist_id": "artist_6aaf982021nrst0m68ew1djerc",
+          "show_count": 57,
+          "start_date": "1991-02-01T00:00:00Z",
+          "end_date": "1991-05-19T00:00:00Z",
+          "name": "Winter/Spring Tour 1991",
+          "slug": "winter-spring-tour-1991",
+          "upstream_identifier": "11",
+          "created_at": "2026-08-19T14:25:18.842913Z",
+          "updated_at": "2024-10-26T01:03:18Z"
+        },
+        "era": null
+      },
+      "timings": {
+        "single_song": {
+          "source_count": 1,
+          "min": 198,
+          "max": 198,
+          "avg": 198.0,
+          "median": 198.0
+        },
+        "multi_song": null
+      },
+      "tracks": [
+        {
+          "id": "track_5782nxm37y2yx8s0rea3csydcd",
+          "source_id": "source_42ys520m7w22f9fmcvs0s9r0kp",
+          "show_id": "show_2fpfvpfqwqxavn6qv4fk471hsg",
+          "title": "Tweezer Reprise",
+          "slug": "tweezer-reprise-8491",
+          "duration": 198,
+          "mp3_url": "https://phish.in/blob/hokzg6bbrlmgacirsesaw4rirgr4.mp3"
+        }
+      ]
+    },
+    {
+      "show": {
+        "id": "show_5xdm5m6mppr2316zesafencf65",
+        "artist_id": "artist_6aaf982021nrst0m68ew1djerc",
+        "year_id": "year_6z3p9kmdhc8m00b41z1qdp0k2r",
+        "tour_id": "tour_01n4ptdy2ccxaedat8vh5qr3c3",
+        "date": "1999-12-08T00:00:00Z",
+        "display_date": "1999-12-08",
+        "avg_rating": 8.216,
+        "avg_duration": 9687.0,
+        "most_recent_source_updated_at": "2026-10-03T17:10:54Z",
+        "has_soundboard_source": false,
+        "has_streamable_flac_source": false,
+        "source_count": 1,
+        "popularity": {
+          "momentum_score": 0.4717,
+          "trend_ratio": 0.3,
+          "windows": {
+            "48h": {
+              "plays": 3,
+              "hours": 0.8717,
+              "hot_score": 1.7321
+            },
+            "7d": {
+              "plays": 4,
+              "hours": 0.7508,
+              "hot_score": 2.0
+            },
+            "30d": {
+              "plays": 79,
+              "hours": 15.9264,
+              "hot_score": 8.8882
+            }
+          }
+        },
+        "created_at": "2026-08-19T14:26:52.679597Z",
+        "updated_at": "2026-11-02T07:06:16.49666Z",
+        "imported_venue": {
+          "show_count": 7,
+          "id": "imported_venue_0gv2mx5we82dznxaqxj1et691n",
+          "artist_id": "artist_6aaf982021nrst0m68ew1djerc",
+          "latitude": 43.655422,
+          "longitude": -70.259592,
+          "name": "Cumberland County Civic Center",
+          "location": "Portland, ME",
+          "upstream_identifier": "194",
+          "slug": "cumberland-county-civic-center",
+          "past_names": null,
+          "created_at": "2026-08-19T14:25:20.114075Z",
+          "updated_at": "2026-01-02T02:22:57Z"
+        },
+        "artist_venue": {
+          "id": "artist_venue_kahs85zc",
+          "artist_id": "artist_6aaf982021nrst0m68ew1djerc",
+          "artist_show_count": 7,
+          "created_at": "2026-11-05T21:08:30.194891Z",
+          "updated_at": "2026-11-05T21:08:30.194891Z",
+          "venue": {
+            "id": "venue_285e9185",
+            "slug": "cumberland-county-civic-center",
+            "global_show_count": 19,
+            "name": "Cross Insurance Arena",
+            "kind": "site",
+            "parent_id": null,
+            "city": "Portland",
+            "region": "ME",
+            "country": "US",
+            "latitude": null,
+            "longitude": null,
+            "coordinate_precision": null,
+            "names": [
+              {
+                "name": "Cross Insurance Arena",
+                "kind": "official"
+              },
+              {
+                "name": "Cumberland County Civic Center",
+                "kind": "official"
+              },
+              {
+                "name": "Civic Center",
+                "kind": "short"
+              },
+              {
+                "name": "Cross Insurance Arena, Portland, ME",
+                "kind": "spelling"
+              },
+              {
+                "name": "Cross Insurance Center",
+                "kind": "spelling"
+              }
+            ]
+          }
+        },
+        "tour": {
+          "id": "tour_01n4ptdy2ccxaedat8vh5qr3c3",
+          "artist_id": "artist_6aaf982021nrst0m68ew1djerc",
+          "show_count": 14,
+          "start_date": "1999-12-02T00:00:00Z",
+          "end_date": "1999-12-18T00:00:00Z",
+          "name": "Winter Tour 1999",
+          "slug": "winter-tour-1999",
+          "upstream_identifier": "44",
+          "created_at": "2026-08-19T14:25:18.812263Z",
+          "updated_at": "2024-10-26T01:03:18Z"
+        },
+        "era": null
+      },
+      "timings": {
+        "single_song": {
+          "source_count": 1,
+          "min": 270,
+          "max": 270,
+          "avg": 270.0,
+          "median": 270.0
+        },
+        "multi_song": {
+          "source_count": 1,
+          "min": 1285,
+          "max": 1285,
+          "avg": 1285.0,
+          "median": 1285.0
+        }
+      },
+      "tracks": [
+        {
+          "id": "track_5a8cy69nf534bbj3waqk0kv6vq",
+          "source_id": "source_6z82mbcgrdfz85e6aak47ehvfc",
+          "show_id": "show_5xdm5m6mppr2316zesafencf65",
+          "title": "YEM > Tweezer Reprise",
+          "slug": "yem-tweezer-reprise-20067",
+          "duration": 1285,
+          "mp3_url": "https://phish.in/blob/4gtwtg2pk3z7u24t33zdovg2peu0.mp3"
+        },
+        {
+          "id": "track_56agy950j8xf7wam9zqxjeatr7",
+          "source_id": "source_6z82mbcgrdfz85e6aak47ehvfc",
+          "show_id": "show_5xdm5m6mppr2316zesafencf65",
+          "title": "Tweezer Reprise",
+          "slug": "tweezer-reprise-20069",
+          "duration": 270,
+          "mp3_url": "https://phish.in/blob/t0do1jf0gtc0xr0jlnyh9qaaey55.mp3"
+        }
+      ]
+    },
+    {
+      "show": {
+        "id": "show_5nfh6qth58sewn9yzbhwd6sy36",
+        "artist_id": "artist_6aaf982021nrst0m68ew1djerc",
+        "year_id": "year_7ays357nxzr795a44zjmv2x8c1",
+        "tour_id": "tour_72jzbzgt6vn2kvnpf8gjmdze3q",
+        "date": "2016-12-28T00:00:00Z",
+        "display_date": "2016-12-28",
+        "avg_rating": 7.674,
+        "avg_duration": 9839.0,
+        "most_recent_source_updated_at": "2026-09-23T16:27:50Z",
+        "has_soundboard_source": false,
+        "has_streamable_flac_source": false,
+        "source_count": 1,
+        "popularity": {
+          "momentum_score": 0.0134,
+          "trend_ratio": 0.0,
+          "windows": {
+            "48h": {
+              "plays": 0,
+              "hours": 0.0,
+              "hot_score": 0.0
+            },
+            "7d": {
+              "plays": 0,
+              "hours": 0.0,
+              "hot_score": 0.0
+            },
+            "30d": {
+              "plays": 4,
+              "hours": 0.7889,
+              "hot_score": 2.0
+            }
+          }
+        },
+        "created_at": "2026-08-19T14:26:52.679597Z",
+        "updated_at": "2026-10-18T07:06:17.908725Z",
+        "imported_venue": {
+          "show_count": 96,
+          "id": "imported_venue_00dv1d778hjm7cs8fpe4cbg4g0",
+          "artist_id": "artist_6aaf982021nrst0m68ew1djerc",
+          "latitude": 40.750505,
+          "longitude": -73.993439,
+          "name": "Madison Square Garden",
+          "location": "New York, NY",
+          "upstream_identifier": "408",
+          "slug": "madison-square-garden",
+          "past_names": null,
+          "created_at": "2026-08-19T14:25:20.026716Z",
+          "updated_at": "2026-01-02T02:21:53Z"
+        },
+        "artist_venue": {
+          "id": "artist_venue_hrhh75h6",
+          "artist_id": "artist_6aaf982021nrst0m68ew1djerc",
+          "artist_show_count": 96,
+          "created_at": "2026-11-05T21:08:30.193805Z",
+          "updated_at": "2026-11-05T21:08:30.193805Z",
+          "venue": {
+            "id": "venue_1bnw1b5x",
+            "slug": "madison-square-garden",
+            "global_show_count": 161,
+            "name": "Madison Square Garden",
+            "kind": "site",
+            "parent_id": null,
+            "city": "New York",
+            "region": "NY",
+            "country": "US",
+            "latitude": null,
+            "longitude": null,
+            "coordinate_precision": null,
+            "names": [
+              {
+                "name": "Madison Square Garden",
+                "kind": "official"
+              },
+              {
+                "name": "MSG",
+                "kind": "short"
+              },
+              {
+                "name": "the Garden",
+                "kind": "short"
+              },
+              {
+                "name": "Madison Sqaure Garden, NYC, NY",
+                "kind": "spelling"
+              },
+              {
+                "name": "Madison Square Garden, NYC, NY",
+                "kind": "spelling"
+              },
+              {
+                "name": "Madison Square Gardens",
+                "kind": "spelling"
+              }
+            ]
+          }
+        },
+        "tour": {
+          "id": "tour_72jzbzgt6vn2kvnpf8gjmdze3q",
+          "artist_id": "artist_6aaf982021nrst0m68ew1djerc",
+          "show_count": 4,
+          "start_date": "2016-12-28T00:00:00Z",
+          "end_date": "2016-12-31T00:00:00Z",
+          "name": "New Years Run 2016",
+          "slug": "new-years-run-2016",
+          "upstream_identifier": "99",
+          "created_at": "2026-08-19T14:25:18.830703Z",
+          "updated_at": "2024-10-26T00:42:21Z"
+        },
+        "era": null
+      },
+      "timings": {
+        "single_song": null,
+        "multi_song": {
+          "source_count": 1,
+          "min": 587,
+          "max": 587,
+          "avg": 587.0,
+          "median": 587.0
+        }
+      },
+      "tracks": [
+        {
+          "id": "track_71wcpe5t9432aaaqsar054k84p",
+          "source_id": "source_1wtafzwcyrx9z7wdeymdax1xws",
+          "show_id": "show_5nfh6qth58sewn9yzbhwd6sy36",
+          "title": "Martian Monster > Tweezer Reprise Jam > Martian Monster",
+          "slug": "martian-monster-tweezer-reprise-jam-martian-monster-31687",
+          "duration": 587,
+          "mp3_url": "https://phish.in/blob/vf1ue2catqomwe98vsqnc7dyc07p.mp3"
+        }
+      ]
+    },
+    {
+      "show": {
+        "id": "show_3gx78d1a8jfge00xymq0y20073",
+        "artist_id": "artist_6aaf982021nrst0m68ew1djerc",
+        "year_id": "year_27hxrgfxb34e9jbqv66bc2yfnt",
+        "tour_id": "tour_7brev19fbtear81v2h0j29dfva",
+        "date": "2025-07-27T00:00:00Z",
+        "display_date": "2025-07-27",
+        "avg_rating": 9.496,
+        "avg_duration": 11693.0,
+        "most_recent_source_updated_at": "2026-09-22T18:12:45Z",
+        "has_soundboard_source": false,
+        "has_streamable_flac_source": false,
+        "source_count": 1,
+        "popularity": {
+          "momentum_score": 0.7214,
+          "trend_ratio": 0.3329,
+          "windows": {
+            "48h": {
+              "plays": 34,
+              "hours": 5.79,
+              "hot_score": 5.831
+            },
+            "7d": {
+              "plays": 89,
+              "hours": 14.5419,
+              "hot_score": 9.434
+            },
+            "30d": {
+              "plays": 1167,
+              "hours": 191.2831,
+              "hot_score": 34.1614
+            }
+          }
+        },
+        "created_at": "2026-08-19T14:26:52.679597Z",
+        "updated_at": "2026-10-28T07:07:15.571405Z",
+        "imported_venue": {
+          "show_count": 27,
+          "id": "imported_venue_43kpraa6zjcmkhk6kzk2rg9afd",
+          "artist_id": "artist_6aaf982021nrst0m68ew1djerc",
+          "latitude": 43.055813,
+          "longitude": -73.805773,
+          "name": "Saratoga Performing Arts Center",
+          "location": "Saratoga Springs, NY",
+          "upstream_identifier": "597",
+          "slug": "saratoga-performing-arts-center",
+          "past_names": null,
+          "created_at": "2026-08-19T14:25:20.003465Z",
+          "updated_at": "2026-01-02T02:23:09Z"
+        },
+        "artist_venue": {
+          "id": "artist_venue_j2gv1xhh",
+          "artist_id": "artist_6aaf982021nrst0m68ew1djerc",
+          "artist_show_count": 27,
+          "created_at": "2026-11-05T21:08:30.205139Z",
+          "updated_at": "2026-11-05T21:08:30.205139Z",
+          "venue": {
+            "id": "venue_bqd92t1v",
+            "slug": "saratoga-performing-arts-center",
+            "global_show_count": 48,
+            "name": "Saratoga Performing Arts Center",
+            "kind": "site",
+            "parent_id": null,
+            "city": "Saratoga Springs",
+            "region": "NY",
+            "country": "US",
+            "latitude": null,
+            "longitude": null,
+            "coordinate_precision": null,
+            "names": [
+              {
+                "name": "Saratoga Performing Arts Center",
+                "kind": "official"
+              },
+              {
+                "name": "SPAC",
+                "kind": "short"
+              },
+              {
+                "name": "Horde Fest Saratoga Performing Arts Center",
+                "kind": "spelling"
+              },
+              {
+                "name": "SPAC Saratoga Performing Arts Center",
+                "kind": "spelling"
+              },
+              {
+                "name": "SPAC, NY",
+                "kind": "spelling"
+              },
+              {
+                "name": "Saratoga Performing Arts Center (SPAC)",
+                "kind": "spelling"
+              },
+              {
+                "name": "Saratoga Perfroming Arts Center a.k.a. SPAC",
+                "kind": "spelling"
+              },
+              {
+                "name": "Saratoga Preforming Arts Center",
+                "kind": "spelling"
+              },
+              {
+                "name": "Saratoga Springs Performing Arts Center",
+                "kind": "spelling"
+              }
+            ]
+          }
+        },
+        "tour": {
+          "id": "tour_7brev19fbtear81v2h0j29dfva",
+          "artist_id": "artist_6aaf982021nrst0m68ew1djerc",
+          "show_count": 30,
+          "start_date": "2025-06-20T00:00:00Z",
+          "end_date": "2025-09-21T00:00:00Z",
+          "name": "Summer Tour 2025",
+          "slug": "summer-tour-2025",
+          "upstream_identifier": "128",
+          "created_at": "2026-08-19T14:25:18.872023Z",
+          "updated_at": "2025-06-21T01:33:41Z"
+        },
+        "era": null
+      },
+      "timings": {
+        "single_song": {
+          "source_count": 1,
+          "min": 1383,
+          "max": 1383,
+          "avg": 1383.0,
+          "median": 1383.0
+        },
+        "multi_song": null
+      },
+      "tracks": [
+        {
+          "id": "track_7hk09efvjcahzcs18t73et2c79",
+          "source_id": "source_08xhvsk2fd7wb4q5pf3a467dzj",
+          "show_id": "show_3gx78d1a8jfge00xymq0y20073",
+          "title": "Tweezer Reprise",
+          "slug": "tweezer-reprise-40498",
+          "duration": 783,
+          "mp3_url": "https://phish.in/blob/9zmtctoe5vjvthmu9n04cr9fj36c.mp3"
+        },
+        {
+          "id": "track_1zzv8zzq1fwtbtehwr9mgnag6s",
+          "source_id": "source_08xhvsk2fd7wb4q5pf3a467dzj",
+          "show_id": "show_3gx78d1a8jfge00xymq0y20073",
+          "title": "Tweezer Reprise",
+          "slug": "tweezer-reprise-2-40500",
+          "duration": 183,
+          "mp3_url": "https://phish.in/blob/7bca0xrk3isxgwtfjryw79j3lmpi.mp3"
+        },
+        {
+          "id": "track_7s64xept0cmhkt4avgyeye59pd",
+          "source_id": "source_08xhvsk2fd7wb4q5pf3a467dzj",
+          "show_id": "show_3gx78d1a8jfge00xymq0y20073",
+          "title": "Tweezer Reprise",
+          "slug": "tweezer-reprise-3-40503",
+          "duration": 73,
+          "mp3_url": "https://phish.in/blob/3oo3dqhyhrfx3rsddjwbkhsab53g.mp3"
+        },
+        {
+          "id": "track_2mp77qajpkxpsdnfx4jaaz2bcr",
+          "source_id": "source_08xhvsk2fd7wb4q5pf3a467dzj",
+          "show_id": "show_3gx78d1a8jfge00xymq0y20073",
+          "title": "Tweezer Reprise",
+          "slug": "tweezer-reprise-4-40507",
+          "duration": 180,
+          "mp3_url": "https://phish.in/blob/9bg0ynu4qhi255scmz0s3hmsbi4i.mp3"
+        },
+        {
+          "id": "track_2gkmqpahea4w7wv8g44d4jvpxs",
+          "source_id": "source_08xhvsk2fd7wb4q5pf3a467dzj",
+          "show_id": "show_3gx78d1a8jfge00xymq0y20073",
+          "title": "Tweezer Reprise",
+          "slug": "tweezer-reprise-5-40511",
+          "duration": 1383,
+          "mp3_url": "https://phish.in/blob/rfrwel5j78jopvwf69o4yigwzwoh.mp3"
+        },
+        {
+          "id": "track_1tehg7kjxcq5yctxeycck9qcqf",
+          "source_id": "source_08xhvsk2fd7wb4q5pf3a467dzj",
+          "show_id": "show_3gx78d1a8jfge00xymq0y20073",
+          "title": "Tweezer Reprise",
+          "slug": "tweezer-reprise-6-40514",
+          "duration": 180,
+          "mp3_url": "https://phish.in/blob/y5ol1e8or336obmg0ybnrh3ns03a.mp3"
+        }
+      ]
+    }
+  ],
+  "id": "song_699vmgsp",
+  "artist_id": "artist_6aaf982021nrst0m68ew1djerc",
+  "name": "Tweezer Reprise",
+  "kind": "song",
+  "slug": "tweezer-reprise",
+  "original_artist": null,
+  "aliases": [],
+  "matched_track_count": 339,
+  "matched_show_count": 328
+}

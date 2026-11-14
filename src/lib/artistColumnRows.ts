@@ -1,8 +1,8 @@
 import 'server-only';
 
-import RelistenAPI from '@/lib/RelistenAPI';
+import { loadArtists } from '@/features/browse/load';
 import { isPrimaryArtist, toArtistRow, type ArtistRow } from '@/lib/artistRows';
-import type { Artist } from '@/types';
+import type { Artist } from '@/domain/types';
 
 type ArtistColumnRows = {
   primary: ArtistRow[];
@@ -16,7 +16,7 @@ type ArtistColumnRows = {
 const rowsByList = new WeakMap<Artist[], ArtistColumnRows>();
 
 export async function getArtistColumnRows(): Promise<ArtistColumnRows> {
-  const artists = await RelistenAPI.fetchAllArtists();
+  const artists = await loadArtists();
   let rows = rowsByList.get(artists);
   if (!rows) {
     const primary: ArtistRow[] = [];

@@ -1,4 +1,4 @@
-import { Source } from '@/types';
+import type { Source } from '@/domain/types';
 
 const getEtreeId = (s = '') =>
   Number(
@@ -10,26 +10,39 @@ const getEtreeId = (s = '') =>
 
 // tapes: TODO: GD sort (charlie miller, sbd + etree id, weighted average), sbd + etree id, weighted avg, asc, desc
 // for now, hardcode sort: sbd, charlie miller, etree id, weighted average
-export const sortSources = (sources: Source[]) => {
+
+/** What the sort reads: a column's slimmed tapes keep these, so every column orders tapes alike. */
+export type SortableSource = Pick<
+  Source,
+  | 'id'
+  | 'isSoundboard'
+  | 'taper'
+  | 'transferrer'
+  | 'source'
+  | 'upstreamIdentifier'
+  | 'avgRatingWeighted'
+>;
+
+export const sortSources = <S extends SortableSource>(sources: S[]): S[] => {
   if (!sources) return [];
 
   return [...sources].sort((a, b) => {
     // 1. SBD first
-    const sbd = Number(b.is_soundboard) - Number(a.is_soundboard);
+    const sbd = Number(b.isSoundboard) - Number(a.isSoundboard);
     if (sbd !== 0) return sbd;
 
     // 2. Charlie Miller (GD) / Pete Costello (JRAD) first
-    const specialTaper = (t: Source) =>
+    const specialTaper = (t: SortableSource) =>
       /(charlie miller)|(peter costello)/i.test([t.taper, t.transferrer, t.source].join(''));
     const taper = Number(specialTaper(b)) - Number(specialTaper(a));
     if (taper !== 0) return taper;
 
     // 3. Higher etree ID first
-    const etree = getEtreeId(b.upstream_identifier) - getEtreeId(a.upstream_identifier);
+    const etree = getEtreeId(b.upstreamIdentifier) - getEtreeId(a.upstreamIdentifier);
     if (etree !== 0) return etree;
 
     // 4. Higher weighted rating first
-    return (b.avg_rating_weighted ?? 0) - (a.avg_rating_weighted ?? 0);
+    return (b.avgRatingWeighted ?? 0) - (a.avgRatingWeighted ?? 0);
   });
 };
 
@@ -38,7 +51,7 @@ export const sortTracksInSources = (sources: Source[]) => {
     if (!source.sets) continue;
     source.sets.sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
     for (const set of source.sets) {
-      set.tracks?.sort((a, b) => (a.track_position ?? 0) - (b.track_position ?? 0));
+      set.tracks?.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
     }
   }
 };

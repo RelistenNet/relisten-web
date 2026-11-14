@@ -1,4 +1,5 @@
-import RelistenAPI from '@/lib/RelistenAPI';
+import { href } from '@timber-js/app/routes';
+import { loadArtists, loadYearShows } from '@/features/browse/load';
 import { format } from 'date-fns';
 import type { Metadata } from '@timber-js/app/server';
 import { Link } from '@timber-js/app/client';
@@ -11,7 +12,7 @@ export async function metadata(): Promise<Metadata> {
   const year = params?.year as string | undefined;
   const month = params?.month as string | undefined;
   if (!artistSlug) return { title: 'Not Found' };
-  const artists = await RelistenAPI.fetchAllArtists();
+  const artists = await loadArtists();
   const artist = artists?.find((a) => a.slug === artistSlug);
 
   if (!artist) {
@@ -41,25 +42,23 @@ export default async function MonthPage() {
   const { artistSlug, year, month } = getSegmentParams(SEGMENT_PATH);
 
   // Fetch artist and shows
-  const artists = await RelistenAPI.fetchAllArtists();
+  const artists = await loadArtists();
   const artist = artists?.find((a) => a.slug === artistSlug);
   if (!artist) deny(404);
 
-  const artistShows = await RelistenAPI.fetchYearShows(artist.id, year);
+  const artistShows = await loadYearShows(artist.id, year);
   if (!artistShows) deny(404);
 
-  const shows = artistShows.shows || [];
+  const shows = artistShows;
 
   // Filter shows for the specific month
   const monthShows = shows.filter((show) => {
-    const showMonth = new Date(show.display_date || '').getMonth() + 1;
+    const showMonth = new Date(show.date || '').getMonth() + 1;
     return showMonth === parseInt(month || '', 10);
   });
 
   // Sort shows by date
-  monthShows.sort(
-    (a, b) => new Date(a.display_date || '').getTime() - new Date(b.display_date || '').getTime()
-  );
+  monthShows.sort((a, b) => new Date(a.date || '').getTime() - new Date(b.date || '').getTime());
 
   return (
     <div className="bg-white p-4 font-serif text-black">
@@ -172,7 +171,7 @@ export default async function MonthPage() {
             </td>
             <td className="py-1 pr-8">
               <Link
-                href={`/${artistSlug}/${year}`}
+                href={href('/[artistSlug]/[year]', { artistSlug, year })}
                 className="
                   text-blue-700 no-underline
                   visited:text-purple-700
@@ -188,7 +187,7 @@ export default async function MonthPage() {
           </tr>
 
           {monthShows.map((show) => {
-            const showDate = new Date(show.display_date || '');
+            const showDate = new Date(show.date || '');
             const dayStr = showDate.getDate().toString().padStart(2, '0');
             const showPath = `${dayStr}/`;
 
@@ -227,7 +226,12 @@ export default async function MonthPage() {
                 </td>
                 <td className="py-1 pr-8">
                   <Link
-                    href={`/${artistSlug}/${year}/${month}/${dayStr}`}
+                    href={href('/[artistSlug]/[year]/[month]/[day]', {
+                      artistSlug,
+                      year,
+                      month,
+                      day: dayStr,
+                    })}
                     className="
                       text-blue-700 no-underline
                       visited:text-purple-700
@@ -237,10 +241,10 @@ export default async function MonthPage() {
                     {showPath}
                   </Link>
                 </td>
-                <td className="py-1 pr-8 text-center">{formatDate(show.display_date || '')}</td>
+                <td className="py-1 pr-8 text-center">{formatDate(show.date || '')}</td>
                 <td className="py-1 pr-8 text-right">
-                  {show.avg_duration && show.avg_duration > 0
-                    ? formatFileSize(show.avg_duration)
+                  {show.avgDuration && show.avgDuration > 0
+                    ? formatFileSize(show.avgDuration)
                     : '-'}
                 </td>
                 <td className="py-1">
