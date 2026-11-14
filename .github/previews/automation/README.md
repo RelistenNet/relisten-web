@@ -48,11 +48,17 @@ Package cleanup retains deployed, rollback and pending digests, plus any actual
 preview Deployment image. First-observed-unreferenced marks persist across runs;
 versions become eligible after 15 minutes. Marks drain in batches of 128 so an
 outage backlog cannot prevent its own cleanup. Logs report the waiting backlog;
-index children remain protected until a later scan. Authenticated manifest reads
+index children remain protected while a surviving parent references them, then
+receive their own grace. Authenticated manifest reads
 before and after pruning check protected digests. Consumed/superseded OCI artifacts
 are deleted immediately; completed orphan artifacts after one hour. Every cleanup
-failure fails the control run and retries on the next scan. Five-minute scheduling
-is a repair target and may be delayed by GitHub.
+failure fails the control run and retries on the next scan. Reconciliation emits
+the earliest persisted image deadline. A separate Actions-only job waits for that
+deadline and dispatches another scan; it has its own concurrency group and does
+not block deployments. At most one wakeup runs and one waits. A full deletion
+batch enrolls the next batch before scheduling, so cleanup continues without
+cron. This may occupy one public-repository runner for up to fifteen minutes.
+The five-minute cron remains a fallback and may be delayed by GitHub.
 
 Reviewers opt in with the `preview` label on a same-repository PR whose author
 currently has effective repository write access. `preview/private/pr-N` links to

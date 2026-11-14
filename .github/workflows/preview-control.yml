@@ -19,11 +19,13 @@ on:
         type: string
 permissions:
   contents: read
-concurrency:
-  group: relisten-private-preview-control
-  cancel-in-progress: false
 jobs:
   reconcile:
+    concurrency:
+      group: relisten-private-preview-control
+      cancel-in-progress: false
+    outputs:
+      cleanup_at: ${{ steps.reconcile.outputs.cleanup_at }}
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -58,6 +60,7 @@ jobs:
           chmod 600 "$RUNNER_TEMP/preview-kube/config"
           echo "KUBECONFIG=$RUNNER_TEMP/preview-kube/config" >> "$GITHUB_ENV"
       - name: Verify effective authority and reconcile the full current PR set
+        id: reconcile
         env:
           GH_TOKEN: ${{ github.token }}
           PREVIEW_PACKAGE_ID: ${{ vars.PREVIEW_PACKAGE_ID }}
@@ -77,3 +80,33 @@ jobs:
       - name: Remove local Kubernetes credential
         if: always()
         run: rm -f "$RUNNER_TEMP/preview-kube/config"
+
+  wake_cleanup:
+    needs: reconcile
+    if: github.ref == 'refs/heads/master' && needs.reconcile.outputs.cleanup_at != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: relisten-private-preview-cleanup-wakeup
+      cancel-in-progress: false
+    permissions:
+      actions: write
+    steps:
+      # This runner holds no cluster/package credential and executes no branch code.
+      - name: Wait for the first image grace deadline
+        env:
+          CLEANUP_AT: ${{ needs.reconcile.outputs.cleanup_at }}
+        run: |
+          python3 - <<'PY'
+          import json, os, time
+          due = int(os.environ['CLEANUP_AT'])
+          delay = max(0, due - time.time())
+          if due <= 0 or delay > 901:
+              raise ValueError('Unexpected preview cleanup deadline')
+          print(json.dumps({'cleanupWakeAt': due, 'waitSeconds': round(delay, 2)}), flush=True)
+          time.sleep(delay)
+          PY
+      - name: Request a fresh serialized cleanup scan
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run preview-control.yml --repo RelistenNet/relisten-web --ref master
