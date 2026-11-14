@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  ArrowUpRightIcon,
-  CheckIcon,
-  CircleAlertIcon,
-  GripVerticalIcon,
-  ListMusicIcon,
-  XIcon,
-} from 'lucide-react';
+import { CheckIcon, CircleAlertIcon, GripVerticalIcon, ListMusicIcon, XIcon } from 'lucide-react';
 import driver from '@switz/driver';
 import { Link } from '@timber-js/app/client';
 import { href } from '@timber-js/app/routes';
@@ -25,7 +18,7 @@ import { queueView, type QueueItem } from './queue/model';
 // The queue: a popover off the player bar's queue button, as plain rows like a
 // show's track list. Played, now playing, Next up (drag or arrow keys to
 // reorder, remove), then the rest of the show or song list. Picking a row plays it;
-// its arrow links to the track's page.
+// its date links to the show's page.
 
 /** A 48×48 touch target on a smaller button (coarse pointers only). */
 const TouchTarget = () => (
@@ -273,7 +266,7 @@ function LoadState({ entryKey, hidden }: { entryKey: string; hidden: boolean }) 
     derived: {
       label: {
         isReady: 'Gapless Ready',
-        isLoading: 'Loading Gapless',
+        isLoading: 'Loading',
         isFailed: 'Failed To Load',
       },
       icon: {
@@ -302,21 +295,21 @@ function LoadState({ entryKey, hidden }: { entryKey: string; hidden: boolean }) 
   );
 }
 
-/** The track's page on the browse view, on the tape it plays from. */
-const trackHref = (item: QueueItem) => {
+/** The show's page on the browse view, on the tape it plays from. */
+const showHref = (item: QueueItem) => {
   const { year, month, day } = splitShowDate(item.date);
   return href(
-    '/[artistSlug]/[year]/[month]/[day]/[songSlug]',
-    { artistSlug: item.artistSlug, year, month, day, songSlug: item.trackSlug },
+    '/[artistSlug]/[year]/[month]/[day]',
+    { artistSlug: item.artistSlug, year, month, day },
     sourceQuery(item.sourceId)
   );
 };
 
 /**
- * A row: picking it plays it, and its arrow links to the track's page. Every
+ * A row: picking it plays it, and its date links to the show's page. Every
  * row has the same columns, so they line up across sections: number (or
- * playing bars), title and show, load state, duration, the arrow, then room
- * for the drag handle and remove button. A link can't sit inside a button, so
+ * playing bars), title and show, load state, duration, then room for the drag
+ * handle and remove button. A link can't sit inside a button, so
  * the button is laid over the whole row and the link sits above it.
  */
 function QueueRow({
@@ -334,7 +327,7 @@ function QueueRow({
   item: QueueItem;
   /** Its position in the show or song list (none for Next up). */
   number?: number;
-  /** Artist, date and venue. */
+  /** Artist, date and venue, for the play button's label. */
   show: string;
   current?: boolean;
   /** Already played: dimmed. */
@@ -358,7 +351,7 @@ function QueueRow({
       style={style}
     >
       {current && <div className="absolute inset-y-0 left-0 w-1 bg-accent" aria-hidden />}
-      {/* Covers the row; the load state, link and actions sit above it (`relative`, later in the DOM). */}
+      {/* Covers the row; the link, load state and actions sit above it (`relative`, later in the DOM). */}
       <button
         type="button"
         onClick={() => jumpTo(item.key)}
@@ -385,24 +378,25 @@ function QueueRow({
           <span className={cn('block truncate', current && 'font-medium text-accent')}>
             {item.title}
           </span>
-          <span className="block truncate text-xxs text-text-muted">{show}</span>
+          <span className="block truncate text-xxs text-text-muted">
+            {item.artistName && `${item.artistName} · `}
+            <Link
+              href={showHref(item)}
+              className="
+                relative text-inherit no-underline hover:underline focus-visible:outline-2
+                focus-visible:outline-offset-2 focus-visible:outline-accent
+              "
+            >
+              {formatDate(item.date)}
+            </Link>
+            {item.venue && ` · ${item.venue}`}
+          </span>
         </span>
         <LoadState entryKey={item.key} hidden={played} />
         <span className="w-12 shrink-0 text-right text-xs text-text-muted">
           {item.duration ? durationToHHMMSS(item.duration) : null}
         </span>
       </div>
-      {/* Its own column, so it lines up on rows without a drag handle. */}
-      <span className="relative flex w-8 shrink-0 justify-center">
-        {item.trackSlug && (
-          <Tooltip content="Go to track" align="top" className="relative flex">
-            <Link href={trackHref(item)} aria-label={`Go to ${item.title}`} className={ICON_BUTTON}>
-              <ArrowUpRightIcon size={16} className="shrink-0" aria-hidden />
-              <TouchTarget />
-            </Link>
-          </Tooltip>
-        )}
-      </span>
       <span className="relative flex w-[4.25rem] shrink-0 items-center justify-end pr-1">
         {actions}
       </span>
