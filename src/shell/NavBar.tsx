@@ -1,4 +1,3 @@
-import { loadArtists } from '@/features/browse/load';
 import { Link } from '@timber-js/app/client';
 import Flex from '@/ui/base/Flex';
 import Menu from './Menu';
@@ -11,36 +10,15 @@ import BlogNavLink from '@/features/blog/BlogNavLink';
 // import GlobalSearch from './GlobalSearch';
 import { MenuIcon } from 'lucide-react';
 import ArtistTabs from './ArtistTabs';
-import { DEFAULT_ARTIST_SLUG } from '@/lib/defaultArtist';
-import { getSegmentParams } from '@timber-js/app/server';
+import { siteSections } from './siteSections';
 import { hasRecentPost } from '@/lib/blog/getPosts';
 
-export default async function NavBar({
-  defaultToArtist = false,
-  artistSlug: artistSlugProp,
-}: {
-  /** The browse layout: its root (/) browses the default artist, so the nav is about it there. */
-  defaultToArtist?: boolean;
-  /**
-   * The artist the page is about, when the caller knows it — null for none. A
-   * 'document' nav passes it, since it may not read a param its key omits.
-   * Omitted, it is read from the route's params.
-   */
-  artistSlug?: string | null;
-}) {
-  const artists = await loadArtists();
+// The same on every page: what depends on the page (the artist, the site
+// page's title, active tabs) the client components read from the URL and the
+// browsing artist (browsingArtistContext). So a 'document' layout renders it
+// once, re-rendered only when the user agent changes.
+export default function NavBar() {
   const blogHasNew = hasRecentPost();
-
-  const artistSlug =
-    artistSlugProp === undefined
-      ? (getSegmentParams() as { artistSlug?: string }).artistSlug
-      : artistSlugProp;
-  const artist = artistSlug ? artists.find((a) => a.slug === artistSlug) : undefined;
-  // The artist the page is about. Pages about no artist (the blog, live, …)
-  // get neither the title's picker nor the artist tabs.
-  const pageArtist =
-    artist ?? (defaultToArtist ? artists.find((a) => a.slug === DEFAULT_ARTIST_SLUG) : undefined);
-  const titleArtist = pageArtist && { slug: pageArtist.slug, name: pageArtist.name };
 
   return (
     <>
@@ -54,7 +32,7 @@ export default async function NavBar({
           lg:grid-cols-[1fr_auto_1fr] lg:px-4
         "
       >
-        <MainNavHeader artist={titleArtist} />
+        <MainNavHeader />
         <div
           className="
             player overflow-hidden text-center
@@ -107,25 +85,20 @@ export default async function NavBar({
               xl:flex
             "
           >
-            <Link className="nav-btn" href="/today" prefetch={false}>
-              Today
-            </Link>
-            <Link className="nav-btn whitespace-nowrap" href="/recently-played" prefetch={false}>
-              Live
-            </Link>
-            <Link className="nav-btn" href="/venues" prefetch={false}>
-              Venues
-            </Link>
-            <Link className="nav-btn" href="/chat" prefetch={false}>
-              Chat
-            </Link>
-            <Link className="nav-btn" href="/app" prefetch={false}>
-              Apps
-            </Link>
-            <BlogNavLink hasNewPost={blogHasNew} />
-            <Link className="nav-btn" href="/about" prefetch={false}>
-              About
-            </Link>
+            {siteSections.map((section) =>
+              section.label === 'Blog' ? (
+                <BlogNavLink key={section.href} hasNewPost={blogHasNew} />
+              ) : (
+                <Link
+                  key={section.href}
+                  className="nav-btn whitespace-nowrap"
+                  href={section.href}
+                  prefetch={false}
+                >
+                  {section.label}
+                </Link>
+              )
+            )}
             <a
               className="nav-btn"
               href="https://github.com/RelistenNet/relisten-web"
@@ -146,11 +119,7 @@ export default async function NavBar({
           </div>
         </div>
       </div>
-      {pageArtist && (
-        <ArtistTabs
-          artist={{ slug: pageArtist.slug, name: pageArtist.name, features: pageArtist.features }}
-        />
-      )}
+      <ArtistTabs />
       <AndroidUpgradeNotification />
     </>
   );

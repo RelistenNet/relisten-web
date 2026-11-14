@@ -2,19 +2,23 @@
 
 import { href } from '@timber-js/app/routes';
 import { usePathname } from '@timber-js/app/client';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/base/shadcn/popover';
 import ArtistsSelectionTab from '@/features/browse/ArtistsSelectionTab';
 import { artistSections } from '@/lib/artistSections';
 import type { ArtistListItem } from '@/lib/artistRows';
+import { useBrowsingArtist } from './browsingArtistContext';
 
-// The artist the page is about, as a control that switches artist: the
-// header's title ("RELISTEN TO THE GRATEFUL DEAD") on wide screens, the start
-// of the artist tabs on narrow ones, where the title is hidden. Opens the same artist list as the browse view's
+// The nav's artist, as a control that switches artist: the start of the
+// artist tabs, at every width. Opens the same artist list as the browse view's
 // artists column (compact), whose rows here link to the same section for the
 // chosen artist. The popover mounts the list only while open, so each opening
 // starts with an empty filter.
+//
+// On the site's pages (today, live, …) the artist is context rather than the
+// page's subject (onSitePage): choosing one stays on the page and switches
+// the artist being browsed (browsingArtistContext), so the artist tabs. The rows still link to the artist's browse view, for a new tab.
 
 /**
  * The same section for another artist: Browse goes to the artist's browse
@@ -48,38 +52,42 @@ function sectionHref(pathname: string, fromSlug: string, to: ArtistListItem): st
   return href('/artists/[artistSlug]', { artistSlug });
 }
 
-const TRIGGER = {
-  // Reads as the title it replaces; the chevron and hover say it opens.
-  title: `
-    inline-flex cursor-pointer items-center gap-1 rounded px-1 -mx-1 uppercase
-    hover:bg-text-primary/5
-  `,
-  tab: `
-    flex h-7 max-w-56 cursor-pointer items-center gap-1 rounded-md border border-accent/40
-    bg-accent/10 px-2 font-medium text-text-primary hover:bg-accent/20
-  `,
-};
+// A fixed width, so switching artist doesn't shift the tabs; a longer name is
+// truncated.
+const TRIGGER = `
+  flex h-6 w-36 cursor-pointer items-center gap-1 rounded-md border border-accent/40
+  bg-accent/10 pr-1.5 pl-2 text-[13px] font-medium text-text-primary hover:bg-accent/20
+`;
 
-export default function ArtistPicker({
-  current,
-  variant,
-  children = current.name,
-}: {
-  current: { slug: string; name: string };
-  variant: keyof typeof TRIGGER;
-  /** The trigger's label; the artist's name by default. */
-  children?: React.ReactNode;
-}) {
+export default function ArtistPicker({ current }: { current: { slug: string; name: string } }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  // On a site page, choosing an artist switches the one browsed in place.
+  const { onSitePage: chooseInPlace, setArtist } = useBrowsingArtist();
+  // Each row's link, back to its artist: the row's click finds its artist here.
+  const artistByHref = useRef(new Map<string, ArtistListItem>());
+  const hrefFor = (artist: ArtistListItem) => {
+    const url = sectionHref(pathname, current.slug, artist);
+    artistByHref.current.set(url, artist);
+    return url;
+  };
+
+  // Capturing, so it runs before the row's own click handler starts a navigation.
+  const choose = (e: React.MouseEvent) => {
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const link = (e.target as Element).closest('a[href]');
+    const artist = link && artistByHref.current.get(link.getAttribute('href') ?? '');
+    if (!artist) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setOpen(false);
+    setArtist({ slug: artist.slug, name: artist.name, features: artist.features });
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen} align="start" sideOffset={6}>
-      <PopoverTrigger
-        aria-label={`Artist: ${current.name}. Switch artist`}
-        className={TRIGGER[variant]}
-      >
-        <span className="truncate">{children}</span>
+      <PopoverTrigger aria-label={`Artist: ${current.name}. Switch artist`} className={TRIGGER}>
+        <span className="min-w-0 flex-1 truncate text-left">{current.name}</span>
         <ChevronDown className="size-3.5 shrink-0 text-text-secondary" />
       </PopoverTrigger>
       <PopoverContent
@@ -90,12 +98,14 @@ export default function ArtistPicker({
           shadow-black/25 ring-text-primary/15 dark:shadow-black/60
         "
       >
-        <ArtistsSelectionTab
-          compact
-          currentSlug={current.slug}
-          hrefFor={(artist) => sectionHref(pathname, current.slug, artist)}
-          onNavigate={() => setOpen(false)}
-        />
+        <div onClickCapture={chooseInPlace ? choose : undefined}>
+          <ArtistsSelectionTab
+            compact
+            currentSlug={current.slug}
+            hrefFor={hrefFor}
+            onNavigate={() => setOpen(false)}
+          />
+        </div>
       </PopoverContent>
     </Popover>
   );
