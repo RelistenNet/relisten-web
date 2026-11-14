@@ -1,5 +1,5 @@
 {
-  "infrastructureCommit": "4dfa2295f05551909cc2f99ce562b4f2e674c059",
+  "infrastructureCommit": "f924ae669a425b8e79cc0dd591029107a22161f8",
   "files": {
     "automation/README.md": "835d0a788cc7f0674e46fec41ae1a1e2fcdc876fe3f41dadb23c846f543d99d2",
     "render.py": "d2c14fb3d2b767df20a3fe483156a7d08a9bbe13bebc397daaeecb37efb24666",
@@ -16,7 +16,7 @@
   },
   "workflows": {
     "preview-build.yml": "76c9f77739714ec3d40b790d3641d9b06766f2d300b7c5474534330d9874e4a2",
-    "preview-control.yml": "98ff419b829221f5ab99ece2ec82c664b48be9b5af9dc80f192f164f61093d05",
+    "preview-control.yml": "8fe96da808c400b88939ac05d128e704f750a349c394f589bd548e6d833e1fd5",
     "preview-dispatch.yml": "63113280a025eb63666bba928dda560e3b239e96af49f94ec24cbae99bdb8fc9"
   }
 }

@@ -1,7 +1,8 @@
 name: Preview control
 on:
   workflow_run:
-    workflows: [Preview build]
+    # Completed runs can report their dynamic run-name as the workflow name.
+    workflows: [Preview build, 'Preview PR *']
     types: [completed]
   schedule:
     - cron: '*/5 * * * *'
@@ -23,7 +24,10 @@ concurrency:
   cancel-in-progress: false
 jobs:
   reconcile:
-    if: github.ref == 'refs/heads/master'
+    if: >-
+      github.ref == 'refs/heads/master' &&
+      (github.event_name != 'workflow_run' ||
+       github.event.workflow_run.path == '.github/workflows/preview-build.yml')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: relisten-previews
