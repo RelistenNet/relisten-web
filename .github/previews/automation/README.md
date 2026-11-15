@@ -66,7 +66,14 @@ deadline and dispatches another scan; it has its own concurrency group and does
 not block deployments. At most one wakeup runs and one waits. A full deletion
 batch enrolls the next batch before scheduling, so cleanup continues without
 cron. This may occupy one public-repository runner for up to fifteen minutes.
-The five-minute cron remains a fallback and may be delayed by GitHub.
+The daily cron at 11:17 UTC is a recovery fallback and may be delayed by GitHub.
+PR changes and completed builds still dispatch reconciliation immediately; image
+expiry wakeups retain the 15-minute grace. A missed trigger, failed wakeup or
+permission change without a PR event may remain until another event or the daily
+scan. Manual reconciliation is available when waiting would be unacceptable.
+All preview jobs use standard `ubuntu-latest` runners in the public web repository,
+whose runner time is free under [GitHub's public-repository billing rules](https://docs.github.com/en/billing/concepts/product-billing/github-actions).
+Artifact storage is separate: consumed OCI artifacts are deleted and retention is one day.
 
 Reviewers opt in with the `preview` label on a same-repository PR whose author
 currently has effective repository write access. `preview/private/pr-N` links to
