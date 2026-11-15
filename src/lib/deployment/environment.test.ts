@@ -9,7 +9,7 @@ const preview = {
   RELISTEN_PREVIEW_PR_NUMBER: '138',
   RELISTEN_PREVIEW_BRANCH: 'review/$(NODE_ENV);<b>$(id)</b>',
   RELISTEN_PREVIEW_HEAD_SHA: 'a'.repeat(40),
-  RELISTEN_PREVIEW_URL: 'https://relisten-pr-138.tail09dbf.ts.net',
+  RELISTEN_PREVIEW_URL: 'https://relisten-web-previews-pr-138.tail09dbf.ts.net',
 };
 
 describe('deployment rendering', () => {
@@ -34,6 +34,10 @@ describe('deployment rendering', () => {
   });
 
   it.each([
+    { RELISTEN_PREVIEW_URL: 'https://relisten-pr-138.tail09dbf.ts.net' },
+    { RELISTEN_PREVIEW_URL: 'https://relisten-web-previews-pr-139.tail09dbf.ts.net' },
+    { RELISTEN_PREVIEW_URL: 'https://pr-138.relisten-web-previews.tail09dbf.ts.net' },
+    { RELISTEN_PREVIEW_URL: 'https://relisten-web-previews-pr-138.tail09dbf.ts.net.evil.example' },
     { RELISTEN_PREVIEW_PR_NUMBER: '0' },
     { RELISTEN_PREVIEW_HEAD_SHA: 'main' },
     { RELISTEN_PREVIEW_BRANCH: '' },
