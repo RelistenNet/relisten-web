@@ -11,7 +11,7 @@ export function parseDeploymentEnvironment(
   const number = env.RELISTEN_PREVIEW_PR_NUMBER ?? '';
   const headSha = env.RELISTEN_PREVIEW_HEAD_SHA ?? '';
   const branch = env.RELISTEN_PREVIEW_BRANCH ?? '';
-  const url = `https://relisten-pr-${number}.tail09dbf.ts.net`;
+  const url = `https://relisten-web-previews-pr-${number}.tail09dbf.ts.net`;
   if (
     !/^[1-9][0-9]{0,9}$/.test(number) ||
     !/^[a-f0-9]{40}$/.test(headSha) ||
