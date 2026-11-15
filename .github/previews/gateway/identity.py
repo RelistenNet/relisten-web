@@ -2,13 +2,14 @@
 
 TAILNET = "tail09dbf.ts.net"
 CONTROL_HOST = f"relisten-preview-control.{TAILNET}"
+CONTROL_TAG = "tag:relisten-preview-control"
 PROBE_HOST = f"relisten-preview-probe.{TAILNET}"
 
 
 def preview_host(pr):
     if type(pr) is not int or not 1 <= pr <= 9_999_999_999:
         raise ValueError("Invalid PR identity")
-    return f"relisten-pr-{pr}.{TAILNET}"
+    return f"relisten-web-previews-pr-{pr}.{TAILNET}"
 
 
 def listener_port(slot):
@@ -38,7 +39,10 @@ def frontdoor(pr=None, slot=0):
             "namespace": "preview-system",
             "labels": {"app": "relisten-preview-frontdoor", **labels},
             "annotations": {
-                "tailscale.com/tags": "tag:relisten-preview",
+                # Only PR frontdoors belong to the externally shared tag.
+                "tailscale.com/tags": (
+                    CONTROL_TAG if pr is None else "tag:relisten-preview"
+                ),
                 "tailscale.com/funnel": "false",
                 "tailscale.com/proxy-class": "relisten-preview",
             },

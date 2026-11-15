@@ -1,9 +1,9 @@
 {
-  "infrastructureCommit": "f67740ec8bdc47ac3d629260000932b183032332",
+  "infrastructureCommit": "3c76c7816bb8551472273b4ead7f70dacd8dad96",
   "files": {
     "automation/README.md": "cff2868faf295e20278a10e24eac78fdff33fd3954e321b4b1e167496cbdc12b",
     "render.py": "d2c14fb3d2b767df20a3fe483156a7d08a9bbe13bebc397daaeecb37efb24666",
-    "gateway/identity.py": "09467da0582bf748c0ca2a2088a7bdfbba7588d8c5ef787694667040986aa8c9",
+    "gateway/identity.py": "71ad82187d927ac9585f315cca9a63e9bac4aeb4ee04f56f65fbad993f9b4e93",
     "gateway/gateway.py": "46db608f065190b498e56582961b3394002f476667f38bd59125ca5f65eca56a",
     "pilot/control.py": "ae7506a41235bb3064069b0c0068ae3b6219ec9f607103b2c34395ba93b11763",
     "automation/build.py": "3bb5c8d5b96c481ce891c2a54752a8f55378cb5b1b2eb3248ca8b1b5052ad7b1",
