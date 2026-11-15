@@ -1,7 +1,8 @@
 name: Preview control
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    # PR/build events and image-expiry wakeups handle normal maintenance.
+    - cron: '17 11 * * *'
   workflow_dispatch:
     inputs:
       bootstrap_anchor:
