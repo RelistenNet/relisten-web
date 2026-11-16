@@ -28,7 +28,7 @@ import { diagnose, diagnoseStall, parseGaplessError } from './failure';
 import { rememberListener } from './autoplay';
 import { savedVolume } from './volume';
 import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
-import { trackHref, type TrackRoute } from '@/ui/shows/trackHref';
+import { isShowPage, trackHref, type TrackRoute } from '@/ui/shows/trackHref';
 import { splitShowDate } from '@/lib/utils';
 import { browserStorage } from '@/lib/browserStorage';
 
@@ -279,16 +279,20 @@ function followPlayback(item: QueueItem): void {
       ? 'embed'
       : 'site';
   const { year, month, day } = splitShowDate(item.date);
-  if (!item.trackSlug || !pathname.includes(`/${item.artistSlug}/${year}/${month}/${day}`)) return;
+  const showParams = { artistSlug: item.artistSlug, year, month, day };
+  if (!item.trackSlug || !isShowPage(pathname, showParams)) return;
+  // The show's own page has no song in its title yet ("1977-05-08 | …").
+  const onTrackPage = !`${pathname}/`.endsWith(`/${item.artistSlug}/${year}/${month}/${day}/`);
   const next = trackHref(
     route,
-    { artistSlug: item.artistSlug, year, month, day, songSlug: item.trackSlug },
+    { ...showParams, songSlug: item.trackSlug },
     sourceQuery(item.sourceId)
   );
   if (pathname + search !== next) replaceUrl(next);
   // "Song | 1977-05-08 | Grateful Dead | Relisten": replace only the song.
   const parts = document.title.split(' | ');
-  parts[0] = item.title;
+  if (onTrackPage) parts[0] = item.title;
+  else parts.unshift(item.title);
   document.title = parts.join(' | ');
 }
 

@@ -1,12 +1,12 @@
 'use client';
 
-import type { Track } from '@/domain/types';
+import type { SongsTrack } from '@/lib/showProjection';
 import { durationToHHMMSS } from '@/lib/utils';
 import { jumpToTrack } from '@/player/commands';
 import { useCurrentItem } from '@/player/hooks';
 
 interface EmbedTrackListProps {
-  tracks: Track[];
+  tracks: SongsTrack[];
   startPosition: number;
 }
 

@@ -1,4 +1,5 @@
 import type { Source } from '@/domain/types';
+import { fromSourceParam } from './sourceParam';
 
 const getEtreeId = (s = '') =>
   Number(
@@ -54,4 +55,18 @@ export const sortTracksInSources = (sources: Source[]) => {
       set.tracks?.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
     }
   }
+};
+
+/**
+ * The tape `?source=` names (the v4 source id without its prefix), or the
+ * top-sorted one. One rule for the server (a track page's player) and the
+ * client columns, so both pick the same tape.
+ */
+export const activeTape = <S extends SortableSource>(
+  sources: S[],
+  sourceParam: string | undefined
+): S | undefined => {
+  const sorted = sortSources(sources);
+  const wanted = fromSourceParam(sourceParam);
+  return sorted.find((s) => s.id === wanted) ?? sorted[0];
 };

@@ -25,6 +25,12 @@ type RowProps = {
    * artist page) stale.
    */
   refreshWhenCurrent?: boolean;
+  /**
+   * A plain left click on the row (not one that opens a new tab or window).
+   * Call `event.preventDefault()` to handle it in place instead of following
+   * `href`, which stays the row's address for new tabs, copying and no-JS.
+   */
+  onActivate?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
 };
 
 // The row is a single flex box holding the caller's left and right blocks.
@@ -108,6 +114,7 @@ const Row = ({
   active = false,
   loading,
   refreshWhenCurrent = false,
+  onActivate,
   ...props
 }: RowProps) => {
   const router = useRouter();
@@ -136,7 +143,6 @@ const Row = ({
       prefetch={false}
       data-is-active={active}
       onClick={(event) => {
-        if (!refreshWhenCurrent || pathname !== href) return;
         if (
           event.button !== 0 ||
           event.metaKey ||
@@ -146,6 +152,8 @@ const Row = ({
         ) {
           return;
         }
+        onActivate?.(event);
+        if (event.defaultPrevented || !refreshWhenCurrent || pathname !== href) return;
         event.preventDefault();
         setRefreshing(true);
         router.refresh();

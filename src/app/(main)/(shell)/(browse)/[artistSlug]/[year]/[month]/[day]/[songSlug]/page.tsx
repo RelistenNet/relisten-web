@@ -5,33 +5,47 @@ import PlayerManager from '@/player/PlayerManager';
 import { proxyStreamUrl } from '@/player/proxyStreamUrl';
 import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { createShowDate } from '@/lib/utils';
+import { songsProjection } from '@/lib/showProjection';
+import { activeTape } from '@/lib/sortSources';
 import { deny, getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 
+// Arriving here plays the track (a shared link, a reload, a link from another
+// page). Clicking a track in the show's list plays it without coming here: the
+// list holds the tapes, and the URL follows playback.
 export default async function Page() {
   const { artistSlug, year, month, day, songSlug } = getSegmentParams(SEGMENT_PATH);
 
   if (!year || !month || !day) return deny(404);
 
-  const params = { artistSlug, year, month, day };
+  const date = createShowDate(year, month, day);
+  const [show, artists] = await Promise.all([loadShow(artistSlug, date), loadArtists()]);
 
-  const [show, artists] = await Promise.all([
-    loadShow(artistSlug, createShowDate(year, month, day)),
-    loadArtists(),
-  ]);
-
-  // A missing show already 404s in fetchShow; also 404 when no source has this song.
-  const songExists = show?.sources?.some((source) =>
-    source.sets?.some((set) => set.tracks?.some((track) => track.slug === songSlug))
+  // A missing show already 404s in loadShow; also 404 when no tape has this song.
+  const songs = songsProjection(show);
+  const hasSong = songs.sources.some((tape) =>
+    tape.sets.some((set) => set.tracks.some((track) => track.slug === songSlug))
   );
-  if (!songExists) return deny(404);
+  if (!hasSong) return deny(404);
 
-  const artistName = artists?.find((a) => a.slug === artistSlug)?.name;
-  const { source } = sourceSearchParamsLoader.get();
+  const tape = activeTape(songs.sources, sourceSearchParamsLoader.get().source);
+  if (!tape) return deny(404);
 
+  // The tape is the show layout's own object (songsProjection is memoized per
+  // show), so a document load serializes it once. A client navigation here
+  // sends this one tape.
   return (
     <BrowseColumn>
-      <PlayerManager {...params} show={show} artistName={artistName} source={source} />
+      <PlayerManager
+        show={{ id: songs.id, date: songs.date || date, venue: songs.venue }}
+        tape={tape}
+        artistSlug={artistSlug}
+        artistName={
+          artists.find((a) => a.slug === artistSlug)?.name ?? artistSlug.replace(/-/g, ' ')
+        }
+        songSlug={songSlug}
+        play
+      />
     </BrowseColumn>
   );
 }

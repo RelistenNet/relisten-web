@@ -4,8 +4,7 @@
 // engine directly. Components don't touch gapless or the actors.
 // ---------------------------------------------------------------------------
 
-import type { Source } from '@/domain/types';
-import { showContext } from './queue/items';
+import { showContext, type PlayableTape, type ShowInfo } from './queue/items';
 import { nextUpKey, type QueueItem } from './queue/model';
 import { browserRefusesAutoplay, canAutoplay } from './autoplay';
 import { getEngine, playbackActor, playerActor, startPlayback } from './runtime';
@@ -29,8 +28,8 @@ export function playShow({
   play = true,
   startTime,
 }: {
-  show: { id: string; date: string; venue?: { name?: string } };
-  source: Source;
+  show: ShowInfo;
+  source: PlayableTape;
   artistSlug: string;
   artistName: string;
   trackSlug?: string;

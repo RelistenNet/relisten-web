@@ -2,7 +2,7 @@
 
 import { trackHref, type TrackRoute } from './trackHref';
 import { href } from '@timber-js/app/routes';
-import { Fragment, type ReactNode } from 'react';
+import { Fragment, type MouseEvent, type ReactNode } from 'react';
 import { durationToHHMMSS, removeLeadingZero } from '@/lib/utils';
 
 import { sourceQuery, sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
@@ -11,8 +11,7 @@ import Column from '@/ui/base/Column';
 import Row from '@/ui/base/Row';
 import RowHeader from '@/ui/base/RowHeader';
 import Tag from '@/ui/base/Tag';
-import { sortSources, type SortableSource } from '@/lib/sortSources';
-import { fromSourceParam, toSourceParam } from '@/lib/sourceParam';
+import { activeTape, sortSources, type SortableSource } from '@/lib/sortSources';
 import { useAdminTools } from '@/hooks/useAdminTools';
 import { Link } from '@timber-js/app/client';
 import ShowHeader from './ShowHeader';
@@ -67,10 +66,7 @@ export const useSourceData = <S extends SortableSource>({
   const displayDate = year && month && day ? [year, month, day].join('-') : undefined;
 
   const sourcesData = sortSources(show?.sources ?? []);
-
-  // `?source=` is the v4 source id without its prefix; default to the top-sorted source.
-  const wantedSourceId = fromSourceParam(source);
-  const activeSourceObj = sourcesData.find((s) => s.id === wantedSourceId) ?? sourcesData[0];
+  const activeSourceObj = activeTape(sourcesData, source);
 
   return {
     activeSourceId: activeSourceObj?.id,
@@ -83,11 +79,21 @@ export const useSourceData = <S extends SortableSource>({
 const TrackList = ({
   playing,
   trackActions,
+  onPlayTrack,
   ...props
 }: Props & {
   playing?: PlayingTrack | null;
   /** Per-track controls beside the row (a "⋯" menu); src/ui doesn't know what they do. */
   trackActions?: (track: SongsTrack, source: SongsSource) => ReactNode;
+  /**
+   * A plain click on a track. The row still links to the track's page; call
+   * `event.preventDefault()` to stay on this one.
+   */
+  onPlayTrack?: (
+    event: MouseEvent<HTMLAnchorElement>,
+    track: SongsTrack,
+    source: SongsSource
+  ) => void;
 }) => {
   const [{ source: sourceId }] = sourceSearchParamsLoader.useQueryStates();
   const { activeSourceObj, displayDate } = useSourceData({ ...props, source: sourceId });
@@ -173,6 +179,9 @@ const TrackList = ({
                           : undefined
                       }
                       active={trackIsActive}
+                      onActivate={
+                        onPlayTrack && ((event) => onPlayTrack(event, track, activeSourceObj))
+                      }
                     >
                       <div>
                         <div>{track.title}</div>

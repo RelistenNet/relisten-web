@@ -7,7 +7,8 @@ import { createShowDate } from '@/lib/utils';
 import { deny, getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 import { contextSearchParamsLoader } from './search-params';
-import type { Track } from '@/domain/types';
+import { songsProjection } from '@/lib/showProjection';
+import { activeTape } from '@/lib/sortSources';
 
 export default async function SingleTrackEmbedPage() {
   const { artistSlug, year, month, day, songSlug } = getSegmentParams(SEGMENT_PATH);
@@ -21,17 +22,22 @@ export default async function SingleTrackEmbedPage() {
 
   if (!show) deny(404);
 
-  const artistName = artists?.find((a) => a.slug === artistSlug)?.name;
+  const artistName =
+    artists.find((a) => a.slug === artistSlug)?.name ?? artistSlug.replace(/-/g, ' ');
 
-  const allTracks = show.sources?.[0]?.sets?.flatMap((set) => set.tracks ?? []) ?? [];
-  const anchorIndex = allTracks.findIndex((t) => t?.slug === songSlug);
+  // One tape for the list and the player: the one the site would play.
+  const date = createShowDate(year, month, day);
+  const songs = songsProjection(show);
+  const tape = activeTape(songs.sources, undefined);
+  const allTracks = tape?.sets.flatMap((set) => set.tracks) ?? [];
+  const anchorIndex = allTracks.findIndex((t) => t.slug === songSlug);
 
-  if (anchorIndex === -1) return deny(404);
+  if (!tape || anchorIndex === -1) return deny(404);
 
   const { context } = await contextSearchParamsLoader.get();
   const startIdx = Math.max(0, anchorIndex - context);
   const endIdx = Math.min(allTracks.length, anchorIndex + context + 1);
-  const contextTracks = allTracks.slice(startIdx, endIdx).filter((t): t is Track => t != null);
+  const contextTracks = allTracks.slice(startIdx, endIdx);
   const trackSlugs = contextTracks.flatMap((t) => (t.slug ? [t.slug] : []));
 
   return (
@@ -40,15 +46,12 @@ export default async function SingleTrackEmbedPage() {
         <EmbedTrackList tracks={contextTracks} startPosition={startIdx + 1} />
       )}
       <PlayerManager
-        embed
+        show={{ id: songs.id, date: songs.date || date, venue: songs.venue }}
+        tape={tape}
         artistSlug={artistSlug}
-        year={year}
-        month={month}
-        day={day}
-        show={show}
         artistName={artistName}
-        trackRoute="embed-track"
-        playImmediately={false}
+        songSlug={songSlug}
+        play={false}
         trackSlugs={trackSlugs}
       />
     </>

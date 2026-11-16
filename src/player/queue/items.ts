@@ -4,11 +4,20 @@
 // ---------------------------------------------------------------------------
 
 import { href } from '@timber-js/app/routes';
-import type { PlayableTrack, Source, TrackSong } from '@/domain/types';
+import type { PlayableTrack, TrackSong } from '@/domain/types';
 import type { ShowRow } from '@/ui/shows/rows';
 import type { QueueContext, QueueItem } from './model';
 
-type ShowInfo = { id: string; date: string; venue?: { name?: string } };
+export type ShowInfo = { id: string; date: string; venue?: { name?: string } };
+
+/**
+ * A tape, as far as playing it goes: a full `Source` or a projected one
+ * (`SongsSource`). Its tracks take the tape's id as their source id.
+ */
+export type PlayableTape = {
+  id: string;
+  sets: readonly { tracks?: readonly Omit<PlayableTrack, 'sourceId'>[] }[];
+};
 
 /** "Grateful Dead · 1977-05-08" */
 export const showLabel = (artistName: string, date: string) =>
@@ -23,7 +32,7 @@ export function showContext({
   trackSlugs,
 }: {
   show: ShowInfo;
-  source: Source;
+  source: PlayableTape;
   artistSlug: string;
   artistName: string;
   trackSlugs?: readonly string[];
@@ -33,13 +42,16 @@ export function showContext({
     .filter((t) => !trackSlugs || (t.slug && trackSlugs.includes(t.slug)));
   const items: QueueItem[] = [];
   for (const t of tracks) {
-    const item = trackItem(t, {
-      showId: show.id,
-      date: show.date,
-      artistSlug,
-      artistName,
-      venue: show.venue?.name,
-    });
+    const item = trackItem(
+      { ...t, sourceId: source.id },
+      {
+        showId: show.id,
+        date: show.date,
+        artistSlug,
+        artistName,
+        venue: show.venue?.name,
+      }
+    );
     if (item) items.push(item);
   }
   return {

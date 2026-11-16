@@ -22,3 +22,13 @@ export function trackHref(route: TrackRoute, params: TrackParams, query?: string
       return href('/[artistSlug]/[year]/[month]/[day]/[songSlug]', params, query);
   }
 }
+
+/**
+ * Whether `pathname` is one of this show's pages: the show, or one of its
+ * tracks, on the site or in an embed. There, playing a track changes only
+ * the URL (it follows playback); anywhere else, its link goes to the show.
+ */
+export const isShowPage = (
+  pathname: string,
+  { artistSlug, year, month, day }: Omit<TrackParams, 'songSlug'>
+) => `${pathname}/`.includes(`/${artistSlug}/${year}/${month}/${day}/`);

@@ -54,7 +54,24 @@ const songsTrack = (t: Track): SongsTrack => ({
   ...(t.songs && { songs: t.songs }),
 });
 
-export const songsProjection = (show: ShowDetail): SongsShow => ({
+/**
+ * Memoized per show object. `loadShow` is a React `cache`, so a request's
+ * show layout and track page get one show object, and with it one projection:
+ * Flight serializes an object once per response and refers back to it, so a
+ * track page passing its tape to the player adds no bytes to a document load.
+ */
+const songsProjections = new WeakMap<ShowDetail, SongsShow>();
+
+export const songsProjection = (show: ShowDetail): SongsShow => {
+  let projected = songsProjections.get(show);
+  if (!projected) {
+    projected = projectSongs(show);
+    songsProjections.set(show, projected);
+  }
+  return projected;
+};
+
+const projectSongs = (show: ShowDetail): SongsShow => ({
   id: show.id,
   date: show.date,
   venue: show.venue,

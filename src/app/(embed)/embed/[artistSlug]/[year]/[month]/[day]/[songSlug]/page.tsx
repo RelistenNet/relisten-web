@@ -4,45 +4,50 @@ import PlayerManager from '@/player/PlayerManager';
 import TrackList from '@/player/PlayingTrackList';
 import { proxyStreamUrl } from '@/player/proxyStreamUrl';
 import { createShowDate } from '@/lib/utils';
+import { songsProjection } from '@/lib/showProjection';
+import { activeTape } from '@/lib/sortSources';
+import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { deny, getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 
+// The embed's track list plays a clicked track in place (the URL follows), so
+// this page renders on load, and on a link into the embed only.
 export default async function EmbedSongPage() {
   const { artistSlug, year, month, day, songSlug } = getSegmentParams(SEGMENT_PATH);
 
-  const resolvedParams = { artistSlug, year, month, day, songSlug };
-
   if (!year || !month || !day) return deny(404);
 
-  const [show, artists] = await Promise.all([
-    loadShow(artistSlug, createShowDate(year, month, day)),
-    loadArtists(),
-  ]);
+  const date = createShowDate(year, month, day);
+  const [show, artists] = await Promise.all([loadShow(artistSlug, date), loadArtists()]);
 
-  if (!show) {
-    deny(404);
-  }
+  const songs = songsProjection(show);
+  const tape = activeTape(songs.sources, sourceSearchParamsLoader.get().source);
+  if (!tape) return deny(404);
 
-  const artistName = artists?.find((a) => a.slug === artistSlug)?.name;
+  const artistName =
+    artists.find((a) => a.slug === artistSlug)?.name ?? artistSlug.replace(/-/g, ' ');
 
+  // The tape is an object of `songs`, so Flight sends it once for both.
   return (
     <div className="flex h-full">
       <div className="w-full shrink-0 overflow-y-auto border-r px-2">
         <TrackList
           artistSlug={artistSlug}
+          artistName={artistName}
           year={year}
           month={month}
           day={day}
-          show={show}
+          show={songs}
           trackRoute="embed"
         />
       </div>
       <PlayerManager
-        embed
-        {...resolvedParams}
-        show={show}
+        show={{ id: songs.id, date: songs.date || date, venue: songs.venue }}
+        tape={tape}
+        artistSlug={artistSlug}
         artistName={artistName}
-        trackRoute="embed"
+        songSlug={songSlug}
+        play={false}
       />
     </div>
   );
