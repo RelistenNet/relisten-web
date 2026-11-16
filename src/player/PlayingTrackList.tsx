@@ -4,7 +4,7 @@ import { useCallback, useMemo, type MouseEvent } from 'react';
 import { usePathname } from '@timber-js/app/client';
 import type { SongsShow, SongsSource, SongsTrack } from '@/lib/showProjection';
 import TrackList, { type PlayingTrack, type Props } from '@/ui/shows/TrackList';
-import { isShowPage } from '@/ui/shows/trackHref';
+import { showPageKind } from '@/ui/shows/trackHref';
 import { playShow } from './commands';
 import { useCurrentItem, useTrackStatuses } from './hooks';
 import { showTrackItem, songLinks } from './queue/items';
@@ -61,7 +61,9 @@ export default function PlayingTrackList({
         artistName: artistName ?? artistSlug.replace(/-/g, ' '),
         trackSlug: track.slug,
       });
-      if (isShowPage(pathname, { artistSlug, year, month, day })) event.preventDefault();
+      // The same check followPlayback makes, so a click stays here only where
+      // the URL will follow it.
+      if (showPageKind(pathname, artistSlug, show.date)) event.preventDefault();
     },
     [show, artistSlug, artistName, year, month, day, pathname]
   );

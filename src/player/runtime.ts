@@ -28,7 +28,7 @@ import { diagnose, diagnoseStall, parseGaplessError } from './failure';
 import { rememberListener } from './autoplay';
 import { savedVolume } from './volume';
 import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
-import { isShowPage, trackHref, type TrackRoute } from '@/ui/shows/trackHref';
+import { showPageKind, trackHref, type TrackRoute } from '@/ui/shows/trackHref';
 import { splitShowDate } from '@/lib/utils';
 import { browserStorage } from '@/lib/browserStorage';
 
@@ -280,9 +280,8 @@ function followPlayback(item: QueueItem): void {
       : 'site';
   const { year, month, day } = splitShowDate(item.date);
   const showParams = { artistSlug: item.artistSlug, year, month, day };
-  if (!item.trackSlug || !isShowPage(pathname, showParams)) return;
-  // The show's own page has no song in its title yet ("1977-05-08 | …").
-  const onTrackPage = !`${pathname}/`.endsWith(`/${item.artistSlug}/${year}/${month}/${day}/`);
+  const page = showPageKind(pathname, item.artistSlug, item.date);
+  if (!item.trackSlug || !page) return;
   const next = trackHref(
     route,
     { ...showParams, songSlug: item.trackSlug },
@@ -291,7 +290,8 @@ function followPlayback(item: QueueItem): void {
   if (pathname + search !== next) replaceUrl(next);
   // "Song | 1977-05-08 | Grateful Dead | Relisten": replace only the song.
   const parts = document.title.split(' | ');
-  if (onTrackPage) parts[0] = item.title;
+  // The show's own page has no song in its title yet ("1977-05-08 | …").
+  if (page === 'track') parts[0] = item.title;
   else parts.unshift(item.title);
   document.title = parts.join(' | ');
 }
