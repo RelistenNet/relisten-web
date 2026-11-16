@@ -7,7 +7,7 @@
 import { showContext, type PlayableTape, type ShowInfo } from './queue/items';
 import { nextUpKey, type QueueItem } from './queue/model';
 import { browserRefusesAutoplay, canAutoplay } from './autoplay';
-import { getEngine, playbackActor, playerActor, startPlayback } from './runtime';
+import { followCurrent, getEngine, playbackActor, playerActor, startPlayback } from './runtime';
 import { showPlayPrompt } from './toasts';
 
 /**
@@ -83,6 +83,16 @@ export function playSongRows({
   if (!start) return;
   playerActor.send({ type: 'PLAY_CONTEXT', ctx: { label, items }, startKey: start.key });
   startPlayback();
+}
+
+/**
+ * Play a track a track list shows, from the tape the list holds. The URL
+ * follows: on the show's pages that is the whole effect of the click, even
+ * when the track is already current (playShow leaves it alone).
+ */
+export function playFromTrackList(args: Parameters<typeof playShow>[0]): void {
+  playShow(args);
+  followCurrent();
 }
 
 /** Give Next up entries keys of their own (the same track can also be in the context). */

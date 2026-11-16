@@ -9,6 +9,7 @@ import { SEGMENT_PATH } from './$segment';
 import { contextSearchParamsLoader } from './search-params';
 import { songsProjection } from '@/lib/showProjection';
 import { activeTape } from '@/lib/sortSources';
+import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 
 export default async function SingleTrackEmbedPage() {
   const { artistSlug, year, month, day, songSlug } = getSegmentParams(SEGMENT_PATH);
@@ -25,10 +26,11 @@ export default async function SingleTrackEmbedPage() {
   const artistName =
     artists.find((a) => a.slug === artistSlug)?.name ?? artistSlug.replace(/-/g, ' ');
 
-  // One tape for the list and the player: the one the site would play.
+  // One tape for the list and the player: the one `?source=` names, or the
+  // one the site would play.
   const date = createShowDate(year, month, day);
   const songs = songsProjection(show);
-  const tape = activeTape(songs.sources, undefined);
+  const tape = activeTape(songs.sources, sourceSearchParamsLoader.get().source);
   const allTracks = tape?.sets.flatMap((set) => set.tracks) ?? [];
   const anchorIndex = allTracks.findIndex((t) => t.slug === songSlug);
 

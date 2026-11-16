@@ -25,23 +25,17 @@ export function trackHref(route: TrackRoute, params: TrackParams, query?: string
 }
 
 /**
- * Which of this show's pages `pathname` is: the show itself, one of its
- * tracks, or neither (null). Site and embed pages alike. On the show's pages,
- * playing a track changes only the URL (it follows playback); anywhere else,
- * its link goes to the show.
+ * Whether `pathname` is one of this show's pages: the show, or one of its
+ * tracks, on the site or in an embed. There, playing a track changes only
+ * the URL (it follows playback); anywhere else, its link goes to the show.
  *
  * `showDate` is "YYYY-MM-DD". The URL's date is compared after padding, so an
  * unpadded URL (`/goose/2024/2/8`, which the routes accept) is the same show.
  */
-export function showPageKind(
-  pathname: string,
-  artistSlug: string,
-  showDate: string
-): 'show' | 'track' | null {
+export function isShowPage(pathname: string, artistSlug: string, showDate: string): boolean {
   const segments = pathname.split('/').filter(Boolean);
   const at = segments.indexOf(artistSlug);
-  if (at === -1 || segments.length - at < 4) return null;
-  const [year, month, day, track] = segments.slice(at + 1, at + 5);
-  if (createShowDate(year, month, day) !== showDate) return null;
-  return track ? 'track' : 'show';
+  if (at === -1 || segments.length - at < 4) return false;
+  const [year, month, day] = segments.slice(at + 1, at + 4);
+  return createShowDate(year, month, day) === showDate;
 }

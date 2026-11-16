@@ -4,8 +4,8 @@ import { useCallback, useMemo, type MouseEvent } from 'react';
 import { usePathname } from '@timber-js/app/client';
 import type { SongsShow, SongsSource, SongsTrack } from '@/lib/showProjection';
 import TrackList, { type PlayingTrack, type Props } from '@/ui/shows/TrackList';
-import { showPageKind } from '@/ui/shows/trackHref';
-import { playShow } from './commands';
+import { isShowPage } from '@/ui/shows/trackHref';
+import { playFromTrackList } from './commands';
 import { useCurrentItem, useTrackStatuses } from './hooks';
 import { showTrackItem, songLinks } from './queue/items';
 import QueueMenu from './QueueMenu';
@@ -54,7 +54,7 @@ export default function PlayingTrackList({
   const onPlayTrack = useCallback(
     (event: MouseEvent<HTMLAnchorElement>, track: SongsTrack, source: SongsSource) => {
       if (!show || !artistSlug || !year || !month || !day || !track.slug) return;
-      playShow({
+      playFromTrackList({
         show,
         source,
         artistSlug,
@@ -63,7 +63,7 @@ export default function PlayingTrackList({
       });
       // The same check followPlayback makes, so a click stays here only where
       // the URL will follow it.
-      if (showPageKind(pathname, artistSlug, show.date)) event.preventDefault();
+      if (isShowPage(pathname, artistSlug, show.date)) event.preventDefault();
     },
     [show, artistSlug, artistName, year, month, day, pathname]
   );
