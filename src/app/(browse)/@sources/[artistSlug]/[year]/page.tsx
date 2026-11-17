@@ -1,33 +1,22 @@
 import TapesColumn from '@/components/TapesColumn';
-import RelistenAPI from '@/lib/RelistenAPI';
-import { isQuickHitSegment } from '@/lib/quickHitSegments';
-import { splitShowDate } from '@/lib/utils';
+import { loadBrowseTargetFor } from '@/lib/browseTarget';
 import { getSegmentParams } from '@timber-js/app/server';
-import { slugSearchParams } from '@/lib/searchParams/slugSearchParam';
 import { SEGMENT_PATH } from './$segment';
 
+// A show reached through a quick-hit tab (/gd/songs?slug=&date=).
 export default async function SourcesYearSlot() {
-  const { artistSlug, year } = getSegmentParams(SEGMENT_PATH);
+  const target = await loadBrowseTargetFor(getSegmentParams(SEGMENT_PATH));
+  if (target.kind !== 'show' || !target.segment) return null;
 
-  if (!isQuickHitSegment(year)) return null;
-
-  const { date, slug } = await slugSearchParams.get();
-  if (!date) return null;
-
-  const { year: y, month: m, day: d } = splitShowDate(date);
-  if (!y || !m || !d) return null;
-
-  const show = await RelistenAPI.fetchShow(artistSlug, y, date);
-  if (!show) return null;
-
+  const { artistSlug, date, show, segment, slug } = target;
   return (
     <TapesColumn
       artistSlug={artistSlug}
-      year={y}
-      month={m}
-      day={d}
+      year={date.year}
+      month={date.month}
+      day={date.day}
       show={show}
-      quickHitSegment={year}
+      quickHitSegment={segment}
       quickHitSlug={slug}
     />
   );
