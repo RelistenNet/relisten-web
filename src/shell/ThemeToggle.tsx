@@ -1,6 +1,7 @@
 'use client';
 
 import { themeCookie, type ThemeMode } from '@/lib/themeCookie';
+import SegmentedControl from '@/ui/base/SegmentedControl';
 
 const OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: 'system', label: 'System' },
@@ -8,6 +9,7 @@ const OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: 'dark', label: 'Dark' },
 ];
 
+/** The theme, applied at once: the cookie for the next document, data-theme for this one. */
 export default function ThemeToggle() {
   const [mode, setMode] = themeCookie.useCookie();
 
@@ -20,36 +22,5 @@ export default function ThemeToggle() {
     }
   };
 
-  return (
-    <div className="inline-flex items-center gap-2">
-      <span id="theme-toggle-label" className="text-sm text-text-secondary">
-        Theme:
-      </span>
-      <div
-        role="radiogroup"
-        aria-labelledby="theme-toggle-label"
-        className="inline-flex rounded-md border border-hairline bg-surface-elevated p-0.5"
-      >
-        {OPTIONS.map(({ value, label }) => {
-          const active = mode === value;
-          return (
-            <button
-              key={value}
-              type="button"
-              role="radio"
-              aria-checked={active}
-              onClick={() => handleSelect(value)}
-              className={`cursor-pointer rounded-sm px-3 py-1 text-sm transition-colors ${
-                active
-                  ? 'bg-surface-raised text-text-primary'
-                  : 'text-text-secondary hover:bg-surface-hover'
-              }`}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
+  return <SegmentedControl label="Theme" options={OPTIONS} value={mode} onChange={handleSelect} />;
 }

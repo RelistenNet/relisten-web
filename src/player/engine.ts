@@ -71,7 +71,12 @@ const STATUS_INTERVAL_MS = 250;
 /** Tracks to preload ahead once audio is playing (gapless starts with none). */
 export const PRELOAD_TRACKS_WHILE_PLAYING = 2;
 
-export function createEngine(createQueue: QueueFactory, callbacks: EngineCallbacks) {
+export function createEngine(
+  createQueue: QueueFactory,
+  callbacks: EngineCallbacks,
+  /** Tracks to preload ahead once playing; 0 never downloads ahead. */
+  preloadWhilePlaying = PRELOAD_TRACKS_WHILE_PLAYING
+) {
   let lastStatus = '';
   let lastStatusAt = 0;
   let playing = false;
@@ -98,7 +103,7 @@ export function createEngine(createQueue: QueueFactory, callbacks: EngineCallbac
   const queue = createQueue({
     onProgress(info) {
       if (!info.isPaused && queue.preloadNumTracks === 0) {
-        queue.preloadNumTracks = PRELOAD_TRACKS_WHILE_PLAYING;
+        queue.preloadNumTracks = preloadWhilePlaying;
       }
       callbacks.onProgress({
         key: info.key,
