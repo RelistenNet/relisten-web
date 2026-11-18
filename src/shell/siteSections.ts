@@ -12,4 +12,5 @@ export const siteSections = [
   { label: 'Apps', href: href('/app') },
   { label: 'Blog', href: href('/blog') },
   { label: 'About', href: href('/about') },
+  { label: 'Account', href: href('/account') },
 ] as const;
