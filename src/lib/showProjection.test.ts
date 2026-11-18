@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { gd770508 } from '@/data/__fixtures__';
 import { toShowDetail } from '@/data/summaries';
-import { showTrackItem } from '@/player/queue/items';
-import { songsProjection, tapesProjection } from './showProjection';
-import { sortSources } from './sortSources';
+import { showContext, showTrackItem } from '@/player/queue/items';
+import { songsProjection, tapesProjection, tapeWithTrack } from './showProjection';
+import { toSourceParam } from './sourceParam';
+import { activeTape, sortSources } from './sortSources';
 
 const show = toShowDetail(gd770508);
 const songs = songsProjection(show);
@@ -25,6 +26,18 @@ describe('songsProjection', () => {
     );
     expect(full.length).toBeGreaterThan(0);
     expect(slim).toEqual(full);
+  });
+
+  it('plays a tape as the full show does: the player takes the projected tape', () => {
+    const who = { artistSlug: 'grateful-dead', artistName: 'Grateful Dead' };
+    for (const source of show.sources) {
+      const tape = songs.sources.find((s) => s.id === source.id);
+      expect(tape).toBeDefined();
+      if (!tape) return;
+      expect(showContext({ show: songs, source: tape, ...who })).toEqual(
+        showContext({ show, source, ...who })
+      );
+    }
   });
 
   it('keeps every tape, and drops what no column reads', () => {
@@ -52,4 +65,41 @@ it('both columns order tapes as the full show does', () => {
   const expected = ids(sortSources(show.sources));
   expect(ids(sortSources(songs.sources))).toEqual(expected);
   expect(ids(sortSources(tapes.sources))).toEqual(expected);
+});
+
+describe('activeTape', () => {
+  it('picks the tape ?source= names, in either form, and the top-sorted one otherwise', () => {
+    const top = sortSources(songs.sources)[0];
+    const other = sortSources(songs.sources).at(-1);
+    if (!other) throw new Error('fixture has no tapes');
+    expect(other.id).not.toBe(top?.id);
+    expect(activeTape(songs.sources, toSourceParam(other.id))).toBe(other);
+    expect(activeTape(songs.sources, other.id)).toBe(other);
+    expect(activeTape(songs.sources, undefined)).toBe(top);
+    expect(activeTape(songs.sources, 'not-a-tape')).toBe(top);
+    expect(activeTape([], undefined)).toBeUndefined();
+  });
+});
+
+describe('tapeWithTrack', () => {
+  const [top, other] = sortSources(songs.sources);
+  const slugOf = (tape: typeof top) => tape?.sets[0]?.tracks[0]?.slug ?? '';
+  // A tape the active one doesn't have, cut down from another tape.
+  const onlyOther = {
+    ...other,
+    sets: [{ id: 'x', name: 'x', tracks: [{ ...other.sets[0].tracks[0], slug: 'only-on-other' }] }],
+  };
+
+  it('keeps the active tape when it has the track', () => {
+    expect(tapeWithTrack(songs.sources, other, slugOf(other))).toBe(other);
+  });
+
+  it('falls back to the first tape, in display order, that has it', () => {
+    expect(tapeWithTrack([top, onlyOther], top, 'only-on-other')).toBe(onlyOther);
+    expect(tapeWithTrack(songs.sources, undefined, slugOf(top))).toBe(top);
+  });
+
+  it('is undefined when no tape has it', () => {
+    expect(tapeWithTrack(songs.sources, top, 'no-such-song')).toBeUndefined();
+  });
 });

@@ -28,7 +28,7 @@ import { diagnose, diagnoseStall, parseGaplessError } from './failure';
 import { rememberListener } from './autoplay';
 import { savedVolume } from './volume';
 import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
-import { trackHref, type TrackRoute } from '@/ui/shows/trackHref';
+import { showPageRoute, trackHref } from '@/ui/shows/trackHref';
 import { splitShowDate } from '@/lib/utils';
 import { browserStorage } from '@/lib/browserStorage';
 
@@ -268,28 +268,41 @@ if (isBrowser) {
 }
 
 /**
+ * Point the URL at the current track now, not only when the current track
+ * changes: a click on the track that is already current (back on its show's
+ * page) changes nothing in the queue, but the URL should still name it.
+ * Not while booting, for the reason the subscription gives.
+ */
+export function followCurrent(): void {
+  const { mode, queue } = playerActor.getSnapshot().context;
+  if (mode !== 'booting' && queue.current) followPlayback(queue.current.item);
+}
+
+/**
  * Point the URL and title at the playing track, while the page shows its
  * show (a track page of it, in the same route). The queue never navigates.
  */
 function followPlayback(item: QueueItem): void {
   const { pathname, search } = window.location;
-  const route: TrackRoute = pathname.startsWith('/embed-track')
-    ? 'embed-track'
-    : pathname.startsWith('/embed')
-      ? 'embed'
-      : 'site';
+  const route = showPageRoute(pathname, item.artistSlug, item.date);
+  if (!item.trackSlug || !route) return;
   const { year, month, day } = splitShowDate(item.date);
-  if (!item.trackSlug || !pathname.includes(`/${item.artistSlug}/${year}/${month}/${day}`)) return;
   const next = trackHref(
     route,
     { artistSlug: item.artistSlug, year, month, day, songSlug: item.trackSlug },
     sourceQuery(item.sourceId)
   );
   if (pathname + search !== next) replaceUrl(next);
-  // "Song | 1977-05-08 | Grateful Dead | Relisten": replace only the song.
+  // "Song | 1977-05-08 | Grateful Dead | Relisten": the song, then the title
+  // from the show's date on. Built from the date, not from whether the URL
+  // names a track: React leaves a <title> it rendered alone when its text is
+  // unchanged, so after a client navigation back to the show's page the
+  // title can still carry the song this set.
   const parts = document.title.split(' | ');
-  parts[0] = item.title;
-  document.title = parts.join(' | ');
+  const fromDate = parts.indexOf(item.date);
+  document.title = [item.title, ...(fromDate === -1 ? parts.slice(1) : parts.slice(fromDate))].join(
+    ' | '
+  );
 }
 
 /** Start playback (every play goes through here: transport, prompts, autoplay). */

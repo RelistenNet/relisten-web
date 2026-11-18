@@ -1,5 +1,6 @@
+import { cache } from 'react';
 import type { ShowDetail, Source, SourceSet, Track } from '@/domain/types';
-import type { SortableSource } from './sortSources';
+import { sortSources, type SortableSource } from './sortSources';
 
 // A show page's songs and sources columns are separate slots, each serialized
 // to the client on its own (twice the show, with the client segment cache).
@@ -54,7 +55,29 @@ const songsTrack = (t: Track): SongsTrack => ({
   ...(t.songs && { songs: t.songs }),
 });
 
-export const songsProjection = (show: ShowDetail): SongsShow => ({
+/**
+ * Cached per request, so a show layout and its track page share one
+ * projection, and the track page's tape is serialized once with it.
+ */
+export const songsProjection = cache((show: ShowDetail): SongsShow => projectSongs(show));
+
+const hasTrack = (tape: SongsSource, trackSlug: string) =>
+  tape.sets.some((set) => set.tracks.some((track) => track.slug === trackSlug));
+
+/**
+ * The tape a track page plays: the active one (see activeTape) when it has the
+ * track, or else the first in display order that does.
+ */
+export const tapeWithTrack = (
+  sources: SongsSource[],
+  active: SongsSource | undefined,
+  trackSlug: string
+) =>
+  active && hasTrack(active, trackSlug)
+    ? active
+    : sortSources(sources).find((tape) => hasTrack(tape, trackSlug));
+
+const projectSongs = (show: ShowDetail): SongsShow => ({
   id: show.id,
   date: show.date,
   venue: show.venue,

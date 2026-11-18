@@ -1,48 +1,46 @@
 import { href } from '@timber-js/app/routes';
-import { loadArtists, loadShow } from '@/features/browse/load';
+import { loadArtists, loadShow, loadTrackPage } from '@/features/browse/load';
 import PlayerManager from '@/player/PlayerManager';
 import TrackList from '@/player/PlayingTrackList';
 import { proxyStreamUrl } from '@/player/proxyStreamUrl';
 import { createShowDate } from '@/lib/utils';
 import { deny, getSegmentParams } from '@timber-js/app/server';
+import { trackSearchParams } from '@/lib/searchParams/trackSearchParams';
 import { SEGMENT_PATH } from './$segment';
 
+// The embed's track list plays a clicked track in place (the URL follows), so
+// this page renders on load, and on a link into the embed only.
 export default async function EmbedSongPage() {
   const { artistSlug, year, month, day, songSlug } = getSegmentParams(SEGMENT_PATH);
 
-  const resolvedParams = { artistSlug, year, month, day, songSlug };
-
   if (!year || !month || !day) return deny(404);
 
-  const [show, artists] = await Promise.all([
-    loadShow(artistSlug, createShowDate(year, month, day)),
-    loadArtists(),
-  ]);
-
-  if (!show) {
-    deny(404);
-  }
-
-  const artistName = artists?.find((a) => a.slug === artistSlug)?.name;
+  const { songs, show, tape, artistName } = await loadTrackPage(
+    'embed',
+    { artistSlug, year, month, day, songSlug },
+    trackSearchParams
+  );
 
   return (
     <div className="flex h-full">
       <div className="w-full shrink-0 overflow-y-auto border-r px-2">
         <TrackList
           artistSlug={artistSlug}
+          artistName={artistName}
           year={year}
           month={month}
           day={day}
-          show={show}
+          show={songs}
           trackRoute="embed"
         />
       </div>
       <PlayerManager
-        embed
-        {...resolvedParams}
         show={show}
+        tape={tape}
+        artistSlug={artistSlug}
         artistName={artistName}
-        trackRoute="embed"
+        songSlug={songSlug}
+        play={false}
       />
     </div>
   );

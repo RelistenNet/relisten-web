@@ -1,5 +1,4 @@
-import { findArtistBySlug } from '@/data/artists';
-import { loadRandomShow } from '@/features/browse/load';
+import { loadArtistName, loadRandomShow } from '@/features/browse/load';
 import BrowseColumn from '@/features/browse/BrowseColumn';
 import ShowsColumn from '@/features/browse/ShowsColumn';
 import TapesColumn from '@/ui/shows/TapesColumn';
@@ -13,9 +12,9 @@ import { splitShowDate } from '@/lib/utils';
  * picked. Rendered by a page, so it is 'request' (a new show per load).
  */
 export default async function RandomShowColumns({ artistSlug }: { artistSlug: string }) {
-  const [show, artist] = await Promise.all([
+  const [show, artistName] = await Promise.all([
     loadRandomShow(artistSlug),
-    findArtistBySlug(artistSlug),
+    loadArtistName(artistSlug),
   ]);
   if (!show) {
     return (
@@ -36,7 +35,7 @@ export default async function RandomShowColumns({ artistSlug }: { artistSlug: st
       <BrowseColumn>
         <TrackList
           artistSlug={artistSlug}
-          artistName={artist?.name}
+          artistName={artistName}
           year={year}
           month={month}
           day={day}

@@ -1,37 +1,37 @@
 import BrowseColumn from '@/features/browse/BrowseColumn';
-import { loadArtists, loadShow } from '@/features/browse/load';
+import { loadArtists, loadShow, loadTrackPage } from '@/features/browse/load';
 import { METADATA_BASE } from '@/lib/constants';
 import PlayerManager from '@/player/PlayerManager';
 import { proxyStreamUrl } from '@/player/proxyStreamUrl';
-import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { createShowDate } from '@/lib/utils';
 import { deny, getSegmentParams } from '@timber-js/app/server';
+import { trackSearchParams } from '@/lib/searchParams/trackSearchParams';
 import { SEGMENT_PATH } from './$segment';
 
+// Arriving here plays the track (a shared link, a reload, a link from another
+// page). Clicking a track in the show's list plays it without coming here: the
+// list holds the tapes, and the URL follows playback.
 export default async function Page() {
   const { artistSlug, year, month, day, songSlug } = getSegmentParams(SEGMENT_PATH);
 
   if (!year || !month || !day) return deny(404);
 
-  const params = { artistSlug, year, month, day };
-
-  const [show, artists] = await Promise.all([
-    loadShow(artistSlug, createShowDate(year, month, day)),
-    loadArtists(),
-  ]);
-
-  // A missing show already 404s in fetchShow; also 404 when no source has this song.
-  const songExists = show?.sources?.some((source) =>
-    source.sets?.some((set) => set.tracks?.some((track) => track.slug === songSlug))
+  const { show, tape, artistName } = await loadTrackPage(
+    'site',
+    { artistSlug, year, month, day, songSlug },
+    trackSearchParams
   );
-  if (!songExists) return deny(404);
-
-  const artistName = artists?.find((a) => a.slug === artistSlug)?.name;
-  const { source } = sourceSearchParamsLoader.get();
 
   return (
     <BrowseColumn>
-      <PlayerManager {...params} show={show} artistName={artistName} source={source} />
+      <PlayerManager
+        show={show}
+        tape={tape}
+        artistSlug={artistSlug}
+        artistName={artistName}
+        songSlug={songSlug}
+        play
+      />
     </BrowseColumn>
   );
 }

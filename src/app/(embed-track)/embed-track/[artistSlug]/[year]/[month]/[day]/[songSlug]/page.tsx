@@ -1,5 +1,5 @@
 import { href } from '@timber-js/app/routes';
-import { loadArtists, loadShow } from '@/features/browse/load';
+import { loadArtists, loadShow, loadTrackPage } from '@/features/browse/load';
 import PlayerManager from '@/player/PlayerManager';
 import EmbedTrackList from '@/features/embed/EmbedTrackList';
 import { proxyStreamUrl } from '@/player/proxyStreamUrl';
@@ -7,31 +7,24 @@ import { createShowDate } from '@/lib/utils';
 import { deny, getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 import { contextSearchParamsLoader } from './search-params';
-import type { Track } from '@/domain/types';
 
 export default async function SingleTrackEmbedPage() {
   const { artistSlug, year, month, day, songSlug } = getSegmentParams(SEGMENT_PATH);
 
   if (!year || !month || !day || !songSlug) return deny(404);
 
-  const [show, artists] = await Promise.all([
-    loadShow(artistSlug, createShowDate(year, month, day)),
-    loadArtists(),
-  ]);
+  const { show, tape, artistName } = await loadTrackPage(
+    'embed-track',
+    { artistSlug, year, month, day, songSlug },
+    contextSearchParamsLoader
+  );
 
-  if (!show) deny(404);
-
-  const artistName = artists?.find((a) => a.slug === artistSlug)?.name;
-
-  const allTracks = show.sources?.[0]?.sets?.flatMap((set) => set.tracks ?? []) ?? [];
-  const anchorIndex = allTracks.findIndex((t) => t?.slug === songSlug);
-
-  if (anchorIndex === -1) return deny(404);
-
-  const { context } = await contextSearchParamsLoader.get();
+  const allTracks = tape.sets.flatMap((set) => set.tracks);
+  const anchorIndex = allTracks.findIndex((t) => t.slug === songSlug);
+  const { context } = contextSearchParamsLoader.get();
   const startIdx = Math.max(0, anchorIndex - context);
   const endIdx = Math.min(allTracks.length, anchorIndex + context + 1);
-  const contextTracks = allTracks.slice(startIdx, endIdx).filter((t): t is Track => t != null);
+  const contextTracks = allTracks.slice(startIdx, endIdx);
   const trackSlugs = contextTracks.flatMap((t) => (t.slug ? [t.slug] : []));
 
   return (
@@ -40,15 +33,12 @@ export default async function SingleTrackEmbedPage() {
         <EmbedTrackList tracks={contextTracks} startPosition={startIdx + 1} />
       )}
       <PlayerManager
-        embed
-        artistSlug={artistSlug}
-        year={year}
-        month={month}
-        day={day}
         show={show}
+        tape={tape}
+        artistSlug={artistSlug}
         artistName={artistName}
-        trackRoute="embed-track"
-        playImmediately={false}
+        songSlug={songSlug}
+        play={false}
         trackSlugs={trackSlugs}
       />
     </>
