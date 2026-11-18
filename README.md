@@ -25,6 +25,8 @@ Our Sonos app is on the Sonos store and also open source @ https://github.com/Re
   $ npm start
 ```
 
+For sign-in and `/account` development, see [docs/browser-session.md](docs/browser-session.md).
+
 ### Commit formatting
 
 Use Node.js 26 and run `pnpm install` to enable the repository’s native Git hooks. Commits use lint-staged and oxfmt to format
