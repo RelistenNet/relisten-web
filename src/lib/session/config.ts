@@ -1,9 +1,8 @@
 import 'server-only';
 import { getDeploymentEnvironment } from '@/lib/deployment/server';
 
+// Development always talks to the local User Service (`pnpm dev:session`).
 const dev = process.env.NODE_ENV !== 'production';
-// `pnpm dev:session` sets this to "local" (dotnet run) or "production" (relisten.net).
-const localBackend = dev && process.env.RELISTEN_WEB_SESSION !== 'production';
 
 const LOCAL_WEB_ORIGIN = 'https://web.relisten.localhost:5173';
 
@@ -23,16 +22,17 @@ export function webOrigin(): string {
  * Where server-side session lookups go. The User Service only honours the
  * X-Relisten-Web-Origin relay from its accounts host or a configured web origin,
  * so this is either the local `dotnet run` accounts host or relisten.net itself
- * (Traefik routes the session paths there).
+ * (Traefik routes the session paths there; the relay is ignored and the origin is
+ * relisten.net).
  */
 export const USER_SERVICE_URL =
   process.env.RELISTEN_USER_SERVICE_URL ??
-  (localBackend ? 'https://accounts.relisten.localhost:5443' : 'https://relisten.net');
+  (dev ? 'https://accounts.relisten.localhost:5443' : 'https://relisten.net');
 
 /** The OIDC issuer / SSO-cookie host. Logout bounces through it to clear the SSO cookie. */
 export const AUTH_ORIGIN =
   process.env.RELISTEN_AUTH_ORIGIN ??
-  (localBackend ? 'https://localhost:5443' : 'https://auth.relisten.net');
+  (dev ? 'https://localhost:5443' : 'https://auth.relisten.net');
 
 /** Every User Service call is aborted after this; the page renders its failure state instead. */
 export const USER_SERVICE_TIMEOUT_MS = 10_000;
