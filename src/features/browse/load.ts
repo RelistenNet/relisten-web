@@ -7,7 +7,8 @@ import { artistOnDate, randomShow, showByDate, yearShows } from '@/data/shows';
 import type { ShowDetail, ShowSummary, YearSummary } from '@/domain/types';
 import { songsProjection, tapeWithTrack } from '@/lib/showProjection';
 import { activeTape } from '@/lib/sortSources';
-import { sourceQuery, sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
+import type { SearchParamsDefinition } from '@timber-js/app/search-params';
+import { toSourceParam } from '@/lib/sourceParam';
 import { createShowDate } from '@/lib/utils';
 import { trackHref, type TrackRoute } from '@/ui/shows/trackHref';
 
@@ -71,8 +72,15 @@ type TrackPageParams = {
  * the top-sorted one. 404s for an unknown show, or a song no tape has. When
  * that tape lacks the song, redirects to the first tape that has it, so the
  * URL, the track list and the player agree on one tape.
+ *
+ * `query` is the page's search params (`trackSearchParams`, or an extension of
+ * it), so the redirect changes only the tape and keeps `?t=` and the rest.
  */
-export async function loadTrackPage(route: TrackRoute, params: TrackPageParams) {
+export async function loadTrackPage<Q extends { source: string }>(
+  route: TrackRoute,
+  params: TrackPageParams,
+  query: SearchParamsDefinition<Q>
+) {
   const { artistSlug, year, month, day, songSlug } = params;
   const date = createShowDate(year, month, day);
   const [show, artistName] = await Promise.all([
@@ -80,10 +88,14 @@ export async function loadTrackPage(route: TrackRoute, params: TrackPageParams) 
     loadArtistName(artistSlug),
   ]);
   const songs = songsProjection(show);
-  const active = activeTape(songs.sources, sourceSearchParamsLoader.get().source);
+  const values = query.get();
+  const active = activeTape(songs.sources, values.source);
   const tape = tapeWithTrack(songs.sources, active, songSlug);
   if (!tape) deny(404);
-  if (tape !== active) redirect(trackHref(route, params, sourceQuery(tape.id)));
+  if (tape !== active) {
+    const kept = query.buildSearchParams({ ...values, source: toSourceParam(tape.id) });
+    redirect(trackHref(route, params, kept));
+  }
   return {
     songs,
     tape,

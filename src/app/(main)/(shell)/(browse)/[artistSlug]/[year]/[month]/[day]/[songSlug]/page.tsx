@@ -5,6 +5,7 @@ import PlayerManager from '@/player/PlayerManager';
 import { proxyStreamUrl } from '@/player/proxyStreamUrl';
 import { createShowDate } from '@/lib/utils';
 import { deny, getSegmentParams } from '@timber-js/app/server';
+import { trackSearchParams } from '@/lib/searchParams/trackSearchParams';
 import { SEGMENT_PATH } from './$segment';
 
 // Arriving here plays the track (a shared link, a reload, a link from another
@@ -15,13 +16,11 @@ export default async function Page() {
 
   if (!year || !month || !day) return deny(404);
 
-  const { show, tape, artistName } = await loadTrackPage('site', {
-    artistSlug,
-    year,
-    month,
-    day,
-    songSlug,
-  });
+  const { show, tape, artistName } = await loadTrackPage(
+    'site',
+    { artistSlug, year, month, day, songSlug },
+    trackSearchParams
+  );
 
   return (
     <BrowseColumn>

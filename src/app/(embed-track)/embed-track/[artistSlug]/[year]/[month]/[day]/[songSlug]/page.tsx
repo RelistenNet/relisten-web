@@ -13,17 +13,15 @@ export default async function SingleTrackEmbedPage() {
 
   if (!year || !month || !day || !songSlug) return deny(404);
 
-  const { show, tape, artistName } = await loadTrackPage('embed-track', {
-    artistSlug,
-    year,
-    month,
-    day,
-    songSlug,
-  });
+  const { show, tape, artistName } = await loadTrackPage(
+    'embed-track',
+    { artistSlug, year, month, day, songSlug },
+    contextSearchParamsLoader
+  );
 
   const allTracks = tape.sets.flatMap((set) => set.tracks);
   const anchorIndex = allTracks.findIndex((t) => t.slug === songSlug);
-  const { context } = await contextSearchParamsLoader.get();
+  const { context } = contextSearchParamsLoader.get();
   const startIdx = Math.max(0, anchorIndex - context);
   const endIdx = Math.min(allTracks.length, anchorIndex + context + 1);
   const contextTracks = allTracks.slice(startIdx, endIdx);

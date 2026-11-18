@@ -5,6 +5,7 @@ import TrackList from '@/player/PlayingTrackList';
 import { proxyStreamUrl } from '@/player/proxyStreamUrl';
 import { createShowDate } from '@/lib/utils';
 import { deny, getSegmentParams } from '@timber-js/app/server';
+import { trackSearchParams } from '@/lib/searchParams/trackSearchParams';
 import { SEGMENT_PATH } from './$segment';
 
 // The embed's track list plays a clicked track in place (the URL follows), so
@@ -14,13 +15,11 @@ export default async function EmbedSongPage() {
 
   if (!year || !month || !day) return deny(404);
 
-  const { songs, show, tape, artistName } = await loadTrackPage('embed', {
-    artistSlug,
-    year,
-    month,
-    day,
-    songSlug,
-  });
+  const { songs, show, tape, artistName } = await loadTrackPage(
+    'embed',
+    { artistSlug, year, month, day, songSlug },
+    trackSearchParams
+  );
 
   return (
     <div className="flex h-full">
