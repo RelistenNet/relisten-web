@@ -1,15 +1,10 @@
 'use server';
 
-import {
-  ActionError,
-  createActionClient,
-  getCookieJar,
-  redirect,
-  redirectExternal,
-} from '@timber-js/app/server';
+import { ActionError, createActionClient, redirect, redirectExternal } from '@timber-js/app/server';
 import { href } from '@timber-js/app/routes';
 import { logoutSession, switchAccountSession, UserServiceError } from '@/data/session';
-import { AUTH_ORIGIN, CSRF_COOKIE, SESSION_COOKIE } from '@/lib/session/config';
+import { AUTH_ORIGIN } from '@/lib/session/config';
+import { csrfCookie, sessionCookie } from '@/lib/session/sessionCookie';
 
 const sessionAction = createActionClient({});
 
@@ -27,9 +22,8 @@ async function runSessionNavigation(mutation: () => Promise<{ navigation_url: st
     navigationUrl = (await mutation()).navigation_url;
   } catch (err) {
     if (err instanceof UserServiceError && err.status === 401) {
-      const jar = getCookieJar();
-      jar.delete(SESSION_COOKIE);
-      jar.delete(CSRF_COOKIE);
+      sessionCookie.delete();
+      csrfCookie.delete();
       redirect(href('/account'));
     }
     const status = err instanceof UserServiceError ? err.status : undefined;

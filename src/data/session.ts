@@ -1,18 +1,17 @@
 import 'server-only';
 
 import { cache } from 'react';
-import { getCookieJar } from '@timber-js/app/server';
 import type { AccountProfile, LibrarySnapshot, SessionNavigation } from '@/domain/account';
 import {
-  CSRF_COOKIE,
   CSRF_HEADER,
-  SESSION_COOKIE,
   USER_SERVICE_TIMEOUT_MS,
   USER_SERVICE_URL,
   WEB_ORIGIN_HEADER,
   webOrigin,
 } from '@/lib/session/config';
 import { sessionReturnSearchParams } from '@/lib/searchParams/sessionSearchParams';
+import { csrfCookie, sessionCookie } from '@/lib/session/sessionCookie';
+import { setCookieValue } from '@/lib/session/setCookieValue';
 
 /**
  * The signed-in user's account, from the Relisten User Service. Per-user data, so
@@ -37,15 +36,21 @@ export class SessionUnavailableError extends Error {
   }
 }
 
-/** Forward the browser's session cookies to the User Service. Never cached; times out. */
-async function userServiceFetch(path: string, init: RequestInit = {}): Promise<Response> {
-  const jar = getCookieJar();
-  const cookie = [SESSION_COOKIE, CSRF_COOKIE]
-    .map((name) => {
-      const value = jar.get(name);
-      return value === undefined ? null : `${name}=${value}`;
-    })
-    .filter(Boolean)
+/**
+ * Forward the browser's session cookies to the User Service. Never cached; times out.
+ * `csrf` replaces the browser's CSRF cookie: the one csrfToken() was just issued.
+ */
+async function userServiceFetch(
+  path: string,
+  init: RequestInit = {},
+  csrf: string | null = csrfCookie.get()
+): Promise<Response> {
+  const cookie = [
+    [sessionCookie.name, sessionCookie.get()],
+    [csrfCookie.name, csrf],
+  ]
+    .filter(([, value]) => value !== null)
+    .map(([name, value]) => `${name}=${value}`)
     .join('; ');
 
   const origin = webOrigin();
@@ -87,7 +92,7 @@ const userForSession = cache(async (_token: string): Promise<AccountProfile | nu
  * signed out, so the error boundary renders that state.
  */
 export async function getCurrentUser(): Promise<AccountProfile | null> {
-  const token = getCookieJar().get(SESSION_COOKIE);
+  const token = sessionCookie.get();
   return token ? userForSession(token) : null;
 }
 
@@ -101,33 +106,46 @@ export const getLibrarySnapshot = cache(async (): Promise<LibrarySnapshot | null
   }
 });
 
-/** Mutable contexts only (actions / route handlers): relays the CSRF cookie. */
-async function csrfToken(): Promise<string> {
+/**
+ * A CSRF request token and the cookie it is bound to. The antiforgery cookie lasts
+ * a browser session while the web session cookie persists, so after a browser
+ * restart the User Service mints a fresh cookie here. It goes straight into the
+ * POST that follows, never to the browser: that POST ends the session and clears it.
+ */
+async function csrfToken(): Promise<{ requestToken: string; cookie: string | null }> {
   const path = '/api/user/v1/csrf';
   const res = await userServiceFetch(path);
-  // The antiforgery cookie is a browser-session cookie while the web session
-  // cookie is persistent, so after a browser restart the User Service mints a
-  // fresh __Host-relisten_csrf here. Relay it before the POST: the jar's
-  // read-your-own-writes makes the next userServiceFetch send the cookie the
-  // request token is bound to, and the browser receives it too.
-  getCookieJar().setFromHeaders(res.headers);
   if (!res.ok) throw new UserServiceError(res.status, path);
   const { request_token } = (await res.json()) as { request_token: string };
-  return request_token;
+  return {
+    requestToken: request_token,
+    cookie: setCookieValue(res.headers, csrfCookie.name) ?? csrfCookie.get(),
+  };
 }
 
-/** POST with a session-bound CSRF token, relaying any Set-Cookie back to the browser. Actions only. */
-async function mutate<T>(path: string): Promise<T> {
-  const token = await csrfToken();
-  const res = await userServiceFetch(path, { method: 'POST', headers: { [CSRF_HEADER]: token } });
-  getCookieJar().setFromHeaders(res.headers);
+/**
+ * POST a session-ending call (sign-out, switch account) with a CSRF token. The User
+ * Service clears the session and CSRF cookies on success; we clear them ourselves
+ * rather than relay its Set-Cookie headers, so no cookie from that response, or
+ * from anything between us and it, reaches the browser. Actions only.
+ */
+async function endSession<T>(path: string): Promise<T> {
+  const csrf = await csrfToken();
+  const res = await userServiceFetch(
+    path,
+    { method: 'POST', headers: { [CSRF_HEADER]: csrf.requestToken } },
+    csrf.cookie
+  );
   if (!res.ok) throw new UserServiceError(res.status, path);
-  return (await res.json()) as T;
+  const body = (await res.json()) as T;
+  sessionCookie.delete();
+  csrfCookie.delete();
+  return body;
 }
 
-export const logoutSession = () => mutate<SessionNavigation>('/auth/session/logout');
+export const logoutSession = () => endSession<SessionNavigation>('/auth/session/logout');
 
 export const switchAccountSession = (returnTo: string) =>
-  mutate<SessionNavigation>(
+  endSession<SessionNavigation>(
     sessionReturnSearchParams.href('/auth/session/switch-account', { return_to: returnTo })
   );
