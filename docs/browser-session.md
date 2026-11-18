@@ -9,7 +9,7 @@ and its sign-in link 404s. Sign-in needs the User Service reachable _same-origin
 on the one local origin it accepts, `https://web.relisten.localhost:5173`, because
 its cookies are `__Host-` cookies (HTTPS, bound to one origin).
 
-Forwarded paths: `/auth/session/*`, `/api/user/v1/csrf`, `/v1/me`, `/v1/library/*`.
+Forwarded paths: `/auth/session/*`, `/api/user/v1/csrf`, `/v1/me`.
 Who forwards them:
 
 - **Production:** Traefik, in front of relisten.net.
@@ -73,8 +73,8 @@ localhost. Use the local User Service.
 - `src/data/session.ts`: `getCurrentUser()` reads `__Host-relisten_session` and
   asks `/v1/me`, deduped per request. An outage throws `SessionUnavailableError`
   so the error boundary renders it, rather than showing the user as signed out.
-  The same file has the library read and the CSRF-protected mutations. Every
-  call times out after 10s.
+  The same file has the CSRF-protected mutations. Every call times out after
+  10s.
 - `src/features/account/`: the `/account` page, the sign-out / switch-account
   forms, and their server actions.
 - `src/lib/session/config.ts`: origins and hosts. The web origin is the preview

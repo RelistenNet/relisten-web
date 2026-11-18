@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { cache } from 'react';
-import type { AccountProfile, LibrarySnapshot, SessionNavigation } from '@/domain/account';
+import type { AccountProfile, SessionNavigation } from '@/domain/account';
 import {
   CSRF_HEADER,
   USER_SERVICE_TIMEOUT_MS,
@@ -95,16 +95,6 @@ export async function getCurrentUser(): Promise<AccountProfile | null> {
   const token = sessionCookie.get();
   return token ? userForSession(token) : null;
 }
-
-/** The favorites library, or null if it could not be loaded (logged). */
-export const getLibrarySnapshot = cache(async (): Promise<LibrarySnapshot | null> => {
-  try {
-    return await json<LibrarySnapshot>('/v1/library/snapshot');
-  } catch (err) {
-    console.error('[session] /v1/library/snapshot failed', err);
-    return null;
-  }
-});
 
 /**
  * A CSRF request token and the cookie it is bound to. The antiforgery cookie lasts
