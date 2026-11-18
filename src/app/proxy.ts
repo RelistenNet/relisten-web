@@ -1,4 +1,5 @@
 import { getDeploymentEnvironment } from '@/lib/deployment/server';
+import { proxySessionRequest } from '@/lib/session/proxy';
 import { trace } from '@opentelemetry/api';
 // Bundled at build time so we never fetch from a Host-header-derived origin.
 import privacyPolicyHtml from '../../public/privacy_policy.html?raw';
@@ -26,7 +27,8 @@ async function handleRequest(req: Request, next: () => Promise<Response>) {
     return Response.redirect('https://discordapp.com/invite/73fdDSS');
   }
 
-  const res = await next();
+  // Dev-only session forwarding (pnpm dev:session); null everywhere else.
+  const res = (await proxySessionRequest(req)) ?? (await next());
   const ms = (performance.now() - start).toFixed(3).padStart(3, '0');
   if (url.pathname !== '/api/status') {
     console.info(
