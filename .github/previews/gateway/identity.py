@@ -18,6 +18,22 @@ def listener_port(slot):
     return 9000 + slot
 
 
+# In-cluster listener where preview servers reach their own auth facade by path.
+SESSION_PORT = 9100
+
+
+def session_prefix(pr):
+    preview_host(pr)
+    return f"/pr-{pr}"
+
+
+def session_upstream(pr):
+    return (
+        "http://relisten-preview-gateway.preview-system.svc.cluster.local:"
+        f"{SESSION_PORT}{session_prefix(pr)}"
+    )
+
+
 def frontdoor(pr=None, slot=0):
     if pr is None:
         if slot != 0:
