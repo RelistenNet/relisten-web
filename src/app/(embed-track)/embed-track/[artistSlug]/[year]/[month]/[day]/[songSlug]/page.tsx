@@ -1,5 +1,5 @@
 import { href } from '@timber-js/app/routes';
-import { loadArtists, loadShow } from '@/features/browse/load';
+import { loadArtists, loadShow, loadTrackPage } from '@/features/browse/load';
 import PlayerManager from '@/player/PlayerManager';
 import EmbedTrackList from '@/features/embed/EmbedTrackList';
 import { proxyStreamUrl } from '@/player/proxyStreamUrl';
@@ -7,35 +7,22 @@ import { createShowDate } from '@/lib/utils';
 import { deny, getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 import { contextSearchParamsLoader } from './search-params';
-import { songsProjection } from '@/lib/showProjection';
-import { activeTape } from '@/lib/sortSources';
-import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 
 export default async function SingleTrackEmbedPage() {
   const { artistSlug, year, month, day, songSlug } = getSegmentParams(SEGMENT_PATH);
 
   if (!year || !month || !day || !songSlug) return deny(404);
 
-  const [show, artists] = await Promise.all([
-    loadShow(artistSlug, createShowDate(year, month, day)),
-    loadArtists(),
-  ]);
+  const { show, tape, artistName } = await loadTrackPage('embed-track', {
+    artistSlug,
+    year,
+    month,
+    day,
+    songSlug,
+  });
 
-  if (!show) deny(404);
-
-  const artistName =
-    artists.find((a) => a.slug === artistSlug)?.name ?? artistSlug.replace(/-/g, ' ');
-
-  // One tape for the list and the player: the one `?source=` names, or the
-  // one the site would play.
-  const date = createShowDate(year, month, day);
-  const songs = songsProjection(show);
-  const tape = activeTape(songs.sources, sourceSearchParamsLoader.get().source);
-  const allTracks = tape?.sets.flatMap((set) => set.tracks) ?? [];
+  const allTracks = tape.sets.flatMap((set) => set.tracks);
   const anchorIndex = allTracks.findIndex((t) => t.slug === songSlug);
-
-  if (!tape || anchorIndex === -1) return deny(404);
-
   const { context } = await contextSearchParamsLoader.get();
   const startIdx = Math.max(0, anchorIndex - context);
   const endIdx = Math.min(allTracks.length, anchorIndex + context + 1);
@@ -48,7 +35,7 @@ export default async function SingleTrackEmbedPage() {
         <EmbedTrackList tracks={contextTracks} startPosition={startIdx + 1} />
       )}
       <PlayerManager
-        show={{ id: songs.id, date: songs.date || date, venue: songs.venue }}
+        show={show}
         tape={tape}
         artistSlug={artistSlug}
         artistName={artistName}

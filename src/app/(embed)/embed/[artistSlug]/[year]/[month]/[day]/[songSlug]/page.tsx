@@ -1,12 +1,9 @@
 import { href } from '@timber-js/app/routes';
-import { loadArtists, loadShow } from '@/features/browse/load';
+import { loadArtists, loadShow, loadTrackPage } from '@/features/browse/load';
 import PlayerManager from '@/player/PlayerManager';
 import TrackList from '@/player/PlayingTrackList';
 import { proxyStreamUrl } from '@/player/proxyStreamUrl';
 import { createShowDate } from '@/lib/utils';
-import { songsProjection } from '@/lib/showProjection';
-import { activeTape } from '@/lib/sortSources';
-import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { deny, getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 
@@ -17,17 +14,14 @@ export default async function EmbedSongPage() {
 
   if (!year || !month || !day) return deny(404);
 
-  const date = createShowDate(year, month, day);
-  const [show, artists] = await Promise.all([loadShow(artistSlug, date), loadArtists()]);
+  const { songs, show, tape, artistName } = await loadTrackPage('embed', {
+    artistSlug,
+    year,
+    month,
+    day,
+    songSlug,
+  });
 
-  const songs = songsProjection(show);
-  const tape = activeTape(songs.sources, sourceSearchParamsLoader.get().source);
-  if (!tape) return deny(404);
-
-  const artistName =
-    artists.find((a) => a.slug === artistSlug)?.name ?? artistSlug.replace(/-/g, ' ');
-
-  // The tape is an object of `songs`, so Flight sends it once for both.
   return (
     <div className="flex h-full">
       <div className="w-full shrink-0 overflow-y-auto border-r px-2">
@@ -42,7 +36,7 @@ export default async function EmbedSongPage() {
         />
       </div>
       <PlayerManager
-        show={{ id: songs.id, date: songs.date || date, venue: songs.venue }}
+        show={show}
         tape={tape}
         artistSlug={artistSlug}
         artistName={artistName}

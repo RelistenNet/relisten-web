@@ -1,6 +1,5 @@
-import { findArtistBySlug } from '@/data/artists';
 import BrowseColumn from '@/features/browse/BrowseColumn';
-import { loadShow } from '@/features/browse/load';
+import { loadArtistName, loadShow } from '@/features/browse/load';
 import TapesColumn from '@/ui/shows/TapesColumn';
 import TrackList from '@/player/PlayingTrackList';
 import { songsProjection, tapesProjection } from '@/lib/showProjection';
@@ -14,9 +13,9 @@ import { SEGMENT_PATH } from './$segment';
 // segment, so both skip this layout without rendering it.
 export default async function ShowLayout({ children }: { children: ReactNode }) {
   const { artistSlug, year, month, day } = getSegmentParams(SEGMENT_PATH);
-  const [show, artist] = await Promise.all([
+  const [show, artistName] = await Promise.all([
     loadShow(artistSlug, createShowDate(year, month, day)),
-    findArtistBySlug(artistSlug),
+    loadArtistName(artistSlug),
   ]);
   return (
     <>
@@ -24,7 +23,7 @@ export default async function ShowLayout({ children }: { children: ReactNode }) 
         {show && (
           <TrackList
             artistSlug={artistSlug}
-            artistName={artist?.name}
+            artistName={artistName}
             year={year}
             month={month}
             day={day}

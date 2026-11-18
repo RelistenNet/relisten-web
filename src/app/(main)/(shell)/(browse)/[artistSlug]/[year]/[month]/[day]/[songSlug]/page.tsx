@@ -1,12 +1,9 @@
 import BrowseColumn from '@/features/browse/BrowseColumn';
-import { loadArtists, loadShow } from '@/features/browse/load';
+import { loadArtists, loadShow, loadTrackPage } from '@/features/browse/load';
 import { METADATA_BASE } from '@/lib/constants';
 import PlayerManager from '@/player/PlayerManager';
 import { proxyStreamUrl } from '@/player/proxyStreamUrl';
-import { sourceSearchParamsLoader } from '@/lib/searchParams/sourceSearchParam';
 import { createShowDate } from '@/lib/utils';
-import { songsProjection } from '@/lib/showProjection';
-import { activeTape } from '@/lib/sortSources';
 import { deny, getSegmentParams } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 
@@ -18,31 +15,21 @@ export default async function Page() {
 
   if (!year || !month || !day) return deny(404);
 
-  const date = createShowDate(year, month, day);
-  const [show, artists] = await Promise.all([loadShow(artistSlug, date), loadArtists()]);
+  const { show, tape, artistName } = await loadTrackPage('site', {
+    artistSlug,
+    year,
+    month,
+    day,
+    songSlug,
+  });
 
-  // A missing show already 404s in loadShow; also 404 when no tape has this song.
-  const songs = songsProjection(show);
-  const hasSong = songs.sources.some((tape) =>
-    tape.sets.some((set) => set.tracks.some((track) => track.slug === songSlug))
-  );
-  if (!hasSong) return deny(404);
-
-  const tape = activeTape(songs.sources, sourceSearchParamsLoader.get().source);
-  if (!tape) return deny(404);
-
-  // The tape is the show layout's own object (songsProjection is memoized per
-  // show), so a document load serializes it once. A client navigation here
-  // sends this one tape.
   return (
     <BrowseColumn>
       <PlayerManager
-        show={{ id: songs.id, date: songs.date || date, venue: songs.venue }}
+        show={show}
         tape={tape}
         artistSlug={artistSlug}
-        artistName={
-          artists.find((a) => a.slug === artistSlug)?.name ?? artistSlug.replace(/-/g, ' ')
-        }
+        artistName={artistName}
         songSlug={songSlug}
         play
       />

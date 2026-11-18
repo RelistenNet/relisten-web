@@ -1,5 +1,6 @@
+import { cache } from 'react';
 import type { ShowDetail, Source, SourceSet, Track } from '@/domain/types';
-import type { SortableSource } from './sortSources';
+import { sortSources, type SortableSource } from './sortSources';
 
 // A show page's songs and sources columns are separate slots, each serialized
 // to the client on its own (twice the show, with the client segment cache).
@@ -55,21 +56,26 @@ const songsTrack = (t: Track): SongsTrack => ({
 });
 
 /**
- * Memoized per show object. `loadShow` is a React `cache`, so a request's
- * show layout and track page get one show object, and with it one projection:
- * Flight serializes an object once per response and refers back to it, so a
- * track page passing its tape to the player adds no bytes to a document load.
+ * Cached per request, so a show layout and its track page share one
+ * projection, and the track page's tape is serialized once with it.
  */
-const songsProjections = new WeakMap<ShowDetail, SongsShow>();
+export const songsProjection = cache((show: ShowDetail): SongsShow => projectSongs(show));
 
-export const songsProjection = (show: ShowDetail): SongsShow => {
-  let projected = songsProjections.get(show);
-  if (!projected) {
-    projected = projectSongs(show);
-    songsProjections.set(show, projected);
-  }
-  return projected;
-};
+const hasTrack = (tape: SongsSource, trackSlug: string) =>
+  tape.sets.some((set) => set.tracks.some((track) => track.slug === trackSlug));
+
+/**
+ * The tape a track page plays: the active one (see activeTape) when it has the
+ * track, or else the first in display order that does.
+ */
+export const tapeWithTrack = (
+  sources: SongsSource[],
+  active: SongsSource | undefined,
+  trackSlug: string
+) =>
+  active && hasTrack(active, trackSlug)
+    ? active
+    : sortSources(sources).find((tape) => hasTrack(tape, trackSlug));
 
 const projectSongs = (show: ShowDetail): SongsShow => ({
   id: show.id,

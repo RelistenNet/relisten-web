@@ -4,7 +4,7 @@ import { useCallback, useMemo, type MouseEvent } from 'react';
 import { usePathname } from '@timber-js/app/client';
 import type { SongsShow, SongsSource, SongsTrack } from '@/lib/showProjection';
 import TrackList, { type PlayingTrack, type Props } from '@/ui/shows/TrackList';
-import { isShowPage } from '@/ui/shows/trackHref';
+import { showPageRoute } from '@/ui/shows/trackHref';
 import { playFromTrackList } from './commands';
 import { useCurrentItem, useTrackStatuses } from './hooks';
 import { showTrackItem, songLinks } from './queue/items';
@@ -24,7 +24,7 @@ import QueueMenu from './QueueMenu';
 export default function PlayingTrackList({
   artistName,
   ...props
-}: Props & { show?: SongsShow; artistName?: string }) {
+}: Props & { show?: SongsShow; artistName: string }) {
   const current = useCurrentItem();
   const statuses = useTrackStatuses();
   const playing = useMemo<PlayingTrack | null>(
@@ -32,12 +32,12 @@ export default function PlayingTrackList({
     [current, statuses]
   );
 
-  const { show, artistSlug, year, month, day, trackRoute } = props;
+  const { show, artistSlug, trackRoute } = props;
   const pathname = usePathname();
-  const canQueue = !!show && !!artistSlug && !!artistName && (trackRoute ?? 'site') === 'site';
+  const canQueue = !!show && !!artistSlug && (trackRoute ?? 'site') === 'site';
   const trackActions = useCallback(
     (track: SongsTrack, source: SongsSource) =>
-      canQueue && show && artistSlug && artistName ? (
+      canQueue && show && artistSlug ? (
         <QueueMenu
           item={showTrackItem({
             show,
@@ -53,19 +53,19 @@ export default function PlayingTrackList({
 
   const onPlayTrack = useCallback(
     (event: MouseEvent<HTMLAnchorElement>, track: SongsTrack, source: SongsSource) => {
-      if (!show || !artistSlug || !year || !month || !day || !track.slug) return;
+      if (!show || !artistSlug || !track.slug) return;
       playFromTrackList({
         show,
         source,
         artistSlug,
-        artistName: artistName ?? artistSlug.replace(/-/g, ' '),
+        artistName,
         trackSlug: track.slug,
       });
       // The same check followPlayback makes, so a click stays here only where
       // the URL will follow it.
-      if (isShowPage(pathname, artistSlug, show.date)) event.preventDefault();
+      if (showPageRoute(pathname, artistSlug, show.date)) event.preventDefault();
     },
-    [show, artistSlug, artistName, year, month, day, pathname]
+    [show, artistSlug, artistName, pathname]
   );
 
   return (

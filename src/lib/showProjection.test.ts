@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { gd770508 } from '@/data/__fixtures__';
 import { toShowDetail } from '@/data/summaries';
 import { showContext, showTrackItem } from '@/player/queue/items';
-import { songsProjection, tapesProjection } from './showProjection';
+import { songsProjection, tapesProjection, tapeWithTrack } from './showProjection';
 import { toSourceParam } from './sourceParam';
 import { activeTape, sortSources } from './sortSources';
 
@@ -38,11 +38,6 @@ describe('songsProjection', () => {
         showContext({ show, source, ...who })
       );
     }
-  });
-
-  it('is one object per show, so the layout and the track page share their tapes', () => {
-    expect(songsProjection(show)).toBe(songs);
-    expect(songsProjection(toShowDetail(gd770508))).not.toBe(songs);
   });
 
   it('keeps every tape, and drops what no column reads', () => {
@@ -83,5 +78,28 @@ describe('activeTape', () => {
     expect(activeTape(songs.sources, undefined)).toBe(top);
     expect(activeTape(songs.sources, 'not-a-tape')).toBe(top);
     expect(activeTape([], undefined)).toBeUndefined();
+  });
+});
+
+describe('tapeWithTrack', () => {
+  const [top, other] = sortSources(songs.sources);
+  const slugOf = (tape: typeof top) => tape?.sets[0]?.tracks[0]?.slug ?? '';
+  // A tape the active one doesn't have, cut down from another tape.
+  const onlyOther = {
+    ...other,
+    sets: [{ id: 'x', name: 'x', tracks: [{ ...other.sets[0].tracks[0], slug: 'only-on-other' }] }],
+  };
+
+  it('keeps the active tape when it has the track', () => {
+    expect(tapeWithTrack(songs.sources, other, slugOf(other))).toBe(other);
+  });
+
+  it('falls back to the first tape, in display order, that has it', () => {
+    expect(tapeWithTrack([top, onlyOther], top, 'only-on-other')).toBe(onlyOther);
+    expect(tapeWithTrack(songs.sources, undefined, slugOf(top))).toBe(top);
+  });
+
+  it('is undefined when no tape has it', () => {
+    expect(tapeWithTrack(songs.sources, top, 'no-such-song')).toBeUndefined();
   });
 });

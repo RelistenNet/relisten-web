@@ -28,7 +28,7 @@ import { diagnose, diagnoseStall, parseGaplessError } from './failure';
 import { rememberListener } from './autoplay';
 import { savedVolume } from './volume';
 import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
-import { isShowPage, trackHref, type TrackRoute } from '@/ui/shows/trackHref';
+import { showPageRoute, trackHref } from '@/ui/shows/trackHref';
 import { splitShowDate } from '@/lib/utils';
 import { browserStorage } from '@/lib/browserStorage';
 
@@ -284,17 +284,12 @@ export function followCurrent(): void {
  */
 function followPlayback(item: QueueItem): void {
   const { pathname, search } = window.location;
-  const route: TrackRoute = pathname.startsWith('/embed-track')
-    ? 'embed-track'
-    : pathname.startsWith('/embed')
-      ? 'embed'
-      : 'site';
+  const route = showPageRoute(pathname, item.artistSlug, item.date);
+  if (!item.trackSlug || !route) return;
   const { year, month, day } = splitShowDate(item.date);
-  const showParams = { artistSlug: item.artistSlug, year, month, day };
-  if (!item.trackSlug || !isShowPage(pathname, item.artistSlug, item.date)) return;
   const next = trackHref(
     route,
-    { ...showParams, songSlug: item.trackSlug },
+    { artistSlug: item.artistSlug, year, month, day, songSlug: item.trackSlug },
     sourceQuery(item.sourceId)
   );
   if (pathname + search !== next) replaceUrl(next);
