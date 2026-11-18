@@ -31,10 +31,7 @@ export default async function AccountPage() {
       <h1>Account</h1>
       <p>
         Signed in as <strong>{user.username}</strong>
-        {/* Reserves the line's width so the count arriving doesn't shift anything. */}
-        <Suspense fallback={<span className="invisible"> · 0 favorites</span>}>
-          <FavoritesCount />
-        </Suspense>
+        <FavoritesCount />
       </p>
       <SessionForms />
     </div>
