@@ -16,10 +16,25 @@ import threading
 import time
 import uuid
 
-from identity import CONTROL_HOST, PROBE_HOST, listener_port, preview_host
+from identity import (
+    CONTROL_HOST,
+    PROBE_HOST,
+    SESSION_PORT,
+    listener_port,
+    preview_host,
+    session_prefix,
+)
 
 MAX_BYTES = 16 * 1024
 AUTH_UPSTREAM = "relisten-user-service-srv.default.svc.cluster.local:8080"
+AUTH_PATHS = (
+    ("=", "/auth/session"),
+    ("^~", "/auth/session/"),
+    ("=", "/api/user/v1/csrf"),
+    ("=", "/v1/me"),
+    ("=", "/v1/library"),
+    ("^~", "/v1/library/"),
+)
 SYNTHETIC_UPSTREAM = "relisten-preview-synthetic.web-previews.svc.cluster.local:8080"
 
 
@@ -47,6 +62,7 @@ class Route:
     slot: int
     synthetic: bool = False
     control: bool = False
+    pr: int = 0
 
 
 @dataclass(frozen=True)
@@ -87,6 +103,7 @@ def parse_snapshot(value):
                 preview_host(number),
                 f"relisten-web-preview-pr-{number}.web-previews.svc.cluster.local:3000",
                 entry["slot"],
+                pr=number,
             )
         else:
             raise ValueError("Routes must select a PR/slot or the synthetic backend")
@@ -100,11 +117,13 @@ def parse_snapshot(value):
     return Snapshot(revision, tuple(sorted(routes)))
 
 
-def proxy_location(prefix, upstream, host, auth=False):
+def proxy_location(prefix, upstream, host, auth=False, strip=""):
     trusted_host = "accounts.relisten.net" if auth else host
     relay = f'"https://{host}"' if auth else '""'
+    rewrite = f"rewrite ^{strip}(/.*)$ $1 break;" if strip else ""
     return f"""
         location {prefix} {{
+            {rewrite}
             proxy_pass http://{upstream};
             proxy_http_version 1.1;
             proxy_set_header Host {trusted_host};
@@ -130,6 +149,7 @@ def proxy_location(prefix, upstream, host, auth=False):
 
 def nginx_configuration(snapshot, state_directory, generation):
     servers = []
+    session_locations = ""
     for route in snapshot.routes:
         host = route.host
         host_pattern = host.replace(".", r"\.")
@@ -139,15 +159,20 @@ def nginx_configuration(snapshot, state_directory, generation):
             if route.control else proxy_location("/", route.upstream, host)
         )
         if not route.synthetic and not route.control:
-            for prefix in [
-                "= /auth/session",
-                "^~ /auth/session/",
-                "= /api/user/v1/csrf",
-                "= /v1/me",
-                "= /v1/library",
-                "^~ /v1/library/",
-            ]:
-                locations += proxy_location(prefix, AUTH_UPSTREAM, host, auth=True)
+            prefix = session_prefix(route.pr)
+            for modifier, path in AUTH_PATHS:
+                locations += proxy_location(
+                    f"{modifier} {path}", AUTH_UPSTREAM, host, auth=True
+                )
+                # The preview's own server cannot present its Tailscale host, so it
+                # names its route by path; the relay still comes from this route.
+                session_locations += proxy_location(
+                    f"{modifier} {prefix}{path}",
+                    AUTH_UPSTREAM,
+                    host,
+                    auth=True,
+                    strip=prefix,
+                )
         servers.append(
             f"""
     server {{
@@ -172,6 +197,15 @@ def nginx_configuration(snapshot, state_directory, generation):
         f"server {{ listen {listener_port(slot)} default_server; server_name _; return 421; }}"
         for slot in range(5)
     )
+    # In-cluster only: exposes nothing but each live PR's auth facade.
+    defaults += f"""
+    server {{
+        listen {SESSION_PORT} default_server;
+        server_name _;
+        location / {{ return 404; }}
+        {session_locations}
+    }}
+"""
     return f"""
 worker_processes 1;
 pid {state_directory}/nginx.pid;

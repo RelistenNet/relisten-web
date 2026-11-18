@@ -1,10 +1,10 @@
 {
-  "infrastructureCommit": "08dacd1795a7c58b9208ea3fc5e1c2e50c217718",
+  "infrastructureCommit": "b3c8eec3c18fdfa9f46139ed275a0fa32083bf38",
   "files": {
     "automation/README.md": "946a90492a21e59c1cd8641bd2faf457d9dafbe8e7ce58af0cda5d7dbe1fd52f",
-    "render.py": "d2c14fb3d2b767df20a3fe483156a7d08a9bbe13bebc397daaeecb37efb24666",
-    "gateway/identity.py": "71ad82187d927ac9585f315cca9a63e9bac4aeb4ee04f56f65fbad993f9b4e93",
-    "gateway/gateway.py": "46db608f065190b498e56582961b3394002f476667f38bd59125ca5f65eca56a",
+    "render.py": "dfc82ee1c7814f1a9e66e9bc761d089af63cda7331fc072565131718aca329e9",
+    "gateway/identity.py": "e0a5cd82a81454cc8efb107853f594adfbffbef849349d83ea682d994a2f1013",
+    "gateway/gateway.py": "9fd413e13c0e56f310ce236b6de735241d50e63c362fc4b1baa3218c17b093c2",
     "pilot/control.py": "ae7506a41235bb3064069b0c0068ae3b6219ec9f607103b2c34395ba93b11763",
     "automation/build.py": "3bb5c8d5b96c481ce891c2a54752a8f55378cb5b1b2eb3248ca8b1b5052ad7b1",
     "automation/controller.py": "e791e7b89f7067f53a87be4a4e7cae318b3b27637e94e9c48eb570ad38ece984",

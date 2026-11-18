@@ -12,7 +12,7 @@ import re
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "gateway"))
-from identity import frontdoor, preview_host
+from identity import frontdoor, preview_host, session_upstream
 
 REPOSITORY = "RelistenNet/relisten-web"
 IMAGE = re.compile(r"ghcr\.io/relistennet/relisten-web-preview@sha256:[0-9a-f]{64}\Z")
@@ -93,6 +93,8 @@ def render(metadata):
                 "HOST": "0.0.0.0",
                 "HOSTNAME": "0.0.0.0",
                 "RELISTEN_API_URL": "http://relistenapi-srv.default.svc.cluster.local:3823",
+                # Trusted gateway path for this PR; the gateway fixes the session relay.
+                "RELISTEN_USER_SERVICE_URL": session_upstream(pr),
             }.items()
         ],
         "resources": {
