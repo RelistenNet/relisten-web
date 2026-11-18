@@ -2,7 +2,7 @@ import 'server-only';
 
 import { cache } from 'react';
 import { getCookieJar } from '@timber-js/app/server';
-import type { AccountProfile, LibrarySnapshot, SessionNavigation } from '@/domain/account';
+import type { AccountProfile, SessionNavigation } from '@/domain/account';
 import {
   CSRF_COOKIE,
   CSRF_HEADER,
@@ -90,16 +90,6 @@ export async function getCurrentUser(): Promise<AccountProfile | null> {
   const token = getCookieJar().get(SESSION_COOKIE);
   return token ? userForSession(token) : null;
 }
-
-/** The favorites library, or null if it could not be loaded (logged). */
-export const getLibrarySnapshot = cache(async (): Promise<LibrarySnapshot | null> => {
-  try {
-    return await json<LibrarySnapshot>('/v1/library/snapshot');
-  } catch (err) {
-    console.error('[session] /v1/library/snapshot failed', err);
-    return null;
-  }
-});
 
 /** Mutable contexts only (actions / route handlers): relays the CSRF cookie. */
 async function csrfToken(): Promise<string> {

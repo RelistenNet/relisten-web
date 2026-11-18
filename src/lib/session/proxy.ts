@@ -15,12 +15,7 @@ import { USER_SERVICE_TIMEOUT_MS, USER_SERVICE_URL, WEB_ORIGIN_HEADER, webOrigin
 const TARGET = process.env.RELISTEN_WEB_SESSION ? USER_SERVICE_URL : null;
 
 // Matches the preview gateway's list (.github/previews/gateway/gateway.py on master).
-const ROUTES = [
-  /^\/auth\/session(\/|$)/,
-  /^\/api\/user\/v1\/csrf$/,
-  /^\/v1\/me$/,
-  /^\/v1\/library(\/|$)/,
-];
+const ROUTES = [/^\/auth\/session(\/|$)/, /^\/api\/user\/v1\/csrf$/, /^\/v1\/me$/];
 
 // Hop-by-hop plus anything that could influence the User Service's origin reconstruction.
 const DROP = new Set([
