@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { href } from '@timber-js/app/routes';
 import { getCurrentUser, getLibrarySnapshot } from '@/data/session';
 import { signInHref } from '@/lib/searchParams/sessionSearchParams';
+import SessionForms from './SessionForms';
 
 // Streams in after the shell: the library call must not hold the flush point.
 async function FavoritesCount() {
@@ -9,7 +10,7 @@ async function FavoritesCount() {
   return library ? <> · {library.favorites.length} favorites</> : <> · favorites unavailable</>;
 }
 
-/** Signed-out: a plain sign-in link (no client JS). Signed-in: the username and session controls. */
+/** Signed-out: a plain sign-in link (no client JS). Signed-in: the username and the sign-out / switch-account forms. */
 export default async function AccountPage() {
   const user = await getCurrentUser();
 
@@ -35,6 +36,7 @@ export default async function AccountPage() {
           <FavoritesCount />
         </Suspense>
       </p>
+      <SessionForms />
     </div>
   );
 }
