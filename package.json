@@ -8,6 +8,7 @@
   "main": "server.js",
   "scripts": {
     "dev": "timber dev",
+    "dev:session": "RELISTEN_WEB_SESSION=${RELISTEN_WEB_SESSION:-local} NODE_OPTIONS=--use-system-ca timber dev",
     "build": "NODE_ENV=production vite build",
     "start": "timber preview",
     "lint": "oxlint",
@@ -17,6 +18,7 @@
     "format:check": "oxfmt --check .",
     "prepare": "git config --local core.hooksPath .githooks || true",
     "gen:api": "orval",
+    "setup:browser-session": "node scripts/setup-browser-session.mjs",
     "update:api": "curl -fsS https://api.relisten.net/api-docs/v4/swagger.json | node -e \"process.stdout.write(JSON.stringify(JSON.parse(require('fs').readFileSync(0,'utf8')),null,2)+'\\n')\" > src/api/swagger.json && orval"
   },
   "dependencies": {
