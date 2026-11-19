@@ -45,7 +45,7 @@ const DROP_RESPONSE = new Set([
 export function sessionDevServer(
   env: NodeJS.ProcessEnv = process.env
 ): { server: ServerOptions; plugin: Plugin } | undefined {
-  if (!env.RELISTEN_WEB_SESSION) return undefined;
+  if (env.RELISTEN_WEB_SESSION !== '1') return undefined;
 
   const dir = localTlsDir(env);
   let cert: Buffer, key: Buffer, ca: Buffer;
@@ -117,7 +117,8 @@ function forward(req: IncomingMessage, res: ServerResponse, ca: Buffer) {
     });
     res.end(
       `Session service unavailable at ${USER_SERVICE.origin}: ${cause}\n` +
-        'Is RelistenUserService running? See docs/browser-session.md.\n'
+        'Is RelistenUserService running, and is the mkcert CA trusted (pnpm setup:browser-session)?\n' +
+        'See docs/browser-session.md.\n'
     );
   });
   req.pipe(upstream);

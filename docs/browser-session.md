@@ -77,7 +77,7 @@ Locally the User Service listens on `https://accounts.relisten.localhost:5443`
   Account") keys on `sessionCookie` (`src/lib/session/sessionCookie.ts`), which
   only checks that the cookie is present.
 - `src/lib/session/config.ts`: origins and hosts, switched by
-  `RELISTEN_WEB_SESSION` (set by `dev:session`). Server-side calls go to the local
+  `RELISTEN_WEB_SESSION=1` (set by `dev:session`). Server-side calls go to the local
   accounts host under `dev:session`, otherwise to relisten.net. Previews set
   `RELISTEN_USER_SERVICE_URL` to their in-cluster gateway route, which supplies
   the preview's origin. `RELISTEN_WEB_ORIGIN` and `RELISTEN_AUTH_ORIGIN` override

@@ -2,7 +2,7 @@ import 'server-only';
 import { getDeploymentEnvironment } from '@/lib/deployment/server';
 
 /** `pnpm dev:session`: the app talks to a local User Service on the local HTTPS origin. */
-export const localSession = Boolean(process.env.RELISTEN_WEB_SESSION);
+export const localSession = process.env.RELISTEN_WEB_SESSION === '1';
 
 const LOCAL_WEB_ORIGIN = 'https://web.relisten.localhost:5173';
 
