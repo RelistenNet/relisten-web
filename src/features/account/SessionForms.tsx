@@ -1,25 +1,21 @@
 'use client';
 
 import { useActionState } from 'react';
-import { readFormErrors } from '@timber-js/app/client';
-import { signOut, switchAccount } from './actions';
+import { signOut, switchAccount, type SessionFormState } from './actions';
 
-const MESSAGES: Record<string, string> = {
-  SESSION_REJECTED: 'The account service rejected the request. Reload and try again.',
-  SESSION_UNAVAILABLE: 'The account service is temporarily unavailable.',
+const MESSAGES: Record<NonNullable<SessionFormState>['error'], string> = {
+  rejected: 'The account service rejected the request. Reload and try again.',
+  unavailable: 'The account service is temporarily unavailable.',
 };
 
 function SessionButton({ action, label }: { action: typeof signOut; label: string }) {
   const [state, formAction, pending] = useActionState(action, null);
-  const code = readFormErrors(state).server?.code;
   return (
     <form action={formAction}>
       <button type="submit" disabled={pending} className="underline disabled:opacity-50">
         {pending ? `${label}…` : label}
       </button>
-      {code && (
-        <p className="mt-1 text-sm text-destructive">{MESSAGES[code] ?? 'Something went wrong.'}</p>
-      )}
+      {state && <p className="mt-1 text-sm text-destructive">{MESSAGES[state.error]}</p>}
     </form>
   );
 }

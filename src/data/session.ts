@@ -1,7 +1,11 @@
 import 'server-only';
 
 import { cache } from 'react';
-import type { AccountProfile, SessionNavigation } from '@/domain/account';
+import type {
+  AccountProfile,
+  SessionNavigation,
+  SessionNavigationResult,
+} from '@/domain/account';
 import {
   CSRF_HEADER,
   USER_SERVICE_TIMEOUT_MS,
@@ -20,7 +24,7 @@ import { setCookieValue } from '@/lib/session/setCookieValue';
  * within one request only.
  */
 
-export class UserServiceError extends Error {
+class UserServiceError extends Error {
   constructor(
     readonly status: number,
     readonly path: string
@@ -99,46 +103,53 @@ export async function getCurrentUser(): Promise<AccountProfile | null> {
   return token ? userForSession(token) : null;
 }
 
-/**
- * A CSRF request token and the cookie it is bound to. The antiforgery cookie lasts
- * a browser session while the web session cookie persists, so after a browser
- * restart the User Service mints a fresh cookie here. It goes straight into the
- * POST that follows, never to the browser: that POST ends the session and clears it.
- */
-async function csrfToken(): Promise<{ requestToken: string; cookie: string | null }> {
-  const path = '/api/user/v1/csrf';
-  const res = await userServiceFetch(path);
-  if (!res.ok) throw new UserServiceError(res.status, path);
-  const { request_token } = (await res.json()) as { request_token: string };
-  return {
-    requestToken: request_token,
-    cookie: setCookieValue(res.headers, csrfCookie.name) ?? csrfCookie.get(),
-  };
+/** The outcome of a failed call. On `expired` the dead session cookies are dropped. */
+function failed(status: number, path: string): SessionNavigationResult {
+  if (status === 401) {
+    sessionCookie.delete();
+    csrfCookie.delete();
+    return { kind: 'expired' };
+  }
+  console.error(`[session] ${path} responded ${status}`);
+  return { kind: status === 403 ? 'rejected' : 'unavailable' };
 }
 
 /**
- * POST a session-ending call (sign-out, switch account) with a CSRF token. The User
- * Service clears the session and CSRF cookies on success; we clear them ourselves
- * rather than relay its Set-Cookie headers, so no cookie from that response, or
- * from anything between us and it, reaches the browser. Actions only.
+ * POST a session-ending call (sign-out, switch account) with a CSRF token. Actions
+ * only. Never throws: every outcome is a result.
+ *
+ * The antiforgery cookie lasts a browser session while the web session cookie
+ * persists, so after a browser restart the User Service mints a fresh one with the
+ * token. It goes straight into the POST, never to the browser. The User Service
+ * clears the session and CSRF cookies on success; we clear them ourselves rather
+ * than relay its Set-Cookie headers, so no cookie from that response, or from
+ * anything between us and it, reaches the browser.
  */
-async function endSession<T>(path: string): Promise<T> {
-  const csrf = await csrfToken();
-  const res = await userServiceFetch(
-    path,
-    { method: 'POST', headers: { [CSRF_HEADER]: csrf.requestToken } },
-    csrf.cookie
-  );
-  if (!res.ok) throw new UserServiceError(res.status, path);
-  const body = (await res.json()) as T;
-  sessionCookie.delete();
-  csrfCookie.delete();
-  return body;
+async function endSession(path: string): Promise<SessionNavigationResult> {
+  const csrfPath = '/api/user/v1/csrf';
+  try {
+    const csrf = await userServiceFetch(csrfPath);
+    if (!csrf.ok) return failed(csrf.status, csrfPath);
+    const { request_token } = (await csrf.json()) as { request_token: string };
+    const csrfValue = setCookieValue(csrf.headers, csrfCookie.name) ?? csrfCookie.get();
+
+    const res = await userServiceFetch(
+      path,
+      { method: 'POST', headers: { [CSRF_HEADER]: request_token } },
+      csrfValue
+    );
+    if (!res.ok) return failed(res.status, path);
+    const { navigation_url } = (await res.json()) as SessionNavigation;
+    sessionCookie.delete();
+    csrfCookie.delete();
+    return { kind: 'navigate', url: navigation_url };
+  } catch (err) {
+    console.error(`[session] ${path} failed`, err);
+    return { kind: 'unavailable' };
+  }
 }
 
-export const logoutSession = () => endSession<SessionNavigation>('/auth/session/logout');
+export const logoutSession = () => endSession('/auth/session/logout');
 
 export const switchAccountSession = (returnTo: string) =>
-  endSession<SessionNavigation>(
-    sessionReturnSearchParams.href('/auth/session/switch-account', { return_to: returnTo })
-  );
+  endSession(sessionReturnSearchParams.href('/auth/session/switch-account', { return_to: returnTo }));
