@@ -113,7 +113,14 @@ export type Source = {
   sets: SourceSet[];
 };
 
-export type SourceLink = { url?: string; label?: string };
+export type SourceLink = {
+  url?: string;
+  label?: string;
+  /** The site it's on, e.g. "phish.net". */
+  provider?: string;
+  /** Where the tape's reviews (and ratings) were imported from. Set only when true. */
+  forReviews?: true;
+};
 
 /** A listener's review of one tape, imported from its upstream archive. */
 export type SourceReview = {

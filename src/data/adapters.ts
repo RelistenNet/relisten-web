@@ -184,7 +184,12 @@ const toSet = (s: SourceSetResource): SourceSet => ({
   tracks: (s.tracks ?? []).map(toTrack),
 });
 
-const toLink = (l: LinkResource): SourceLink => ({ url: opt(l.url), label: opt(l.label) });
+const toLink = (l: LinkResource): SourceLink => ({
+  url: opt(l.url),
+  label: opt(l.label),
+  provider: opt(l.provider),
+  ...(l.for_reviews || l.for_ratings ? { forReviews: true as const } : {}),
+});
 
 export const toSource = (s: SourceResource): Source => ({
   id: s.id,

@@ -160,6 +160,8 @@ describe('toShowDetail', () => {
       {
         url: 'https://archive.org/details/gd77-05-08.sbd.hicks.4982.sbeok.shnf',
         label: 'View on archive.org',
+        provider: 'archive.org',
+        forReviews: true,
       },
     ]);
   });

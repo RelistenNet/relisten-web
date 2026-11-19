@@ -1,7 +1,8 @@
 import { href } from '@timber-js/app/routes';
 import { Link } from '@timber-js/app/client';
 import { deny } from '@timber-js/app/server';
-import { LibraryIcon, MapPinIcon } from 'lucide-react';
+import { ExternalLinkIcon, LibraryIcon, MapPinIcon } from 'lucide-react';
+import type { SourceLink } from '@/domain/types';
 import { Suspense } from 'react';
 import { findArtistBySlug } from '@/data/artists';
 import cn from '@/lib/cn';
@@ -68,30 +69,31 @@ export default async function ShowDetail({
           </>
         }
         meta={[venue?.name && <VenuePill key="venue" artistSlug={artistSlug} venue={venue} />]}
-        actions={
-          // The same show and tape in the column browser.
-          <Link
-            href={href(
-              '/[artistSlug]/[year]/[month]/[day]',
-              { artistSlug, ...splitShowDate(showDate) },
-              sourceQuery(source?.id)
-            )}
-            className="
-              inline-flex items-center gap-1.5 rounded-lg border border-hairline px-3 py-1.5 text-sm
-              font-medium text-text-primary transition-colors hover:bg-surface-hover
-            "
-          >
-            <LibraryIcon className="size-4 text-text-muted" aria-hidden />
-            View show in &lsquo;Browse&rsquo;
-          </Link>
-        }
+        actions={source && <ExternalLinks links={source.links} />}
       />
 
       {/* The tracks, with the show's tapes beside them as in the browse view; stacked below lg. */}
       {/* The show's buttons sit above both columns, so the tracks and tapes start level. */}
       <SongQueueProvider label={showLabel(row.artistName, show.date)} items={visibleItems}>
         <div className="flex flex-col gap-3">
-          <ShowQueueActions />
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <ShowQueueActions />
+            {/* The same show and tape in the column browser. */}
+            <Link
+              href={href(
+                '/[artistSlug]/[year]/[month]/[day]',
+                { artistSlug, ...splitShowDate(showDate) },
+                sourceQuery(source?.id)
+              )}
+              className="
+            inline-flex items-center gap-1.5 rounded-lg border border-hairline px-3 py-1.5 text-sm
+            font-medium text-text-primary transition-colors hover:bg-surface-hover
+          "
+            >
+              <LibraryIcon className="size-4 text-text-muted" aria-hidden />
+              View show in &lsquo;Browse&rsquo;
+            </Link>
+          </div>
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
             <DataTable<ShowTrackRow>
               pathname={pathname}
@@ -204,4 +206,32 @@ export async function showDetailMetadata({
       .filter(Boolean)
       .join(' | '),
   };
+}
+
+/** The tape's pages elsewhere (phish.in, archive.org, phish.net), as the browse view lists them. */
+function ExternalLinks({ links }: { links: SourceLink[] }) {
+  // Upstream data: only web links, never a `javascript:` one.
+  const shown = links.flatMap((l) =>
+    l.url && /^https?:\/\//i.test(l.url) ? [{ url: l.url, label: l.label }] : []
+  );
+  if (!shown.length) return null;
+  return (
+    <>
+      {shown.map((link) => (
+        <a
+          key={link.url}
+          href={link.url}
+          target="_blank"
+          rel="noreferrer"
+          className="
+              inline-flex items-center gap-1.5 rounded-lg border border-hairline px-3 py-1.5 text-sm
+              text-text-primary transition-colors hover:bg-surface-hover
+            "
+        >
+          {link.label || new URL(link.url).hostname}
+          <ExternalLinkIcon className="size-3.5 text-text-muted" aria-hidden />
+        </a>
+      ))}
+    </>
+  );
 }

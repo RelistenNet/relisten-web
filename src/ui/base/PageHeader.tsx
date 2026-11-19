@@ -56,7 +56,7 @@ export default function PageHeader({ cover, title, meta, aside, stats, actions, 
           </div>
         </div>
         {stats && stats.length > 0 && <StatList items={stats} />}
-        {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+        {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
       </div>
       {children}
     </header>

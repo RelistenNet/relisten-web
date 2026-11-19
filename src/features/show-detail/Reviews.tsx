@@ -13,6 +13,9 @@ export default async function Reviews({ source }: { source: Source }) {
   const reviews = await sourceReviews.get(source.id);
   if (reviews.length === 0) return null;
   const ratings = source.numRatings || source.numReviews;
+  // Where they were imported from: the tape's link flagged for its reviews.
+  const from = source.links.find((l) => l.forReviews && l.url && /^https?:\/\//i.test(l.url));
+  const fromName = from && (from.provider ?? (from.url ? new URL(from.url).hostname : undefined));
 
   return (
     <section aria-labelledby="reviews" className="flex flex-col gap-3">
@@ -35,6 +38,19 @@ export default async function Reviews({ source }: { source: Source }) {
             </>
           )}
           {numberFormat.format(reviews.length)} {reviews.length === 1 ? 'review' : 'reviews'}
+          {from?.url && fromName && (
+            <>
+              {' from '}
+              <a
+                href={from.url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-text-secondary underline-offset-2 hover:text-text-primary hover:underline"
+              >
+                {fromName}
+              </a>
+            </>
+          )}
         </p>
       </div>
       <ReviewList reviews={reviews.slice(0, FIRST)} />
