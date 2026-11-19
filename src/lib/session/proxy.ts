@@ -1,6 +1,12 @@
 import 'server-only';
 
-import { USER_SERVICE_TIMEOUT_MS, USER_SERVICE_URL, WEB_ORIGIN_HEADER, webOrigin } from './config';
+import {
+  localSession,
+  USER_SERVICE_TIMEOUT_MS,
+  USER_SERVICE_URL,
+  WEB_ORIGIN_HEADER,
+  webOrigin,
+} from './config';
 
 /**
  * Same-origin forwarding of the browser-session routes to the User Service.
@@ -12,7 +18,7 @@ import { USER_SERVICE_TIMEOUT_MS, USER_SERVICE_URL, WEB_ORIGIN_HEADER, webOrigin
  */
 
 // Only forward when explicitly in a session dev mode.
-const TARGET = process.env.RELISTEN_WEB_SESSION ? USER_SERVICE_URL : null;
+const TARGET = localSession ? USER_SERVICE_URL : null;
 
 // Matches the preview gateway's list (.github/previews/gateway/gateway.py on master).
 const ROUTES = [/^\/auth\/session(\/|$)/, /^\/api\/user\/v1\/csrf$/, /^\/v1\/me$/];
