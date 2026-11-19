@@ -2,7 +2,7 @@ import 'server-only';
 
 import { cache } from 'react';
 import { getCookieJar } from '@timber-js/app/server';
-import type { AccountProfile, SessionNavigation } from '@/domain/account';
+import type { AccountProfile, SessionNavigation, SessionNavigationResult } from '@/domain/account';
 import {
   CSRF_COOKIE,
   CSRF_HEADER,
@@ -21,7 +21,7 @@ import { sessionReturnSearchParams } from '@/lib/searchParams/sessionSearchParam
  * within one request only.
  */
 
-export class UserServiceError extends Error {
+class UserServiceError extends Error {
   constructor(
     readonly status: number,
     readonly path: string
@@ -94,33 +94,50 @@ export async function getCurrentUser(): Promise<AccountProfile | null> {
   return token ? userForSession(token) : null;
 }
 
-/** Mutable contexts only (actions / route handlers): relays the CSRF cookie. */
-async function csrfToken(): Promise<string> {
-  const path = '/api/user/v1/csrf';
-  const res = await userServiceFetch(path);
-  // The antiforgery cookie is a browser-session cookie while the web session
-  // cookie is persistent, so after a browser restart the User Service mints a
-  // fresh __Host-relisten_csrf here. Relay it before the POST: the jar's
-  // read-your-own-writes makes the next userServiceFetch send the cookie the
-  // request token is bound to, and the browser receives it too.
-  getCookieJar().setFromHeaders(res.headers);
-  if (!res.ok) throw new UserServiceError(res.status, path);
-  const { request_token } = (await res.json()) as { request_token: string };
-  return request_token;
+/** Records the outcome and, on `expired`, drops the dead session cookies. Actions only. */
+function failed(status: number, path: string): SessionNavigationResult {
+  if (status === 401) {
+    const jar = getCookieJar();
+    jar.delete(SESSION_COOKIE);
+    jar.delete(CSRF_COOKIE);
+    return { kind: 'expired' };
+  }
+  console.error(`[session] ${path} responded ${status}`);
+  return { kind: status === 403 ? 'rejected' : 'unavailable' };
 }
 
-/** POST with a session-bound CSRF token, relaying any Set-Cookie back to the browser. Actions only. */
-async function mutate<T>(path: string): Promise<T> {
-  const token = await csrfToken();
-  const res = await userServiceFetch(path, { method: 'POST', headers: { [CSRF_HEADER]: token } });
-  getCookieJar().setFromHeaders(res.headers);
-  if (!res.ok) throw new UserServiceError(res.status, path);
-  return (await res.json()) as T;
+/**
+ * POST with a session-bound CSRF token, relaying any Set-Cookie back to the
+ * browser. Actions only. Never throws: every outcome is a result.
+ */
+async function mutate(path: string): Promise<SessionNavigationResult> {
+  const csrfPath = '/api/user/v1/csrf';
+  try {
+    const csrf = await userServiceFetch(csrfPath);
+    // The antiforgery cookie is a browser-session cookie while the web session
+    // cookie is persistent, so after a browser restart the User Service mints a
+    // fresh __Host-relisten_csrf here. Relay it before the POST: the jar's
+    // read-your-own-writes makes the next userServiceFetch send the cookie the
+    // request token is bound to, and the browser receives it too.
+    getCookieJar().setFromHeaders(csrf.headers);
+    if (!csrf.ok) return failed(csrf.status, csrfPath);
+    const { request_token } = (await csrf.json()) as { request_token: string };
+
+    const res = await userServiceFetch(path, {
+      method: 'POST',
+      headers: { [CSRF_HEADER]: request_token },
+    });
+    getCookieJar().setFromHeaders(res.headers);
+    if (!res.ok) return failed(res.status, path);
+    const { navigation_url } = (await res.json()) as SessionNavigation;
+    return { kind: 'navigate', url: navigation_url };
+  } catch (err) {
+    console.error(`[session] ${path} failed`, err);
+    return { kind: 'unavailable' };
+  }
 }
 
-export const logoutSession = () => mutate<SessionNavigation>('/auth/session/logout');
+export const logoutSession = () => mutate('/auth/session/logout');
 
 export const switchAccountSession = (returnTo: string) =>
-  mutate<SessionNavigation>(
-    sessionReturnSearchParams.href('/auth/session/switch-account', { return_to: returnTo })
-  );
+  mutate(sessionReturnSearchParams.href('/auth/session/switch-account', { return_to: returnTo }));
