@@ -102,7 +102,8 @@ describe('playContext', () => {
   });
 
   it('starts at an entry that was moved into Next up, taking it out of Next up', () => {
-    let s = addToQueue(playContext(emptyQueue, ctx(4), 'c1'), [item('a'), item('b')]);
+    let s = playNext(playContext(emptyQueue, ctx(4), 'c1'), [item('b')]);
+    s = playNext(s, [item('a')]);
     s = move(s, 'c3', 'a'); // c3 dropped between two Next up entries
     const p = playContext(s, ctx(4), 'c3');
     expect(p.current?.key).toBe('c3');
@@ -146,11 +147,18 @@ describe('Next up', () => {
   });
   const upNextKeys = (s: QueueState) => s.upNext.map((i) => i.key);
 
-  it('Play next goes to the front, Add to queue to the end, right after the current entry', () => {
+  it('Play next goes right after the current entry, Add to queue to the end of the queue', () => {
     let s = addToQueue(playing(), [item('a')]);
     s = playNext(s, [item('b')]);
     s = addToQueue(s, [item('c')]);
-    expect(composed(s)).toEqual(['c1', 'c2', 'b', 'a', 'c', 'c3', 'c4']);
+    expect(composed(s)).toEqual(['c1', 'c2', 'b', 'c3', 'c4', 'a', 'c']);
+  });
+
+  it('Add to queue with no context goes to the end of Next up', () => {
+    let s = addToQueue(emptyQueue, [item('a')]);
+    s = addToQueue(s, [item('b')]);
+    expect(s.current?.key).toBe('a');
+    expect(upNextKeys(s)).toEqual(['b']);
   });
 
   it('a track already in the context can be queued (its own key)', () => {
@@ -160,7 +168,7 @@ describe('Next up', () => {
 
   it('skips keys already in the queue', () => {
     const s = addToQueue(playing(), [item('c3'), item('a'), item('a')]);
-    expect(upNextKeys(s)).toEqual(['a']);
+    expect(composed(s)).toEqual(['c1', 'c2', 'c3', 'c4', 'a']);
     expect(addToQueue(s, [item('a')])).toBe(s);
   });
 
@@ -173,7 +181,7 @@ describe('Next up', () => {
   // The panel lists playing() + [a, b] as c1 | c2 (current) | a b | c3 c4.
 
   it('moves within Next up, and ignores unknown keys', () => {
-    const s = addToQueue(playing(), [item('a'), item('b'), item('c')]);
+    const s = playNext(playing(), [item('a'), item('b'), item('c')]);
     expect(upNextKeys(move(s, 'c', 'c2'))).toEqual(['c', 'a', 'b']);
     expect(upNextKeys(move(s, 'a', 'b'))).toEqual(['b', 'a', 'c']);
     expect(move(s, 'nope', null)).toBe(s);
@@ -193,7 +201,7 @@ describe('Next up', () => {
   });
 
   it('crosses between Next up and the context only when dropped inside the other', () => {
-    const s = addToQueue(playing(), [item('a'), item('b')]);
+    const s = playNext(playing(), [item('a'), item('b')]);
     // c3 dropped between a and b joins Next up.
     const x = move(s, 'c3', 'a');
     expect(upNextKeys(x)).toEqual(['a', 'c3', 'b']);
@@ -212,14 +220,14 @@ describe('Next up', () => {
   });
 
   it('moving the current entry keeps it the cursor', () => {
-    const s = move(addToQueue(playing(), [item('a')]), 'c2', 'c3'); // c2 current
+    const s = move(playNext(playing(), [item('a')]), 'c2', 'c3'); // c2 current
     expect(s.cursor).toBe('c2');
     // Once Next up has played, the context continues after c2, not before it.
     expect(composed(advanceTo(s, 'a'))).toEqual(['c1', 'c3', 'c2', 'a', 'c4']);
   });
 
   it('moving the cursor while Next up plays keeps the rest of the context ahead', () => {
-    let s = addToQueue(playing(), [item('a')]); // c2 current
+    let s = playNext(playing(), [item('a')]); // c2 current
     s = advanceTo(s, 'a'); // Next up plays; the cursor is c2
     const m = move(s, 'c2', 'c4');
     expect(contextKeys(m)).toEqual(['c1', 'c3', 'c4', 'c2']);
@@ -228,7 +236,7 @@ describe('Next up', () => {
   });
 
   it('removes any entry; removing the current one moves on', () => {
-    const s = addToQueue(playing(), [item('a'), item('b')]);
+    const s = playNext(playing(), [item('a'), item('b')]);
     expect(upNextKeys(remove(s, 'a'))).toEqual(['b']);
     expect(contextKeys(remove(s, 'c3'))).toEqual(['c1', 'c2', 'c4']);
     expect(contextKeys(remove(s, 'c1'))).toEqual(['c2', 'c3', 'c4']);
@@ -253,7 +261,7 @@ describe('Next up', () => {
 
 describe('queueView', () => {
   it('splits the queue the way the panel shows it, after the current entry or the cursor', () => {
-    let s = addToQueue(playing(), [item('a')]);
+    let s = playNext(playing(), [item('a')]);
     expect(queueView(s)).toMatchObject({
       current: { key: 'c2' },
       upNext: [{ key: 'a' }],
@@ -264,7 +272,7 @@ describe('queueView', () => {
   });
 
   it('lists the context before the cursor as played', () => {
-    let s = addToQueue(playing(), [item('a')]);
+    let s = playNext(playing(), [item('a')]);
     expect(queueView(s).played.map((i) => i.key)).toEqual(['c1']);
     s = advanceTo(s, 'a'); // a Next up entry is current: the cursor (c2) has been played
     expect(queueView(s).played.map((i) => i.key)).toEqual(['c1', 'c2']);

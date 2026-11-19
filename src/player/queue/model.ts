@@ -166,12 +166,19 @@ export function playNext(state: QueueState, items: QueueItem[]): QueueState {
   return { ...state, upNext: [...fresh, ...state.upNext] };
 }
 
-/** Add to the end of Next up (Add to queue). With nothing current, the first becomes current. */
+/**
+ * Add to the end of the queue (Add to queue): after the rest of the context,
+ * so they play once everything already queued has. They join the context, so
+ * playing a new context replaces them. With no context they go to the end of
+ * Next up; with nothing current, the first becomes current.
+ */
 export function addToQueue(state: QueueState, items: QueueItem[]): QueueState {
   const fresh = unqueued(state, items);
   if (!fresh.length) return state;
   if (!state.current) return playNext(state, fresh);
-  return { ...state, upNext: [...state.upNext, ...fresh] };
+  const ctx = state.context;
+  if (!ctx) return { ...state, upNext: [...state.upNext, ...fresh] };
+  return { ...state, context: { ...ctx, items: [...ctx.items, ...fresh] } };
 }
 
 /**

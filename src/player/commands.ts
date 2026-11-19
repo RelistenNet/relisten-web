@@ -5,7 +5,8 @@
 // ---------------------------------------------------------------------------
 
 import { showContext, type PlayableTape, type ShowInfo } from './queue/items';
-import { nextUpKey, type QueueItem } from './queue/model';
+import { nextUpKey, type QueueContext, type QueueItem } from './queue/model';
+import { loadShowQueue } from './showQueueAction';
 import { browserRefusesAutoplay, canAutoplay } from './autoplay';
 import { followCurrent, getEngine, playbackActor, playerActor, startPlayback } from './runtime';
 import { showPlayPrompt } from './toasts';
@@ -106,7 +107,7 @@ const newId = () =>
 export const playNext = (items: QueueItem[]) =>
   playerActor.send({ type: 'PLAY_NEXT', items: asNextUp(items) });
 
-/** Add to the end of Next up. */
+/** Add to the end of the queue (after the rest of the context). */
 export const addToQueue = (items: QueueItem[]) =>
   playerActor.send({ type: 'ADD_TO_QUEUE', items: asNextUp(items) });
 
@@ -149,4 +150,41 @@ export function setVolume(volume: number): void {
   } catch {
     // Saving the volume is best-effort.
   }
+}
+
+// ---- whole shows (a shows table's rows) -----------------------------------------
+
+/** The last few shows loaded, so a row's Play then Add to queue fetch once. */
+const showQueues = new Map<string, Promise<QueueContext | null>>();
+const SHOW_QUEUES_MAX = 20;
+
+/** A show's tracks (its first tape). A failure isn't kept, so the next click retries. */
+function showQueue(showId: string): Promise<QueueContext | null> {
+  let ctx = showQueues.get(showId);
+  if (!ctx) {
+    ctx = loadShowQueue(showId).catch(() => null);
+    showQueues.set(showId, ctx);
+    const oldest = showQueues.keys().next().value;
+    if (showQueues.size > SHOW_QUEUES_MAX && oldest) showQueues.delete(oldest);
+    void ctx.then((c) => c || showQueues.delete(showId));
+  }
+  return ctx;
+}
+
+/** Play a show from its first track, replacing the context (Next up stays). False if it couldn't load. */
+export async function playShowById(showId: string): Promise<boolean> {
+  const ctx = await showQueue(showId);
+  const start = ctx?.items[0];
+  if (!ctx || !start) return false;
+  playerActor.send({ type: 'PLAY_CONTEXT', ctx, startKey: start.key });
+  startPlayback();
+  return true;
+}
+
+/** Play next / Add to queue for a whole show. False if it couldn't load. */
+export async function queueShow(showId: string, where: 'next' | 'end'): Promise<boolean> {
+  const ctx = await showQueue(showId);
+  if (!ctx?.items.length) return false;
+  (where === 'next' ? playNext : addToQueue)(ctx.items);
+  return true;
 }

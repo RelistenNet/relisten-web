@@ -3,6 +3,7 @@ import { loadTour } from './load';
 import { findArtistBySlug } from '@/data/artists';
 import ArtistShowList from './ArtistShowList';
 import { showColumns } from '@/ui/shows/columns';
+import { playShowColumn, queueShowColumn } from '@/player/showColumns';
 import { formatShowDate } from '@/ui/shows/stats';
 import { numberFormat } from '@/lib/utils';
 import { deny } from '@timber-js/app/server';
@@ -30,7 +31,14 @@ export default async function Tour({
         ...(tour.endDate ? [{ label: 'Last show', value: formatShowDate(tour.endDate) }] : []),
       ]}
       rows={tour.rows}
-      columns={[showColumns.show, showColumns.tapes, showColumns.rating, showColumns.plays]}
+      columns={[
+        playShowColumn,
+        showColumns.show,
+        showColumns.tapes,
+        showColumns.rating,
+        showColumns.plays,
+        queueShowColumn,
+      ]}
       defaultSort={{ id: 'date', dir: 'asc' }}
       pathname={href('/artists/[artistSlug]/tours/[tourSlug]', { artistSlug, tourSlug })}
     />

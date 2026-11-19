@@ -4,8 +4,9 @@ import { Menu } from '@base-ui/react/menu';
 import { Link } from '@timber-js/app/client';
 import { EllipsisVerticalIcon, ListEndIcon, ListStartIcon, MusicIcon } from 'lucide-react';
 import cn from '@/lib/cn';
-import { addToQueue, playNext } from './commands';
-import type { QueueItem } from './queue/model';
+import { toast } from 'sonner';
+import { addToQueue, playNext, queueShow } from './commands';
+import type { QueueTarget } from './QueueButtons';
 
 const ITEM = `
   flex cursor-default items-center gap-2 rounded-md py-2.5 pr-3 pl-2.5 text-base outline-none
@@ -15,21 +16,31 @@ const ITEM = `
 /** A page the menu links to, below the queue actions. */
 export type QueueMenuLink = { label: string; href: string };
 
-/** A track's "⋯" menu: Play next, Add to queue, then any links (its songs' pages). */
+/** A track's or show's "⋯" menu: Play next, Add to queue, then any links (its songs' pages). */
 export default function QueueMenu({
-  item,
   links,
+  name: givenName,
   className,
-}: {
-  item: QueueItem | null;
+  ...target
+}: QueueTarget & {
   links?: QueueMenuLink[];
+  /** For screen readers ("More for <name>"); a track's title by default. */
+  name?: string;
   className?: string;
 }) {
-  if (!item) return null;
+  const item = 'item' in target ? target.item : null;
+  const showId = 'showId' in target ? target.showId : null;
+  if (!item && !showId) return null;
+  const name = givenName ?? item?.title ?? 'show';
+  const run = (where: 'next' | 'end') => () => {
+    if (item) (where === 'next' ? playNext : addToQueue)([item]);
+    else if (showId)
+      void queueShow(showId, where).then((ok) => ok || toast.error("Couldn't load that show"));
+  };
   return (
     <Menu.Root>
       <Menu.Trigger
-        aria-label={`More for ${item.title}`}
+        aria-label={`More for ${name}`}
         className={cn(
           `
             relative inline-flex size-8 shrink-0 items-center justify-center rounded-md
@@ -56,11 +67,11 @@ export default function QueueMenu({
               data-starting-style:scale-95 data-starting-style:opacity-0 dark:shadow-none
             "
           >
-            <Menu.Item className={ITEM} onClick={() => playNext([item])}>
+            <Menu.Item className={ITEM} onClick={run('next')}>
               <ListStartIcon size={16} className="shrink-0 text-text-muted" aria-hidden />
               Play next
             </Menu.Item>
-            <Menu.Item className={ITEM} onClick={() => addToQueue([item])}>
+            <Menu.Item className={ITEM} onClick={run('end')}>
               <ListEndIcon size={16} className="shrink-0 text-text-muted" aria-hidden />
               Add to queue
             </Menu.Item>

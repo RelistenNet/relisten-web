@@ -1,4 +1,4 @@
-import { Link } from '@timber-js/app/client';
+import QueueButtons from '@/player/QueueButtons';
 import QueueMenu from '@/player/QueueMenu';
 import { songLinks, songRowItem } from '@/player/queue/items';
 import PlayTrackButton from '@/player/PlayTrackButton';
@@ -9,25 +9,32 @@ import type { ShowTrackRow } from './spec';
 // Columns for a show page's track table, which always lists the tape in play
 // order: none of them sort. Length is shared (showColumns.length, unsorted here).
 
+/** Play, then (from sm up) Play next and Add to queue beside it. The menu stays for the song links. */
 export const playColumn: Column<ShowTrackRow> = {
   id: 'play',
-  width: 'w-14',
+  width: 'w-14 sm:w-28',
   label: 'Play',
   srOnlyLabel: true,
   cell: (r) =>
     r.track ? (
-      <PlayTrackButton row={r} track={r.track} label={`Play ${r.trackTitle ?? r.position}`} />
+      <div className="flex items-center gap-1">
+        <PlayTrackButton row={r} track={r.track} label={`Play ${r.trackTitle ?? r.position}`} />
+        {r.track.mp3Url && (
+          <QueueButtons
+            item={songRowItem(r)}
+            name={r.trackTitle ?? `Track ${r.position}`}
+            className="max-sm:hidden"
+          />
+        )}
+      </div>
     ) : null,
 };
 
 export const titleColumn: Column<ShowTrackRow> = {
   id: 'title',
   label: 'Song',
-  cell: (r) => (
-    <Link href={r.href} className="font-medium hover:underline">
-      {r.trackTitle ?? '—'}
-    </Link>
-  ),
+  // Plain text: a row click plays the track (rowAction).
+  cell: (r) => <span className="font-medium">{r.trackTitle ?? '—'}</span>,
 };
 
 /** The shared length column, without its sort. */

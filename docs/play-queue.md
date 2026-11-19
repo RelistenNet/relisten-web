@@ -6,6 +6,7 @@ Status: draft for review, 2026-11-06. Covers gapless (`~/y/gapless.js`, v4.4.3) 
 
 - The queue is the **current** track, then **Next up** (added by the user; plays first, in the order added, and each item is removed once playback moves past it), then the **context** (a show, a song's performances, a playlist, a tour or a venue).
 - Playing a different show **replaces the context and keeps Next up**.
+- **Play next** adds to the front of Next up. **Add to queue** adds to the end of the queue: after the rest of the context, which it joins (so playing a different show replaces it). With no context it goes to the end of Next up.
 - Repeat `all` loops **only the context**. It works without special-casing: Next up items have already been removed by the time playback wraps.
 - Repeat `one` loops the current track.
 - Shuffle reorders **only the context**. The current track stays put, and Next up is never shuffled. Turning shuffle off restores the natural order.

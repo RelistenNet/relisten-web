@@ -14,6 +14,9 @@ import ArtistCover from '@/ui/base/ArtistCover';
 import PageHeader from '@/ui/base/PageHeader';
 import { formatShowDate } from '@/ui/shows/stats';
 import DataTable from '@/ui/table/DataTable';
+import { durationToHHMMSS } from '@/lib/utils';
+import { PlayTrackRow } from '@/player/PlayTrackButton';
+import { ShowQueueActions } from '@/player/QueueButtons';
 import { toTableState, type TableParams } from '@/ui/table/params';
 import { queryTable } from '@/ui/table/query';
 import { lengthColumn, playColumn, queueColumn, titleColumn } from './columns';
@@ -79,44 +82,58 @@ export default async function ShowDetail({
             "
           >
             <LibraryIcon className="size-4 text-text-muted" aria-hidden />
-            Browse Show
+            View show in &lsquo;Browse&rsquo;
           </Link>
         }
       />
 
       {/* The tracks, with the show's tapes beside them as in the browse view; stacked below lg. */}
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <SongQueueProvider label={showLabel(row.artistName, show.date)} items={visibleItems}>
-          <DataTable<ShowTrackRow>
-            pathname={pathname}
-            params={params}
-            spec={showTrackSpec}
-            result={result}
-            columns={[playColumn, titleColumn, lengthColumn, queueColumn]}
-            rowKey={(r) => r.id}
-            rowHref={(r) => r.href}
-            noun="song"
-            controls={false}
-          />
-        </SongQueueProvider>
-        {/* On lg, size-contained so the row takes the tracks' height alone: the tapes stretch to
+      {/* The show's buttons sit above both columns, so the tracks and tapes start level. */}
+      <SongQueueProvider label={showLabel(row.artistName, show.date)} items={visibleItems}>
+        <div className="flex flex-col gap-3">
+          <ShowQueueActions />
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+            <DataTable<ShowTrackRow>
+              pathname={pathname}
+              params={params}
+              spec={showTrackSpec}
+              result={result}
+              columns={[playColumn, titleColumn, lengthColumn, queueColumn]}
+              rowKey={(r) => r.id}
+              // A row click plays its track; the song pages are in its menu.
+              rowAction={(r) => r.track && <PlayTrackRow row={r} track={r.track} />}
+              groupBy={(r) =>
+                r.set
+                  ? {
+                      key: r.set.id,
+                      label: r.set.name,
+                      detail: r.set.duration ? durationToHHMMSS(Math.round(r.set.duration)) : null,
+                    }
+                  : null
+              }
+              noun="song"
+              controls={false}
+            />
+            {/* On lg, size-contained so the row takes the tracks' height alone: the tapes stretch to
             it at most, sticky under the 50px nav bar and the page's margin, and scroll past it. */}
-        <div className="lg:[contain:size]">
-          <div
-            className="
+            <div className="lg:[contain:size]">
+              <div
+                className="
               flex flex-col overflow-hidden rounded-lg border border-hairline
               lg:sticky lg:top-6 lg:max-h-[min(100%,calc(100dvh-50px-3rem))]
               [&_.relisten-column]:min-h-0
             "
-          >
-            <SourcesColumn
-              artistSlug={artistSlug}
-              showDate={showDate}
-              sources={sources.map((s) => ({ ...s, sets: [] }))}
-            />
+              >
+                <SourcesColumn
+                  artistSlug={artistSlug}
+                  showDate={showDate}
+                  sources={sources.map((s) => ({ ...s, sets: [] }))}
+                />
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </SongQueueProvider>
 
       {/* Streams in after the tracks: a busy tape has hundreds of reviews. */}
       {source && source.numReviews > 0 && (

@@ -26,9 +26,18 @@ export const loadShowDetail = cache(async (artistSlug: string, date: string) => 
 /** A tape's tracks as rows, in play order. Each links to its track (or show) page on the browse view. */
 export const trackRows = (show: ShowRow, source: Source): ShowTrackRow[] => {
   const { year, month, day } = splitShowDate(show.date);
-  return source.sets.flatMap((set) =>
-    set.tracks.map((track) => ({
+  const headed = source.sets.length > 1;
+  return source.sets.flatMap((set, i) => {
+    const setInfo = headed
+      ? {
+          id: set.id,
+          name: set.name || `Set ${i + 1}`,
+          duration: set.tracks.reduce((sum, t) => sum + (t.duration ?? 0), 0),
+        }
+      : undefined;
+    return set.tracks.map((track) => ({
       ...show,
+      set: setInfo,
       id: track.id,
       href: track.slug
         ? href(
@@ -46,6 +55,6 @@ export const trackRows = (show: ShowRow, source: Source): ShowTrackRow[] => {
       songDuration: track.duration ?? null,
       position: track.position,
       songs: track.songs ?? [],
-    }))
-  );
+    }));
+  });
 };

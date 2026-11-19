@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { Fragment, type ReactNode } from 'react';
 import { Link } from '@timber-js/app/client';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import cn from '@/lib/cn';
@@ -28,6 +28,17 @@ type Props<Row> = {
    */
   rowHref?: (row: Row) => string;
   /**
+   * Instead of `rowHref`: what clicking the row does, as an element covering it
+   * (a button with `absolute! inset-0 z-0!`, hidden from keyboards and screen
+   * readers, as a cell's own control does the same).
+   */
+  rowAction?: (row: Row) => ReactNode;
+  /**
+   * Rows in groups (a show's sets): a full-width heading row goes above each
+   * group's first row. Null: no heading. Rows of a group must be adjacent.
+   */
+  groupBy?: (row: Row) => { key: string; label: ReactNode; detail?: ReactNode } | null;
+  /**
    * The table's minimum width (a class); narrower screens scroll it sideways.
    * Tables with few columns can fit a phone with a smaller one.
    */
@@ -49,6 +60,9 @@ type Props<Row> = {
 };
 
 const hideClass = { sm: 'max-sm:hidden', md: 'max-md:hidden' } as const;
+const showClass = { sm: 'sm:hidden', md: 'md:hidden' } as const;
+const visibilityClass = <Row,>(col: Column<Row>) =>
+  cn(col.hideBelow && hideClass[col.hideBelow], col.showBelow && showClass[col.showBelow]);
 /** The sort ids a column's header offers. */
 const sortIdsOf = <Row,>(col: Column<Row>) =>
   col.sorts ? col.sorts.map((x) => x.id) : col.sortable ? [col.id] : [];
@@ -63,6 +77,8 @@ export default function DataTable<Row>({
   columns,
   rowKey,
   rowHref,
+  rowAction,
+  groupBy,
   minWidth = 'min-w-[36rem]',
   noun,
   searchPlaceholder,
@@ -145,10 +161,7 @@ export default function DataTable<Row>({
             >
               <colgroup>
                 {columns.map((col) => (
-                  <col
-                    key={col.id}
-                    className={cn(col.width, col.hideBelow && hideClass[col.hideBelow])}
-                  />
+                  <col key={col.id} className={cn(col.width, visibilityClass(col))} />
                 ))}
               </colgroup>
               <thead>
@@ -205,7 +218,7 @@ export default function DataTable<Row>({
                             tracking-wide whitespace-nowrap text-column-subheader-text uppercase
                           `,
                           col.align === 'right' && 'text-right',
-                          col.hideBelow && hideClass[col.hideBelow]
+                          visibilityClass(col)
                         )}
                       >
                         {sorts.length ? (
@@ -247,56 +260,81 @@ export default function DataTable<Row>({
                     </td>
                   </tr>
                 )}
-                {result.rows.map((row) => {
+                {result.rows.map((row, r) => {
                   const rowLink = rowHref?.(row);
+                  const rowTarget = rowAction?.(row);
+                  const group = groupBy?.(row);
+                  const prev = r > 0 ? groupBy?.(result.rows[r - 1]) : null;
                   return (
-                    <tr
-                      key={rowKey(row)}
-                      className={cn(
-                        // Links and buttons in cells sit above the row-wide link.
-                        `
+                    <Fragment key={rowKey(row)}>
+                      {group && group.key !== prev?.key && (
+                        <tr>
+                          <th
+                            scope="colgroup"
+                            colSpan={columns.length}
+                            className={`
+                            h-9 border-b border-hairline bg-text-primary/[0.04] px-3 text-left
+                            text-[11px] font-semibold tracking-wide text-column-subheader-text
+                            uppercase
+                          `}
+                          >
+                            <span className="flex items-center justify-between gap-3">
+                              <span>{group.label}</span>
+                              {group.detail && (
+                                <span className="normal-case tabular-nums">{group.detail}</span>
+                              )}
+                            </span>
+                          </th>
+                        </tr>
+                      )}
+                      <tr
+                        className={cn(
+                          // Links and buttons in cells sit above the row-wide link.
+                          `
                           even:bg-text-primary/[0.02] hover:bg-text-primary/[0.05]
                           [&_a,&_button,&_[tabindex]]:relative [&_a,&_button,&_[tabindex]]:z-10
                         `,
-                        rowLink && 'relative'
-                      )}
-                    >
-                      {columns.map((col, i) => {
-                        const sorted = sortIdsOf(col).includes(result.sort.id);
-                        return (
-                          <td
-                            key={col.id}
-                            className={cn(
-                              'h-11 truncate px-3 py-1.5 tabular-nums',
-                              col.align === 'right' && 'text-right',
-                              // The main column (the one without a fixed width, which takes the
-                              // rest of the row) and the column the list is ranked by are full
-                              // strength; the rest are secondary.
-                              !col.width || sorted ? 'text-text-primary' : 'text-text-muted',
-                              col.hideBelow && hideClass[col.hideBelow]
-                            )}
-                          >
-                            {i === 0 && rowLink && (
-                              <Link
-                                href={rowLink}
-                                tabIndex={-1}
-                                aria-hidden
-                                className="absolute! inset-0 z-0!"
-                              />
-                            )}
-                            {col.bar ? (
-                              <Bar
-                                fraction={col.bar.max > 0 ? col.bar.value(row) / col.bar.max : 0}
-                              >
-                                {col.cell(row)}
-                              </Bar>
-                            ) : (
-                              col.cell(row)
-                            )}
-                          </td>
-                        );
-                      })}
-                    </tr>
+                          (rowLink || rowTarget) && 'relative'
+                        )}
+                      >
+                        {columns.map((col, i) => {
+                          const sorted = sortIdsOf(col).includes(result.sort.id);
+                          return (
+                            <td
+                              key={col.id}
+                              className={cn(
+                                'h-11 truncate px-3 py-1.5 tabular-nums',
+                                col.align === 'right' && 'text-right',
+                                // The main column (the one without a fixed width, which takes the
+                                // rest of the row) and the column the list is ranked by are full
+                                // strength; the rest are secondary.
+                                !col.width || sorted ? 'text-text-primary' : 'text-text-muted',
+                                visibilityClass(col)
+                              )}
+                            >
+                              {i === 0 && rowLink && (
+                                <Link
+                                  href={rowLink}
+                                  tabIndex={-1}
+                                  aria-hidden
+                                  className="absolute! inset-0 z-0!"
+                                />
+                              )}
+                              {i === 0 && rowTarget}
+                              {col.bar ? (
+                                <Bar
+                                  fraction={col.bar.max > 0 ? col.bar.value(row) / col.bar.max : 0}
+                                >
+                                  {col.cell(row)}
+                                </Bar>
+                              ) : (
+                                col.cell(row)
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    </Fragment>
                   );
                 })}
               </tbody>

@@ -24,6 +24,8 @@ export type Column<Row> = {
   width?: string;
   /** Hide on narrow screens. */
   hideBelow?: 'sm' | 'md';
+  /** Show only on narrow screens (a fallback for what a wider column holds). */
+  showBelow?: 'sm' | 'md';
   /**
    * Draw a bar beside the number, its length the row's value over `max` (the
    * largest across every row, not just this page, so pages compare).

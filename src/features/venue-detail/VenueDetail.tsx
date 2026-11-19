@@ -2,6 +2,7 @@ import { href } from '@timber-js/app/routes';
 import { loadScopedVenue } from './load';
 import DataTable from '@/ui/table/DataTable';
 import { showColumns, showFilters, showSearchText, showSorts } from '@/ui/shows/columns';
+import { playShowColumn, queueShowColumn } from '@/player/showColumns';
 import ArtistCover from '@/ui/base/ArtistCover';
 import PageHeader, { type StatItem } from '@/ui/base/PageHeader';
 import YearChart from '@/ui/base/YearChart';
@@ -110,11 +111,15 @@ export default async function VenueDetail({
         spec={venueSpec}
         result={result}
         columns={[
-          showColumns.date,
+          playShowColumn,
+          // One column without a width takes the rest of the row (the artist's, or
+          // else the date's); with every width fixed the slack spreads to all of them.
+          artistSlug ? { ...showColumns.date, width: undefined } : showColumns.date,
           ...(artistSlug ? [] : [showColumns.artist]),
           showColumns.tapes,
           showColumns.rating,
           showColumns.plays,
+          queueShowColumn,
         ]}
         rowKey={(r) => r.id}
         rowHref={(r) => r.href}

@@ -117,7 +117,7 @@ function trackItem(
 /** A track menu's link per song: a file can hold several (a segue). */
 export const songLinks = (artistSlug: string, songs: readonly TrackSong[] = []) =>
   songs.map((song) => ({
-    label: `See all ${song.name}`,
+    label: `See all “${song.name}”`,
     // The song page redirects an id to the song's slug.
     href: href('/artists/[artistSlug]/songs/[songSlug]', { artistSlug, songSlug: song.id }),
   }));

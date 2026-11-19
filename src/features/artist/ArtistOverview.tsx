@@ -4,6 +4,7 @@ import { findArtistBySlug } from '@/data/artists';
 import ArtistShowList from './ArtistShowList';
 import type { StatItem } from '@/ui/base/PageHeader';
 import { showColumns } from '@/ui/shows/columns';
+import { playShowColumn, queueShowColumn } from '@/player/showColumns';
 import { showStats } from '@/ui/shows/stats';
 import { numberFormat } from '@/lib/utils';
 import { deny } from '@timber-js/app/server';
@@ -35,7 +36,14 @@ export default async function ArtistOverview({ artistSlug }: { artistSlug: strin
       title={artist.name}
       stats={statItems}
       rows={rows}
-      columns={[showColumns.show, showColumns.tapes, showColumns.rating, showColumns.plays]}
+      columns={[
+        playShowColumn,
+        showColumns.show,
+        showColumns.tapes,
+        showColumns.rating,
+        showColumns.plays,
+        queueShowColumn,
+      ]}
       defaultSort={{ id: 'date', dir: 'desc' }}
       pathname={href('/artists/[artistSlug]', { artistSlug })}
       yearChart

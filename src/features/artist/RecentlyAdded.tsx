@@ -3,6 +3,7 @@ import { loadRecentlyAdded } from './load';
 import { findArtistBySlug } from '@/data/artists';
 import ArtistShowList from './ArtistShowList';
 import { showColumns } from '@/ui/shows/columns';
+import { playShowColumn, queueShowColumn } from '@/player/showColumns';
 import { deny } from '@timber-js/app/server';
 
 /** Shows most recently added to Relisten. */
@@ -18,7 +19,14 @@ export default async function RecentlyAdded({ artistSlug }: { artistSlug: string
       title="Recently Added"
       // meta={['Shows most recently added to Relisten']}
       rows={rows}
-      columns={[showColumns.show, showColumns.added, showColumns.tapes, showColumns.plays]}
+      columns={[
+        playShowColumn,
+        showColumns.show,
+        showColumns.added,
+        showColumns.tapes,
+        showColumns.plays,
+        queueShowColumn,
+      ]}
       defaultSort={{ id: 'added', dir: 'desc' }}
       pathname={href('/artists/[artistSlug]/recently-added', { artistSlug })}
     />

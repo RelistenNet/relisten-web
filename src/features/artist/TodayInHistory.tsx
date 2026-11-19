@@ -3,6 +3,7 @@ import { loadOnDate } from './load';
 import { findArtistBySlug } from '@/data/artists';
 import ArtistShowList from './ArtistShowList';
 import { showColumns } from '@/ui/shows/columns';
+import { playShowColumn, queueShowColumn } from '@/player/showColumns';
 import TodayDateNav from '@/ui/base/TodayDateNav';
 import { getCurrentMonthDay } from '@/lib/timezone';
 import { numberFormat } from '@/lib/utils';
@@ -42,7 +43,14 @@ export default async function TodayInHistory({ artistSlug }: { artistSlug: strin
         />
       }
       rows={rows}
-      columns={[showColumns.show, showColumns.tapes, showColumns.rating, showColumns.plays]}
+      columns={[
+        playShowColumn,
+        showColumns.show,
+        showColumns.tapes,
+        showColumns.rating,
+        showColumns.plays,
+        queueShowColumn,
+      ]}
       defaultSort={{ id: 'date', dir: 'asc' }}
       pathname={href('/artists/[artistSlug]/today-in-history', { artistSlug })}
       extraParams={parsed.month && parsed.day ? { month, day } : undefined}

@@ -11,6 +11,8 @@ export type ShowTrackRow = ShowRow & {
   /** 1-based, within the tape. */
   position: number;
   songs: TrackSong[];
+  /** The set the track is in, when the tape has more than one: the table heads each. */
+  set?: { id: string; name: string; duration: number };
 };
 
 export const SHOW_FILTER_IDS = [] as const;
