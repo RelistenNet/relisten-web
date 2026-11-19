@@ -9,7 +9,7 @@ import { deny, getSegmentParams } from '@timber-js/app/server';
 import { format, parseISO } from 'date-fns';
 import { SEGMENT_PATH } from './$segment';
 
-const mdxModules = import.meta.glob<{ default: React.ComponentType }>('../../../../posts/*.mdx');
+const mdxModules = import.meta.glob<{ default: React.ComponentType }>('/src/posts/*.mdx');
 
 export default async function BlogPostPage() {
   const params = getSegmentParams(SEGMENT_PATH);
@@ -19,7 +19,7 @@ export default async function BlogPostPage() {
   if (!post) return deny(404);
 
   const postAuthors = post.authors.map(getAuthor);
-  const key = `../../../../posts/${post._meta.fileName}`;
+  const key = `/src/posts/${post._meta.fileName}`;
   const loader = mdxModules[key];
 
   if (!loader) return deny(404);

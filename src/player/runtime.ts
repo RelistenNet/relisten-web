@@ -15,6 +15,12 @@ import { playbackLogic } from './playback';
 import { compose, type QueueItem, type QueueState } from './queue/model';
 import { createQueueStorage, type QueueStorage } from './queue/storage';
 import { createEngine, type Engine, type EngineEntry } from './engine';
+import {
+  html5OnlyFor,
+  isMobileDevice,
+  playbackSettingsAtLoad,
+  preloadTracksFor,
+} from './playbackMode';
 import { proxyStreamUrl } from './proxyStreamUrl';
 import { createListenTracker } from './listenTracker';
 import { scrobblePlay } from './scrobble';
@@ -84,10 +90,9 @@ function syncEngine(queue: QueueState, list = compose(queue)): void {
 export const getEngine = () => engine;
 
 if (isBrowser) {
-  const mobile =
-    window.matchMedia?.('(pointer: coarse)')?.matches ||
-    (navigator.maxTouchPoints > 0 && window.matchMedia?.('(hover: none)')?.matches) ||
-    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const playbackSettings = playbackSettingsAtLoad();
+  // Mobile browsers suspend Web Audio in the background; HTML5 keeps playing.
+  const html5Only = html5OnlyFor(playbackSettings, isMobileDevice());
 
   const listens = createListenTracker();
   const queueOf = () => playerActor.getSnapshot().context.queue;
@@ -105,8 +110,7 @@ if (isBrowser) {
   engine = createEngine(
     (callbacks) =>
       new Queue({
-        // Mobile browsers suspend Web Audio in the background; HTML5 keeps playing.
-        playbackMethod: mobile ? 'HTML5_ONLY' : 'HYBRID',
+        playbackMethod: html5Only ? 'HTML5_ONLY' : 'HYBRID',
         // No downloads until audio plays; the engine turns preloading on then.
         preloadNumTracks: 0,
         onDebug: (msg) => console.debug('[gapless]', msg),
@@ -137,7 +141,8 @@ if (isBrowser) {
       onStatus: (statuses) => playbackActor.send({ type: 'STATUS', statuses }),
       onError: (error) => reportFailure(error),
       onPlayBlocked: () => showPlayPrompt({ blockedByBrowser: true, playNow: startPlayback }),
-    }
+    },
+    preloadTracksFor(playbackSettings)
   );
 
   // ---- failures --------------------------------------------------------------
