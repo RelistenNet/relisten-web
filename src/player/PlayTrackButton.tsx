@@ -4,7 +4,7 @@ import { Pause, Play } from 'lucide-react';
 import type { PlayableTrack } from '@/domain/types';
 import type { ShowRow } from '@/ui/shows/rows';
 import { playSongRows, togglePlayPause } from './commands';
-import { useCurrentItem, useIsPlaying } from './hooks';
+import { useCurrentItem, useIsPlaying, useQueue } from './hooks';
 import { useSongQueue } from './SongQueue';
 import { songRowItem } from './queue/items';
 import Tooltip from '@/ui/base/Tooltip';
@@ -20,6 +20,11 @@ type Props = {
 function usePlayTrack(row: ShowRow, track: PlayableTrack) {
   const isCurrent = useCurrentItem()?.trackId === track.id;
   const isPlaying = useIsPlaying() && isCurrent;
+  // Anywhere else in the queue: played already, Next up, or still to come.
+  const isQueued = useQueue(
+    (q) =>
+      !isCurrent && [...(q.context?.items ?? []), ...q.upNext].some((i) => i.trackId === track.id)
+  );
   const queue = useSongQueue();
 
   const play = () => {
@@ -36,7 +41,7 @@ function usePlayTrack(row: ShowRow, track: PlayableTrack) {
       startTrackId: track.id,
     });
   };
-  return { isCurrent, isPlaying, play };
+  return { isCurrent, isPlaying, isQueued, play };
 }
 
 /**
@@ -44,7 +49,7 @@ function usePlayTrack(row: ShowRow, track: PlayableTrack) {
  * then the rest of the rows on screen, in table order. While it's the current track, the button pauses and resumes.
  */
 export default function PlayTrackButton({ row, track, label }: Props) {
-  const { isCurrent, isPlaying, play } = usePlayTrack(row, track);
+  const { isCurrent, isPlaying, isQueued, play } = usePlayTrack(row, track);
   if (!track.mp3Url) return null;
 
   const Icon = isPlaying ? Pause : Play;
@@ -54,6 +59,9 @@ export default function PlayTrackButton({ row, track, label }: Props) {
       onClick={play}
       aria-label={isPlaying ? `Pause ${label.replace(/^Play /, '')}` : label}
       aria-pressed={isCurrent}
+      // DataTable marks the row: the current track (accent bar and tint), or a queued one (faint bar).
+      data-current-track={isCurrent || undefined}
+      data-queued-track={isQueued || undefined}
       className="inline-flex rounded-full p-1.5 text-accent hover:bg-surface-hover"
     >
       <Icon className="size-4 shrink-0" aria-hidden />

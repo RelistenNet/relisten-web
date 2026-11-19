@@ -294,6 +294,15 @@ export default function DataTable<Row>({
                           even:bg-text-primary/[0.02] hover:bg-text-primary/[0.05]
                           [&_a,&_button,&_[tabindex]]:relative [&_a,&_button,&_[tabindex]]:z-10
                         `,
+                          // The current track's row (its play button says so): tinted, with an
+                          // accent bar on the left edge, as in the browse column. A queued
+                          // track's row gets a faint bar.
+                          `
+                          has-[[data-current-track]]:bg-accent/10
+                          has-[[data-current-track]]:hover:bg-accent/15
+                          [&:has([data-current-track])>td:first-child]:shadow-[inset_4px_0_0_var(--color-accent)]
+                          [&:has([data-queued-track])>td:first-child]:shadow-[inset_4px_0_0_color-mix(in_oklab,var(--color-accent)_35%,transparent)]
+                        `,
                           (rowLink || rowTarget) && 'relative'
                         )}
                       >
