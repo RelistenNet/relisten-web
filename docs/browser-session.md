@@ -14,9 +14,8 @@ Who forwards them:
 
 - **Production:** Traefik, in front of relisten.net.
 - **PR previews:** the preview gateway.
-- **Local development:** `src/app/proxy.ts`, which hands them to
-  `src/lib/session/proxy.ts` when `pnpm dev:session` is running. Vite's
-  `server.proxy` can't be used because timber handles requests first.
+- **Local development:** a dev-only Vite plugin in `vite.session.ts`, when
+  `pnpm dev:session` is running.
 
 ## One-time setup
 
@@ -39,7 +38,8 @@ The setup script:
   locally without them.
 
 The files live in `~/Library/Application Support/Relisten/local-browser-session-tls`
-(override with `RELISTEN_LOCAL_TLS_DIR`). Rerunning the script is safe: it reuses
+on macOS and `${XDG_DATA_HOME:-~/.local/share}/relisten/local-browser-session-tls`
+elsewhere (override with `RELISTEN_LOCAL_TLS_DIR`). Rerunning the script is safe: it reuses
 the client secret, because the local database stores a hash of it.
 
 Firefox keeps its own trust store. If it shows "Something doesn't look right",

@@ -1,7 +1,10 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
 import { timber } from '@timber-js/app';
-import { sessionDevServer } from './dev/sessionDevServer';
+import { sessionDevServer } from './vite.session';
+
+// Opt-in HTTPS origin and session forwarding for browser sessions (pnpm dev:session).
+const session = sessionDevServer();
 
 const serverExternals = ['takumi-js', '@takumi-rs/core', '@mdx-js/rollup', 'rollup', 'fsevents'];
 
@@ -9,7 +12,7 @@ export default defineConfig({
   legacy: {
     inconsistentCjsInterop: true,
   },
-  plugins: [timber({ reactCompiler: true })],
+  plugins: [...(session ? [session.plugin] : []), timber({ reactCompiler: true })],
   resolve: {
     alias: { '@': resolve(import.meta.dirname, 'src') },
     dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
@@ -27,6 +30,5 @@ export default defineConfig({
       },
     },
   },
-  // Opt-in HTTPS origin for browser sessions (pnpm dev:session).
-  server: sessionDevServer() ?? { strictPort: false },
+  server: session?.server ?? { strictPort: false },
 });

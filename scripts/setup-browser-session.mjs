@@ -15,9 +15,9 @@ import {
   readFileSync,
   writeFileSync,
 } from 'node:fs';
-import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { localTlsDir } from './localTlsDir.mjs';
 
 // web: the browser origin; accounts: the User Service API; localhost: its OIDC issuer.
 const HOSTS = ['localhost', 'web.relisten.localhost', 'accounts.relisten.localhost'];
@@ -28,10 +28,7 @@ const apiProject = join(
   'RelistenUserService',
   'RelistenUserService.csproj'
 );
-// Keep in sync with dev/sessionDevServer.ts.
-const tlsDir =
-  process.env.RELISTEN_LOCAL_TLS_DIR ??
-  join(homedir(), 'Library', 'Application Support', 'Relisten', 'local-browser-session-tls');
+const tlsDir = localTlsDir();
 const certPath = join(tlsDir, 'relisten-local.pem');
 const keyPath = join(tlsDir, 'relisten-local-key.pem');
 const caPath = join(tlsDir, 'ca.pem');
