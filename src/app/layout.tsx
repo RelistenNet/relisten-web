@@ -30,13 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="apple-itunes-app" content="app-id=715886886" />
       </head>
-      <body
-        style={
-          deployment.isPreview
-            ? ({ '--preview-banner-height': '4rem' } as React.CSSProperties)
-            : undefined
-        }
-      >
+      <body>
         <PreviewIndicator deployment={deployment} />
         {/* In the root, so every document seeds it: client navigations omit
             the rows and reuse the document's copy. */}
