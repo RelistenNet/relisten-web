@@ -83,7 +83,6 @@ if (!existsSync(apiProject)) {
   warn(`RelistenUserService project not found at ${apiProject}; skipping dotnet user-secrets.`);
   warn('Set RELISTEN_API_CHECKOUT and rerun to configure the User Service.');
 } else if (spawnSync('dotnet', ['--version'], { stdio: 'ignore' }).error) {
-  // The production-backed mode (RELISTEN_WEB_SESSION=production) needs only the cert.
   warn('dotnet not found; skipping dotnet user-secrets. Install the .NET 10 SDK and rerun');
   warn('to run the User Service locally (brew install --cask dotnet-sdk@10).');
 } else {

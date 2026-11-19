@@ -7,6 +7,7 @@ import {
   USER_SERVICE_TIMEOUT_MS,
   USER_SERVICE_URL,
   WEB_ORIGIN_HEADER,
+  localSession,
   webOrigin,
 } from '@/lib/session/config';
 import { sessionReturnSearchParams } from '@/lib/searchParams/sessionSearchParams';
@@ -56,7 +57,9 @@ async function userServiceFetch(
   const origin = webOrigin();
   const headers = new Headers(init.headers);
   headers.set('accept', 'application/json');
-  headers.set(WEB_ORIGIN_HEADER, origin);
+  // Only the local accounts host needs telling which web origin this is. The
+  // preview gateway sets it itself, and relisten.net uses its own host.
+  if (localSession) headers.set(WEB_ORIGIN_HEADER, origin);
   if (cookie) headers.set('cookie', cookie);
   // Cookie-authenticated unsafe requests must carry the exact web origin.
   if (init.method && init.method !== 'GET') headers.set('origin', origin);

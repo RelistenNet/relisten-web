@@ -4,8 +4,8 @@ Accounts live in the Relisten **User Service** (`RelistenUserService` in the
 RelistenApi repo), not in this app. The web app only reads the session and
 forwards a few routes to the User Service.
 
-Plain `pnpm dev` needs nothing extra. `/account` there always shows you signed out,
-and its sign-in link 404s. Sign-in needs the User Service reachable _same-origin_
+Plain `pnpm dev` needs nothing extra. `/account` there always shows you signed out
+(server-side lookups go to relisten.net), and its sign-in link 404s. Sign-in needs the User Service reachable _same-origin_
 on the one local origin it accepts, `https://web.relisten.localhost:5173`, because
 its cookies are `__Host-` cookies (HTTPS, bound to one origin).
 
@@ -59,14 +59,6 @@ trusts the mkcert CA.
 
 Locally the User Service listens on `https://accounts.relisten.localhost:5443`
 (account API) and `https://localhost:5443` (sign-in issuer).
-
-### No production-backed mode
-
-`pnpm dev:session` used to be able to point at relisten.net instead of a local User
-Service. That no longer works. relisten.net ignores the `X-Relisten-Web-Origin`
-relay that tells the User Service which origin a request belongs to, and
-accounts.relisten.net rejects it. So sign-in would finish on relisten.net, never on
-localhost. Use the local User Service.
 
 ## Code map
 

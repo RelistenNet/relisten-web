@@ -13,7 +13,7 @@ import type { ServerOptions } from 'vite';
  * src/lib/session/proxy.ts (called from app/proxy.ts) does, because timber's dev
  * middleware runs before Vite's `server.proxy`.
  *
- * Enabled by `pnpm dev:session` (RELISTEN_WEB_SESSION=local).
+ * Enabled by `pnpm dev:session` (RELISTEN_WEB_SESSION=1).
  * Plain `pnpm dev` is unaffected. timber.config.ts sets the printed hostname.
  */
 
@@ -26,13 +26,7 @@ export function tlsDirectory(env: NodeJS.ProcessEnv = process.env) {
 }
 
 export function sessionDevServer(env: NodeJS.ProcessEnv = process.env): ServerOptions | undefined {
-  const mode = env.RELISTEN_WEB_SESSION;
-  if (!mode) return undefined;
-  // A production-backed mode can't work: relisten.net ignores the web-origin relay,
-  // so sign-in would return to relisten.net instead. See docs/browser-session.md.
-  if (mode !== 'local') {
-    throw new Error('RELISTEN_WEB_SESSION must be "local".');
-  }
+  if (!env.RELISTEN_WEB_SESSION) return undefined;
 
   const dir = tlsDirectory(env);
   let cert: Buffer, key: Buffer;

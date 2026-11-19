@@ -1,38 +1,43 @@
 import 'server-only';
 import { getDeploymentEnvironment } from '@/lib/deployment/server';
 
-// Development always talks to the local User Service (`pnpm dev:session`).
-const dev = process.env.NODE_ENV !== 'production';
+/** `pnpm dev:session`: the app talks to a local User Service on the local HTTPS origin. */
+export const localSession = Boolean(process.env.RELISTEN_WEB_SESSION);
 
 const LOCAL_WEB_ORIGIN = 'https://web.relisten.localhost:5173';
 
 /**
- * The browser-visible origin the User Service should reconstruct callbacks against.
- * Read per request (like the deployment environment) so one image can serve
- * production or any preview. Never derived from the Host header.
+ * The browser-visible origin of this deployment. Cookie-authenticated mutations
+ * must send it as `Origin`, matching the origin recorded on the session. Read per
+ * request so one image can serve production or any preview. Never derived from
+ * the Host header.
  */
 export function webOrigin(): string {
   if (process.env.RELISTEN_WEB_ORIGIN) return process.env.RELISTEN_WEB_ORIGIN;
-  if (dev) return LOCAL_WEB_ORIGIN;
+  if (localSession) return LOCAL_WEB_ORIGIN;
   const deployment = getDeploymentEnvironment();
   return deployment.isPreview ? deployment.url : 'https://relisten.net';
 }
 
 /**
- * Where server-side session lookups go. The User Service only honours the
- * X-Relisten-Web-Origin relay from its accounts host or a configured web origin,
- * so this is either the local `dotnet run` accounts host or relisten.net itself
- * (Traefik routes the session paths there; the relay is ignored and the origin is
- * relisten.net).
+ * Where server-side session calls go: the local accounts host under
+ * `dev:session`, otherwise relisten.net. Previews set RELISTEN_USER_SERVICE_URL to
+ * their in-cluster gateway route, which supplies the preview's origin itself.
  */
 export const USER_SERVICE_URL =
   process.env.RELISTEN_USER_SERVICE_URL ??
-  (dev ? 'https://accounts.relisten.localhost:5443' : 'https://relisten.net');
+  (localSession ? 'https://accounts.relisten.localhost:5443' : 'https://relisten.net');
+
+if (getDeploymentEnvironment().isPreview && !process.env.RELISTEN_USER_SERVICE_URL) {
+  console.warn(
+    '[session] RELISTEN_USER_SERVICE_URL is unset on a preview; session lookups go to relisten.net and will read as signed out.'
+  );
+}
 
 /** The OIDC issuer / SSO-cookie host. Logout bounces through it to clear the SSO cookie. */
 export const AUTH_ORIGIN =
   process.env.RELISTEN_AUTH_ORIGIN ??
-  (dev ? 'https://localhost:5443' : 'https://auth.relisten.net');
+  (localSession ? 'https://localhost:5443' : 'https://auth.relisten.net');
 
 /** Every User Service call is aborted after this; the page renders its failure state instead. */
 export const USER_SERVICE_TIMEOUT_MS = 10_000;
