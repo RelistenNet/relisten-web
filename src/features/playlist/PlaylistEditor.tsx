@@ -14,14 +14,7 @@ import {
   Trash2Icon,
   UndoIcon,
 } from 'lucide-react';
-import {
-  type KeyboardEvent,
-  type ReactNode,
-  useEffect,
-  useEffectEvent,
-  useRef,
-  useState,
-} from 'react';
+import { type ReactNode, useEffect, useEffectEvent, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod/v4';
 import { PlaylistOpError } from '@/domain/playlistOps';
@@ -42,6 +35,7 @@ import {
   saveProse,
   sourceOf,
 } from './editOps';
+import MarkdownField from './MarkdownField';
 import PlaylistArticle, { type ArticleSlots, type GapAt, type ProseOwner } from './PlaylistArticle';
 import { type PlaylistResolved, playlistView } from './rows';
 
@@ -51,10 +45,13 @@ import { type PlaylistResolved, playlistView } from './rows';
 // a textarea; when the edits are saved the server renders the page again, so
 // Markdown and timestamps show as readers will see them.
 
+/** Reopened after the server refused it: the text as written, and why. */
+type Refused = { draft?: string; error?: string };
+
 type Editing =
-  | { kind: 'prose'; owner: ProseOwner }
+  | ({ kind: 'prose'; owner: ProseOwner } & Refused)
   /** New text at a gap. */
-  | { kind: 'gap'; at: GapAt }
+  | ({ kind: 'gap'; at: GapAt } & Refused)
   | null;
 
 const sameOwner = (a: ProseOwner, b: ProseOwner) =>
@@ -82,11 +79,40 @@ export default function PlaylistEditor({
   const [store] = useState(() => createDraftStore(initial, { transport: playlistTransport }));
   const state = useDraft(store);
   const [editing, setEditing] = useState<Editing>(null);
-  useSavedRefresh(store, () => router.refresh());
+  // The prose last sent: reopened with its text if the server refuses it.
+  const lastProse = useRef<{ editing: NonNullable<Editing>; text: string } | null>(null);
+  useStoreEvents(store, {
+    onSaved: () => {
+      lastProse.current = null;
+      router.refresh();
+    },
+    onRefused: (error) => {
+      const last = lastProse.current;
+      lastProse.current = null;
+      if (last) setEditing({ ...last.editing, draft: last.text, error });
+    },
+  });
   useWarnBeforeLeaving(state);
 
   const content = state.content;
   const view = playlistView(content, resolved);
+  const timestampTargets = view.rows.flatMap((r) =>
+    r.kind === 'track'
+      ? [{ entryId: r.id, title: r.trackTitle ?? 'Track', duration: r.songDuration ?? undefined }]
+      : []
+  );
+  /** Sends prose once its field closes, remembering it in case it's refused. */
+  const commitProse = (
+    editing: NonNullable<Editing>,
+    text: string | null,
+    op: PlaylistOp | null
+  ) => {
+    setEditing(null);
+    if (text === null || !op) return;
+    lastProse.current = { editing, text };
+    edit(op);
+    void store.flush();
+  };
 
   /** Applies an edit; an edit the server would refuse says why instead. */
   const edit = (op: PlaylistOp | null) => {
@@ -122,15 +148,22 @@ export default function PlaylistEditor({
 
     prose: (owner) => {
       if (editing?.kind !== 'prose') return undefined;
+      const open = editing;
       const field = (target: ProseOwner, label: string) => (
-        <ProseField
+        <MarkdownField
           label={label}
-          initial={sourceOf(content, target)}
-          onDone={(text) => {
-            setEditing(null);
-            if (text !== null) edit(saveProse(content, target, text));
-            void store.flush();
-          }}
+          initial={open.draft ?? sourceOf(content, target)}
+          error={open.error}
+          limit={target.kind === 'playlist' ? 1000 : 2000}
+          timestampTargets={timestampTargets}
+          ownEntryId={target.kind === 'note' ? target.id : undefined}
+          onDone={(text) =>
+            commitProse(
+              { kind: 'prose', owner: target },
+              text,
+              text === null ? null : saveProse(content, target, text)
+            )
+          }
         />
       );
       if (sameOwner(editing.owner, owner)) return field(owner, 'Text');
@@ -213,14 +246,19 @@ export default function PlaylistEditor({
       content:
         editing?.kind === 'gap' && editing.at.index === at.index ? (
           <div className="pl-[53px]">
-            <ProseField
+            <MarkdownField
               label="New text"
-              initial=""
-              onDone={(text) => {
-                setEditing(null);
-                if (text !== null) edit(insertText(content, at, text));
-                void store.flush();
-              }}
+              initial={editing.draft ?? ''}
+              error={editing.error}
+              limit={2000}
+              timestampTargets={timestampTargets}
+              onDone={(text) =>
+                commitProse(
+                  { kind: 'gap', at },
+                  text,
+                  text === null ? null : insertText(content, at, text)
+                )
+              }
             />
           </div>
         ) : undefined,
@@ -269,15 +307,24 @@ const TOOL = `
   hover:text-text-primary disabled:opacity-40 disabled:hover:bg-transparent
 `;
 
-/** Refreshes the server render each time the draft's edits are all saved. */
-function useSavedRefresh(store: DraftStore, refresh: () => void) {
-  const onSaved = useEffectEvent(refresh);
+/**
+ * Calls back when the draft's edits are all saved (the server renders the page
+ * again) and when the server refuses one (422).
+ */
+function useStoreEvents(
+  store: DraftStore,
+  handlers: { onSaved: () => void; onRefused: (detail?: string) => void }
+) {
+  const onSaved = useEffectEvent(handlers.onSaved);
+  const onRefused = useEffectEvent(handlers.onRefused);
   useEffect(() => {
-    let previous = store.getState().status;
+    let previous = store.getState();
     const unsubscribe = store.subscribe(() => {
-      const { status } = store.getState();
-      if (status === 'saved' && previous !== 'saved') onSaved();
-      previous = status;
+      const state = store.getState();
+      if (state.status === 'saved' && previous.status !== 'saved') onSaved();
+      if (state.error?.kind === 'invalid' && state.error !== previous.error)
+        onRefused(state.error.detail);
+      previous = state;
     });
     return () => {
       unsubscribe();
@@ -345,45 +392,6 @@ function TitleInput({ name, onSave }: { name: string; onSave: (name: string) => 
       className="
         -mx-1 w-full rounded-md bg-transparent px-1 outline-none hover:bg-text-primary/[0.04]
         focus:bg-text-primary/[0.04] focus:ring-1 focus:ring-accent
-      "
-    />
-  );
-}
-
-/**
- * Prose as written, in a textarea in the prose's own type. Done on blur or
- * ⌘/Ctrl+Enter with the text; Escape cancels (null).
- */
-function ProseField({
-  label,
-  initial,
-  onDone,
-}: {
-  label: string;
-  initial: string;
-  onDone: (text: string | null) => void;
-}) {
-  const cancelled = useRef(false);
-  const keys = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Escape') {
-      cancelled.current = true;
-      e.currentTarget.blur();
-    }
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) e.currentTarget.blur();
-  };
-  return (
-    <textarea
-      aria-label={label}
-      defaultValue={initial}
-      // Browsers without field-sizing grow by rows instead.
-      rows={Math.max(2, initial.split('\n').length + 1)}
-      autoFocus
-      onKeyDown={keys}
-      onBlur={(e) => onDone(cancelled.current ? null : e.currentTarget.value)}
-      className="
-        -mx-2 -my-1 block [field-sizing:content] w-[calc(100%+1rem)] resize-none rounded-lg
-        bg-text-primary/[0.04]
-        px-2 py-1 ring-1 ring-hairline outline-none focus:ring-accent
       "
     />
   );
