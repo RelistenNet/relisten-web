@@ -8,6 +8,7 @@ import {
   ChevronRightIcon,
   EllipsisVerticalIcon,
   GripVerticalIcon,
+  ListMusicIcon,
   GroupIcon,
   PencilIcon,
   PlusIcon,
@@ -29,6 +30,7 @@ import { useDraft } from '@/playlists/useDraft';
 import type { PlaylistTrackGroupRow } from './blocks';
 import {
   insertText,
+  insertTracks,
   moveEntry,
   moveToOwnGroup,
   moveToSection,
@@ -36,6 +38,7 @@ import {
   saveProse,
   sourceOf,
 } from './editOps';
+import AddTracks from './AddTracks';
 import { dropOp } from './dragOps';
 import MarkdownField from './MarkdownField';
 import PlaylistArticle, {
@@ -58,8 +61,8 @@ type Refused = { draft?: string; error?: string };
 
 type Editing =
   | ({ kind: 'prose'; owner: ProseOwner } & Refused)
-  /** New text at a gap. */
-  | ({ kind: 'gap'; at: GapAt } & Refused)
+  /** New text, or tracks to add, at a gap. */
+  | ({ kind: 'gap'; at: GapAt; adding?: 'text' | 'tracks' } & Refused)
   | null;
 
 const sameOwner = (a: ProseOwner, b: ProseOwner) =>
@@ -288,9 +291,23 @@ export default function PlaylistEditor({
     ),
 
     gap: (at) => ({
-      control: <GapControl onAddText={() => setEditing({ kind: 'gap', at })} />,
+      control: (
+        <GapControl
+          onAddText={() => setEditing({ kind: 'gap', at, adding: 'text' })}
+          onAddTracks={() => setEditing({ kind: 'gap', at, adding: 'tracks' })}
+        />
+      ),
       content:
-        editing?.kind === 'gap' && editing.at.index === at.index ? (
+        editing?.kind === 'gap' && editing.at.index === at.index && editing.adding === 'tracks' ? (
+          <AddTracks
+            onAdd={(trackIds) => {
+              setEditing(null);
+              edit(insertTracks(at, trackIds));
+              void store.flush();
+            }}
+            onClose={() => setEditing(null)}
+          />
+        ) : editing?.kind === 'gap' && editing.at.index === at.index ? (
           <div>
             <MarkdownField
               label="New text"
@@ -300,7 +317,7 @@ export default function PlaylistEditor({
               timestampTargets={timestampTargets}
               onDone={(text) =>
                 commitProse(
-                  { kind: 'gap', at },
+                  { kind: 'gap', at, adding: 'text' },
                   text,
                   text === null ? null : insertText(content, at, text)
                 )
@@ -629,20 +646,33 @@ function CellMenu({
   );
 }
 
-/** Fills a gap's dashed zone: click anywhere in it to write there. */
-function GapControl({ onAddText }: { onAddText: () => void }) {
+/** Fills a gap's dashed zone: write there, or add tracks there. */
+function GapControl({
+  onAddText,
+  onAddTracks,
+}: {
+  onAddText: () => void;
+  onAddTracks: () => void;
+}) {
+  const half = `
+    flex flex-1 items-center gap-2 py-2 text-sm text-text-muted transition-colors
+    hover:bg-text-primary/[0.03] hover:text-text-primary focus-visible:outline-2
+    focus-visible:outline-accent
+  `;
   return (
-    <button
-      type="button"
-      onClick={onAddText}
-      className="
-        flex w-full items-center gap-2 rounded-[inherit] py-2 pl-[52px] text-sm text-text-muted
-        transition-colors hover:bg-text-primary/[0.03] hover:text-text-primary
-        focus-visible:outline-2 focus-visible:outline-accent
-      "
-    >
-      <PlusIcon className="-ml-6 size-4" aria-hidden />
-      Add Text
-    </button>
+    <div className="flex rounded-[inherit]">
+      <button
+        type="button"
+        onClick={onAddText}
+        className={cn(half, 'rounded-l-[inherit] pl-[52px]')}
+      >
+        <PlusIcon className="-ml-6 size-4" aria-hidden />
+        Add Text
+      </button>
+      <button type="button" onClick={onAddTracks} className={cn(half, 'rounded-r-[inherit] pl-4')}>
+        <ListMusicIcon className="size-4" aria-hidden />
+        Add Tracks
+      </button>
+    </div>
   );
 }

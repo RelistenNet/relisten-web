@@ -16,6 +16,8 @@ export type ResolvedTrack = Omit<
 /** What the server looked up: catalog tracks by track id, and sanitized prose by owner id. */
 export type PlaylistResolved = {
   tracks: Record<string, ResolvedTrack>;
+  /** Track ids the catalog doesn't have. Any other unknown id was just added: pending. */
+  missing: string[];
   /** Keyed by entry or segment id, or PLAYLIST_PROSE; `source` is the text it was made from. */
   prose: Record<string, { source: string; blocks: GuideBlock[] }>;
 };
@@ -92,7 +94,13 @@ export function playlistView(content: PlaylistContent, resolved: PlaylistResolve
       };
       const track = entry.trackId ? resolved.tracks[entry.trackId] : undefined;
       if (!entry.trackId) rows.push({ ...fields, kind: 'text' });
-      else if (!track) rows.push({ ...fields, kind: 'unavailable' });
+      else if (!track)
+        rows.push({
+          ...fields,
+          kind: 'unavailable',
+          // Added since the server looked (the editor): its details are on the way.
+          ...(!resolved.missing.includes(entry.trackId) && { pending: true }),
+        });
       else {
         duration += track.songDuration ?? 0;
         rows.push({ ...track, ...fields, kind: 'track', queueKey: entry.id });
