@@ -6,6 +6,9 @@ import { codec } from '@timber-js/app/codec';
 // character set. Anything else is a 404 before it reaches the data layer (src/data).
 const SLUG = /^[a-z0-9-]+$/i;
 const MONTH_OR_DAY = /^[\dx]{1,2}$/i;
+const PLAYLIST_PREFIX = 'playlist_';
+/** A TypeID's 26-character body: Crockford base32, first character 0–7. */
+const PLAYLIST_ID_BODY = /^[0-7][0-9a-hjkmnp-tv-z]{25}$/;
 
 export default defineSchema({
   segmentParams: {
@@ -30,5 +33,18 @@ export default defineSchema({
     // A show page's date: YYYY-MM-DD.
     '[showDate]': z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     '[slug]': codec.string,
+    // A published playlist's share code: 32 lowercase hex characters.
+    '[publicCode]': z.string().regex(/^[0-9a-f]{32}$/),
+    // A playlist id without its `playlist_` prefix (as `?source=` drops `source_`):
+    // /account/playlists/01m7tyqs5cep4vgwpf7m05ket2. Pages get the full id.
+    '[playlistId]': {
+      parse: (value: string | string[] | undefined): string => {
+        if (typeof value !== 'string' || !PLAYLIST_ID_BODY.test(value)) {
+          throw new Error('Not a playlist id');
+        }
+        return PLAYLIST_PREFIX + value;
+      },
+      serialize: (id: string) => id.replace(PLAYLIST_PREFIX, ''),
+    },
   },
 });

@@ -69,11 +69,11 @@ export default function QueueMenu({
           >
             <Menu.Item className={ITEM} onClick={run('next')}>
               <ListStartIcon size={16} className="shrink-0 text-text-muted" aria-hidden />
-              Play next
+              Play Next
             </Menu.Item>
             <Menu.Item className={ITEM} onClick={run('end')}>
               <ListEndIcon size={16} className="shrink-0 text-text-muted" aria-hidden />
-              Add to queue
+              Add to Queue
             </Menu.Item>
             {!!links?.length && <Menu.Separator className="mx-2 my-1 h-px bg-hairline" />}
             {links?.map((link) => (

@@ -1,11 +1,26 @@
 import { href } from '@timber-js/app/routes';
+import { getPlaylistLibrary, type PlaylistLibrary } from '@/data/playlists';
 import { getCurrentUser } from '@/data/session';
 import { signInHref } from '@/lib/searchParams/sessionSearchParams';
+import { Suspense } from 'react';
+import PlaylistDebug from './PlaylistDebug';
+import PlaylistsSection from './PlaylistsSection';
 import SessionForms from './SessionForms';
 
-/** Signed-out: a plain sign-in link (no client JS). Signed-in: the username and the sign-out / switch-account forms. */
+/** Null on an outage: the playlists say so, and the rest of the page still renders. */
+const loadLibrary = (): Promise<PlaylistLibrary | null> =>
+  getPlaylistLibrary().catch((err) => {
+    console.error('[account] playlist library failed', err);
+    return null;
+  });
+
+/**
+ * Signed-out: a plain sign-in link (no client JS). Signed-in: the username, the
+ * sign-out / switch-account forms, and the listener's playlists.
+ */
 export default async function AccountPage() {
-  const user = await getCurrentUser();
+  // Both read the session cookie: fetched together, not one after the other.
+  const [user, library] = await Promise.all([getCurrentUser(), loadLibrary()]);
 
   if (!user) {
     return (
@@ -26,6 +41,13 @@ export default async function AccountPage() {
         Signed in as <strong>{user.username}</strong>
       </p>
       <SessionForms />
+      <PlaylistsSection library={library} />
+      {/* Last on the page, so streaming it in shifts nothing above. */}
+      {process.env.NODE_ENV !== 'production' && (
+        <Suspense fallback={null}>
+          <PlaylistDebug />
+        </Suspense>
+      )}
     </div>
   );
 }

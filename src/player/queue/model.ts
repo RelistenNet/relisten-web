@@ -14,7 +14,7 @@ export type QueueItem = {
   /**
    * Unique in the queue. A context entry's key is its trackId, so the same
    * track keeps its key (and gapless its loaded audio) when a page plays its
-   * context again.
+   * context again. A playlist can repeat a track, so its entries key by entry id.
    */
   key: string;
   trackId: string;
