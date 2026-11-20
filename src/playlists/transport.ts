@@ -14,6 +14,7 @@ import type {
   PlaylistBatchResponseWire,
   PlaylistCreatedWire,
   PlaylistOperationWire,
+  PlaylistPublicationWire,
   PlaylistSnapshotWire,
 } from '@/domain/playlists';
 
@@ -55,6 +56,10 @@ export type PlaylistTransport = {
     operations: PlaylistOperationWire[],
     expectedRevision?: number
   ): Promise<PlaylistBatchResponseWire>;
+  /** Publishes (or unpublishes) a playlist; asking twice changes nothing more. */
+  publish(playlistId: string, published: boolean): Promise<PlaylistPublicationWire>;
+  /** Reports a public playlist (signed in; a reason of 1–300 characters). */
+  report(publicCode: string, reason: string): Promise<void>;
 };
 
 type Problem = { code?: string; title?: string; detail?: string };
@@ -118,20 +123,20 @@ export function createPlaylistTransport({
     return (await res.json()) as T;
   }
 
-  async function write<T>(path: string, body: unknown): Promise<T> {
+  async function write<T>(path: string, body: unknown, method = 'POST'): Promise<T> {
     let refreshed = false;
     for (let attempt = 1; ; attempt++) {
       let res: Response | null = null;
       try {
         res = await request(path, {
-          method: 'POST',
+          method,
           headers: { 'content-type': 'application/json', 'x-relisten-csrf': await token() },
           body: JSON.stringify(body),
         });
       } catch (err) {
         if (err instanceof PlaylistWriteError) throw err; // the CSRF fetch's answer
       }
-      if (res?.ok) return (await res.json()) as T;
+      if (res?.ok) return (res.status === 204 ? undefined : await res.json()) as T;
       // A bare 403 is a stale CSRF token (the cookie rotated): get a new one, once.
       if (res?.status === 403 && !refreshed) {
         refreshed = true;
@@ -156,6 +161,14 @@ export function createPlaylistTransport({
         operations,
         ...(expectedRevision !== undefined && { expected_revision: expectedRevision }),
       } satisfies PlaylistBatchRequestWire),
+    publish: (id, published) =>
+      write(
+        `/v1/playlists/${encodeURIComponent(id)}/publication`,
+        { contract_version: 1, published },
+        'PUT'
+      ),
+    report: (code, reason) =>
+      write(`/v1/public-playlists/${encodeURIComponent(code)}/reports`, { reason }),
   };
 }
 

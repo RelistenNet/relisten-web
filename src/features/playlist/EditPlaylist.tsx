@@ -27,6 +27,8 @@ export default async function EditPlaylist({ playlistId }: { playlistId: string 
       initial={result.playlist}
       resolved={resolved}
       viewHref={viewHref}
+      publicCode={result.publicCode}
+      takenDown={result.takenDown}
       byline={[
         <Link key="account" href={href('/account')}>
           Your playlists

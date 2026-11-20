@@ -39,6 +39,7 @@ import {
   sourceOf,
 } from './editOps';
 import AddTracks from './AddTracks';
+import PublishControl from './PublishControl';
 import { dropOp } from './dragOps';
 import MarkdownField from './MarkdownField';
 import PlaylistArticle, {
@@ -77,12 +78,17 @@ export default function PlaylistEditor({
   initial,
   resolved,
   viewHref,
+  publicCode,
+  takenDown,
   byline,
 }: {
   initial: PlaylistContent;
   resolved: PlaylistResolved;
   /** The playlist's page: Done goes back there. */
   viewHref: string;
+  /** Set while it's published. */
+  publicCode?: string;
+  takenDown: boolean;
   byline: ReactNode[];
 }) {
   const router = useRouter();
@@ -361,12 +367,19 @@ export default function PlaylistEditor({
         byline={byline}
         slots={slots}
         actions={
-          <Link
-            href={viewHref}
-            className={cn(ACTION, 'border-transparent bg-accent/15 hover:bg-accent/25')}
-          >
-            Done
-          </Link>
+          <>
+            <PublishControl
+              playlistId={initial.playlistId}
+              publicCode={publicCode}
+              takenDown={takenDown}
+            />
+            <Link
+              href={viewHref}
+              className={cn(ACTION, 'border-transparent bg-accent/15 hover:bg-accent/25')}
+            >
+              Done
+            </Link>
+          </>
         }
       />
       {/* The drop slot: placed by usePlaylistDrag while dragging, hidden otherwise. */}

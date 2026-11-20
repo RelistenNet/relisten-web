@@ -67,7 +67,15 @@ export async function getPlaylistLibrary(): Promise<PlaylistLibrary | null> {
 }
 
 export type OwnPlaylist =
-  | { kind: 'found'; playlist: PlaylistContent; archived: boolean; publicCode?: string }
+  | {
+      kind: 'found';
+      playlist: PlaylistContent;
+      archived: boolean;
+      /** Set while it's published (and the share code the public page uses). */
+      publicCode?: string;
+      /** Taken down after a report: not public, and can't be published again for now. */
+      takenDown: boolean;
+    }
   | { kind: 'missing' }
   | { kind: 'signed-out' };
 
@@ -86,6 +94,7 @@ export const getOwnPlaylist = requestCache(async (playlistId: string): Promise<O
       playlist: toPlaylistContent(snapshot),
       archived: snapshot.archived,
       publicCode: (snapshot.published && snapshot.public_code) || undefined,
+      takenDown: !!snapshot.taken_down,
     };
   } catch (err) {
     if (err instanceof UserServiceError) {
@@ -123,8 +132,16 @@ const publicPlaylistCached = timberCache.data(
       owner: snapshot.owner.username,
     };
   },
-  { ttl: 60, key: (code: string) => `playlist-public:${code}` }
+  {
+    ttl: 60,
+    key: (code: string) => `playlist-public:${code}`,
+    // Publishing or unpublishing clears it at once (refreshPublicPlaylist).
+    tags: (code: string) => [publicPlaylistTag(code)],
+  }
 );
+
+/** The public page's cache tag, by share code. */
+export const publicPlaylistTag = (code: string) => `playlist-public:${code}`;
 
 /** A published playlist by its share code, or null when it isn't (or is no longer) public. */
 export const getPublicPlaylist = requestCache((code: string) => publicPlaylistCached(code));

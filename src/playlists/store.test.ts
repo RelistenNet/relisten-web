@@ -37,6 +37,8 @@ function fakeServer(start = content) {
   const transport: PlaylistTransport = {
     library: vi.fn(),
     create: vi.fn(),
+    publish: vi.fn(),
+    report: vi.fn(),
     snapshot: vi.fn(
       async () =>
         ({

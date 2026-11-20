@@ -4,12 +4,19 @@ import { METADATA_BASE } from '@/lib/constants';
 import { getPublicPlaylist } from '@/data/playlists';
 import { PLAYLIST_CARD_SIZE } from './PlaylistCard';
 import PlaylistDetail from './PlaylistDetail';
+import ReportPlaylist from './ReportPlaylist';
 
 /** A published playlist, open to anyone with the link. Private, archived and taken-down ones are 404s. */
 export default async function PublicPlaylist({ publicCode }: { publicCode: string }) {
   const playlist = await getPublicPlaylist(publicCode);
   if (!playlist) deny(404);
-  return <PlaylistDetail playlist={playlist} byline={[`By ${playlist.owner}`]} />;
+  return (
+    <PlaylistDetail
+      playlist={playlist}
+      byline={[`By ${playlist.owner}`]}
+      actions={<ReportPlaylist publicCode={publicCode} />}
+    />
+  );
 }
 
 export async function publicPlaylistMetadata({ publicCode }: { publicCode: string }) {
