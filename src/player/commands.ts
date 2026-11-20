@@ -75,13 +75,18 @@ export function playSongRows({
   items,
   label,
   startKey,
+  startTime,
 }: {
   items: QueueItem[];
   label: string;
   startKey: string;
+  /** Seconds into the start entry (a playlist's timestamp link). */
+  startTime?: number;
 }): void {
   const start = items.find((i) => i.key === startKey);
   if (!start) return;
+  // The entry isn't loaded yet: start it at `startTime` when the engine makes it current.
+  if (startTime && startTime > 0) getEngine()?.startAt(start.key, startTime);
   playerActor.send({ type: 'PLAY_CONTEXT', ctx: { label, items }, startKey: start.key });
   startPlayback();
 }

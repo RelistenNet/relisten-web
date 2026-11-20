@@ -89,6 +89,35 @@ describe('playlistView', () => {
     ]);
   });
 
+  it('renders prose, with timestamps that play only entries the catalog has', () => {
+    const gone = 'playlist_entry_01k8000000e008000000000004';
+    const withLinks: PlaylistContent = {
+      ...playlist,
+      segments: [
+        {
+          id: 'seg_1',
+          entries: [{ id: 'entry_1', trackId: 'track_a', description: 'Peak at 5:00, not 12:00' }],
+        },
+        // Prose alone, between groups.
+        { id: 'seg_prose', description: `See [the gone one](#entry=${gone}&t=1:00)`, entries: [] },
+        { id: 'seg_2', entries: [{ id: gone, trackId: 'track_gone', description: 'At 0:30' }] },
+      ],
+    };
+    const rows = playlistView(withLinks, catalog, artists).rows;
+    expect(rows.map((r) => [r.id, r.kind])).toEqual([
+      ['entry_1', 'track'],
+      ['seg_prose', 'text'],
+      [gone, 'unavailable'],
+    ]);
+    const json = (i: number) => JSON.stringify(rows[i].prose);
+    // Within the track's 600s; 12:00 is past it.
+    expect(json(0)).toContain('"seek":{"entryId":"entry_1","seconds":300}');
+    expect(json(0)).not.toContain('"seconds":720');
+    // An unavailable entry can't be played, from its own note or elsewhere.
+    expect(json(1)).not.toContain('"seek"');
+    expect(json(2)).not.toContain('"seek"');
+  });
+
   it('links a track to its show page, on its tape', () => {
     const row = view.rows[0];
     expect(isTrackRow(row) && row.href).toBe('/artists/grateful-dead/shows/1977-05-08?source=1');

@@ -2,6 +2,8 @@ import { Link } from '@timber-js/app/client';
 import type { ReactNode } from 'react';
 import type { PlaylistContent } from '@/domain/playlists';
 import cn from '@/lib/cn';
+import GuideProse, { type RenderSeek } from '@/lib/guideMarkdown/GuideProse';
+import type { GuideBlock } from '@/lib/guideMarkdown/types';
 import { durationToHHMMSS, numberFormat } from '@/lib/utils';
 import EntryProgress from '@/player/EntryProgress';
 import PlayTrackButton, { PlayTrackRow } from '@/player/PlayTrackButton';
@@ -13,12 +15,13 @@ import { songRowItem } from '@/player/queue/items';
 import { formatShowDate } from '@/ui/shows/stats';
 import { playlistBlocks, type PlaylistBlock, type PlaylistItem } from './blocks';
 import { loadPlaylistView } from './load';
+import SeekLink from './SeekLink';
 import { isTrackRow, type PlaylistOtherRow, type PlaylistTrackRow } from './spec';
 
 // A playlist, read like a post: a byline and lede, then the author's writing
 // with the tracks embedded in it as cards. The same page for a published
-// playlist and a listener's own. Descriptions are plain text for now; the
-// Markdown subset comes with the guide renderer.
+// playlist and a listener's own. Descriptions are the guide Markdown subset,
+// sanitized on the server (src/lib/guideMarkdown); their timestamps play.
 
 /** "27 min", "1 hr 12 min". */
 function readableDuration(seconds: number) {
@@ -51,45 +54,72 @@ export default async function PlaylistDetail({
   ].filter(Boolean);
 
   return (
-    <article className="flex flex-col gap-6">
-      <header className="flex flex-col gap-3">
-        <h1 className="mb-0 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-          {view.name}
-        </h1>
-        <div className="text-sm text-text-muted [&_a]:text-text-muted [&_a:hover]:text-accent">
-          {meta.map((item, i) => (
-            <span key={i}>
-              {i > 0 && <span aria-hidden> · </span>}
-              {item}
-            </span>
-          ))}
-        </div>
-        {view.description && (
-          <p className={cn(PROSE, 'mt-2 text-text-secondary')}>{view.description}</p>
-        )}
-      </header>
-
-      {blocks.length === 0 ? (
-        <p className="text-text-muted">Nothing here yet.</p>
-      ) : (
-        <SongQueueProvider label={view.name} items={items}>
-          <ShowQueueActions playlist />
-          {/* The left padding holds the rail; from md up it hangs in the margin instead,
-          and everything lines up with the header. */}
-          <div className="flex flex-col gap-4 pl-6 md:-ml-6">
-            {blocks.map((block) => (
-              <Block key={block.key} block={block} rail={rail} />
+    // The whole article shares the queue: a timestamp in any prose plays from it.
+    <SongQueueProvider label={view.name} items={items}>
+      <article className="flex flex-col gap-6">
+        <header className="flex flex-col gap-3">
+          <h1 className="mb-0 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+            {view.name}
+          </h1>
+          <div className="text-sm text-text-muted [&_a]:text-text-muted [&_a:hover]:text-accent">
+            {meta.map((item, i) => (
+              <span key={i}>
+                {i > 0 && <span aria-hidden> · </span>}
+                {item}
+              </span>
             ))}
           </div>
-        </SongQueueProvider>
-      )}
-    </article>
+          <Prose blocks={view.description} className="mt-2 text-text-secondary" />
+        </header>
+
+        {blocks.length === 0 ? (
+          <p className="text-text-muted">Nothing here yet.</p>
+        ) : (
+          <>
+            <ShowQueueActions playlist />
+            {/* The left padding holds the rail; from md up it hangs in the margin instead,
+          and everything lines up with the header. */}
+            <div className="flex flex-col gap-4 pl-6 md:-ml-6">
+              {blocks.map((block) => (
+                <Block key={block.key} block={block} rail={rail} />
+              ))}
+            </div>
+          </>
+        )}
+      </article>
+    </SongQueueProvider>
+  );
+}
+
+/** A timestamp in the prose: plays its entry from there. */
+const renderSeek: RenderSeek = (seek, label, href) => (
+  <SeekLink entryId={seek.entryId} seconds={seek.seconds} href={href}>
+    {label}
+  </SeekLink>
+);
+
+/** What the author wrote, in the prose voice. Children go first (the rail). */
+function Prose({
+  blocks,
+  className,
+  children,
+}: {
+  blocks?: GuideBlock[];
+  className?: string;
+  children?: ReactNode;
+}) {
+  if (!blocks?.length) return null;
+  return (
+    <div className={cn(PROSE, className)}>
+      {children}
+      <GuideProse blocks={blocks} renderSeek={renderSeek} />
+    </div>
   );
 }
 
 // One voice for everything the author wrote (description, sections, text,
 // track notes); metadata is smaller and muted.
-const PROSE = 'mb-0 text-[15px] leading-relaxed text-pretty whitespace-pre-line text-text-primary';
+const PROSE = 'text-[15px] leading-relaxed text-pretty text-text-primary';
 // Prose between tracks starts where track titles and notes do (a cell's 1px
 // border, 12px padding, 28px play button and 12px gap), so the writing reads
 // as one column. The rail's segments sit left of it, at -12px from the block.
@@ -221,10 +251,12 @@ function Block({ block, rail }: { block: PlaylistBlock; rail: RailLayout }) {
       {block.items.map((item) => (
         <Item key={item.key} item={item} rail={rail} inSection />
       ))}
-      <p className={cn(PROSE, FLOW_INDENT, COMMENTARY, 'relative pt-3 pr-4 pb-3.5')}>
+      <Prose
+        blocks={block.comment}
+        className={cn(FLOW_INDENT, COMMENTARY, 'relative pt-3 pr-4 pb-3.5')}
+      >
         <RailThrough piece={rail.get(block.key)} />
-        {block.comment}
-      </p>
+      </Prose>
     </section>
   );
 }
@@ -241,10 +273,12 @@ function Item({
 }) {
   if (item.kind === 'text') {
     return (
-      <p className={cn(PROSE, FLOW_INDENT, COMMENTARY, 'relative', inSection && 'py-3 pr-4')}>
+      <Prose
+        blocks={item.prose}
+        className={cn(FLOW_INDENT, COMMENTARY, 'relative', inSection && 'py-3 pr-4')}
+      >
         <RailThrough piece={rail.get(item.key)} />
-        {item.text}
-      </p>
+      </Prose>
     );
   }
   // Each track its own cell, like a notebook's; a run of them sits closer
@@ -279,9 +313,8 @@ const CELL = cn(
 );
 
 /** A track's note, under its show line. */
-function Note({ text }: { text?: string }) {
-  if (!text) return null;
-  return <p className={cn(PROSE, 'mt-1')}>{text}</p>;
+function Note({ blocks }: { blocks?: GuideBlock[] }) {
+  return <Prose blocks={blocks} className="mt-1" />;
 }
 
 /**
@@ -315,7 +348,7 @@ function TrackCell({ row, rail }: { row: PlaylistTrackRow; rail: ReactNode }) {
           </Link>
           {row.venueName && <> · {row.venueName}</>}
         </span>
-        <Note text={row.description} />
+        <Note blocks={row.prose} />
       </div>
       <div className="flex shrink-0 items-center gap-1">
         {row.track.mp3Url && (
@@ -366,7 +399,7 @@ function UnavailableCell({ row, rail }: { row: PlaylistOtherRow; rail: ReactNode
       <div className="flex min-w-0 flex-1 flex-col pt-0.5">
         <span className="text-[15px] leading-snug">Unavailable track</span>
         <span className="text-[13px]">This recording isn&rsquo;t on Relisten anymore.</span>
-        <Note text={row.description} />
+        <Note blocks={row.prose} />
       </div>
     </li>
   );

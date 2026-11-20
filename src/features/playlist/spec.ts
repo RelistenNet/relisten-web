@@ -1,16 +1,26 @@
+import type { GuideBlock } from '@/lib/guideMarkdown/types';
 import type { ShowRow } from '@/ui/shows/rows';
 
 // A playlist's entries in authored order, as rows the page lays out (blocks.ts).
 
 /** A segment with a description gets a heading row above its entries; others run on unheaded. */
-export type PlaylistSegmentHeading = { id: string; description: string };
+export type PlaylistSegmentHeading = {
+  id: string;
+  /** As written: the editor edits this. */
+  description: string;
+  /** Sanitized, to render. */
+  prose: GuideBlock[];
+};
 
 type EntryFields = {
   /** The entry id: unique per row. */
   id: string;
   /** 1-based, across the whole playlist. */
   position: number;
+  /** As written: the editor edits this. */
   description?: string;
+  /** The description sanitized, to render. */
+  prose?: GuideBlock[];
   segment: PlaylistSegmentHeading | null;
 };
 
