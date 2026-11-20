@@ -2,6 +2,7 @@ import 'server-only';
 
 import type { Definition, Nodes, PhrasingContent, Root, RootContent } from 'mdast';
 import { markdownToMdast } from 'satteri';
+import { lines, plainBlocks } from './plain';
 import {
   BARE_TIMESTAMP,
   ENTRY_TIMESTAMP_LINK,
@@ -27,27 +28,9 @@ export function sanitizeGuide(markdown: string, context: GuideContext): GuideBlo
   try {
     root = markdownToMdast(markdown, { features: { gfm: false, frontmatter: false } });
   } catch {
-    return textBlocks(markdown);
+    return plainBlocks(markdown);
   }
   return new Sanitizer(markdown, context, root).blocks(root.children, 0);
-}
-
-/** Plain text for a description: a paragraph per blank-line-separated run. */
-function textBlocks(text: string): GuideBlock[] {
-  return text
-    .split(/\n{2,}/)
-    .filter((p) => p.trim())
-    .map((p) => ({ type: 'paragraph', children: lines(p) }));
-}
-
-/** Text with each newline as a line break. */
-function lines(value: string): GuideInline[] {
-  return value
-    .split('\n')
-    .flatMap((line, i): GuideInline[] => [
-      ...(i > 0 ? [{ type: 'break' } as const] : []),
-      ...(line ? [{ type: 'text', value: line } as const] : []),
-    ]);
 }
 
 /**

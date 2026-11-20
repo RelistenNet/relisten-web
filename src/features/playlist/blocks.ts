@@ -16,7 +16,13 @@ export type PlaylistItem =
 export type PlaylistBlock =
   | PlaylistItem
   /** A described segment: its entries, then its description beneath them. */
-  | { kind: 'section'; key: string; items: PlaylistItem[]; comment: GuideBlock[] };
+  | {
+      kind: 'section';
+      key: string;
+      segmentId: string;
+      items: PlaylistItem[];
+      comment: GuideBlock[];
+    };
 
 /** Appends rows as items, joining a track to the run of tracks before it. */
 function addItems(into: PlaylistItem[] | PlaylistBlock[], rows: readonly PlaylistRow[]) {
@@ -46,6 +52,7 @@ export function playlistBlocks(rows: readonly PlaylistRow[]): PlaylistBlock[] {
       blocks.push({
         kind: 'section',
         key: `section:${heading.id}`,
+        segmentId: heading.id,
         items,
         comment: heading.prose,
       });

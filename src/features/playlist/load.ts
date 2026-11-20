@@ -5,123 +5,79 @@ import { getArtistDirectory } from '@/data/artists';
 import { getPlaylistCatalog, type PlaylistCatalog } from '@/data/playlists';
 import type { PlaylistContent } from '@/domain/playlists';
 import { sanitizeGuide } from '@/lib/guideMarkdown/sanitize';
-import type { GuideBlock, GuideContext } from '@/lib/guideMarkdown/types';
+import type { GuideContext } from '@/lib/guideMarkdown/types';
 import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
 import { showRow, type ArtistsById } from '@/ui/shows/rows';
-import type { PlaylistRow } from './spec';
+import { PLAYLIST_PROSE, type PlaylistResolved, type PlaylistView, playlistView } from './rows';
 
-export type PlaylistView = {
-  name: string;
-  /** The playlist's description, sanitized. */
-  description?: GuideBlock[];
-  rows: PlaylistRow[];
-  /** Playable tracks. */
-  trackCount: number;
-  /** Seconds, over the tracks the catalog has. */
-  duration: number;
-};
+export type { PlaylistView } from './rows';
 
-/** A playlist's entries as table rows, with each track looked up in the catalog. */
-export async function loadPlaylistView(playlist: PlaylistContent): Promise<PlaylistView> {
+/** A playlist's view, and what it was built from (the editor rebuilds it from its draft). */
+export async function loadPlaylistView(
+  playlist: PlaylistContent
+): Promise<{ view: PlaylistView; resolved: PlaylistResolved }> {
   const [catalog, directory] = await Promise.all([
     getPlaylistCatalog(playlist),
     getArtistDirectory(),
   ]);
-  return playlistView(playlist, catalog, directory.byId);
+  const resolved = resolvePlaylist(playlist, catalog, directory.byId);
+  return { view: playlistView(playlist, resolved), resolved };
 }
 
-export function playlistView(
+/** Looks up each track in the catalog and sanitizes every description, for playlistView. */
+export function resolvePlaylist(
   playlist: PlaylistContent,
   catalog: PlaylistCatalog,
   artists: ArtistsById
-): PlaylistView {
-  const rows: PlaylistRow[] = [];
-  let duration = 0;
-  // A timestamp link can only play an entry the catalog has.
+): PlaylistResolved {
+  const tracks: PlaylistResolved['tracks'] = {};
+  for (const [trackId, track] of Object.entries(catalog.tracks)) {
+    const show = catalog.shows[track.showId];
+    const row = show && showRow(show, artists);
+    if (!row) continue;
+    tracks[trackId] = {
+      ...row,
+      // The show page, on this track's tape.
+      href: href(
+        '/artists/[artistSlug]/shows/[showDate]',
+        { artistSlug: row.artistSlug, showDate: row.date },
+        sourceQuery(track.sourceId)
+      ),
+      track,
+      trackTitle: track.title,
+      songDuration: track.duration ?? null,
+    };
+  }
+
+  // A timestamp link can only play an entry whose track resolved.
   const playable = new Set(
     playlist.segments.flatMap((s) =>
-      s.entries.filter((e) => e.trackId && catalog.tracks[e.trackId]).map((e) => e.id)
+      s.entries.filter((e) => e.trackId && tracks[e.trackId]).map((e) => e.id)
     )
   );
   const canSeek = (entryId: string) => playable.has(entryId);
-  const prose = (text: string | undefined, context: GuideContext) =>
-    text ? sanitizeGuide(text, context) : undefined;
+  const prose: PlaylistResolved['prose'] = {};
+  const add = (id: string, source: string | undefined, context: GuideContext) => {
+    if (source) prose[id] = { source, blocks: sanitizeGuide(source, context) };
+  };
+  add(PLAYLIST_PROSE, playlist.description, { kind: 'playlist', canSeek });
   for (const segment of playlist.segments) {
-    const heading = segment.description
-      ? {
-          id: segment.id,
-          description: segment.description,
-          prose: sanitizeGuide(segment.description, { kind: 'segment', canSeek }),
-        }
-      : null;
-    // A segment of prose alone (no entries) reads as a text block between groups.
-    if (heading && segment.entries.length === 0) {
-      rows.push({
-        id: segment.id,
-        position: rows.length + 1,
-        description: heading.description,
-        prose: heading.prose,
-        segment: null,
-        kind: 'text',
-      });
-      continue;
-    }
+    add(segment.id, segment.description, { kind: 'segment', canSeek });
     for (const entry of segment.entries) {
-      const fields = {
-        id: entry.id,
-        position: rows.length + 1,
-        description: entry.description,
-        segment: heading,
-      };
-      if (!entry.trackId) {
-        rows.push({
-          ...fields,
-          kind: 'text',
-          prose: prose(entry.description, { kind: 'text', canSeek }),
-        });
-        continue;
-      }
-      const track = catalog.tracks[entry.trackId];
-      const show = track && catalog.shows[track.showId];
-      const row = show && showRow(show, artists);
-      if (!track || !row) {
-        // Its own timestamps can't play, so they stay text.
-        rows.push({
-          ...fields,
-          kind: 'unavailable',
-          prose: prose(entry.description, { kind: 'track', entryId: entry.id, canSeek }),
-        });
-        continue;
-      }
-      duration += track.duration ?? 0;
-      rows.push({
-        ...row,
-        ...fields,
-        kind: 'track',
-        queueKey: entry.id,
-        // The show page, on this track's tape.
-        href: href(
-          '/artists/[artistSlug]/shows/[showDate]',
-          { artistSlug: row.artistSlug, showDate: row.date },
-          sourceQuery(track.sourceId)
-        ),
-        prose: prose(entry.description, {
-          kind: 'track',
-          entryId: entry.id,
-          durationSeconds: track.duration ?? undefined,
-          canSeek,
-        }),
-        track,
-        trackTitle: track.title,
-        songDuration: track.duration ?? null,
-      });
+      const track = entry.trackId ? tracks[entry.trackId] : undefined;
+      add(
+        entry.id,
+        entry.description,
+        entry.trackId
+          ? {
+              kind: 'track',
+              entryId: entry.id,
+              durationSeconds: track?.songDuration ?? undefined,
+              canSeek,
+            }
+          : { kind: 'text', canSeek }
+      );
     }
   }
-  return {
-    name: playlist.name,
-    description: prose(playlist.description, { kind: 'playlist', canSeek }),
-    rows,
-    trackCount: rows.filter((r) => r.kind === 'track').length,
-    duration,
-  };
+  return { tracks, prose };
 }

@@ -4,7 +4,14 @@ import type { PlaylistContent } from '@/domain/playlists';
 import type { Artist, ShowSummary } from '@/domain/types';
 import { songRowItem } from '@/player/queue/items';
 import { playlistBlocks } from './blocks';
-import { playlistView } from './load';
+import { resolvePlaylist } from './load';
+import { playlistView as viewOf } from './rows';
+
+const playlistView = (
+  playlist: PlaylistContent,
+  catalog: PlaylistCatalog,
+  artists: Map<string, Artist>
+) => viewOf(playlist, resolvePlaylist(playlist, catalog, artists));
 import { isTrackRow } from './spec';
 
 const artists = new Map<string, Artist>([
