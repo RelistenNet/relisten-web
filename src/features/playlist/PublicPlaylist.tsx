@@ -1,5 +1,8 @@
+import { href } from '@timber-js/app/routes';
 import { deny } from '@timber-js/app/server';
+import { METADATA_BASE } from '@/lib/constants';
 import { getPublicPlaylist } from '@/data/playlists';
+import { PLAYLIST_CARD_SIZE } from './PlaylistCard';
 import PlaylistDetail from './PlaylistDetail';
 
 /** A published playlist, open to anyone with the link. Private, archived and taken-down ones are 404s. */
@@ -12,8 +15,25 @@ export default async function PublicPlaylist({ publicCode }: { publicCode: strin
 export async function publicPlaylistMetadata({ publicCode }: { publicCode: string }) {
   const playlist = await getPublicPlaylist(publicCode).catch(() => null);
   if (!playlist) return {};
+  // The card (./PlaylistCard, at the route's opengraph-image) changes with the
+  // playlist, so its URL carries the revision: link unfurlers cache by URL. The
+  // image route isn't in the typed route map, so it's the page's href plus its file.
+  const image = new URL(
+    `${href('/playlists/[publicCode]', { publicCode })}/opengraph-image.png`,
+    METADATA_BASE
+  );
+  image.searchParams.set('v', String(playlist.revision));
   return {
     title: `${playlist.name} | A playlist by ${playlist.owner}`,
     description: playlist.description,
+    openGraph: {
+      images: [
+        {
+          url: image.href,
+          ...PLAYLIST_CARD_SIZE,
+          alt: `${playlist.name}, a playlist by ${playlist.owner}`,
+        },
+      ],
+    },
   };
 }

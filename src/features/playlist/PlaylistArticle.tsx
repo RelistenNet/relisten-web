@@ -80,7 +80,7 @@ export type ArticleSlots = {
 };
 
 /** "27 min", "1 hr 12 min". */
-function readableDuration(seconds: number) {
+export function readableDuration(seconds: number) {
   const minutes = Math.round(seconds / 60);
   if (minutes < 60) return `${minutes} min`;
   const hours = Math.floor(minutes / 60);
