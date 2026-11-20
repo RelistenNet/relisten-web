@@ -1,7 +1,7 @@
 import 'server-only';
 
 import type { Definition, Nodes, PhrasingContent, Root, RootContent } from 'mdast';
-import { fromMarkdown } from 'mdast-util-from-markdown';
+import { markdownToMdast } from 'satteri';
 import {
   BARE_TIMESTAMP,
   ENTRY_TIMESTAMP_LINK,
@@ -12,13 +12,12 @@ import type { GuideBlock, GuideContext, GuideInline, GuideSeek } from './types';
 
 // The client half of keeping guide descriptions to the allowed subset
 // (RelistenApi docs/design/2026-11-18-playlist-guide-content.md, "Accepting and
-// sanitizing descriptions"). Parses CommonMark (micromark, no GFM), keeps
+// sanitizing descriptions"). Parses CommonMark (satteri, no GFM), keeps
 // paragraphs, bold, italics, lists, block quotes, `##`/`###` headings, `https:`
 // links and timestamp links, and turns everything else into plain text. Images
 // become their alt text and are never fetched. A single newline is a line break,
-// since the mobile editor writes one for Return. Server-only, so the parser stays
-// out of the client bundle. (Not satteri: its native binding isn't in the Nitro
-// build output, and a description is at most 2,000 characters.)
+// since the mobile editor writes one for Return. Server-only: satteri is native
+// (traced into the build by timber.config.ts), and stays out of the client bundle.
 
 /** Deeper lists and quotes than this render as their source text. */
 const MAX_DEPTH = 8;
@@ -26,7 +25,7 @@ const MAX_DEPTH = 8;
 export function sanitizeGuide(markdown: string, context: GuideContext): GuideBlock[] {
   let root: Root;
   try {
-    root = fromMarkdown(markdown);
+    root = markdownToMdast(markdown, { features: { gfm: false, frontmatter: false } });
   } catch {
     return textBlocks(markdown);
   }

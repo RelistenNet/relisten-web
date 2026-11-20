@@ -50,7 +50,6 @@
     "isomorphic-fetch": "3.0.0",
     "ky": "^2.2.0",
     "lucide-react": "^1.76.0",
-    "mdast-util-from-markdown": "^2.0.3",
     "mediabunny": "^1.66.2",
     "node-device-detector": "^2.2.9",
     "nuqs": "^2.10.3",
