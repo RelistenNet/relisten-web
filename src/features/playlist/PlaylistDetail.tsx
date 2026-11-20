@@ -1,6 +1,6 @@
 import { Link } from '@timber-js/app/client';
 import type { ReactNode } from 'react';
-import type { PlaylistContent } from '@/data/playlists';
+import type { PlaylistContent } from '@/domain/playlists';
 import cn from '@/lib/cn';
 import { durationToHHMMSS, numberFormat } from '@/lib/utils';
 import EntryProgress from '@/player/EntryProgress';

@@ -2,7 +2,8 @@ import 'server-only';
 
 import { href } from '@timber-js/app/routes';
 import { getArtistDirectory } from '@/data/artists';
-import { getPlaylistCatalog, type PlaylistCatalog, type PlaylistContent } from '@/data/playlists';
+import { getPlaylistCatalog, type PlaylistCatalog } from '@/data/playlists';
+import type { PlaylistContent } from '@/domain/playlists';
 import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
 import { showRow, type ArtistsById } from '@/ui/shows/rows';
 import type { PlaylistRow } from './spec';

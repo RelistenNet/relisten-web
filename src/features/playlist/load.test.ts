@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { PlaylistCatalog, PlaylistContent } from '@/data/playlists';
+import type { PlaylistCatalog } from '@/data/playlists';
+import type { PlaylistContent } from '@/domain/playlists';
 import type { Artist, ShowSummary } from '@/domain/types';
 import { songRowItem } from '@/player/queue/items';
 import { playlistBlocks } from './blocks';
