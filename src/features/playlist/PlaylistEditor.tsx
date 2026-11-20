@@ -38,7 +38,12 @@ import {
 } from './editOps';
 import { dropOp } from './dragOps';
 import MarkdownField from './MarkdownField';
-import PlaylistArticle, { type ArticleSlots, type GapAt, type ProseOwner } from './PlaylistArticle';
+import PlaylistArticle, {
+  ACTION,
+  type ArticleSlots,
+  type GapAt,
+  type ProseOwner,
+} from './PlaylistArticle';
 import { PLAYLIST_PROSE, type PlaylistResolved, playlistView } from './rows';
 import { usePlaylistDrag } from './usePlaylistDrag';
 
@@ -283,10 +288,10 @@ export default function PlaylistEditor({
     ),
 
     gap: (at) => ({
-      control: <GapControl label="Add here" onAddText={() => setEditing({ kind: 'gap', at })} />,
+      control: <GapControl onAddText={() => setEditing({ kind: 'gap', at })} />,
       content:
         editing?.kind === 'gap' && editing.at.index === at.index ? (
-          <div className="pl-[53px]">
+          <div>
             <MarkdownField
               label="New text"
               initial={editing.draft ?? ''}
@@ -327,12 +332,6 @@ export default function PlaylistEditor({
           <UndoIcon className="size-4" aria-hidden />
           Undo
         </button>
-        <Link
-          href={viewHref}
-          className={cn(TOOL, 'bg-accent/15 text-text-primary hover:bg-accent/25')}
-        >
-          Done
-        </Link>
       </div>
     ),
   };
@@ -340,13 +339,28 @@ export default function PlaylistEditor({
   return (
     // What's being dragged fades where it was.
     <div ref={root} className="[&_[data-dragging]]:opacity-40">
-      <PlaylistArticle view={view} byline={byline} slots={slots} />
-      {/* The drop line: placed by usePlaylistDrag while dragging, hidden otherwise. */}
+      <PlaylistArticle
+        view={view}
+        byline={byline}
+        slots={slots}
+        actions={
+          <Link
+            href={viewHref}
+            className={cn(ACTION, 'border-transparent bg-accent/15 hover:bg-accent/25')}
+          >
+            Done
+          </Link>
+        }
+      />
+      {/* The drop slot: placed by usePlaylistDrag while dragging, hidden otherwise. */}
       <div
         ref={dropLine}
         hidden
         aria-hidden
-        className="pointer-events-none fixed z-50 h-0.5 rounded-full bg-accent"
+        className="
+          pointer-events-none fixed z-50 rounded-md border border-dashed border-accent
+          bg-accent/15
+        "
       />
     </div>
   );
@@ -615,30 +629,20 @@ function CellMenu({
   );
 }
 
-/** A + on the rail, in the gap between blocks. */
-function GapControl({ label, onAddText }: { label: string; onAddText: () => void }) {
+/** Fills a gap's dashed zone: click anywhere in it to write there. */
+function GapControl({ onAddText }: { onAddText: () => void }) {
   return (
-    <Menu.Root>
-      <Menu.Trigger
-        aria-label={label}
-        className="
-          absolute top-1/2 -left-[22px] flex size-5 -translate-y-1/2 items-center justify-center
-          rounded-full border border-hairline bg-surface-raised text-text-muted
-          transition-colors hover:border-accent hover:text-accent
-          data-popup-open:border-accent data-popup-open:text-accent
-        "
-      >
-        <PlusIcon className="size-3" aria-hidden />
-      </Menu.Trigger>
-      <Menu.Portal>
-        <Menu.Positioner align="start" sideOffset={4} className="z-50 outline-none">
-          <Menu.Popup className={MENU_POPUP}>
-            <Item icon={TextIcon} onClick={onAddText}>
-              Add Text
-            </Item>
-          </Menu.Popup>
-        </Menu.Positioner>
-      </Menu.Portal>
-    </Menu.Root>
+    <button
+      type="button"
+      onClick={onAddText}
+      className="
+        flex w-full items-center gap-2 rounded-[inherit] py-2 pl-[52px] text-sm text-text-muted
+        transition-colors hover:bg-text-primary/[0.03] hover:text-text-primary
+        focus-visible:outline-2 focus-visible:outline-accent
+      "
+    >
+      <PlusIcon className="-ml-6 size-4" aria-hidden />
+      Add Text
+    </button>
   );
 }

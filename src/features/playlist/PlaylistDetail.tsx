@@ -7,11 +7,14 @@ import PlaylistArticle from './PlaylistArticle';
 export default async function PlaylistDetail({
   playlist,
   byline = [],
+  actions,
 }: {
   playlist: PlaylistContent;
   /** The byline's leading items ("By alice", a link back, "Published"). */
   byline?: ReactNode[];
+  /** At the top right (the owner's Edit). */
+  actions?: ReactNode;
 }) {
   const { view } = await loadPlaylistView(playlist);
-  return <PlaylistArticle view={view} byline={byline} />;
+  return <PlaylistArticle view={view} byline={byline} actions={actions} />;
 }

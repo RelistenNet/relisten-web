@@ -3,6 +3,8 @@ import { href } from '@timber-js/app/routes';
 import { deny, redirect } from '@timber-js/app/server';
 import { getOwnPlaylist } from '@/data/playlists';
 import { signInHref } from '@/lib/searchParams/sessionSearchParams';
+import { PencilIcon } from 'lucide-react';
+import { ACTION } from './PlaylistArticle';
 import PlaylistDetail from './PlaylistDetail';
 
 /** One of the signed-in listener's playlists. Someone else's is a 404, as the User Service answers. */
@@ -28,12 +30,18 @@ export default async function OwnPlaylist({ playlistId }: { playlistId: string }
         ) : (
           'Private'
         ),
+      ]}
+      actions={
         !archived && (
-          <Link key="edit" href={href('/account/playlists/[playlistId]/edit', { playlistId })}>
+          <Link
+            href={href('/account/playlists/[playlistId]/edit', { playlistId })}
+            className={ACTION}
+          >
+            <PencilIcon className="size-4" aria-hidden />
             Edit
           </Link>
-        ),
-      ]}
+        )
+      }
     />
   );
 }

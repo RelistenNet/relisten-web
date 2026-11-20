@@ -24,9 +24,8 @@ type Source = { playlistDrag: DragSource };
 const isSource = (data: Record<string | symbol, unknown>): data is Source =>
   typeof data.playlistDrag === 'object' && data.playlistDrag !== null;
 
-/** The line's thickness, and how far it reaches left onto the rail. */
-const LINE = 2;
-const RAIL = 14;
+/** The slot's height (a dashed box between two cards, centered on the gap). */
+const SLOT = 12;
 
 export function usePlaylistDrag(
   root: RefObject<HTMLElement | null>,
@@ -47,12 +46,17 @@ export function usePlaylistDrag(
       const el = line.current;
       if (!el) return;
       el.hidden = false;
-      el.style.top = `${y - LINE / 2}px`;
-      el.style.left = `${rect.left - RAIL}px`;
-      el.style.width = `${rect.width + RAIL}px`;
+      el.style.top = `${y - SLOT / 2}px`;
+      el.style.left = `${rect.left}px`;
+      el.style.width = `${rect.width}px`;
+      el.style.height = `${SLOT}px`;
     };
     const hide = () => {
       if (line.current) line.current.hidden = true;
+    };
+    const over = (gap: HTMLElement, on: boolean) => {
+      if (on) gap.setAttribute('data-drop-over', '');
+      else gap.removeAttribute('data-drop-over');
     };
 
     const cleanups: (() => void)[] = [];
@@ -92,17 +96,12 @@ export function usePlaylistDrag(
             attachClosestEdge({ ...target }, { element, input, allowedEdges: ['top', 'bottom'] }),
           onDragEnter: place,
           onDrag: place,
-          onDragLeave: hide,
-          onDrop: hide,
         })
       );
     }
 
+    // A gap lights up itself; the slot isn't needed there.
     for (const element of container.querySelectorAll<HTMLElement>('[data-gap]')) {
-      const place = () => {
-        const rect = element.getBoundingClientRect();
-        show(rect, rect.top + rect.height / 2);
-      };
       cleanups.push(
         dropTargetForElements({
           element,
@@ -112,9 +111,12 @@ export function usePlaylistDrag(
             above: element.dataset.above,
             below: element.dataset.below,
           }),
-          onDragEnter: place,
-          onDragLeave: hide,
-          onDrop: hide,
+          onDragEnter: () => {
+            hide();
+            over(element, true);
+          },
+          onDragLeave: () => over(element, false),
+          onDrop: () => over(element, false),
         })
       );
     }
@@ -122,6 +124,11 @@ export function usePlaylistDrag(
     cleanups.push(
       monitorForElements({
         canMonitor: ({ source }) => isSource(source.data),
+        // Hidden only once the pointer is over no target at all, not on every
+        // crossing of the few pixels between two cards (which flickered).
+        onDropTargetChange: ({ location }) => {
+          if (!location.current.dropTargets.length) hide();
+        },
         onDrop: ({ source, location }) => {
           hide();
           const target = location.current.dropTargets[0];

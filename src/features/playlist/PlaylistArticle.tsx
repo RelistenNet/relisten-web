@@ -31,6 +31,13 @@ import { isTrackRow, type PlaylistOtherRow, type PlaylistTrackRow } from './spec
 // guide Markdown subset, sanitized on the server (src/lib/guideMarkdown); their
 // timestamps play. No server imports and no hooks: it renders on either side.
 
+/** A header action's look (the owner's Edit, the editor's Done). */
+export const ACTION = `
+  inline-flex items-center gap-1.5 rounded-lg border border-hairline px-3 py-1.5 text-sm
+  font-medium text-text-primary transition-colors hover:bg-surface-hover
+  focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent
+`;
+
 /** Whose prose a block is: the editor edits it by this. */
 export type ProseOwner =
   | { kind: 'playlist' }
@@ -41,8 +48,13 @@ export type ProseOwner =
   /** A track's note, by entry id. */
   | { kind: 'note'; id: string };
 
-/** A gap between blocks: the rows on either side of it. */
-export type GapAt = { index: number; above?: BlockEdge; below?: BlockEdge };
+/** A gap between blocks: the rows on either side of it, and whether the rail runs through. */
+export type GapAt = {
+  index: number;
+  above?: BlockEdge;
+  below?: BlockEdge;
+  railThrough: boolean;
+};
 
 /** The editor's controls. Each is optional; the read pages pass none. */
 export type ArticleSlots = {
@@ -59,8 +71,8 @@ export type ArticleSlots = {
   /** In place of a track's ⋯ menu; beside an unavailable track. */
   cellMenu?: (row: PlaylistTrackGroupRow) => ReactNode;
   /**
-   * At each gap between blocks (and before the first, and past the last): a
-   * control laid over it, and content in the flow there (text being written).
+   * At each gap between blocks (and before the first, and past the last): its
+   * control (Add Text), or the text being written there in its place.
    */
   gap?: (at: GapAt) => { control?: ReactNode; content?: ReactNode };
   /** Beside the play actions (save status, undo, Done). */
@@ -78,11 +90,14 @@ function readableDuration(seconds: number) {
 export default function PlaylistArticle({
   view,
   byline = [],
+  actions,
   slots,
 }: {
   view: PlaylistView;
   /** The byline's leading items ("By alice", a link back, "Published"). */
   byline?: ReactNode[];
+  /** At the top right, beside the title (Edit, Done). */
+  actions?: ReactNode;
   slots?: ArticleSlots;
 }) {
   // A track's play button queues the playlist's tracks, in order.
@@ -103,9 +118,12 @@ export default function PlaylistArticle({
     <SongQueueProvider label={view.name} items={items}>
       <article className="flex flex-col gap-6">
         <header className="flex flex-col gap-3">
-          <h1 className="mb-0 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-            {slots?.title ?? view.name}
-          </h1>
+          <div className="flex items-start justify-between gap-4">
+            <h1 className="mb-0 min-w-0 flex-1 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+              {slots?.title ?? view.name}
+            </h1>
+            {actions && <div className="flex shrink-0 items-center gap-2 pt-1">{actions}</div>}
+          </div>
           <div className="text-sm text-text-muted [&_a]:text-text-muted [&_a:hover]:text-accent">
             {meta.map((item, i) => (
               <span key={i}>
@@ -133,32 +151,13 @@ export default function PlaylistArticle({
             {/* The left padding holds the rail; from md up it hangs in the margin instead,
             and everything lines up with the header. */}
             <div className="flex flex-col gap-4 pl-6 md:-ml-6">
-              {blocks.map((block, i) => {
-                const gap = slots?.gap?.(gapAt(blocks, i));
-                return (
-                  <Fragment key={block.key}>
-                    {gap?.content}
-                    {/* The editor's gap control sits over the gap above, so it moves nothing. */}
-                    <div className="relative">
-                      {gap?.control && (
-                        <GapZone
-                          at={gapAt(blocks, i)}
-                          className="absolute inset-x-0 -top-4 z-20 h-4"
-                        >
-                          {gap.control}
-                        </GapZone>
-                      )}
-                      <Block block={block} rail={rail} slots={slots} />
-                    </div>
-                  </Fragment>
-                );
-              })}
-              {slots?.gap && (
-                <TrailingGap
-                  at={gapAt(blocks, blocks.length)}
-                  gap={slots.gap(gapAt(blocks, blocks.length))}
-                />
-              )}
+              {blocks.map((block, i) => (
+                <Fragment key={block.key}>
+                  {slots?.gap && <Gap at={gapAt(blocks, i)} slots={slots} />}
+                  <Block block={block} rail={rail} slots={slots} />
+                </Fragment>
+              ))}
+              {slots?.gap && <Gap at={gapAt(blocks, blocks.length)} slots={slots} />}
             </div>
           </>
         )}
@@ -168,52 +167,45 @@ export default function PlaylistArticle({
 }
 
 function gapAt(blocks: readonly PlaylistBlock[], index: number): GapAt {
+  const hasTrack = (b: PlaylistBlock) =>
+    (b.kind === 'section' ? b.items : [b]).some((item) => item.kind === 'tracks');
   return {
     index,
     above: index > 0 ? blockEdges(blocks[index - 1])?.last : undefined,
     below: index < blocks.length ? blockEdges(blocks[index])?.first : undefined,
+    railThrough: blocks.slice(0, index).some(hasTrack) && blocks.slice(index).some(hasTrack),
   };
 }
 
-/** A gap's area, marked with the segments on either side (the editor drops into it). */
-function GapZone({
-  at,
-  className,
-  children,
-}: {
-  at: GapAt;
-  className?: string;
-  children: ReactNode;
-}) {
+/**
+ * The editor's place between blocks: a full-width dashed zone in the flow, holding
+ * its control (Add Text) or what's being written there. Marked with the segments
+ * on either side, since a drag drops into it too. The rail runs down through it.
+ */
+function Gap({ at, slots }: { at: GapAt; slots: ArticleSlots }) {
+  const gap = slots.gap?.(at);
+  if (!gap) return null;
   return (
     <div
       data-gap=""
       data-above={at.above?.segmentId}
       data-below={at.below?.segmentId}
-      className={className}
+      className="
+        relative rounded-xl border border-dashed border-text-primary/15 transition-colors
+        data-[drop-over]:border-accent data-[drop-over]:bg-accent/20
+        data-[drop-over]:[&_button]:text-accent
+      "
     >
-      {children}
-    </div>
-  );
-}
-
-/** The gap past the last block: its content, then its control. */
-function TrailingGap({
-  at,
-  gap,
-}: {
-  at: GapAt;
-  gap: { control?: ReactNode; content?: ReactNode };
-}) {
-  return (
-    <>
-      {gap.content}
-      {gap.control && (
-        <GapZone at={at} className="relative h-4">
-          {gap.control}
-        </GapZone>
+      {at.railThrough && (
+        // Across the gap above and down its own height, 1px in from its border like a cell's.
+        <span
+          aria-hidden
+          className={RAIL_LINE}
+          style={{ left: -12, top: -1 - FLOW_GAP, bottom: -1 }}
+        />
       )}
-    </>
+      {gap.content ? <div className="py-2 pr-3 pl-[52px]">{gap.content}</div> : gap.control}
+    </div>
   );
 }
 
