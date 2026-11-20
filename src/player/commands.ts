@@ -187,6 +187,12 @@ export async function playShowById(showId: string): Promise<boolean> {
 }
 
 /** Play next / Add to queue for a whole show. False if it couldn't load. */
+/** A show's tracks (the tape its page opens on), to add to a playlist. */
+export async function showTrackIds(showId: string): Promise<{ trackIds: string[] } | null> {
+  const ctx = await showQueue(showId);
+  return ctx?.items.length ? { trackIds: ctx.items.map((i) => i.trackId) } : null;
+}
+
 export async function queueShow(showId: string, where: 'next' | 'end'): Promise<boolean> {
   const ctx = await showQueue(showId);
   if (!ctx?.items.length) return false;
