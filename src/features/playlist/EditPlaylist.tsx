@@ -39,5 +39,7 @@ export default async function EditPlaylist({ playlistId }: { playlistId: string 
 
 export async function editPlaylistMetadata({ playlistId }: { playlistId: string }) {
   const result = await getOwnPlaylist(playlistId).catch(() => null);
-  return { title: result?.kind === 'found' ? `Editing ${result.playlist.name}` : 'Playlist' };
+  return {
+    title: result?.kind === 'found' ? `[EDITING] ${result.playlist.name}` : '[EDITING] Playlist',
+  };
 }
