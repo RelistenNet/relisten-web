@@ -34,8 +34,8 @@ import { TOASTER_ID } from './toasts';
 // Add to Playlist (docs/playlist-editing.md): your playlists, the one you last
 // added to first, then New Playlist…. What's added goes in as one segment, so a
 // show's tape (or a run like Twist → Jam) stays together under shuffle. The list
-// loads when the menu opens; signed out, the server says so (401), and the menu
-// offers Sign In instead.
+// loads each time the menu opens; signed out, the server says so (401), and the
+// menu offers Sign In instead.
 
 /** What to add, looked up when it's chosen (a show's tracks are fetched then). */
 export type PlaylistTracks = () => Promise<{ trackIds: string[] } | null>;
@@ -47,11 +47,13 @@ type Library =
 
 const LAST_KEY = 'relisten:last-playlist';
 
-// One load per page, refreshed after an add or a new playlist.
-let library: Promise<Library> | null = null;
-
-function loadLibrary(): Promise<Library> {
-  return (library ??= ownPlaylists().then(
+/**
+ * Your playlists, fetched fresh each time a menu opens (so a sign-in, a switch of
+ * account or an edit in another tab always shows): the opening menu holds the
+ * request, and the list suspends on it. Never rejects.
+ */
+function fetchLibrary(): Promise<Library> {
+  return ownPlaylists().then(
     (playlists): Library => {
       const last = readStorage(LAST_KEY);
       // The playlist added to last goes first; the rest stay most recently changed first.
@@ -60,13 +62,20 @@ function loadLibrary(): Promise<Library> {
         playlists: [...playlists].sort((a, b) => Number(b.id === last) - Number(a.id === last)),
       };
     },
-    (err: unknown): Library => {
-      library = null; // try again next time it opens
-      return err instanceof PlaylistWriteError && err.kind === 'signed-out'
+    (err: unknown): Library =>
+      err instanceof PlaylistWriteError && err.kind === 'signed-out'
         ? { kind: 'signed-out' }
-        : { kind: 'error' };
-    }
-  ));
+        : { kind: 'error' }
+  );
+}
+
+/** A request per opening of a menu: started by its onOpenChange, read by its list. */
+function useLibraryOnOpen() {
+  const [library, setLibrary] = useState<Promise<Library> | null>(null);
+  const onOpenChange = (open: boolean) => {
+    if (open) setLibrary(fetchLibrary());
+  };
+  return { library, onOpenChange };
 }
 
 const playlistHref = (playlistId: string) =>
@@ -94,7 +103,6 @@ function usePlaylistActions(tracks: PlaylistTracks) {
       const found = await tracks();
       if (!found?.trackIds.length) return toast.error('Nothing to add', { toasterId: TOASTER_ID });
       const { segmentId } = await addToPlaylist(playlist.id, found.trackIds);
-      library = null;
       writeStorage(LAST_KEY, playlist.id);
       toast.success(`Added to ${playlist.name}`, {
         toasterId: TOASTER_ID,
@@ -117,8 +125,14 @@ function usePlaylistActions(tracks: PlaylistTracks) {
 }
 
 /** The list inside a menu: Sign In, or your playlists. Suspends while they load. */
-function PlaylistItems({ onAdd }: { onAdd: (p: OwnPlaylist) => void }) {
-  const result = use(loadLibrary());
+function PlaylistItems({
+  library,
+  onAdd,
+}: {
+  library: Promise<Library>;
+  onAdd: (p: OwnPlaylist) => void;
+}) {
+  const result = use(library);
   const pathname = usePathname();
   if (result.kind === 'signed-out') {
     return (
@@ -148,18 +162,25 @@ function PlaylistItems({ onAdd }: { onAdd: (p: OwnPlaylist) => void }) {
   );
 }
 
-function MenuContents({ tracks, onNew }: { tracks: PlaylistTracks; onNew: () => void }) {
+function MenuContents({
+  library,
+  tracks,
+  onNew,
+}: {
+  library: Promise<Library> | null;
+  tracks: PlaylistTracks;
+  onNew: () => void;
+}) {
   const { add } = usePlaylistActions(tracks);
+  const loading = (
+    <Menu.Item className={MENU_ITEM} disabled>
+      Loading…
+    </Menu.Item>
+  );
   return (
     <>
-      <Suspense
-        fallback={
-          <Menu.Item className={MENU_ITEM} disabled>
-            Loading…
-          </Menu.Item>
-        }
-      >
-        <PlaylistItems onAdd={(p) => void add(p)} />
+      <Suspense fallback={loading}>
+        {library ? <PlaylistItems library={library} onAdd={(p) => void add(p)} /> : loading}
       </Suspense>
       <Menu.Item className={MENU_ITEM} onClick={onNew}>
         <PlusIcon size={16} className="shrink-0 text-text-muted" aria-hidden />
@@ -180,8 +201,9 @@ export function AddToPlaylistSubmenu({
   tracks: PlaylistTracks;
   onNew: () => void;
 }) {
+  const { library, onOpenChange } = useLibraryOnOpen();
   return (
-    <Menu.SubmenuRoot>
+    <Menu.SubmenuRoot onOpenChange={onOpenChange}>
       <Menu.SubmenuTrigger className={MENU_ITEM}>
         <ListPlusIcon size={16} className="shrink-0 text-text-muted" aria-hidden />
         <span className="flex-1">Add to Playlist</span>
@@ -190,7 +212,7 @@ export function AddToPlaylistSubmenu({
       <Menu.Portal>
         <Menu.Positioner sideOffset={4} className="z-50 outline-none">
           <Menu.Popup className={cn(MENU_POPUP, 'max-h-80 max-w-72 overflow-y-auto')}>
-            <MenuContents tracks={tracks} onNew={onNew} />
+            <MenuContents library={library} tracks={tracks} onNew={onNew} />
           </Menu.Popup>
         </Menu.Positioner>
       </Menu.Portal>
@@ -209,9 +231,10 @@ export function AddToPlaylistButton({
   className?: string;
 }) {
   const [naming, setNaming] = useState(false);
+  const { library, onOpenChange } = useLibraryOnOpen();
   return (
     <>
-      <Menu.Root>
+      <Menu.Root onOpenChange={onOpenChange}>
         <Menu.Trigger className={className}>
           <ListPlusIcon className="size-4 text-text-muted" aria-hidden />
           Add to Playlist
@@ -219,7 +242,7 @@ export function AddToPlaylistButton({
         <Menu.Portal>
           <Menu.Positioner align="start" sideOffset={4} className="z-50 outline-none">
             <Menu.Popup className={cn(MENU_POPUP, 'max-h-80 max-w-72 overflow-y-auto')}>
-              <MenuContents tracks={tracks} onNew={() => setNaming(true)} />
+              <MenuContents library={library} tracks={tracks} onNew={() => setNaming(true)} />
             </Menu.Popup>
           </Menu.Positioner>
         </Menu.Portal>
@@ -262,7 +285,6 @@ export function NewPlaylistDialog({
       try {
         const found = await tracks();
         const { playlistId } = await createPlaylist({ name, trackIds: found?.trackIds ?? [] });
-        library = null;
         writeStorage(LAST_KEY, playlistId);
         onOpenChange(false);
         toast.success(`Created ${name}`, {
