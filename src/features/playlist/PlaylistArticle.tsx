@@ -1,5 +1,5 @@
 import { Link } from '@timber-js/app/client';
-import { Fragment, type ReactNode } from 'react';
+import { Fragment, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react';
 import cn from '@/lib/cn';
 import GuideProse, { type RenderSeek } from '@/lib/guideMarkdown/GuideProse';
 import type { GuideBlock } from '@/lib/guideMarkdown/types';
@@ -50,6 +50,8 @@ export type ArticleSlots = {
   title?: ReactNode;
   /** In place of a prose block's text, while it's being edited; undefined otherwise. */
   prose?: (owner: ProseOwner) => ReactNode | undefined;
+  /** Opens a prose block for editing: a click on it (not on a link in it), or Enter. */
+  editProse?: (owner: ProseOwner) => void;
   /** A menu on a prose block (`hasText`: there's text to edit, not just to add). */
   proseMenu?: (owner: ProseOwner, hasText: boolean) => ReactNode;
   /** In place of a track's ⋯ menu; beside an unavailable track. */
@@ -137,14 +139,24 @@ export default function PlaylistArticle({
                     {/* The editor's gap control sits over the gap above, so it moves nothing. */}
                     <div className="relative">
                       {gap?.control && (
-                        <div className="absolute inset-x-0 -top-4 z-20 h-4">{gap.control}</div>
+                        <GapZone
+                          at={gapAt(blocks, i)}
+                          className="absolute inset-x-0 -top-4 z-20 h-4"
+                        >
+                          {gap.control}
+                        </GapZone>
                       )}
                       <Block block={block} rail={rail} slots={slots} />
                     </div>
                   </Fragment>
                 );
               })}
-              {slots?.gap && <TrailingGap gap={slots.gap(gapAt(blocks, blocks.length))} />}
+              {slots?.gap && (
+                <TrailingGap
+                  at={gapAt(blocks, blocks.length)}
+                  gap={slots.gap(gapAt(blocks, blocks.length))}
+                />
+              )}
             </div>
           </>
         )}
@@ -161,12 +173,44 @@ function gapAt(blocks: readonly PlaylistBlock[], index: number): GapAt {
   };
 }
 
+/** A gap's area, marked with the segments on either side (the editor drops into it). */
+function GapZone({
+  at,
+  className,
+  children,
+}: {
+  at: GapAt;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      data-gap=""
+      data-above={at.above?.segmentId}
+      data-below={at.below?.segmentId}
+      className={className}
+    >
+      {children}
+    </div>
+  );
+}
+
 /** The gap past the last block: its content, then its control. */
-function TrailingGap({ gap }: { gap: { control?: ReactNode; content?: ReactNode } }) {
+function TrailingGap({
+  at,
+  gap,
+}: {
+  at: GapAt;
+  gap: { control?: ReactNode; content?: ReactNode };
+}) {
   return (
     <>
       {gap.content}
-      {gap.control && <div className="relative h-4">{gap.control}</div>}
+      {gap.control && (
+        <GapZone at={at} className="relative h-4">
+          {gap.control}
+        </GapZone>
+      )}
     </>
   );
 }
@@ -187,20 +231,53 @@ export function Prose({
   owner,
   blocks,
   slots,
+  row,
   className,
   children,
 }: {
   owner: ProseOwner;
   blocks?: GuideBlock[];
   slots?: ArticleSlots;
+  /** A text block's place in the flow, for the editor's dragging. */
+  row?: { id: string; segmentId: string };
   className?: string;
   children?: ReactNode;
 }) {
   const editing = slots?.prose?.(owner);
   const menu = slots?.proseMenu?.(owner, !!blocks?.length);
   if (!editing && !blocks?.length) return null;
+  const open = !editing && slots?.editProse ? () => slots.editProse?.(owner) : undefined;
   return (
-    <div className={cn(PROSE, 'group/prose', menu && 'relative', className)}>
+    <div
+      className={cn(
+        PROSE,
+        'group/prose',
+        (menu || open) && 'relative',
+        // Editable: above a cell's play-anywhere overlay, and marked as text to click into.
+        open &&
+          `
+            z-10 -mx-1.5 cursor-text rounded-md px-1.5 transition-colors
+            hover:bg-text-primary/[0.04] focus-visible:outline-2 focus-visible:outline-accent
+          `,
+        className
+      )}
+      data-row-id={row?.id}
+      data-segment-id={row?.segmentId}
+      {...(open && {
+        tabIndex: 0,
+        title: 'Click to edit',
+        // A link or button inside (a timestamp, the menu) keeps its own click.
+        onClick: (e: MouseEvent<HTMLDivElement>) => {
+          if (!(e.target as HTMLElement).closest('a, button')) open();
+        },
+        onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => {
+          if (e.key === 'Enter' && e.target === e.currentTarget) {
+            e.preventDefault();
+            open();
+          }
+        },
+      })}
+    >
       {children}
       {editing ?? <GuideProse blocks={blocks ?? []} renderSeek={renderSeek} />}
       {menu && !editing && <div className="absolute top-0 right-0">{menu}</div>}
@@ -341,6 +418,7 @@ function Block({
     // back on hover and while playing) and stack flush, square but for the top
     // one's corners.
     <section
+      data-section-id={block.segmentId}
       className={`
         flex flex-col rounded-2xl bg-text-primary/[0.035]
         [&_li]:rounded-none [&_li]:bg-transparent
@@ -380,6 +458,7 @@ function Item({
         owner={{ kind: 'text', id: item.key }}
         blocks={item.prose}
         slots={slots}
+        row={{ id: item.key, segmentId: item.segmentId }}
         className={cn(FLOW_INDENT, COMMENTARY, 'relative', inSection && 'py-3 pr-4')}
       >
         <RailThrough piece={rail.get(item.key)} />
@@ -439,6 +518,8 @@ function TrackCell({
   const name = `${row.trackTitle ?? 'Track'}, ${row.date}`;
   return (
     <li
+      data-row-id={row.id}
+      data-segment-id={row.segmentId}
       className={cn(
         CELL,
         `
@@ -515,7 +596,11 @@ function UnavailableCell({
   slots?: ArticleSlots;
 }) {
   return (
-    <li className={cn(CELL, 'items-start border-dashed border-hairline text-text-muted')}>
+    <li
+      data-row-id={row.id}
+      data-segment-id={row.segmentId}
+      className={cn(CELL, 'group/cell items-start border-dashed border-hairline text-text-muted')}
+    >
       {rail}
       {/* The play button's width, so titles line up. */}
       <span aria-hidden className="w-7 shrink-0" />

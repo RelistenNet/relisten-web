@@ -7,6 +7,7 @@ import {
   ArrowUpIcon,
   ChevronRightIcon,
   EllipsisVerticalIcon,
+  GripVerticalIcon,
   GroupIcon,
   PencilIcon,
   PlusIcon,
@@ -35,9 +36,11 @@ import {
   saveProse,
   sourceOf,
 } from './editOps';
+import { dropOp } from './dragOps';
 import MarkdownField from './MarkdownField';
 import PlaylistArticle, { type ArticleSlots, type GapAt, type ProseOwner } from './PlaylistArticle';
 import { type PlaylistResolved, playlistView } from './rows';
+import { usePlaylistDrag } from './usePlaylistDrag';
 
 // The editor (docs/playlist-editing.md): the read view's article, laid out from
 // a draft, with menus on every cell, prose block and gap. Edits apply at once and
@@ -94,7 +97,28 @@ export default function PlaylistEditor({
   });
   useWarnBeforeLeaving(state);
 
+  /** Applies an edit; an edit the server would refuse says why instead. */
+  const edit = (op: PlaylistOp | null) => {
+    if (!op) return;
+    try {
+      store.edit(op);
+    } catch (err) {
+      if (err instanceof PlaylistOpError) notify(err.message);
+      else throw err;
+    }
+  };
   const content = state.content;
+  const root = useRef<HTMLDivElement>(null);
+  const dropLine = useRef<HTMLDivElement>(null);
+  const openField =
+    editing?.kind === 'prose'
+      ? `${editing.owner.kind}:${editing.owner.kind === 'playlist' ? '' : editing.owner.id}`
+      : editing?.kind === 'gap'
+        ? `gap:${editing.at.index}`
+        : '';
+  usePlaylistDrag(root, dropLine, content, openField, (source, target) =>
+    edit(dropOp(content, source, target))
+  );
   const view = playlistView(content, resolved);
   const timestampTargets = view.rows.flatMap((r) =>
     r.kind === 'track'
@@ -114,16 +138,6 @@ export default function PlaylistEditor({
     void store.flush();
   };
 
-  /** Applies an edit; an edit the server would refuse says why instead. */
-  const edit = (op: PlaylistOp | null) => {
-    if (!op) return;
-    try {
-      store.edit(op);
-    } catch (err) {
-      if (err instanceof PlaylistOpError) notify(err.message);
-      else throw err;
-    }
-  };
   const removed = (what: string, op: PlaylistOp) => {
     edit(op);
     toast(`Removed ${what}`, {
@@ -177,68 +191,88 @@ export default function PlaylistEditor({
       return undefined;
     },
 
+    editProse: (owner) => setEditing({ kind: 'prose', owner }),
+
     proseMenu: (owner) => (
-      <EditMenu label="Edit text" className="-mt-1 -mr-1">
-        <Item icon={PencilIcon} onClick={() => setEditing({ kind: 'prose', owner })}>
-          Edit
-        </Item>
-        {owner.kind === 'segment' ? (
-          <>
-            <Item icon={GroupIcon} onClick={() => edit(saveProse(content, owner, ''))}>
-              Dissolve Section
-            </Item>
+      <div className="-mt-1 -mr-1 flex items-center">
+        {(owner.kind === 'segment' || owner.kind === 'text') && (
+          <Grip
+            // A section, or prose alone, moves as its segment; a text entry as itself.
+            kind={
+              owner.kind === 'segment' || content.segments.some((s) => s.id === owner.id)
+                ? 'segment'
+                : 'entry'
+            }
+            id={owner.id}
+          />
+        )}
+        <EditMenu label="Edit text">
+          <Item icon={PencilIcon} onClick={() => setEditing({ kind: 'prose', owner })}>
+            Edit
+          </Item>
+          {owner.kind === 'segment' ? (
+            <>
+              <Item icon={GroupIcon} onClick={() => edit(saveProse(content, owner, ''))}>
+                Dissolve Section
+              </Item>
+              <Item
+                icon={Trash2Icon}
+                onClick={() =>
+                  removed('the section', {
+                    operation_type: 'delete_segment',
+                    payload: { segment_id: owner.id },
+                  })
+                }
+              >
+                Remove Section and Tracks
+              </Item>
+            </>
+          ) : owner.kind === 'text' ? (
             <Item
               icon={Trash2Icon}
-              onClick={() =>
-                removed('the section', {
-                  operation_type: 'delete_segment',
-                  payload: { segment_id: owner.id },
-                })
-              }
+              onClick={() => removed('the text', removeText(content, owner.id))}
             >
-              Remove Section and Tracks
+              Remove
             </Item>
-          </>
-        ) : owner.kind === 'text' ? (
-          <Item
-            icon={Trash2Icon}
-            onClick={() => removed('the text', removeText(content, owner.id))}
-          >
-            Remove
-          </Item>
-        ) : (
-          <Item
-            icon={Trash2Icon}
-            onClick={() => {
-              const op = saveProse(content, owner, '');
-              if (op) removed(owner.kind === 'note' ? 'the note' : 'the description', op);
-            }}
-          >
-            Remove
-          </Item>
-        )}
-      </EditMenu>
+          ) : (
+            <Item
+              icon={Trash2Icon}
+              onClick={() => {
+                const op = saveProse(content, owner, '');
+                if (op) removed(owner.kind === 'note' ? 'the note' : 'the description', op);
+              }}
+            >
+              Remove
+            </Item>
+          )}
+        </EditMenu>
+      </div>
     ),
 
     cellMenu: (row) => (
-      <CellMenu
-        row={row}
-        sections={sections.filter((s) => s.id !== row.segmentId)}
-        hasNote={!!row.description}
-        onNote={() => setEditing({ kind: 'prose', owner: { kind: 'note', id: row.id } })}
-        onIntro={() => setEditing({ kind: 'prose', owner: { kind: 'segment', id: row.segmentId } })}
-        onEdit={(op) => edit(op)}
-        moveUp={moveEntry(content, row.id, -1)}
-        moveDown={moveEntry(content, row.id, 1)}
-        ownGroup={moveToOwnGroup(content, row.id)}
-        onRemove={() =>
-          removed('the track', { operation_type: 'delete_entry', payload: { entry_id: row.id } })
-        }
-        moveToSection={(segmentId) => moveToSection(row.id, segmentId)}
-        sectionName={(segmentId) =>
-          firstLine(content.segments.find((s) => s.id === segmentId)?.description)
-        }
-      />
+      <>
+        <Grip kind="entry" id={row.id} />
+        <CellMenu
+          row={row}
+          sections={sections.filter((s) => s.id !== row.segmentId)}
+          hasNote={!!row.description}
+          onNote={() => setEditing({ kind: 'prose', owner: { kind: 'note', id: row.id } })}
+          onIntro={() =>
+            setEditing({ kind: 'prose', owner: { kind: 'segment', id: row.segmentId } })
+          }
+          onEdit={(op) => edit(op)}
+          moveUp={moveEntry(content, row.id, -1)}
+          moveDown={moveEntry(content, row.id, 1)}
+          ownGroup={moveToOwnGroup(content, row.id)}
+          onRemove={() =>
+            removed('the track', { operation_type: 'delete_entry', payload: { entry_id: row.id } })
+          }
+          moveToSection={(segmentId) => moveToSection(row.id, segmentId)}
+          sectionName={(segmentId) =>
+            firstLine(content.segments.find((s) => s.id === segmentId)?.description)
+          }
+        />
+      </>
     ),
 
     gap: (at) => ({
@@ -296,7 +330,40 @@ export default function PlaylistEditor({
     ),
   };
 
-  return <PlaylistArticle view={view} byline={byline} slots={slots} />;
+  return (
+    // What's being dragged fades where it was.
+    <div ref={root} className="[&_[data-dragging]]:opacity-40">
+      <PlaylistArticle view={view} byline={byline} slots={slots} />
+      {/* The drop line: placed by usePlaylistDrag while dragging, hidden otherwise. */}
+      <div
+        ref={dropLine}
+        hidden
+        aria-hidden
+        className="pointer-events-none fixed z-50 h-0.5 rounded-full bg-accent"
+      />
+    </div>
+  );
+}
+
+/** Drag to move; the menus move things too (and are the keyboard's way). */
+function Grip({ kind, id }: { kind: 'entry' | 'segment'; id: string }) {
+  return (
+    <span
+      data-drag-kind={kind}
+      data-drag-id={id}
+      aria-hidden
+      title="Drag to move"
+      className={`
+        inline-flex size-8 cursor-grab items-center justify-center rounded-md text-text-muted
+        opacity-0 transition-opacity group-focus-within/cell:opacity-100
+        group-focus-within/prose:opacity-100 group-hover/cell:opacity-100
+        group-hover/prose:opacity-100 hover:bg-surface-hover hover:text-text-primary
+        active:cursor-grabbing pointer-coarse:opacity-100
+      `}
+    >
+      <GripVerticalIcon className="size-4" />
+    </span>
+  );
 }
 
 const firstLine = (text?: string) => (text ?? '').split('\n')[0].slice(0, 40) || 'Section';
@@ -542,9 +609,9 @@ function GapControl({ label, onAddText }: { label: string; onAddText: () => void
         aria-label={label}
         className="
           absolute top-1/2 -left-[22px] flex size-5 -translate-y-1/2 items-center justify-center
-          rounded-full border border-hairline bg-surface-raised text-text-muted opacity-0
-          transition-opacity hover:text-text-primary focus-visible:opacity-100
-          data-popup-open:opacity-100 pointer-coarse:opacity-100 [div:hover>&]:opacity-100
+          rounded-full border border-hairline bg-surface-raised text-text-muted
+          transition-colors hover:border-accent hover:text-accent
+          data-popup-open:border-accent data-popup-open:text-accent
         "
       >
         <PlusIcon className="size-3" aria-hidden />
