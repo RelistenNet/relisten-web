@@ -10,7 +10,7 @@ import type { PlaylistRow, PlaylistTrackRow } from './spec';
 /** A track's row, without the entry it's in (a playlist can hold a track twice). */
 export type ResolvedTrack = Omit<
   PlaylistTrackRow,
-  'id' | 'position' | 'description' | 'prose' | 'segment' | 'kind' | 'queueKey'
+  'id' | 'position' | 'segmentId' | 'description' | 'prose' | 'segment' | 'kind' | 'queueKey'
 >;
 
 /** What the server looked up: catalog tracks by track id, and sanitized prose by owner id. */
@@ -60,6 +60,7 @@ export function playlistView(content: PlaylistContent, resolved: PlaylistResolve
       rows.push({
         id: segment.id,
         position: rows.length + 1,
+        segmentId: segment.id,
         description: heading.description,
         prose: heading.prose,
         segment: null,
@@ -71,6 +72,7 @@ export function playlistView(content: PlaylistContent, resolved: PlaylistResolve
       const fields = {
         id: entry.id,
         position: rows.length + 1,
+        segmentId: segment.id,
         description: entry.description,
         prose: proseFor(resolved, entry.id, entry.description),
         segment: heading,

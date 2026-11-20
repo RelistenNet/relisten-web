@@ -1,5 +1,5 @@
 import { Link } from '@timber-js/app/client';
-import type { ReactNode } from 'react';
+import { Fragment, type ReactNode } from 'react';
 import cn from '@/lib/cn';
 import GuideProse, { type RenderSeek } from '@/lib/guideMarkdown/GuideProse';
 import type { GuideBlock } from '@/lib/guideMarkdown/types';
@@ -13,6 +13,8 @@ import TrackLoadDot from '@/player/TrackLoadDot';
 import { songRowItem } from '@/player/queue/items';
 import { formatShowDate } from '@/ui/shows/stats';
 import {
+  type BlockEdge,
+  blockEdges,
   playlistBlocks,
   type PlaylistBlock,
   type PlaylistItem,
@@ -39,6 +41,9 @@ export type ProseOwner =
   /** A track's note, by entry id. */
   | { kind: 'note'; id: string };
 
+/** A gap between blocks: the rows on either side of it. */
+export type GapAt = { index: number; above?: BlockEdge; below?: BlockEdge };
+
 /** The editor's controls. Each is optional; the read pages pass none. */
 export type ArticleSlots = {
   /** In place of the title's text (an input). */
@@ -49,8 +54,11 @@ export type ArticleSlots = {
   proseMenu?: (owner: ProseOwner, hasText: boolean) => ReactNode;
   /** In place of a track's ⋯ menu; beside an unavailable track. */
   cellMenu?: (row: PlaylistTrackGroupRow) => ReactNode;
-  /** Before block `index` (and once past the last): a control laid over the gap. */
-  gap?: (index: number) => ReactNode;
+  /**
+   * At each gap between blocks (and before the first, and past the last): a
+   * control laid over it, and content in the flow there (text being written).
+   */
+  gap?: (at: GapAt) => { control?: ReactNode; content?: ReactNode };
   /** Beside the play actions (save status, undo, Done). */
   toolbar?: ReactNode;
 };
@@ -121,21 +129,45 @@ export default function PlaylistArticle({
             {/* The left padding holds the rail; from md up it hangs in the margin instead,
             and everything lines up with the header. */}
             <div className="flex flex-col gap-4 pl-6 md:-ml-6">
-              {blocks.map((block, i) => (
-                // The editor's gap control sits over the gap above, so it moves nothing.
-                <div key={block.key} className="relative">
-                  {slots?.gap && (
-                    <div className="absolute inset-x-0 -top-4 z-20 h-4">{slots.gap(i)}</div>
-                  )}
-                  <Block block={block} rail={rail} slots={slots} />
-                </div>
-              ))}
-              {slots?.gap && <div className="relative h-4">{slots.gap(blocks.length)}</div>}
+              {blocks.map((block, i) => {
+                const gap = slots?.gap?.(gapAt(blocks, i));
+                return (
+                  <Fragment key={block.key}>
+                    {gap?.content}
+                    {/* The editor's gap control sits over the gap above, so it moves nothing. */}
+                    <div className="relative">
+                      {gap?.control && (
+                        <div className="absolute inset-x-0 -top-4 z-20 h-4">{gap.control}</div>
+                      )}
+                      <Block block={block} rail={rail} slots={slots} />
+                    </div>
+                  </Fragment>
+                );
+              })}
+              {slots?.gap && <TrailingGap gap={slots.gap(gapAt(blocks, blocks.length))} />}
             </div>
           </>
         )}
       </article>
     </SongQueueProvider>
+  );
+}
+
+function gapAt(blocks: readonly PlaylistBlock[], index: number): GapAt {
+  return {
+    index,
+    above: index > 0 ? blockEdges(blocks[index - 1])?.last : undefined,
+    below: index < blocks.length ? blockEdges(blocks[index])?.first : undefined,
+  };
+}
+
+/** The gap past the last block: its content, then its control. */
+function TrailingGap({ gap }: { gap: { control?: ReactNode; content?: ReactNode } }) {
+  return (
+    <>
+      {gap.content}
+      {gap.control && <div className="relative h-4">{gap.control}</div>}
+    </>
   );
 }
 

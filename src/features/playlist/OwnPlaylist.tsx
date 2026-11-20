@@ -28,6 +28,11 @@ export default async function OwnPlaylist({ playlistId }: { playlistId: string }
         ) : (
           'Private'
         ),
+        !archived && (
+          <Link key="edit" href={href('/account/playlists/[playlistId]/edit', { playlistId })}>
+            Edit
+          </Link>
+        ),
       ]}
     />
   );

@@ -17,6 +17,8 @@ type EntryFields = {
   id: string;
   /** 1-based, across the whole playlist. */
   position: number;
+  /** The segment it's in (for a prose-only segment's text block, its own id). */
+  segmentId: string;
   /** As written: the editor edits this. */
   description?: string;
   /** The description sanitized, to render. */

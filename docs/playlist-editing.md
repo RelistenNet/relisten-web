@@ -24,7 +24,7 @@ Each part has one job and a fixed direction of imports. The lint layering in `ox
 | Guide Markdown           | `src/lib/guideMarkdown/`                        | Parse, sanitize, auto-link timestamps, to an element tree via a `renderLink` callback                                                 | The player, fetching, editing         |
 | Playlist service         | `src/playlists/` (client)                       | Transport (CSRF, batches, retries with the same operation IDs, errors), the draft store, commands (`addToPlaylist`, `createPlaylist`) | Importing features or the shell       |
 | Read views               | `src/features/playlist/`                        | Pages, blocks, cells, rail; slots for edit chrome                                                                                     | Importing the editor                  |
-| Editor                   | `src/features/playlist/edit/`                   | The edit route, cell and gap chrome, `MarkdownField`, the drag adapter                                                                | Its own copy of a read-view component |
+| Editor                   | `src/features/playlist/`                        | The edit route, cell and gap chrome, `MarkdownField`, the drag adapter                                                                | Its own copy of a read-view component |
 | Add to Playlist          | `src/player/` menu item calling `src/playlists` | The menu and its toast                                                                                                                | The draft store                       |
 
 Server-only data (`src/data/playlists.ts`) stays the read path. The client never imports it.

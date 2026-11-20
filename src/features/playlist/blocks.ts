@@ -10,7 +10,7 @@ export type PlaylistTrackGroupRow = Exclude<PlaylistRow, { kind: 'text' }>;
 
 export type PlaylistItem =
   /** A text-only entry. */
-  | { kind: 'text'; key: string; prose: GuideBlock[] }
+  | { kind: 'text'; key: string; segmentId: string; prose: GuideBlock[] }
   | { kind: 'tracks'; key: string; rows: PlaylistTrackGroupRow[] };
 
 export type PlaylistBlock =
@@ -28,7 +28,8 @@ export type PlaylistBlock =
 function addItems(into: PlaylistItem[] | PlaylistBlock[], rows: readonly PlaylistRow[]) {
   for (const row of rows) {
     if (row.kind === 'text') {
-      if (row.prose?.length) into.push({ kind: 'text', key: row.id, prose: row.prose });
+      if (row.prose?.length)
+        into.push({ kind: 'text', key: row.id, segmentId: row.segmentId, prose: row.prose });
       continue;
     }
     const last = into.at(-1);
@@ -62,4 +63,23 @@ export function playlistBlocks(rows: readonly PlaylistRow[]): PlaylistBlock[] {
     i = end;
   }
   return blocks;
+}
+
+/** Where a block starts and ends: the first and last row (entry or prose-only segment) in it. */
+export type BlockEdge = { id: string; segmentId: string };
+
+export function blockEdges(block: PlaylistBlock): { first: BlockEdge; last: BlockEdge } | null {
+  const items = block.kind === 'section' ? block.items : [block];
+  const edges = items.flatMap((item): BlockEdge[] =>
+    item.kind === 'text'
+      ? [{ id: item.key, segmentId: item.segmentId }]
+      : item.rows.map((r) => ({ id: r.id, segmentId: r.segmentId }))
+  );
+  // A section with only its comment: the segment itself.
+  if (!edges.length && block.kind === 'section')
+    return {
+      first: { id: block.segmentId, segmentId: block.segmentId },
+      last: { id: block.segmentId, segmentId: block.segmentId },
+    };
+  return edges.length ? { first: edges[0], last: edges[edges.length - 1] } : null;
 }
