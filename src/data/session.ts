@@ -1,11 +1,7 @@
 import 'server-only';
 
 import { cache } from 'react';
-import type {
-  AccountProfile,
-  SessionNavigation,
-  SessionNavigationResult,
-} from '@/domain/account';
+import type { AccountProfile, SessionNavigation, SessionNavigationResult } from '@/domain/account';
 import {
   CSRF_HEADER,
   USER_SERVICE_TIMEOUT_MS,
@@ -24,7 +20,7 @@ import { setCookieValue } from '@/lib/session/setCookieValue';
  * within one request only.
  */
 
-class UserServiceError extends Error {
+export class UserServiceError extends Error {
   constructor(
     readonly status: number,
     readonly path: string
@@ -45,7 +41,7 @@ export class SessionUnavailableError extends Error {
  * Forward the browser's session cookies to the User Service. Never cached; times out.
  * `csrf` replaces the browser's CSRF cookie: the one csrfToken() was just issued.
  */
-async function userServiceFetch(
+export async function userServiceFetch(
   path: string,
   init: RequestInit = {},
   csrf: string | null = csrfCookie.get()
@@ -152,4 +148,6 @@ async function endSession(path: string): Promise<SessionNavigationResult> {
 export const logoutSession = () => endSession('/auth/session/logout');
 
 export const switchAccountSession = (returnTo: string) =>
-  endSession(sessionReturnSearchParams.href('/auth/session/switch-account', { return_to: returnTo }));
+  endSession(
+    sessionReturnSearchParams.href('/auth/session/switch-account', { return_to: returnTo })
+  );

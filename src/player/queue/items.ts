@@ -81,16 +81,17 @@ export function showTrackItem({
   });
 }
 
-/** A song page row's performance, or null if it has no file. */
+/** A table row's track (a song's performance, a show's or playlist's track), or null if it has no file. */
 export function songRowItem(row: ShowRow): QueueItem | null {
   if (!row.track) return null;
-  return trackItem(row.track, {
+  const item = trackItem(row.track, {
     showId: row.showId,
     date: row.date,
     artistSlug: row.artistSlug,
     artistName: row.artistName,
     venue: row.venueName,
   });
+  return item && row.queueKey ? { ...item, key: row.queueKey } : item;
 }
 
 function trackItem(

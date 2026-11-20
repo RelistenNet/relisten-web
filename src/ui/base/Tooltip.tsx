@@ -137,7 +137,11 @@ export default function Tooltip({
   const api = useContext(TooltipApiContext);
   const theme = useContext(TooltipThemeContext);
 
+  // No content, no tooltip: a trigger can keep its wrapper (and its identity)
+  // while it has nothing to say.
   const show = (e: SyntheticEvent<HTMLDivElement>) =>
+    content != null &&
+    content !== '' &&
     api?.show(e.currentTarget, {
       content,
       placement: placementMap[align],

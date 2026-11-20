@@ -74,13 +74,13 @@ export function playShow({
 export function playSongRows({
   items,
   label,
-  startTrackId,
+  startKey,
 }: {
   items: QueueItem[];
   label: string;
-  startTrackId: string;
+  startKey: string;
 }): void {
-  const start = items.find((i) => i.trackId === startTrackId);
+  const start = items.find((i) => i.key === startKey);
   if (!start) return;
   playerActor.send({ type: 'PLAY_CONTEXT', ctx: { label, items }, startKey: start.key });
   startPlayback();

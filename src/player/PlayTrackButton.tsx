@@ -7,6 +7,7 @@ import { playSongRows, togglePlayPause } from './commands';
 import { useCurrentItem, useIsPlaying, useQueue } from './hooks';
 import { useSongQueue } from './SongQueue';
 import { songRowItem } from './queue/items';
+import type { QueueItem } from './queue/model';
 import Tooltip from '@/ui/base/Tooltip';
 
 type Props = {
@@ -18,12 +19,16 @@ type Props = {
 
 /** Play a row's track (then the rest of the rows on screen); toggles play/pause while it's current. */
 function usePlayTrack(row: ShowRow, track: PlayableTrack) {
-  const isCurrent = useCurrentItem()?.trackId === track.id;
+  // A row with a queue key (a playlist entry: the track can repeat) is matched by
+  // key, so only that entry reads as current. Otherwise any entry of the track does.
+  const { queueKey } = row;
+  const isThis = (i: QueueItem) => (queueKey ? i.key === queueKey : i.trackId === track.id);
+  const current = useCurrentItem();
+  const isCurrent = !!current && isThis(current);
   const isPlaying = useIsPlaying() && isCurrent;
   // Anywhere else in the queue: played already, Next up, or still to come.
   const isQueued = useQueue(
-    (q) =>
-      !isCurrent && [...(q.context?.items ?? []), ...q.upNext].some((i) => i.trackId === track.id)
+    (q) => !isCurrent && [...(q.context?.items ?? []), ...q.upNext].some(isThis)
   );
   const queue = useSongQueue();
 
@@ -38,7 +43,7 @@ function usePlayTrack(row: ShowRow, track: PlayableTrack) {
     playSongRows({
       items,
       label: queue?.label ?? track.title ?? '',
-      startTrackId: track.id,
+      startKey: queueKey ?? track.id,
     });
   };
   return { isCurrent, isPlaying, isQueued, play };

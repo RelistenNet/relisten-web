@@ -9,7 +9,7 @@ import {
   Pause,
   Play,
 } from 'lucide-react';
-import { type ReactNode, useState, useTransition } from 'react';
+import { type ReactNode, useDeferredValue, useState, useTransition, ViewTransition } from 'react';
 import { toast } from 'sonner';
 import cn from '@/lib/cn';
 import Tooltip from '@/ui/base/Tooltip';
@@ -55,8 +55,8 @@ export default function QueueButtons({
   };
   return (
     <span className={cn('inline-flex items-center', className)}>
-      <QueueButton icon={ListStartIcon} label="Play next" name={name} onClick={run('next')} />
-      <QueueButton icon={ListEndIcon} label="Add to queue" name={name} onClick={run('end')} />
+      <QueueButton icon={ListStartIcon} label="Play Next" name={name} onClick={run('next')} />
+      <QueueButton icon={ListEndIcon} label="Add to Queue" name={name} onClick={run('end')} />
     </span>
   );
 }
@@ -185,12 +185,23 @@ const PILL = `
  * A show page's buttons for the tape on screen (the SongQueueProvider's rows): Play show (from the top,
  * replacing the queue; pauses and resumes while the tape is playing), Play
  * next and Add to queue for all of its tracks.
+ *
+ * A playlist's (`playlist`): Play playlist, current while one of its own
+ * entries is (a track of the same tape played from elsewhere isn't).
  */
-export function ShowQueueActions() {
-  const { label = '', items = [] } = useSongQueue() ?? {};
+export function ShowQueueActions({ playlist = false }: { playlist?: boolean }) {
+  const { label: queueLabel = '', items = [] } = useSongQueue() ?? {};
+  // The player's store reads the same on the server and in the first client
+  // render (nothing restored yet), so this hydrates as the idle button; when the
+  // saved queue restores, the label changes in place.
   const current = useCurrentItem();
-  const isCurrent = !!items[0] && current?.sourceId === items[0].sourceId;
+  const isCurrent =
+    !!items[0] &&
+    !!current &&
+    (playlist ? items.some((i) => i.key === current.key) : current.sourceId === items[0].sourceId);
   const isPlaying = useIsPlaying() && isCurrent;
+  const idle = playlist ? 'Play Playlist' : 'Play Show';
+  const label = useDeferredValue(isPlaying ? 'Pause' : isCurrent ? 'Resume' : idle);
   if (!items[0]) return null;
   const start = items[0];
 
@@ -199,25 +210,49 @@ export function ShowQueueActions() {
     <button
       type="button"
       onClick={() =>
-        isCurrent ? togglePlayPause() : playSongRows({ items, label, startTrackId: start.trackId })
+        isCurrent
+          ? togglePlayPause()
+          : playSongRows({ items, label: queueLabel, startKey: start.key })
       }
       className={cn(PILL, 'border-transparent bg-accent/15 hover:bg-accent/25')}
     >
       <PlayIcon className="size-4 text-accent" aria-hidden />
-      {isPlaying ? 'Pause' : isCurrent ? 'Resume' : 'Play show'}
+      {/* Every label in one grid cell, hidden, to size the button to the widest:
+      its width never changes. The shown label sits on top of them. */}
+      <span className="inline-grid *:col-start-1 *:row-start-1">
+        {[idle, 'Resume', 'Pause'].map((text) => (
+          <span key={text} aria-hidden className="invisible">
+            {text}
+          </span>
+        ))}
+        {/* Deferred, so the swap commits as a transition and ViewTransition animates it
+        (the player's store updates synchronously, which wouldn't animate). */}
+        {/* label-roll (globals.css): the old label rotates away as the new one rolls in. */}
+        <ViewTransition default="none" update="label-roll">
+          <span>{label}</span>
+        </ViewTransition>
+      </span>
     </button>
   );
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      {isCurrent ? (
-        play
-      ) : (
-        <Tooltip content="Replaces the queue" align="top">
-          {play}
-        </Tooltip>
-      )}
-      <ShowQueuePill icon={ListStartIcon} text="Play next" onClick={() => playNext(items)} />
-      <ShowQueuePill icon={ListEndIcon} text="Add to queue" onClick={() => addToQueue(items)} />
+    <div className={cn('flex flex-wrap items-center', playlist ? 'gap-1' : 'gap-2')}>
+      {/* Always the same wrapper, so the button keeps its identity (and its label
+      animates) as it becomes current. */}
+      <Tooltip content={isCurrent ? null : 'Replaces the queue'} align="top">
+        {play}
+      </Tooltip>
+      <ShowQueuePill
+        icon={ListStartIcon}
+        text="Play Next"
+        iconOnly={playlist}
+        onClick={() => playNext(items)}
+      />
+      <ShowQueuePill
+        icon={ListEndIcon}
+        text="Add to Queue"
+        iconOnly={playlist}
+        onClick={() => addToQueue(items)}
+      />
     </div>
   );
 }
@@ -225,16 +260,37 @@ export function ShowQueueActions() {
 function ShowQueuePill({
   icon: Icon,
   text,
+  iconOnly = false,
   onClick,
 }: {
   icon: LucideIcon;
   text: string;
+  /** Just the icon, the text as its label and tooltip (a playlist's quieter header). */
+  iconOnly?: boolean;
   onClick: () => void;
 }) {
   const { flash, run } = useQueueAction(() => {
     onClick();
     return true;
   });
+  if (iconOnly) {
+    return (
+      <Tooltip content={text} align="top">
+        <button
+          type="button"
+          onClick={run}
+          aria-label={`${text}: all tracks`}
+          className={cn(BUTTON, 'p-2 text-text-muted hover:text-text-primary')}
+        >
+          <Queued
+            flash={flash}
+            idle={<Icon className="size-4.5 shrink-0" aria-hidden />}
+            done={<CheckIcon className="size-4.5 shrink-0 text-accent" />}
+          />
+        </button>
+      </Tooltip>
+    );
+  }
   return (
     <button type="button" onClick={run} className={PILL}>
       <Queued

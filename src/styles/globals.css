@@ -485,6 +485,49 @@
   z-index: 0;
 }
 
+/* ── A label rolling to its next value (ShowQueueActions' Play → Resume → Pause) ──
+   React's <ViewTransition update="label-roll">: the old text rotates up and
+   away while the new one rolls in from below, cross-fading, like a drum turning.
+   Clipped to the label, so nothing spills past the button. */
+::view-transition-group(.label-roll) {
+  overflow: clip;
+  animation-duration: 280ms;
+}
+::view-transition-image-pair(.label-roll) {
+  perspective: 120px;
+}
+::view-transition-old(.label-roll) {
+  animation: label-roll-out 280ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  transform-origin: 50% 0%;
+}
+::view-transition-new(.label-roll) {
+  animation: label-roll-in 280ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  transform-origin: 50% 100%;
+}
+@keyframes label-roll-out {
+  to {
+    opacity: 0;
+    transform: translateY(-70%) rotateX(70deg);
+    filter: blur(1px);
+  }
+}
+@keyframes label-roll-in {
+  from {
+    opacity: 0;
+    transform: translateY(70%) rotateX(-70deg);
+    filter: blur(1px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(.label-roll),
+  ::view-transition-new(.label-roll) {
+    animation: swap-out 1ms both;
+  }
+  ::view-transition-new(.label-roll) {
+    animation-name: swap-in;
+  }
+}
+
 @keyframes swap-in {
   from {
     opacity: 0;
