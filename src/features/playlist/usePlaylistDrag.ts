@@ -17,7 +17,8 @@ import type { DragSource, DropTarget } from './dragOps';
 // (data-row-id, data-segment-id), sections (data-section-id) and gaps
 // (data-gap, data-above, data-below); grips carry data-drag-kind/-id. This wires
 // them up after each layout, and draws one drop line, moved directly while
-// dragging, so nothing re-renders or reflows mid-drag.
+// dragging, so nothing re-renders or reflows mid-drag. A block drags from anywhere
+// on it (the grip just shows it can); a click still plays or opens it.
 
 type Source = { playlistDrag: DragSource };
 const isSource = (data: Record<string | symbol, unknown>): data is Source =>
@@ -66,8 +67,8 @@ export function usePlaylistDrag(
       if (element.querySelector('textarea, input')) continue;
       cleanups.push(
         draggable({
+          // The whole block drags, not just its grip: that's where people reach for it.
           element,
-          dragHandle: handle,
           getInitialData: (): Source => ({ playlistDrag: { kind, id } }),
           onDragStart: () => element.setAttribute('data-dragging', ''),
           onDrop: () => element.removeAttribute('data-dragging'),

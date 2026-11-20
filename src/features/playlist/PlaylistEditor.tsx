@@ -1,7 +1,7 @@
 'use client';
 
 import { Menu } from '@base-ui/react/menu';
-import { Link, useRouter } from '@timber-js/app/client';
+import { Link, usePendingNavigation, useRouter } from '@timber-js/app/client';
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -39,7 +39,7 @@ import {
 import { dropOp } from './dragOps';
 import MarkdownField from './MarkdownField';
 import PlaylistArticle, { type ArticleSlots, type GapAt, type ProseOwner } from './PlaylistArticle';
-import { type PlaylistResolved, playlistView } from './rows';
+import { PLAYLIST_PROSE, type PlaylistResolved, playlistView } from './rows';
 import { usePlaylistDrag } from './usePlaylistDrag';
 
 // The editor (docs/playlist-editing.md): the read view's article, laid out from
@@ -96,6 +96,8 @@ export default function PlaylistEditor({
     },
   });
   useWarnBeforeLeaving(state);
+  // The server's render of saved edits on its way back (router.refresh()).
+  const refreshing = usePendingNavigation((to, from) => to.href === from.href);
 
   /** Applies an edit; an edit the server would refuse says why instead. */
   const edit = (op: PlaylistOp | null) => {
@@ -192,6 +194,11 @@ export default function PlaylistEditor({
     },
 
     editProse: (owner) => setEditing({ kind: 'prose', owner }),
+
+    // Waiting on the server's render, unless saving it failed (the toolbar says so).
+    prosePending: (owner) =>
+      state.status !== 'error' &&
+      view.pendingProse.includes(owner.kind === 'playlist' ? PLAYLIST_PROSE : owner.id),
 
     proseMenu: (owner) => (
       <div className="-mt-1 -mr-1 flex items-center">
@@ -300,7 +307,7 @@ export default function PlaylistEditor({
 
     toolbar: (
       <div className="flex items-center gap-2 text-sm">
-        <SaveStatus state={state} onRetry={() => void store.flush()} />
+        <SaveStatus state={state} refreshing={refreshing} onRetry={() => void store.flush()} />
         {!content.description && (
           <button
             type="button"
@@ -345,7 +352,7 @@ export default function PlaylistEditor({
   );
 }
 
-/** Drag to move; the menus move things too (and are the keyboard's way). */
+/** Shows a block can be dragged (it drags from anywhere); the menus are the keyboard's way. */
 function Grip({ kind, id }: { kind: 'entry' | 'segment'; id: string }) {
   return (
     <span
@@ -354,11 +361,9 @@ function Grip({ kind, id }: { kind: 'entry' | 'segment'; id: string }) {
       aria-hidden
       title="Drag to move"
       className={`
-        inline-flex size-8 cursor-grab items-center justify-center rounded-md text-text-muted
-        opacity-0 transition-opacity group-focus-within/cell:opacity-100
-        group-focus-within/prose:opacity-100 group-hover/cell:opacity-100
-        group-hover/prose:opacity-100 hover:bg-surface-hover hover:text-text-primary
-        active:cursor-grabbing pointer-coarse:opacity-100
+        inline-flex size-8 cursor-grab items-center justify-center rounded-md
+        text-text-muted/60 hover:bg-surface-hover hover:text-text-primary
+        active:cursor-grabbing
       `}
     >
       <GripVerticalIcon className="size-4" />
@@ -411,7 +416,16 @@ function useWarnBeforeLeaving(state: DraftState) {
   }, [unsaved]);
 }
 
-function SaveStatus({ state, onRetry }: { state: DraftState; onRetry: () => void }) {
+function SaveStatus({
+  state,
+  refreshing,
+  onRetry,
+}: {
+  state: DraftState;
+  /** Saved, and the server's render of it is on its way. */
+  refreshing: boolean;
+  onRetry: () => void;
+}) {
   if (state.status === 'error') {
     const kind = state.error?.kind;
     const message =
@@ -435,7 +449,7 @@ function SaveStatus({ state, onRetry }: { state: DraftState; onRetry: () => void
   }
   return (
     <span role="status" className="text-text-muted">
-      {state.status === 'saving' ? 'Saving…' : 'Saved'}
+      {state.status === 'saving' || refreshing ? 'Saving…' : 'Saved'}
     </span>
   );
 }

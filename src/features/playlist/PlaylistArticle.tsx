@@ -50,6 +50,8 @@ export type ArticleSlots = {
   title?: ReactNode;
   /** In place of a prose block's text, while it's being edited; undefined otherwise. */
   prose?: (owner: ProseOwner) => ReactNode | undefined;
+  /** Whether a prose block's text is waiting on the server's render of it. */
+  prosePending?: (owner: ProseOwner) => boolean;
   /** Opens a prose block for editing: a click on it (not on a link in it), or Enter. */
   editProse?: (owner: ProseOwner) => void;
   /** A menu on a prose block (`hasText`: there's text to edit, not just to add). */
@@ -247,6 +249,7 @@ export function Prose({
   const menu = slots?.proseMenu?.(owner, !!blocks?.length);
   if (!editing && !blocks?.length) return null;
   const open = !editing && slots?.editProse ? () => slots.editProse?.(owner) : undefined;
+  const pending = !editing && !!slots?.prosePending?.(owner);
   return (
     <div
       className={cn(
@@ -259,8 +262,11 @@ export function Prose({
             z-10 -mx-1.5 cursor-text rounded-md px-1.5 transition-colors
             hover:bg-text-primary/[0.04] focus-visible:outline-2 focus-visible:outline-accent
           `,
+        // Shown as written until the server renders it: dimmed, gently pulsing.
+        pending && 'animate-pulse opacity-60 motion-reduce:animate-none',
         className
       )}
+      aria-busy={pending || undefined}
       data-row-id={row?.id}
       data-segment-id={row?.segmentId}
       {...(open && {
