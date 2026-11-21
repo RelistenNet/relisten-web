@@ -317,17 +317,81 @@ export function inverse(
   }
 }
 
-/** `op` with every ID in `renamed` replaced by its new name. */
+/**
+ * `op` with every ID in `renamed` replaced by its new name: as a field's value,
+ * and in timestamp links (`#entry=…`) in its text.
+ */
 export function remapIds(op: PlaylistOp, renamed: Record<string, string>): PlaylistOp {
   if (Object.keys(renamed).length === 0) return op;
   const walk = (value: unknown): unknown => {
-    if (typeof value === 'string') return renamed[value] ?? value;
+    if (typeof value === 'string') return renamed[value] ?? retargetLinks(value, renamed);
     if (Array.isArray(value)) return value.map(walk);
     if (value && typeof value === 'object')
       return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, walk(v)]));
     return value;
   };
   return walk(op) as PlaylistOp;
+}
+
+/**
+ * `op` with its text's timestamp links to renamed entries retargeted, and its IDs
+ * left alone (an undo's own operations already name what they re-create anew).
+ */
+export function retargetOpLinks(op: PlaylistOp, renamed: Record<string, string>): PlaylistOp {
+  if (Object.keys(renamed).length === 0) return op;
+  const walk = (value: unknown): unknown => {
+    if (typeof value === 'string') return retargetLinks(value, renamed);
+    if (Array.isArray(value)) return value.map(walk);
+    if (value && typeof value === 'object')
+      return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, walk(v)]));
+    return value;
+  };
+  return walk(op) as PlaylistOp;
+}
+
+/** Text with its timestamp links (`#entry=<id>`) to renamed entries pointing at their new IDs. */
+export function retargetLinks(text: string, renamed: Record<string, string>): string {
+  if (!text.includes('#entry=')) return text;
+  return Object.entries(renamed).reduce(
+    (t, [from, to]) => t.replaceAll(`#entry=${from}`, `#entry=${to}`),
+    text
+  );
+}
+
+/**
+ * Updates for the prose in `content` that links to entries an undo re-creates
+ * under new IDs, so those links play again. Worked out when the undo runs, from
+ * the text as it is then.
+ */
+export function retargetProse(
+  content: PlaylistContent,
+  renamed: Record<string, string>
+): PlaylistOp[] {
+  if (Object.keys(renamed).length === 0) return [];
+  const changed = (text?: string) => {
+    const next = text && retargetLinks(text, renamed);
+    return next && next !== text ? next : undefined;
+  };
+  const ops: PlaylistOp[] = [];
+  const description = changed(content.description);
+  if (description) ops.push({ operation_type: 'update_metadata', payload: { description } });
+  for (const segment of content.segments) {
+    const text = changed(segment.description);
+    if (text)
+      ops.push({
+        operation_type: 'update_segment',
+        payload: { segment_id: segment.id, description: text },
+      });
+    for (const entry of segment.entries) {
+      const note = changed(entry.description);
+      if (note)
+        ops.push({
+          operation_type: 'update_entry',
+          payload: { entry_id: entry.id, description: note },
+        });
+    }
+  }
+  return ops;
 }
 
 // ---- Helpers --------------------------------------------------------------------

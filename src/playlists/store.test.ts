@@ -284,3 +284,35 @@ describe('edit, with several operations', () => {
     expect(store.getState().canUndo).toBe(false);
   });
 });
+
+describe('undo and timestamp links', () => {
+  beforeEach(() => vi.useFakeTimers());
+  it('points links at the entries an undo re-creates, in their own text and elsewhere', async () => {
+    const linked: PlaylistContent = {
+      ...content,
+      description: 'Start with [the jam](#entry=e2&t=1:00).',
+      segments: [
+        content.segments[0],
+        {
+          id: 's2',
+          description: 'See [here](#entry=e2&t=2:00).',
+          entries: [{ id: 'e2', trackId: 't2' }],
+        },
+      ],
+    };
+    const server = fakeServer(linked);
+    const store = createDraftStore(linked, { transport: server.transport, newId: ids() });
+    store.edit(op('delete_segment', { segment_id: 's2' }));
+    await settle();
+    store.undo();
+    await settle();
+    const after = store.getState().content;
+    const restored = after.segments[1];
+    const newEntry = restored.entries[0].id;
+    expect(newEntry).not.toBe('e2');
+    expect(restored.description).toBe(`See [here](#entry=${newEntry}&t=2:00).`);
+    expect(after.description).toBe(`Start with [the jam](#entry=${newEntry}&t=1:00).`);
+    expect(shape(server.server)).toBe(shape(after));
+    expect(server.server.description).toBe(after.description);
+  });
+});

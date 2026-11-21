@@ -21,7 +21,15 @@ import {
   setup,
   type SnapshotFrom,
 } from 'xstate';
-import { applyOp, inverse, type NewId, PlaylistOpError, remapIds } from '@/domain/playlistOps';
+import {
+  applyOp,
+  inverse,
+  type NewId,
+  PlaylistOpError,
+  remapIds,
+  retargetOpLinks,
+  retargetProse,
+} from '@/domain/playlistOps';
 import {
   type PlaylistBatchResponseWire,
   type PlaylistContent,
@@ -342,7 +350,13 @@ export function createDraftStore(
     undo() {
       const step = actor.getSnapshot().context.undo.at(-1);
       if (!step) return;
-      actor.send({ type: 'UNDO', ops: step.ops.map(queued) });
+      // What it re-creates gets new IDs: links to them, in its own text and in the
+      // playlist's prose as it is now, follow.
+      const ops = [
+        ...step.ops.map((op) => retargetOpLinks(op, step.renamed)),
+        ...retargetProse(getState().content, step.renamed),
+      ];
+      actor.send({ type: 'UNDO', ops: ops.map(queued) });
     },
     retry: () => actor.send({ type: 'RETRY' }),
     whenSaved() {

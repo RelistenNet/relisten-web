@@ -227,3 +227,22 @@ describe('inverse', () => {
     expect(unrename(restored, { ...undoMove.renamed, ...undoDelete.renamed })).toEqual(base);
   });
 });
+
+describe('remapIds and links', () => {
+  it('renames IDs as values and inside timestamp links, and leaves other text alone', () => {
+    const op: PlaylistOp = {
+      operation_type: 'update_entry',
+      payload: {
+        entry_id: 'e1',
+        description: 'At [2:00](#entry=e1&t=2:00), not e10 or #entry=e9.',
+      },
+    };
+    expect(remapIds(op, { e1: 'n1' })).toEqual({
+      operation_type: 'update_entry',
+      payload: {
+        entry_id: 'n1',
+        description: 'At [2:00](#entry=n1&t=2:00), not e10 or #entry=e9.',
+      },
+    });
+  });
+});

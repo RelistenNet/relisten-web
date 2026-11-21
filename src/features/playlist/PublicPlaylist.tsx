@@ -1,6 +1,7 @@
 import { href } from '@timber-js/app/routes';
 import { deny } from '@timber-js/app/server';
 import { METADATA_BASE } from '@/lib/constants';
+import { ogImageSearchParams } from '@/lib/searchParams/ogImageSearchParams';
 import { getPublicPlaylist } from '@/data/playlists';
 import { PLAYLIST_CARD_SIZE } from './PlaylistCard';
 import PlaylistDetail from './PlaylistDetail';
@@ -25,11 +26,16 @@ export async function publicPlaylistMetadata({ publicCode }: { publicCode: strin
   // The card (./PlaylistCard, at the route's opengraph-image) changes with the
   // playlist, so its URL carries the revision: link unfurlers cache by URL. The
   // image route isn't in the typed route map, so it's the page's href plus its file.
+  // (timber.js#1330: href() can't name segment files yet.)
   const image = new URL(
-    `${href('/playlists/[publicCode]', { publicCode })}/opengraph-image.png`,
+    ogImageSearchParams.href(
+      `${href('/playlists/[publicCode]', { publicCode })}/opengraph-image.png`,
+      {
+        v: playlist.revision,
+      }
+    ),
     METADATA_BASE
   );
-  image.searchParams.set('v', String(playlist.revision));
   return {
     title: `${playlist.name} | A playlist by ${playlist.owner}`,
     description: playlist.description,
