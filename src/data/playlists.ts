@@ -213,26 +213,3 @@ export function getPlaylistCatalog(playlist: PlaylistContent): Promise<PlaylistC
     trackIds
   );
 }
-
-// --- Debugging ---------------------------------------------------------------
-
-/**
- * Development only: the User Service's responses as sent, for the account page's
- * debug panel. The library snapshot, then each owned playlist's snapshot.
- */
-export async function getPlaylistDebugData(): Promise<{
-  library: unknown;
-  playlists: { id: string; snapshot: unknown }[];
-} | null> {
-  if (!sessionCookie.get()) return null;
-  const library = await userServiceJson<LibrarySnapshotWire>('/v1/library/snapshot');
-  const playlists = await Promise.all(
-    (library.playlists ?? []).map(async (p) => ({
-      id: p.playlist_id,
-      snapshot: await userServiceJson<unknown>(
-        `/v1/playlists/${encodeURIComponent(p.playlist_id)}/snapshot`
-      ).catch((err: unknown) => ({ error: String(err) })),
-    }))
-  );
-  return { library, playlists };
-}
