@@ -25,18 +25,26 @@ beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
 
 describe('createPlaylistTransport', () => {
-  it('fetches the CSRF token once and sends it with writes', async () => {
-    const { fetch, calls } = fakeFetch([csrf(), json(200, batchOk), json(200, batchOk)]);
+  it('fetches a CSRF token for each write and sends it', async () => {
+    const { fetch, calls } = fakeFetch([
+      csrf('a'),
+      json(200, batchOk),
+      csrf('b'),
+      json(200, batchOk),
+    ]);
     const t = createPlaylistTransport({ fetch });
     await t.batch('playlist_1', [], 4);
     await t.batch('playlist_1', []);
     expect(calls.map((c) => c.url)).toEqual([
       '/api/user/v1/csrf',
       '/v1/playlists/playlist_1/operations:batch',
+      '/api/user/v1/csrf',
       '/v1/playlists/playlist_1/operations:batch',
     ]);
-    const headers = calls[1].init?.headers as Record<string, string>;
-    expect(headers['x-relisten-csrf']).toBe('tok');
+    const tokens = [calls[1], calls[3]].map((c) =>
+      new Headers(c.init?.headers).get('x-relisten-csrf')
+    );
+    expect(tokens).toEqual(['a', 'b']);
     expect(JSON.parse(String(calls[1].init?.body))).toEqual({
       contract_version: 1,
       operations: [],
@@ -44,35 +52,35 @@ describe('createPlaylistTransport', () => {
     });
   });
 
-  it('gets a new token once when the old one is refused', async () => {
-    const { fetch, calls } = fakeFetch([
-      csrf('old'),
-      new Response(null, { status: 403 }),
-      csrf('new'),
-      json(200, batchOk),
-    ]);
-    await createPlaylistTransport({ fetch }).batch('playlist_1', []);
-    const headers = (calls[3].init?.headers ?? {}) as Record<string, string>;
-    expect(headers['x-relisten-csrf']).toBe('new');
+  it('doesn’t retry a report (it has no idempotency key)', async () => {
+    const { fetch, calls } = fakeFetch([csrf(), json(503, {})]);
+    const error = await createPlaylistTransport({ fetch })
+      .report('abc', 'Spam')
+      .catch((e: unknown) => e);
+    expect((error as PlaylistWriteError).kind).toBe('unavailable');
+    expect(calls).toHaveLength(2);
   });
 
   it('retries a write that failed in transit, with the same body', async () => {
     const { fetch, calls } = fakeFetch([
       csrf(),
       new TypeError('network'),
+      csrf(),
       json(503, {}),
+      csrf(),
       json(200, batchOk),
     ]);
     const pending = createPlaylistTransport({ fetch }).batch('playlist_1', [], 1);
     await vi.runAllTimersAsync();
     await expect(pending).resolves.toEqual(batchOk);
-    const bodies = calls.slice(1).map((c) => c.init?.body);
+    const bodies = calls.filter((c) => c.url.endsWith(':batch')).map((c) => c.init?.body);
     expect(new Set(bodies).size).toBe(1);
   });
 
   it('reports what went wrong, without retrying refusals', async () => {
     const cases: [Response, string][] = [
       [json(401, {}), 'signed-out'],
+      [json(403, {}), 'signed-out'],
       [json(404, {}), 'not-found'],
       [json(409, { code: 'revision_conflict' }), 'conflict'],
       [json(409, { code: 'playlist_archived' }), 'archived'],
@@ -90,7 +98,14 @@ describe('createPlaylistTransport', () => {
   });
 
   it('gives up after three tries', async () => {
-    const { fetch } = fakeFetch([csrf(), json(502, {}), json(502, {}), json(502, {})]);
+    const { fetch } = fakeFetch([
+      csrf(),
+      json(502, {}),
+      csrf(),
+      json(502, {}),
+      csrf(),
+      json(502, {}),
+    ]);
     const pending = createPlaylistTransport({ fetch })
       .batch('playlist_1', [])
       .catch((e: unknown) => e);

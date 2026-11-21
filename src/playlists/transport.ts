@@ -3,9 +3,14 @@
 // the dev session server route these paths; the session and CSRF cookies are
 // origin-bound and ride along. Writes carry the CSRF token in X-Relisten-CSRF.
 //
-// Every request has a timeout. A write that fails in transit is retried with the
-// same body: its command and operation IDs make the retry idempotent (the server
-// replays its receipts), so a write is never applied twice.
+// Every request has a timeout. A write that fails in transit (or on a 5xx) is
+// retried with the same body: its command and operation IDs make the retry
+// idempotent (the server replays its receipts), so it's never applied twice.
+// Reports carry no such ID, so they aren't retried.
+//
+// Each write fetches its CSRF token first, so nothing is cached for the page's
+// life (a sign-out or a switch of account can't leave a stale one). That's a
+// request more per save; if it shows up as slow, caching it is the fix.
 
 import type {
   CreatePlaylistRequestWire,
@@ -62,26 +67,26 @@ export type PlaylistTransport = {
   report(publicCode: string, reason: string): Promise<void>;
 };
 
-type Problem = { code?: string; title?: string; detail?: string };
+type Problem = { code?: string; detail?: string };
 
 async function errorFor(res: Response): Promise<PlaylistWriteError> {
   const problem = (await res.json().catch(() => ({}))) as Problem;
-  const code = problem.code ?? problem.title;
   const kind: PlaylistWriteErrorKind =
-    // A 403 that outlasts a fresh CSRF token: the session isn't good for writes.
     res.status === 401 || res.status === 403
       ? 'signed-out'
       : res.status === 404
         ? 'not-found'
-        : res.status === 409 && code === 'revision_conflict'
+        : res.status === 409 && problem.code === 'revision_conflict'
           ? 'conflict'
-          : res.status === 409 && code === 'playlist_archived'
+          : res.status === 409 && problem.code === 'playlist_archived'
             ? 'archived'
             : res.status === 422 || res.status === 409
               ? 'invalid'
               : 'unavailable';
   return new PlaylistWriteError(kind, problem.detail, res.status);
 }
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export function createPlaylistTransport({
   // Looked up per call, so a page that swaps fetch (tests, instrumentation) is honored.
@@ -92,8 +97,6 @@ export function createPlaylistTransport({
   /** For tests; the browser uses its own origin. */
   origin?: string;
 } = {}): PlaylistTransport {
-  let csrf: Promise<string> | null = null;
-
   const request = (path: string, init: RequestInit = {}) =>
     doFetch(`${origin}${path}`, {
       ...init,
@@ -101,16 +104,6 @@ export function createPlaylistTransport({
       cache: 'no-store',
       signal: AbortSignal.timeout(TIMEOUT_MS),
       headers: { accept: 'application/json', ...init.headers },
-    });
-
-  /** One token per page, fetched when the first write needs it. */
-  const token = () =>
-    (csrf ??= request('/api/user/v1/csrf').then(async (res) => {
-      if (!res.ok) throw await errorFor(res);
-      return ((await res.json()) as { request_token: string }).request_token;
-    })).catch((err: unknown) => {
-      csrf = null;
-      throw err;
     });
 
   async function read<T>(path: string): Promise<T> {
@@ -124,31 +117,37 @@ export function createPlaylistTransport({
     return (await res.json()) as T;
   }
 
-  async function write<T>(path: string, body: unknown, method = 'POST'): Promise<T> {
-    let refreshed = false;
-    for (let attempt = 1; ; attempt++) {
-      let res: Response | null = null;
-      try {
-        res = await request(path, {
-          method,
-          headers: { 'content-type': 'application/json', 'x-relisten-csrf': await token() },
-          body: JSON.stringify(body),
-        });
-      } catch (err) {
-        if (err instanceof PlaylistWriteError) throw err; // the CSRF fetch's answer
-      }
+  /**
+   * One try at a write: a CSRF token, then the write with it. Null when either
+   * failed in transit; a refusal of the token (signed out) throws.
+   */
+  async function attempt(path: string, body: unknown, method: string): Promise<Response | null> {
+    try {
+      const csrf = await request('/api/user/v1/csrf');
+      if (!csrf.ok) throw await errorFor(csrf);
+      const { request_token } = (await csrf.json()) as { request_token: string };
+      return await request(path, {
+        method,
+        headers: { 'content-type': 'application/json', 'x-relisten-csrf': request_token },
+        body: JSON.stringify(body),
+      });
+    } catch (err) {
+      if (err instanceof PlaylistWriteError) throw err;
+      return null;
+    }
+  }
+
+  async function write<T>(
+    path: string,
+    body: unknown,
+    { method = 'POST', tries = ATTEMPTS }: { method?: string; tries?: number } = {}
+  ): Promise<T> {
+    for (let n = 1; ; n++) {
+      const res = await attempt(path, body, method);
       if (res?.ok) return (res.status === 204 ? undefined : await res.json()) as T;
-      // A bare 403 is a stale CSRF token (the cookie rotated): get a new one, once.
-      if (res?.status === 403 && !refreshed) {
-        refreshed = true;
-        csrf = null;
-        attempt--;
-        continue;
-      }
-      const retryable = !res || res.status >= 500;
-      if (!retryable) throw await errorFor(res as Response);
-      if (attempt >= ATTEMPTS) throw new PlaylistWriteError('unavailable', undefined, res?.status);
-      await new Promise((r) => setTimeout(r, 300 * 2 ** (attempt - 1)));
+      if (res && res.status < 500) throw await errorFor(res);
+      if (n >= tries) throw new PlaylistWriteError('unavailable', undefined, res?.status);
+      await delay(300 * 2 ** (n - 1));
     }
   }
 
@@ -166,10 +165,15 @@ export function createPlaylistTransport({
       write(
         `/v1/playlists/${encodeURIComponent(id)}/publication`,
         { contract_version: 1, published },
-        'PUT'
+        { method: 'PUT' }
       ),
     report: (code, reason) =>
-      write(`/v1/public-playlists/${encodeURIComponent(code)}/reports`, { reason }),
+      write(
+        `/v1/public-playlists/${encodeURIComponent(code)}/reports`,
+        { reason },
+        // No idempotency key: a retry could file it twice.
+        { tries: 1 }
+      ),
   };
 }
 
