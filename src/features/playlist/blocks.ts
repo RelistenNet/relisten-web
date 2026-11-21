@@ -22,10 +22,22 @@ export type PlaylistBlock =
       segmentId: string;
       items: PlaylistItem[];
       comment: GuideBlock[];
-    };
+    }
+  /**
+   * The editor only: an undescribed segment of two or more entries, shown as a
+   * group so it's clear what belongs together (readers see loose tracks).
+   */
+  | { kind: 'group'; key: string; segmentId: string; items: PlaylistItem[] };
 
-/** Appends rows as items, joining a track to the run of tracks before it. */
-function addItems(into: PlaylistItem[] | PlaylistBlock[], rows: readonly PlaylistRow[]) {
+/**
+ * Appends rows as items. A track joins the run of tracks before it, unless
+ * `apart` (the editor's loose tracks, each in a segment of its own).
+ */
+function addItems(
+  into: PlaylistItem[] | PlaylistBlock[],
+  rows: readonly PlaylistRow[],
+  apart = false
+) {
   for (const row of rows) {
     if (row.kind === 'text') {
       if (row.prose?.length)
@@ -33,12 +45,19 @@ function addItems(into: PlaylistItem[] | PlaylistBlock[], rows: readonly Playlis
       continue;
     }
     const last = into.at(-1);
-    if (last?.kind === 'tracks') last.rows.push(row);
+    if (last?.kind === 'tracks' && !apart) last.rows.push(row);
     else into.push({ kind: 'tracks', key: row.id, rows: [row] });
   }
 }
 
-export function playlistBlocks(rows: readonly PlaylistRow[]): PlaylistBlock[] {
+/**
+ * The flow's blocks. With `segments` (the editor), undescribed segments stay
+ * apart: one of two or more entries is a group; a lone track is its own block.
+ */
+export function playlistBlocks(
+  rows: readonly PlaylistRow[],
+  { segments = false }: { segments?: boolean } = {}
+): PlaylistBlock[] {
   const blocks: PlaylistBlock[] = [];
   let i = 0;
   while (i < rows.length) {
@@ -57,8 +76,26 @@ export function playlistBlocks(rows: readonly PlaylistRow[]): PlaylistBlock[] {
         items,
         comment: heading.prose,
       });
-    } else {
+    } else if (!segments) {
       addItems(blocks, run);
+    } else {
+      // Undescribed segments ran together above: split them back apart.
+      for (let j = 0; j < run.length;) {
+        let k = j;
+        while (k < run.length && run[k].segmentId === run[j].segmentId) k++;
+        const segment = run.slice(j, k);
+        if (segment.length > 1) {
+          const items: PlaylistItem[] = [];
+          addItems(items, segment);
+          blocks.push({
+            kind: 'group',
+            key: `group:${run[j].segmentId}`,
+            segmentId: run[j].segmentId,
+            items,
+          });
+        } else addItems(blocks, segment, true);
+        j = k;
+      }
     }
     i = end;
   }
@@ -69,7 +106,7 @@ export function playlistBlocks(rows: readonly PlaylistRow[]): PlaylistBlock[] {
 export type BlockEdge = { id: string; segmentId: string };
 
 export function blockEdges(block: PlaylistBlock): { first: BlockEdge; last: BlockEdge } | null {
-  const items = block.kind === 'section' ? block.items : [block];
+  const items = block.kind === 'section' || block.kind === 'group' ? block.items : [block];
   const edges = items.flatMap((item): BlockEdge[] =>
     item.kind === 'text'
       ? [{ id: item.key, segmentId: item.segmentId }]

@@ -13,8 +13,10 @@ import TrackLoadDot from '@/player/TrackLoadDot';
 import { songRowItem } from '@/player/queue/items';
 import { formatShowDate } from '@/ui/shows/stats';
 import { playlistBlocks, type PlaylistTrackGroupRow } from './blocks';
+import type { DropTarget } from './dragOps';
 import {
-  type BoxPosition,
+  type Box,
+  type FlowOptions,
   type FlowRow,
   flowRows,
   type GapAt,
@@ -64,6 +66,8 @@ export type ArticleSlots = {
   gap?: (at: GapAt) => { control?: ReactNode; content?: ReactNode };
   /** Beside the play actions (save status, undo, Done). */
   toolbar?: ReactNode;
+  /** The editor's state the flow lays out: what's being dragged, where the composer is. */
+  flow?: Omit<FlowOptions, 'editing'>;
 };
 
 /** "27 min", "1 hr 12 min". */
@@ -90,8 +94,9 @@ export default function PlaylistArticle({
   // A track's play button queues the playlist's tracks, in order.
   const items = view.rows.flatMap((r) => (isTrackRow(r) ? (songRowItem(r) ?? []) : []));
   const unavailable = view.rows.filter((r) => r.kind === 'unavailable' && !r.pending).length;
-  const blocks = playlistBlocks(view.rows);
-  const groups = flowRows(blocks, { gaps: !!slots?.gap });
+  // The editor shows each segment apart (groups), so it's clear what belongs together.
+  const blocks = playlistBlocks(view.rows, { segments: !!slots });
+  const groups = flowRows(blocks, { editing: !!slots, ...slots?.flow });
 
   const meta = [
     ...byline,
@@ -139,9 +144,9 @@ export default function PlaylistArticle({
             column; from md up it hangs in the margin, so content lines up with the header. */}
             <div className="flex flex-col md:-ml-5">
               {groups.map((group) =>
-                group.sectionId ? (
-                  // A section's rows together: its segment drags as one.
-                  <div key={group.key} data-section-id={group.sectionId} className="flex flex-col">
+                group.segmentId ? (
+                  // A section's or group's rows together: its segment drags as one.
+                  <div key={group.key} data-section-id={group.segmentId} className="flex flex-col">
                     {group.rows.map((row) => (
                       <Row key={row.key} row={row} slots={slots} />
                     ))}
@@ -169,11 +174,30 @@ function Row({ row, slots }: { row: FlowRow; slots?: ArticleSlots }) {
   return (
     <div className="group/row flex">
       <Rail rail={row.rail} />
-      <div className="min-w-0 flex-1">
+      {/* A box (a section's tint, a group's outline) is its rows' content cells, stacked. */}
+      <div className={cn('min-w-0 flex-1', row.box && boxCell(row.box))}>
         <RowContent row={row} slots={slots} />
       </div>
     </div>
   );
+}
+
+/** One row's piece of its box: the sides, and the top or bottom at the ends. */
+function boxCell({ position, tone }: Box) {
+  const top = position === 'first' || position === 'only';
+  const bottom = position === 'last' || position === 'only';
+  return tone === 'section'
+    ? // Clipped at the ends, so a card's hover fill keeps the box's corners.
+      cn(
+        SECTION_TINT,
+        top && 'overflow-hidden rounded-t-2xl',
+        bottom && 'overflow-hidden rounded-b-2xl'
+      )
+    : cn(
+        'border-x border-dashed border-text-primary/20 px-1.5',
+        top && 'rounded-t-2xl border-t pt-1.5',
+        bottom && 'rounded-b-2xl border-b pb-1.5'
+      );
 }
 
 function RowContent({ row, slots }: { row: FlowRow; slots?: ArticleSlots }) {
@@ -185,6 +209,13 @@ function RowContent({ row, slots }: { row: FlowRow; slots?: ArticleSlots }) {
         <div className="py-2">
           <Gap at={row.at} slots={slots} />
         </div>
+      );
+    case 'drop':
+      return (
+        <DropZone
+          target={row.target}
+          alone={row.target.kind === 'gap' && slots?.flow?.dragging?.kind === 'entry'}
+        />
       );
     case 'track':
       return isTrackRow(row.row) ? (
@@ -204,8 +235,7 @@ function RowContent({ row, slots }: { row: FlowRow; slots?: ArticleSlots }) {
             COMMENTARY,
             // In a section's box: its tint and corners, and room inside it.
             // The box spans the row; the text inside keeps its measure.
-            row.box &&
-              cn(SECTION_TINT, BOX_CORNERS[row.box], 'max-w-none py-3 pr-4 *:max-w-[65ch]'),
+            row.box && 'max-w-none py-3 pr-4 *:max-w-[65ch]',
             row.box && row.owner.kind === 'segment' && 'pb-3.5'
           )}
         />
@@ -258,33 +288,38 @@ function Rail({ rail }: { rail: RailCell }) {
 
 /** A section's tint, on each of its rows' content cells (they stack flush into one box). */
 const SECTION_TINT = 'bg-text-primary/[0.035]';
-const BOX_CORNERS: Record<BoxPosition, string> = {
-  first: 'rounded-t-2xl',
-  middle: '',
-  last: 'rounded-b-2xl',
-  only: 'rounded-2xl',
-};
 
 /**
- * The editor's place between blocks: a full-width dashed zone holding its control
- * (Add Text, Add Tracks) or what's being written there. Marked with the segments on
- * either side, since a drag drops into it too.
+ * The editor's composer (text or tracks being added there), or its Add zone at
+ * the end of the playlist.
  */
 function Gap({ at, slots }: { at: GapAt; slots?: ArticleSlots }) {
   const gap = slots?.gap?.(at);
   if (!gap) return null;
   return (
-    <div
-      data-gap=""
-      data-above={at.above?.segmentId}
-      data-below={at.below?.segmentId}
-      className="
-        rounded-xl border border-dashed border-text-primary/15 transition-colors
-        data-[drop-over]:border-accent data-[drop-over]:bg-accent/20
-        data-[drop-over]:[&_button]:text-accent
-      "
-    >
+    <div className="rounded-xl border border-dashed border-text-primary/15">
       {gap.content ? <div className="py-2 pr-3 pl-[52px]">{gap.content}</div> : gap.control}
+    </div>
+  );
+}
+
+/**
+ * While dragging: a place it can land. usePlaylistDrag finds it by its target and
+ * lights it up when the pointer's over it.
+ */
+function DropZone({ target, alone }: { target: DropTarget; alone: boolean }) {
+  return (
+    <div className="py-1">
+      <div
+        data-drop-zone={JSON.stringify(target)}
+        className="
+          flex h-9 items-center justify-center gap-1.5 rounded-xl border border-dashed
+          border-text-primary/20 text-xs text-text-muted transition-colors
+          data-[drop-over]:border-accent data-[drop-over]:bg-accent/15 data-[drop-over]:text-accent
+        "
+      >
+        {alone ? 'Move here, on its own' : 'Move here'}
+      </div>
     </div>
   );
 }
@@ -383,8 +418,18 @@ const COMMENTARY = 'max-w-[calc(65ch+53px)] text-text-primary/85';
 /** A card: a 1px border (transparent but an unavailable one's), so content lines up. */
 const CELL = 'relative flex gap-3 border border-transparent py-2.5 pr-1.5 pl-3';
 
-/** A card's corners: its own, or its place in a section's box. */
-const cardCorners = (box: BoxPosition | null) => (box ? BOX_CORNERS[box] : 'rounded-xl');
+/**
+ * A card's own look: rounded and filled, unless it's in a section, whose box
+ * fills it (then the card only tints on hover).
+ */
+const cardLook = (box: Box | null) => (box?.tone === 'section' ? '' : 'rounded-xl');
+/** While dragging a track: a card is somewhere to drop it, to group with it. */
+const JOIN_TARGET = `
+  data-[drop-over]:ring-2 data-[drop-over]:ring-accent data-[drop-over]:ring-inset
+  data-[drop-over]:after:absolute data-[drop-over]:after:right-3 data-[drop-over]:after:bottom-2
+  data-[drop-over]:after:text-xs data-[drop-over]:after:text-accent
+  data-[drop-over]:after:content-['Group_with_this']
+`;
 
 /** A track's note, under its show line. */
 function Note({ id, blocks, slots }: { id: string; blocks?: GuideBlock[]; slots?: ArticleSlots }) {
@@ -402,7 +447,7 @@ function TrackCell({
   slots,
 }: {
   row: PlaylistTrackRow;
-  box: BoxPosition | null;
+  box: Box | null;
   slots?: ArticleSlots;
 }) {
   const name = `${row.trackTitle ?? 'Track'}, ${row.date}`;
@@ -410,11 +455,14 @@ function TrackCell({
     <div
       data-row-id={row.id}
       data-segment-id={row.segmentId}
+      data-card=""
       className={cn(
         CELL,
-        cardCorners(box),
+        cardLook(box),
+        JOIN_TARGET,
+        box?.tone !== 'section' && 'bg-text-primary/[0.035]',
         `
-          group/cell items-start bg-text-primary/[0.035] transition-colors
+          group/cell items-start transition-colors
           hover:bg-text-primary/[0.06]
           has-[[data-current-track]]:bg-accent/10 [&_a,&_button]:relative [&_a,&_button]:z-10
         `
@@ -481,17 +529,18 @@ function UnavailableCell({
   slots,
 }: {
   row: PlaylistOtherRow;
-  box: BoxPosition | null;
+  box: Box | null;
   slots?: ArticleSlots;
 }) {
   return (
     <div
       data-row-id={row.id}
       data-segment-id={row.segmentId}
+      data-card=""
       className={cn(
         CELL,
-        cardCorners(box),
-        box && SECTION_TINT,
+        cardLook(box),
+        JOIN_TARGET,
         'group/cell items-start border-dashed border-hairline text-text-muted'
       )}
     >

@@ -40,7 +40,7 @@ import {
 } from './editOps';
 import AddTracks from './AddTracks';
 import PublishControl from './PublishControl';
-import { dropOp } from './dragOps';
+import { type DragSource, dropOp } from './dragOps';
 import MarkdownField from './MarkdownField';
 import PlaylistArticle, {
   ACTION,
@@ -60,10 +60,15 @@ import { usePlaylistDrag } from './usePlaylistDrag';
 /** Reopened after the server refused it: the text as written, and why. */
 type Refused = { draft?: string; error?: string };
 
+/** An open text field the server could refuse, and so reopen. */
+type TextEditing = Extract<NonNullable<Editing>, { kind: 'prose' | 'gap' }>;
+
 type Editing =
   | ({ kind: 'prose'; owner: ProseOwner } & Refused)
   /** New text, or tracks to add, at a gap. */
   | ({ kind: 'gap'; at: GapAt; adding?: 'text' | 'tracks' } & Refused)
+  /** Opening the composer after a row (or at the end): laid out, then it's a gap. */
+  | { kind: 'insert'; after: string; adding: 'text' | 'tracks' }
   | null;
 
 const sameOwner = (a: ProseOwner, b: ProseOwner) =>
@@ -97,7 +102,7 @@ export default function PlaylistEditor({
   const state = useDraft(store);
   const [editing, setEditing] = useState<Editing>(null);
   // The prose last sent: reopened with its text if the server refuses it.
-  const lastProse = useRef<{ editing: NonNullable<Editing>; text: string } | null>(null);
+  const lastProse = useRef<{ editing: TextEditing; text: string } | null>(null);
   useStoreEvents(store, {
     onSaved: () => {
       lastProse.current = null;
@@ -125,16 +130,25 @@ export default function PlaylistEditor({
   };
   const content = state.content;
   const root = useRef<HTMLDivElement>(null);
-  const dropLine = useRef<HTMLDivElement>(null);
+  // What's being dragged: the flow lays out its drop zones while it is.
+  const [dragging, setDragging] = useState<DragSource | null>(null);
+  // Where the composer is: after a row's key ('end' for the Add zone at the end).
+  const composerAt =
+    editing?.kind === 'insert' ? editing.after : editing?.kind === 'gap' ? editing.at.key : null;
   const openField =
     editing?.kind === 'prose'
       ? `${editing.owner.kind}:${editing.owner.kind === 'playlist' ? '' : editing.owner.id}`
-      : editing?.kind === 'gap'
-        ? `gap:${editing.at.index}`
+      : composerAt !== null
+        ? `gap:${composerAt}`
         : '';
-  usePlaylistDrag(root, dropLine, content, openField, (source, target) =>
-    edit(dropOp(content, source, target))
-  );
+  usePlaylistDrag({
+    root,
+    layoutKey: content,
+    fieldKey: openField,
+    dragging,
+    onDragChange: setDragging,
+    onDrop: (source, target) => edit(dropOp(content, source, target)),
+  });
   const view = playlistView(content, resolved);
   const timestampTargets = view.rows.flatMap((r) =>
     r.kind === 'track'
@@ -142,11 +156,7 @@ export default function PlaylistEditor({
       : []
   );
   /** Sends prose once its field closes, remembering it in case it's refused. */
-  const commitProse = (
-    editing: NonNullable<Editing>,
-    text: string | null,
-    op: PlaylistOp | null
-  ) => {
+  const commitProse = (editing: TextEditing, text: string | null, op: PlaylistOp | null) => {
     setEditing(null);
     if (text === null || !op) return;
     lastProse.current = { editing, text };
@@ -281,6 +291,7 @@ export default function PlaylistEditor({
           onIntro={() =>
             setEditing({ kind: 'prose', owner: { kind: 'segment', id: row.segmentId } })
           }
+          onAddBelow={(adding) => setEditing({ kind: 'insert', after: row.id, adding })}
           onEdit={(op) => edit(op)}
           moveUp={moveEntry(content, row.id, -1)}
           moveDown={moveEntry(content, row.id, 1)}
@@ -296,29 +307,40 @@ export default function PlaylistEditor({
       </>
     ),
 
-    gap: (at) => ({
-      control: (
-        <GapControl
-          onAddText={() => setEditing({ kind: 'gap', at, adding: 'text' })}
-          onAddTracks={() => setEditing({ kind: 'gap', at, adding: 'tracks' })}
-        />
-      ),
-      content:
-        editing?.kind === 'gap' && editing.at.index === at.index && editing.adding === 'tracks' ? (
-          <AddTracks
-            onAdd={(trackIds) => {
-              setEditing(null);
-              edit(insertTracks(at, trackIds));
-              void store.flush();
-            }}
-            onClose={() => setEditing(null)}
-          />
-        ) : editing?.kind === 'gap' && editing.at.index === at.index ? (
-          <div>
+    flow: {
+      dragging,
+      // The Add zone at the end is always there; elsewhere the composer is laid out.
+      insertAfter: composerAt !== null && composerAt !== 'end' ? composerAt : null,
+    },
+
+    gap: (at) => {
+      // The composer's row, or the Add zone at the end.
+      const open = composerAt === at.key && editing && editing.kind !== 'prose' ? editing : null;
+      const adding = open?.adding ?? null;
+      const refused = open?.kind === 'gap' ? open : undefined;
+      return {
+        control:
+          at.key === 'end' ? (
+            <GapControl
+              onAddText={() => setEditing({ kind: 'gap', at, adding: 'text' })}
+              onAddTracks={() => setEditing({ kind: 'gap', at, adding: 'tracks' })}
+            />
+          ) : undefined,
+        content:
+          adding === 'tracks' ? (
+            <AddTracks
+              onAdd={(trackIds) => {
+                setEditing(null);
+                edit(insertTracks(at, trackIds));
+                void store.flush();
+              }}
+              onClose={() => setEditing(null)}
+            />
+          ) : adding === 'text' ? (
             <MarkdownField
               label="New text"
-              initial={editing.draft ?? ''}
-              error={editing.error}
+              initial={refused?.draft ?? ''}
+              error={refused?.error}
               limit={2000}
               timestampTargets={timestampTargets}
               onDone={(text) =>
@@ -329,9 +351,9 @@ export default function PlaylistEditor({
                 )
               }
             />
-          </div>
-        ) : undefined,
-    }),
+          ) : undefined,
+      };
+    },
 
     toolbar: (
       <div className="flex items-center gap-2 text-sm">
@@ -381,16 +403,6 @@ export default function PlaylistEditor({
             </Link>
           </>
         }
-      />
-      {/* The drop slot: placed by usePlaylistDrag while dragging, hidden otherwise. */}
-      <div
-        ref={dropLine}
-        hidden
-        aria-hidden
-        className="
-          pointer-events-none fixed z-50 rounded-md border border-dashed border-accent
-          bg-accent/15
-        "
       />
     </div>
   );
@@ -584,6 +596,7 @@ function CellMenu({
   hasNote,
   onNote,
   onIntro,
+  onAddBelow,
   onEdit,
   moveUp,
   moveDown,
@@ -597,6 +610,7 @@ function CellMenu({
   hasNote: boolean;
   onNote: () => void;
   onIntro: () => void;
+  onAddBelow: (adding: 'text' | 'tracks') => void;
   onEdit: (op: PlaylistOp | null) => void;
   moveUp: PlaylistOp | null;
   moveDown: PlaylistOp | null;
@@ -615,6 +629,12 @@ function CellMenu({
           Add Section Intro
         </Item>
       )}
+      <Item icon={PlusIcon} onClick={() => onAddBelow('text')}>
+        Add Text Below
+      </Item>
+      <Item icon={ListMusicIcon} onClick={() => onAddBelow('tracks')}>
+        Add Tracks Below
+      </Item>
       <Menu.Separator className="mx-2 my-1 h-px bg-hairline" />
       <Item icon={ArrowUpIcon} onClick={() => onEdit(moveUp)} disabled={!moveUp}>
         Move Up
