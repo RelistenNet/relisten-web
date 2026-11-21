@@ -43,6 +43,14 @@ export function newTypeId<P extends TypeIdPrefix>(prefix: P, now = Date.now()): 
   return `${prefix}_${encode(uuidv7(now))}`;
 }
 
+/** The TypeID for a UUID (`0188bac7-4afa-…`): for the shared vectors, which check the encoding. */
+export function typeIdForUuid(prefix: string, uuid: string): string {
+  const hex = uuid.replaceAll('-', '');
+  const bytes = new Uint8Array(16);
+  for (let i = 0; i < 16; i++) bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  return `${prefix}_${encode(bytes)}`;
+}
+
 /** Whether `id` is a well-formed TypeID with this prefix (the suffix's alphabet and range). */
 export function isTypeId(id: string, prefix: TypeIdPrefix): boolean {
   return id.startsWith(`${prefix}_`) && SUFFIX.test(id.slice(prefix.length + 1));
