@@ -243,3 +243,21 @@ export function insertTracks(
     },
   };
 }
+
+/** A whole segment (a section or group) one place up or down among segments; null at an end. */
+export function moveSegmentBy(
+  content: PlaylistContent,
+  segmentId: string,
+  direction: -1 | 1
+): PlaylistOp | null {
+  const i = content.segments.findIndex((s) => s.id === segmentId);
+  const neighbor = content.segments[i + direction];
+  if (i < 0 || !neighbor) return null;
+  return {
+    operation_type: 'move_segment',
+    payload:
+      direction < 0
+        ? { segment_id: segmentId, before_segment_id: neighbor.id }
+        : { segment_id: segmentId, after_segment_id: neighbor.id },
+  };
+}

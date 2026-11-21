@@ -244,3 +244,29 @@ describe('createDraftStore', () => {
     expect(server.batches[1].expected).toBe(2);
   });
 });
+
+describe('editMany', () => {
+  beforeEach(() => vi.useFakeTimers());
+  it('applies edits together and undoes them as one', async () => {
+    const server = fakeServer();
+    const store = createDraftStore(content, { transport: server.transport, newId: ids() });
+    // s2's text moves out to stand alone: a new segment with it, and s2 loses it.
+    store.editMany([
+      op('insert_segment', { segment_id: 'sN', entries: [], description: 'Set two' }),
+      op('update_segment', { segment_id: 's2', description: null }),
+    ]);
+    await settle();
+    expect(store.getState().content.segments.map((s) => s.description)).toEqual([
+      undefined,
+      undefined,
+      'Set two',
+    ]);
+    store.undo();
+    await settle();
+    expect(store.getState().content.segments.map((s) => s.description)).toEqual([
+      undefined,
+      'Set two',
+    ]);
+    expect(store.getState().canUndo).toBe(false);
+  });
+});

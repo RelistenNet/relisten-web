@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { applyOp } from '@/domain/playlistOps';
 import type { PlaylistContent, PlaylistOp } from '@/domain/playlists';
-import { dropOp, type DragSource, type DropTarget } from './dragOps';
+import { dropOp, dropOps, type DragSource, type DropTarget } from './dragOps';
 
 // s1 (section: e1, e2) | s2 (prose alone) | s3 (e3, e4)
 const content: PlaylistContent = {
@@ -31,12 +31,12 @@ const content: PlaylistContent = {
 
 const shape = (c: PlaylistContent) =>
   c.segments.map((s) => `${s.id}:${s.entries.map((e) => e.id).join(',')}`).join(' | ');
-const drop = (source: DragSource, target: DropTarget) => {
+const drop = (source: Exclude<DragSource, { kind: 'prose' }>, target: DropTarget) => {
   const op = dropOp(content, source, target, () => 'new');
   return op && shape(applyOp(content, op as PlaylistOp).content);
 };
-const entry = (id: string): DragSource => ({ kind: 'entry', id });
-const segment = (id: string): DragSource => ({ kind: 'segment', id });
+const entry = (id: string) => ({ kind: 'entry', id }) as const;
+const segment = (id: string) => ({ kind: 'segment', id }) as const;
 const row = (rowId: string, segmentId: string, edge: 'top' | 'bottom'): DropTarget => ({
   kind: 'row',
   rowId,
@@ -71,5 +71,58 @@ describe('dropOp', () => {
     expect(dropOp(content, entry('e1'), row('e1', 's1', 'top'))).toBeNull();
     expect(dropOp(content, segment('s1'), row('e2', 's1', 'bottom'))).toBeNull();
     expect(dropOp(content, segment('s1'), { kind: 'gap', above: 's1', below: 's2' })).toBeNull();
+  });
+});
+
+describe('dropOps: prose', () => {
+  const applyAll = (ops: PlaylistOp[]) =>
+    shape(ops.reduce((c, o) => applyOp(c, o).content, content));
+  const ids = () => {
+    let n = 0;
+    return () => `n${++n}`;
+  };
+
+  it('moves a section’s comment out to stand alone between groups', () => {
+    const ops = dropOps(
+      content,
+      { kind: 'prose', id: 's1', role: 'comment' },
+      { kind: 'gap', above: 's2', below: 's3' },
+      ids()
+    );
+    const after = ops.reduce((c, o) => applyOp(c, o).content, content);
+    expect(shape(after)).toBe('s1:e1,e2 | s2: | n1: | s3:e3,e4');
+    expect(after.segments.find((s) => s.id === 's1')?.description).toBeUndefined();
+    expect(after.segments.find((s) => s.id === 'n1')?.description).toBe('Intro');
+  });
+
+  it('moves text alone into a group as a text entry', () => {
+    expect(
+      applyAll(
+        dropOps(
+          content,
+          { kind: 'prose', id: 's2', role: 'alone' },
+          row('e3', 's3', 'bottom'),
+          ids()
+        )
+      )
+    ).toBe('s1:e1,e2 | s3:e3,n1,e4');
+  });
+
+  it('moves text alone between groups as itself, and a comment into its own section as text', () => {
+    expect(
+      applyAll(
+        dropOps(content, { kind: 'prose', id: 's2', role: 'alone' }, { kind: 'gap', below: 's1' })
+      )
+    ).toBe('s2: | s1:e1,e2 | s3:e3,e4');
+    expect(
+      applyAll(
+        dropOps(
+          content,
+          { kind: 'prose', id: 's1', role: 'comment' },
+          row('e3', 's3', 'top'),
+          ids()
+        )
+      )
+    ).toBe('s1:e1,e2 | s2: | s3:n1,e3,e4');
   });
 });

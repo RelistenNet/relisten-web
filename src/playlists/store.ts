@@ -47,6 +47,11 @@ export type DraftStore = {
    * would refuse outright (a text entry with no text, a nameless playlist).
    */
   edit(op: PlaylistOp): PlaylistOperationStatus;
+  /**
+   * Several edits as one (a drop that moves text from one kind of place to
+   * another): applied in order, undone together. Throws like edit().
+   */
+  editMany(ops: PlaylistOp[]): void;
   undo(): void;
   /** Sends whatever is waiting now (a blur, leaving the page, Retry). */
   flush(): Promise<void>;
@@ -210,6 +215,22 @@ export function createDraftStore(
       return () => listeners.delete(listener);
     },
     edit: (op) => enqueue(op, true),
+    editMany(ops) {
+      const steps: UndoStep[] = [];
+      for (const op of ops) {
+        const before = state.content;
+        if (enqueue(op, false) !== 'applied') continue;
+        const inv = inverse(before, op, newId);
+        steps.push({ ops: inv.ops, renamed: inv.renamed });
+      }
+      if (!steps.length) return;
+      // Undone last first; one step, so one Undo puts it all back.
+      undoSteps.push({
+        ops: steps.toReversed().flatMap((st) => st.ops),
+        renamed: Object.assign({}, ...steps.map((st) => st.renamed)),
+      });
+      update({});
+    },
     undo() {
       const step = undoSteps.pop();
       if (!step) return;

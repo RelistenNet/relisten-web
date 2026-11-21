@@ -62,16 +62,22 @@ export function usePlaylistDrag({
     const cleanups: (() => void)[] = [];
     for (const handle of container.querySelectorAll<HTMLElement>('[data-drag-kind]')) {
       const element = handle.closest<HTMLElement>('[data-section-id], [data-row-id]');
-      const kind = handle.dataset.dragKind;
-      const id = handle.dataset.dragId;
-      if (!element || !id || (kind !== 'entry' && kind !== 'segment')) continue;
+      const { dragKind: kind, dragId: id, dragRole: role } = handle.dataset;
+      const source: DragSource | null = !id
+        ? null
+        : kind === 'entry' || kind === 'segment'
+          ? { kind, id }
+          : kind === 'prose' && (role === 'comment' || role === 'alone')
+            ? { kind, id, role }
+            : null;
+      if (!element || !source) continue;
       // A draggable element takes mouse drags inside it, so a text field open in it
       // couldn't select text: while one is, the element isn't draggable.
       if (element.querySelector('textarea, input')) continue;
       cleanups.push(
         draggable({
           element,
-          getInitialData: (): Source => ({ playlistDrag: { kind, id } }),
+          getInitialData: (): Source => ({ playlistDrag: source }),
           // A small label under the pointer, not the browser's picture of the whole block.
           onGenerateDragPreview: ({ nativeSetDragImage }) =>
             setCustomNativeDragPreview({

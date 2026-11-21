@@ -61,10 +61,11 @@ export type ArticleSlots = {
   prosePending?: (owner: ProseOwner) => boolean;
   /** Opens a prose block for editing: a click on it (not on a link in it), or Enter. */
   editProse?: (owner: ProseOwner) => void;
-  /** A menu on a prose block (`hasText`: there's text to edit, not just to add). */
-  proseMenu?: (owner: ProseOwner, hasText: boolean) => ReactNode;
-  /** In place of a track's ⋯ menu; beside an unavailable track. */
-  cellMenu?: (row: PlaylistTrackGroupRow) => ReactNode;
+  /**
+   * A row's controls (the editor's grip and menu): every kind of row gets them in
+   * the same place, at the top right of its content.
+   */
+  controls?: (row: FlowRow) => ReactNode;
   /**
    * At each gap between blocks (and before the first, and past the last): its
    * control (Add Text), or the text being written there in its place.
@@ -180,24 +181,60 @@ export default function PlaylistArticle({
 
 /** One row of the flow: its rail cell, then its content. */
 function Row({ row, slots }: { row: FlowRow; slots?: ArticleSlots }) {
+  const controls = slots?.controls?.(row);
+  const id = rowIdentity(row);
   const body = (
     <div className="group/row flex">
       <Rail rail={row.rail} />
-      {/* A box (a section's tint, a group's outline) is its rows' content cells, stacked. */}
-      <div className={cn('min-w-0 flex-1', row.box && boxCell(row.box))}>
+      {/* A box (a section's tint, a group's outline) is its rows' content cells, stacked.
+      The cell carries the row's identity, so its grip drags it whole. */}
+      <div
+        data-row-id={id?.id}
+        data-segment-id={id?.segmentId}
+        className={cn('relative min-w-0 flex-1', row.box && boxCell(row.box))}
+      >
         <RowContent row={row} slots={slots} />
+        {controls && (
+          // The same place on every row: the top right, centered on the first line
+          // (a card's play button, a block's first line of text).
+          <div
+            className={cn(
+              'absolute right-2 z-20 flex items-center',
+              row.kind === 'header' ? 'top-[5px]' : 'top-[9px]',
+              row.box?.tone === 'group' && 'right-3.5'
+            )}
+          >
+            {controls}
+          </div>
+        )}
       </div>
     </div>
   );
   // In the editor, rows slide to their new places when the order changes (the
   // editor commits edits as transitions; globals.css has the timing). The read
   // pages don't reorder, so they skip it.
-  return slots && (row.kind === 'track' || row.kind === 'prose') ? (
+  return slots && (row.kind === 'track' || row.kind === 'prose' || row.kind === 'header') ? (
     <ViewTransition default="playlist-move">{body}</ViewTransition>
   ) : (
     body
   );
 }
+
+/** The row the editor's grip drags and a drop lands beside (a header has none: its box). */
+function rowIdentity(row: FlowRow): { id: string; segmentId: string } | undefined {
+  if (row.kind === 'track') return { id: row.row.id, segmentId: row.row.segmentId };
+  if (row.kind === 'prose')
+    return (
+      row.dragRow ??
+      (row.owner.kind === 'segment'
+        ? { id: `comment:${row.owner.id}`, segmentId: row.owner.id }
+        : undefined)
+    );
+  return undefined;
+}
+
+/** In the editor, room at the right of every row for its controls. */
+const CONTROLS_ROOM = 'pr-[84px]';
 
 /** One row's piece of its box: the sides, and the top or bottom at the ends. */
 function boxCell({ position, tone }: Box) {
@@ -240,20 +277,32 @@ function RowContent({ row, slots }: { row: FlowRow; slots?: ArticleSlots }) {
       ) : (
         <UnavailableCell row={row.row} box={row.box} slots={slots} />
       );
+    case 'header':
+      return (
+        <div
+          className="
+          flex h-[42px] items-center pl-[53px] text-[11px] font-semibold tracking-wide
+          text-text-muted uppercase
+        "
+        >
+          {row.tone === 'section' ? 'Section' : 'Group'}
+        </div>
+      );
     case 'prose':
       return (
         <Prose
           owner={row.owner}
           blocks={row.prose}
           slots={slots}
-          row={row.dragRow}
           className={cn(
             FLOW_INDENT,
             COMMENTARY,
             // In a section's box: its tint and corners, and room inside it.
             // The box spans the row; the text inside keeps its measure.
             row.box && 'max-w-none py-3 pr-4 *:max-w-[65ch]',
-            row.box && row.owner.kind === 'segment' && 'pb-3.5'
+            row.box && row.owner.kind === 'segment' && 'pb-3.5',
+            // The editor: the same padding for every block, and room for its controls.
+            slots && cn('max-w-none py-3 *:max-w-[65ch]', CONTROLS_ROOM)
           )}
         />
       );
@@ -357,20 +406,16 @@ export function Prose({
   owner,
   blocks,
   slots,
-  row,
   className,
   children,
 }: {
   owner: ProseOwner;
   blocks?: GuideBlock[];
   slots?: ArticleSlots;
-  /** A text block's place in the flow, for the editor's dragging. */
-  row?: { id: string; segmentId: string };
   className?: string;
   children?: ReactNode;
 }) {
   const editing = slots?.prose?.(owner);
-  const menu = slots?.proseMenu?.(owner, !!blocks?.length);
   if (!editing && !blocks?.length) return null;
   const open = !editing && slots?.editProse ? () => slots.editProse?.(owner) : undefined;
   const pending = !editing && !!slots?.prosePending?.(owner);
@@ -379,7 +424,7 @@ export function Prose({
       className={cn(
         PROSE,
         'group/prose',
-        (menu || open) && 'relative',
+        open && 'relative',
         // Editable: above a cell's play-anywhere overlay, and marked as text to click
         // into. An outline, not padding or a margin: hovering moves nothing.
         open &&
@@ -391,13 +436,9 @@ export function Prose({
           `,
         // Shown as written until the server renders it: dimmed, gently pulsing.
         pending && 'animate-pulse opacity-60 motion-reduce:animate-none',
-        className,
-        // Room for the editor's grip and menu at the top right, so they never cover text.
-        menu && !editing && 'pr-20'
+        className
       )}
       aria-busy={pending || undefined}
-      data-row-id={row?.id}
-      data-segment-id={row?.segmentId}
       {...(open && {
         tabIndex: 0,
         title: 'Click to edit',
@@ -415,7 +456,6 @@ export function Prose({
     >
       {children}
       {editing ?? <GuideProse blocks={blocks ?? []} renderSeek={renderSeek} />}
-      {menu && !editing && <div className="absolute top-0 right-0">{menu}</div>}
     </div>
   );
 }
@@ -476,6 +516,8 @@ function TrackCell({
       className={cn(
         CELL,
         cardLook(box),
+        // The editor: room for the row's controls at the right.
+        slots && CONTROLS_ROOM,
         JOIN_TARGET,
         box?.tone !== 'section' && 'bg-text-primary/[0.035]',
         `
@@ -516,7 +558,8 @@ function TrackCell({
         </span>
         {/* Faded until the row is hovered or focused (or its menu is open); always
         shown on touch screens, which can't hover. */}
-        {slots?.cellMenu?.(row) ?? (
+        {/* The editor has its own controls in the row's corner. */}
+        {!slots && (
           <QueueMenu
             item={songRowItem(row)}
             name={name}
@@ -557,6 +600,8 @@ function UnavailableCell({
       className={cn(
         CELL,
         cardLook(box),
+        // The editor: room for the row's controls at the right.
+        slots && CONTROLS_ROOM,
         JOIN_TARGET,
         'group/cell items-start border-dashed border-hairline text-text-muted'
       )}
@@ -579,7 +624,6 @@ function UnavailableCell({
         )}
         <Note id={row.id} blocks={row.prose} slots={slots} />
       </div>
-      {slots?.cellMenu?.(row)}
     </div>
   );
 }

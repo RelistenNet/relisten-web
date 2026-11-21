@@ -80,6 +80,7 @@ describe('flowRows', () => {
     );
     expect(rows.map((r) => r.key)).toEqual([
       'drop:gap:0',
+      'group:s1:header',
       'drop:before:e',
       'e',
       'drop:after:e',
@@ -120,6 +121,7 @@ describe('flowRows', () => {
   it('puts the composer after the row it was opened from, and an Add zone at the end', () => {
     const rows = rowsOf(flowRows(editorBlocks, { editing: true, insertAfter: 'e' }));
     expect(rows.map((r) => r.key)).toEqual([
+      'group:s1:header',
       'e',
       'gap:e',
       'f',
@@ -129,7 +131,7 @@ describe('flowRows', () => {
       'h',
       'gap:end',
     ]);
-    const gap = rows[1];
+    const gap = rows[2];
     expect(gap.kind === 'gap' && gap.at).toEqual({
       key: 'e',
       above: { id: 'e', segmentId: 's1' },

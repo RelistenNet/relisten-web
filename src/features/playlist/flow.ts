@@ -40,9 +40,13 @@ export type FlowRow =
       kind: 'prose';
       owner: ProseOwner;
       prose: GuideBlock[];
-      /** Its place in the flow, for dragging (text blocks, not section comments). */
+      /** Its place in the flow, as the row a drop lands next to (text blocks). */
       dragRow?: { id: string; segmentId: string };
+      /** What dragging it moves: itself as an entry, or as a segment's own text. */
+      drag: DragSource;
     })
+  /** The editor only: a box's header, its handle and its menu. */
+  | (RowBase & { kind: 'header'; segmentId: string; tone: Box['tone'] })
   | (RowBase & { kind: 'space'; height: number })
   /** The editor's composer, or its Add zone at the end. */
   | (RowBase & { kind: 'gap'; at: GapAt })
@@ -81,12 +85,18 @@ function itemRows(items: PlaylistItem[], apart: boolean): Draft[] {
   const rows: Draft[] = [];
   for (const item of items) {
     if (item.kind === 'text') {
+      // Text alone is a segment of its own (its key is the segment's); other text is
+      // an entry in a group.
+      const alone = item.key === item.segmentId;
       rows.push({
         kind: 'prose',
         key: item.key,
         owner: { kind: 'text', id: item.key },
         prose: item.prose,
         dragRow: { id: item.key, segmentId: item.segmentId },
+        drag: alone
+          ? { kind: 'prose', id: item.segmentId, role: 'alone' }
+          : { kind: 'entry', id: item.key },
       });
       continue;
     }
@@ -162,9 +172,18 @@ export function flowRows(
           key: `${block.key}:comment`,
           owner: { kind: 'segment', id: block.segmentId },
           prose: block.comment,
+          drag: { kind: 'prose', id: block.segmentId, role: 'comment' },
         });
-      // Inside a box only an entry moves (a whole segment goes between blocks).
-      if (dragging?.kind === 'entry') rows = innerZones(rows, block.segmentId, dragging);
+      // Inside a box only entries and text land (a whole box goes between blocks).
+      if (dragging && dragging.kind !== 'segment')
+        rows = innerZones(rows, block.segmentId, dragging);
+      if (editing)
+        rows.unshift({
+          kind: 'header',
+          key: `${block.key}:header`,
+          segmentId: block.segmentId,
+          tone: block.kind === 'section' ? 'section' : 'group',
+        });
       parts.push({
         key: block.key,
         segmentId: block.segmentId,
@@ -263,7 +282,9 @@ function lastSegment(block: PlaylistBlock): string | undefined {
 
 /** Whether a drop beside this block would leave the dragged thing where it is. */
 function blockHolds(block: PlaylistBlock, dragging: DragSource): boolean {
-  if (dragging.kind === 'segment')
+  // A section's comment can always leave it; text alone moves like a segment.
+  if (dragging.kind === 'prose' && dragging.role === 'comment') return false;
+  if (dragging.kind === 'segment' || dragging.kind === 'prose')
     return firstSegment(block) === dragging.id || lastSegment(block) === dragging.id;
   // A loose block (a lone track, or text alone) that is the dragged entry.
   if (block.kind === 'section' || block.kind === 'group') return false;
