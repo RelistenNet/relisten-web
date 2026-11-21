@@ -5,13 +5,14 @@ import { cache as requestCache } from 'react';
 import { unwrap } from '@/api/fetcher';
 import { postApiV4CatalogResolve } from '@/api/generated/client';
 import type { PlayableTrack, ShowSummary } from '@/domain/types';
-import type {
-  FollowedPlaylistHeadWire,
-  LibrarySnapshotWire,
-  PlaylistSegmentWire,
-  PlaylistSnapshotWire,
-  PlaylistSummaryWire,
-  PublicPlaylistSnapshotWire,
+import {
+  type FollowedPlaylistHeadWire,
+  type LibrarySnapshotWire,
+  type PlaylistContent,
+  type PlaylistSnapshotWire,
+  type PlaylistSummaryWire,
+  type PublicPlaylistSnapshotWire,
+  toPlaylistContent,
 } from '@/domain/playlists';
 import { USER_SERVICE_TIMEOUT_MS, USER_SERVICE_URL } from '@/lib/session/config';
 import { sessionCookie } from '@/lib/session/sessionCookie';
@@ -25,46 +26,6 @@ import { toShowSummary } from './summaries';
 // never cached across requests. A published playlist is public: its snapshot is
 // cached briefly, like the edge does. Track details come from the catalog
 // resolver, cached per playlist revision.
-
-/** A playlist's authored content, cut down to what pages read. Segments and entries in play order. */
-export type PlaylistContent = {
-  playlistId: string;
-  generation: string;
-  revision: number;
-  name: string;
-  description?: string;
-  segments: {
-    id: string;
-    description?: string;
-    entries: { id: string; trackId: string | null; description?: string }[];
-  }[];
-};
-
-const text = (s: string | null | undefined) => (s?.trim() ? s : undefined);
-
-function toContent(
-  s: Pick<
-    PlaylistSnapshotWire,
-    'playlist_id' | 'history_generation' | 'revision' | 'metadata' | 'segments'
-  >
-): PlaylistContent {
-  return {
-    playlistId: s.playlist_id,
-    generation: s.history_generation,
-    revision: s.revision,
-    name: s.metadata.name,
-    description: text(s.metadata.description),
-    segments: s.segments.map((seg: PlaylistSegmentWire) => ({
-      id: seg.segment_id,
-      description: text(seg.description),
-      entries: seg.entries.map((e) => ({
-        id: e.entry_id,
-        trackId: e.track_id,
-        description: text(e.description),
-      })),
-    })),
-  };
-}
 
 async function userServiceJson<T>(path: string): Promise<T> {
   const res = await userServiceFetch(path);
@@ -106,7 +67,15 @@ export async function getPlaylistLibrary(): Promise<PlaylistLibrary | null> {
 }
 
 export type OwnPlaylist =
-  | { kind: 'found'; playlist: PlaylistContent; archived: boolean; publicCode?: string }
+  | {
+      kind: 'found';
+      playlist: PlaylistContent;
+      archived: boolean;
+      /** Set while it's published (and the share code the public page uses). */
+      publicCode?: string;
+      /** Taken down after a report: not public, and can't be published again for now. */
+      takenDown: boolean;
+    }
   | { kind: 'missing' }
   | { kind: 'signed-out' };
 
@@ -122,9 +91,10 @@ export const getOwnPlaylist = requestCache(async (playlistId: string): Promise<O
     );
     return {
       kind: 'found',
-      playlist: toContent(snapshot),
+      playlist: toPlaylistContent(snapshot),
       archived: snapshot.archived,
       publicCode: (snapshot.published && snapshot.public_code) || undefined,
+      takenDown: !!snapshot.taken_down,
     };
   } catch (err) {
     if (err instanceof UserServiceError) {
@@ -157,13 +127,21 @@ const publicPlaylistCached = timberCache.data(
     if (!res.ok) throw new UserServiceError(res.status, path);
     const snapshot = (await res.json()) as PublicPlaylistSnapshotWire;
     return {
-      ...toContent(snapshot),
+      ...toPlaylistContent(snapshot),
       publicCode: snapshot.public_code,
       owner: snapshot.owner.username,
     };
   },
-  { ttl: 60, key: (code: string) => `playlist-public:${code}` }
+  {
+    ttl: 60,
+    key: (code: string) => `playlist-public:${code}`,
+    // Publishing or unpublishing clears it at once (refreshPublicPlaylist).
+    tags: (code: string) => [publicPlaylistTag(code)],
+  }
 );
+
+/** The public page's cache tag, by share code. */
+export const publicPlaylistTag = (code: string) => `playlist-public:${code}`;
 
 /** A published playlist by its share code, or null when it isn't (or is no longer) public. */
 export const getPublicPlaylist = requestCache((code: string) => publicPlaylistCached(code));

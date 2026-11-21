@@ -1,16 +1,28 @@
+import type { GuideBlock } from '@/lib/guideMarkdown/types';
 import type { ShowRow } from '@/ui/shows/rows';
 
 // A playlist's entries in authored order, as rows the page lays out (blocks.ts).
 
 /** A segment with a description gets a heading row above its entries; others run on unheaded. */
-export type PlaylistSegmentHeading = { id: string; description: string };
+export type PlaylistSegmentHeading = {
+  id: string;
+  /** As written: the editor edits this. */
+  description: string;
+  /** Sanitized, to render. */
+  prose: GuideBlock[];
+};
 
 type EntryFields = {
   /** The entry id: unique per row. */
   id: string;
   /** 1-based, across the whole playlist. */
   position: number;
+  /** The segment it's in (for a prose-only segment's text block, its own id). */
+  segmentId: string;
+  /** As written: the editor edits this. */
   description?: string;
+  /** The description sanitized, to render. */
+  prose?: GuideBlock[];
   segment: PlaylistSegmentHeading | null;
 };
 
@@ -24,7 +36,11 @@ export type PlaylistTrackRow = ShowRow &
   };
 
 /** A text block, or a track the catalog doesn't have (anymore). Shown, never dropped. */
-export type PlaylistOtherRow = EntryFields & { kind: 'text' | 'unavailable' };
+export type PlaylistOtherRow = EntryFields & {
+  kind: 'text' | 'unavailable';
+  /** An unavailable row whose track was just added and isn't looked up yet. */
+  pending?: boolean;
+};
 
 export type PlaylistRow = PlaylistTrackRow | PlaylistOtherRow;
 

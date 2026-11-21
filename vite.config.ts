@@ -6,7 +6,14 @@ import { sessionDevServer } from './vite.session';
 // Opt-in HTTPS origin and session forwarding for browser sessions (pnpm dev:session).
 const session = sessionDevServer();
 
-const serverExternals = ['takumi-js', '@takumi-rs/core', '@mdx-js/rollup', 'rollup', 'fsevents'];
+const serverExternals = [
+  'takumi-js',
+  '@takumi-rs/core',
+  'satteri',
+  '@mdx-js/rollup',
+  'rollup',
+  'fsevents',
+];
 
 export default defineConfig({
   legacy: {

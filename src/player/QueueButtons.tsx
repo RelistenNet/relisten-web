@@ -13,6 +13,7 @@ import { type ReactNode, useDeferredValue, useState, useTransition, ViewTransiti
 import { toast } from 'sonner';
 import cn from '@/lib/cn';
 import Tooltip from '@/ui/base/Tooltip';
+import { AddToPlaylistButton } from './AddToPlaylist';
 import {
   addToQueue,
   playNext,
@@ -24,6 +25,7 @@ import {
 import { useCurrentItem, useIsPlaying } from './hooks';
 import type { QueueItem } from './queue/model';
 import { useSongQueue } from './SongQueue';
+import { TOASTER_ID } from './toasts';
 
 /** What a row queues: one track, or a whole show (its tracks fetched on click). */
 export type QueueTarget = { item: QueueItem | null } | { showId: string };
@@ -47,7 +49,7 @@ export default function QueueButtons({
   const run = (where: 'next' | 'end') => async () => {
     if ('showId' in target) {
       const ok = await queueShow(target.showId, where);
-      if (!ok) toast.error(SHOW_FAILED);
+      if (!ok) toast.error(SHOW_FAILED, { toasterId: TOASTER_ID });
       return ok;
     }
     if (target.item) (where === 'next' ? playNext : addToQueue)([target.item]);
@@ -150,7 +152,7 @@ export function PlayShowButton({ showId, name }: { showId: string; name: string 
   const play = () => {
     if (isCurrent) return togglePlayPause();
     startTransition(async () => {
-      if (!(await playShowById(showId))) toast.error(SHOW_FAILED);
+      if (!(await playShowById(showId))) toast.error(SHOW_FAILED, { toasterId: TOASTER_ID });
     });
   };
 
@@ -188,6 +190,8 @@ const PILL = `
  *
  * A playlist's (`playlist`): Play playlist, current while one of its own
  * entries is (a track of the same tape played from elsewhere isn't).
+ *
+ * A show's also has Add to Playlist: the tape on screen, as one segment.
  */
 export function ShowQueueActions({ playlist = false }: { playlist?: boolean }) {
   const { label: queueLabel = '', items = [] } = useSongQueue() ?? {};
@@ -253,6 +257,13 @@ export function ShowQueueActions({ playlist = false }: { playlist?: boolean }) {
         iconOnly={playlist}
         onClick={() => addToQueue(items)}
       />
+      {!playlist && (
+        <AddToPlaylistButton
+          className={PILL}
+          defaultName={queueLabel}
+          tracks={async () => ({ trackIds: items.map((i) => i.trackId) })}
+        />
+      )}
     </div>
   );
 }

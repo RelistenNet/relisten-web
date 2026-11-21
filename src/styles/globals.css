@@ -485,6 +485,21 @@
   z-index: 0;
 }
 
+/* ── A playlist's rows sliding to their new places (the editor) ──
+   React's <ViewTransition default="playlist-move"> on each row: after a drop, a
+   menu move or an undo, rows glide from where they were to where they are. */
+::view-transition-group(.playlist-move) {
+  animation-duration: 240ms;
+  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(.playlist-move),
+  ::view-transition-old(.playlist-move),
+  ::view-transition-new(.playlist-move) {
+    animation: none;
+  }
+}
+
 /* ── A label rolling to its next value (ShowQueueActions' Play → Resume → Pause) ──
    React's <ViewTransition update="label-roll">: the old text rotates up and
    away while the new one rolls in from below, cross-fading, like a drum turning.
