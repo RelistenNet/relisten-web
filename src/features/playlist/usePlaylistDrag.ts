@@ -6,6 +6,8 @@ import {
   dropTargetForElements,
   monitorForElements,
 } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
+import { pointerOutsideOfPreview } from '@atlaskit/pragmatic-drag-and-drop/element/pointer-outside-of-preview';
+import { setCustomNativeDragPreview } from '@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview';
 import { autoScrollWindowForElements } from '@atlaskit/pragmatic-drag-and-drop-auto-scroll/element';
 import { type RefObject, useEffect, useEffectEvent } from 'react';
 import type { DragSource, DropTarget } from './dragOps';
@@ -70,6 +72,19 @@ export function usePlaylistDrag({
         draggable({
           element,
           getInitialData: (): Source => ({ playlistDrag: { kind, id } }),
+          // A small label under the pointer, not the browser's picture of the whole block.
+          onGenerateDragPreview: ({ nativeSetDragImage }) =>
+            setCustomNativeDragPreview({
+              nativeSetDragImage,
+              getOffset: pointerOutsideOfPreview({ x: '12px', y: '8px' }),
+              render: ({ container }) => {
+                const pill = document.createElement('div');
+                pill.textContent = handle.dataset.dragLabel || 'Moving';
+                pill.className =
+                  'max-w-64 truncate rounded-full bg-surface-raised px-3 py-1.5 text-sm font-medium text-text-primary shadow-lg ring-1 ring-accent';
+                container.append(pill);
+              },
+            }),
           onDragStart: () => element.setAttribute('data-dragging', ''),
           onDrop: () => element.removeAttribute('data-dragging'),
         })

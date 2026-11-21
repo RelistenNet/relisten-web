@@ -1,5 +1,11 @@
 import { Link } from '@timber-js/app/client';
-import { Fragment, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react';
+import {
+  Fragment,
+  type KeyboardEvent,
+  type MouseEvent,
+  type ReactNode,
+  ViewTransition,
+} from 'react';
 import cn from '@/lib/cn';
 import GuideProse, { type RenderSeek } from '@/lib/guideMarkdown/GuideProse';
 import type { GuideBlock } from '@/lib/guideMarkdown/types';
@@ -174,7 +180,7 @@ export default function PlaylistArticle({
 
 /** One row of the flow: its rail cell, then its content. */
 function Row({ row, slots }: { row: FlowRow; slots?: ArticleSlots }) {
-  return (
+  const body = (
     <div className="group/row flex">
       <Rail rail={row.rail} />
       {/* A box (a section's tint, a group's outline) is its rows' content cells, stacked. */}
@@ -182,6 +188,14 @@ function Row({ row, slots }: { row: FlowRow; slots?: ArticleSlots }) {
         <RowContent row={row} slots={slots} />
       </div>
     </div>
+  );
+  // In the editor, rows slide to their new places when the order changes (the
+  // editor commits edits as transitions; globals.css has the timing). The read
+  // pages don't reorder, so they skip it.
+  return slots && (row.kind === 'track' || row.kind === 'prose') ? (
+    <ViewTransition default="playlist-move">{body}</ViewTransition>
+  ) : (
+    body
   );
 }
 

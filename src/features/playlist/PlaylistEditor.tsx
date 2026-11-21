@@ -16,7 +16,14 @@ import {
   Trash2Icon,
   UndoIcon,
 } from 'lucide-react';
-import { type ReactNode, useEffect, useEffectEvent, useRef, useState } from 'react';
+import {
+  type ReactNode,
+  useDeferredValue,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+} from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod/v4';
 import { PlaylistOpError } from '@/domain/playlistOps';
@@ -149,7 +156,10 @@ export default function PlaylistEditor({
     onDragChange: setDragging,
     onDrop: (source, target) => edit(dropOp(content, source, target)),
   });
-  const view = playlistView(content, resolved);
+  // Laid out from a deferred copy, so each edit commits as a transition and the
+  // rows slide to their new places (ViewTransition in PlaylistArticle).
+  const shown = useDeferredValue(content);
+  const view = playlistView(shown, resolved);
   const timestampTargets = view.rows.flatMap((r) =>
     r.kind === 'track'
       ? [{ entryId: r.id, title: r.trackTitle ?? 'Track', duration: r.songDuration ?? undefined }]
@@ -237,6 +247,7 @@ export default function PlaylistEditor({
                   : 'entry'
               }
               id={owner.id}
+              label={firstLine(sourceOf(content, owner)) || 'Text'}
             />
           )}
           <EditMenu label="Edit text">
@@ -284,7 +295,11 @@ export default function PlaylistEditor({
 
     cellMenu: (row) => (
       <>
-        <Grip kind="entry" id={row.id} />
+        <Grip
+          kind="entry"
+          id={row.id}
+          label={row.kind === 'track' ? (row.trackTitle ?? 'Track') : 'Unavailable track'}
+        />
         <CellMenu
           row={row}
           sections={sections.filter((s) => s.id !== row.segmentId)}
@@ -411,11 +426,13 @@ export default function PlaylistEditor({
 }
 
 /** Shows a block can be dragged (it drags from anywhere); the menus are the keyboard's way. */
-function Grip({ kind, id }: { kind: 'entry' | 'segment'; id: string }) {
+function Grip({ kind, id, label }: { kind: 'entry' | 'segment'; id: string; label: string }) {
   return (
     <span
       data-drag-kind={kind}
       data-drag-id={id}
+      // What the drag image says (usePlaylistDrag).
+      data-drag-label={label}
       aria-hidden
       title="Drag to move"
       className={`
