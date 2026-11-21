@@ -110,11 +110,14 @@ export default function PlaylistArticle({
     <SongQueueProvider label={view.name} items={items}>
       <article className="flex flex-col gap-6">
         <header className="flex flex-col gap-3">
-          <div className="flex items-start justify-between gap-4">
-            <h1 className="mb-0 min-w-0 flex-1 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+          {/* The actions sit beside the title, and wrap below it where they'd squeeze it. */}
+          <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+            <h1 className="mb-0 min-w-[min(100%,16rem)] flex-1 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
               {slots?.title ?? view.name}
             </h1>
-            {actions && <div className="flex shrink-0 items-center gap-2 pt-1">{actions}</div>}
+            {actions && (
+              <div className="ml-auto flex shrink-0 items-center gap-2 pt-1">{actions}</div>
+            )}
           </div>
           <div className="text-sm text-text-muted [&_a]:text-text-muted [&_a:hover]:text-accent">
             {meta.map((item, i) => (

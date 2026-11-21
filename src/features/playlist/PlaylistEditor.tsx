@@ -224,61 +224,63 @@ export default function PlaylistEditor({
       state.status !== 'error' &&
       view.pendingProse.includes(owner.kind === 'playlist' ? PLAYLIST_PROSE : owner.id),
 
-    proseMenu: (owner) => (
-      <div className="-mt-1 -mr-1 flex items-center">
-        {(owner.kind === 'segment' || owner.kind === 'text') && (
-          <Grip
-            // A section, or prose alone, moves as its segment; a text entry as itself.
-            kind={
-              owner.kind === 'segment' || content.segments.some((s) => s.id === owner.id)
-                ? 'segment'
-                : 'entry'
-            }
-            id={owner.id}
-          />
-        )}
-        <EditMenu label="Edit text">
-          <Item icon={PencilIcon} onClick={() => setEditing({ kind: 'prose', owner })}>
-            Edit
-          </Item>
-          {owner.kind === 'segment' ? (
-            <>
-              <Item icon={GroupIcon} onClick={() => edit(saveProse(content, owner, ''))}>
-                Dissolve Section
-              </Item>
+    // A note has none: click it to edit, and the track's menu has Edit Note.
+    proseMenu: (owner) =>
+      owner.kind === 'note' ? null : (
+        <div className="-mt-1 -mr-1 flex items-center">
+          {(owner.kind === 'segment' || owner.kind === 'text') && (
+            <Grip
+              // A section, or prose alone, moves as its segment; a text entry as itself.
+              kind={
+                owner.kind === 'segment' || content.segments.some((s) => s.id === owner.id)
+                  ? 'segment'
+                  : 'entry'
+              }
+              id={owner.id}
+            />
+          )}
+          <EditMenu label="Edit text">
+            <Item icon={PencilIcon} onClick={() => setEditing({ kind: 'prose', owner })}>
+              Edit
+            </Item>
+            {owner.kind === 'segment' ? (
+              <>
+                <Item icon={GroupIcon} onClick={() => edit(saveProse(content, owner, ''))}>
+                  Dissolve Section
+                </Item>
+                <Item
+                  icon={Trash2Icon}
+                  onClick={() =>
+                    removed('the section', {
+                      operation_type: 'delete_segment',
+                      payload: { segment_id: owner.id },
+                    })
+                  }
+                >
+                  Remove Section and Tracks
+                </Item>
+              </>
+            ) : owner.kind === 'text' ? (
               <Item
                 icon={Trash2Icon}
-                onClick={() =>
-                  removed('the section', {
-                    operation_type: 'delete_segment',
-                    payload: { segment_id: owner.id },
-                  })
-                }
+                onClick={() => removed('the text', removeText(content, owner.id))}
               >
-                Remove Section and Tracks
+                Remove
               </Item>
-            </>
-          ) : owner.kind === 'text' ? (
-            <Item
-              icon={Trash2Icon}
-              onClick={() => removed('the text', removeText(content, owner.id))}
-            >
-              Remove
-            </Item>
-          ) : (
-            <Item
-              icon={Trash2Icon}
-              onClick={() => {
-                const op = saveProse(content, owner, '');
-                if (op) removed(owner.kind === 'note' ? 'the note' : 'the description', op);
-              }}
-            >
-              Remove
-            </Item>
-          )}
-        </EditMenu>
-      </div>
-    ),
+            ) : (
+              <Item
+                icon={Trash2Icon}
+                onClick={() => {
+                  const op = saveProse(content, owner, '');
+                  if (op) removed('the description', op);
+                }}
+              >
+                Remove
+              </Item>
+            )}
+          </EditMenu>
+        </div>
+      ),
 
     cellMenu: (row) => (
       <>
@@ -513,21 +515,28 @@ function SaveStatus({
 /** The title, as an input that looks like it. Saves on Enter or blur; Escape reverts. */
 function TitleInput({ name, onSave }: { name: string; onSave: (name: string) => void }) {
   return (
-    <input
+    // A one-row textarea that grows, so a long name wraps like the heading does.
+    // Enter saves (a name is one line); Escape reverts.
+    <textarea
       key={name}
       defaultValue={name}
       aria-label="Playlist name"
       maxLength={100}
-      onBlur={(e) => onSave(e.currentTarget.value)}
+      rows={1}
+      onBlur={(e) => onSave(e.currentTarget.value.replace(/\s+/g, ' '))}
       onKeyDown={(e) => {
-        if (e.key === 'Enter') e.currentTarget.blur();
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          e.currentTarget.blur();
+        }
         if (e.key === 'Escape') {
           e.currentTarget.value = name;
           e.currentTarget.blur();
         }
       }}
       className="
-        -mx-1 w-full rounded-md bg-transparent px-1 outline-none hover:bg-text-primary/[0.04]
+        -mx-1 block [field-sizing:content] w-full resize-none overflow-hidden rounded-md
+        bg-transparent px-1 text-balance outline-none hover:bg-text-primary/[0.04]
         focus:bg-text-primary/[0.04] focus:ring-1 focus:ring-accent
       "
     />
