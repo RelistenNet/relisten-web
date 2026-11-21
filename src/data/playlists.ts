@@ -73,6 +73,8 @@ export type OwnPlaylist =
       archived: boolean;
       /** Set while it's published (and the share code the public page uses). */
       publicCode?: string;
+      /** Its share code, published or not (it keeps one once it's had one). */
+      shareCode?: string;
       /** Taken down after a report: not public, and can't be published again for now. */
       takenDown: boolean;
     }
@@ -94,6 +96,7 @@ export const getOwnPlaylist = requestCache(async (playlistId: string): Promise<O
       playlist: toPlaylistContent(snapshot),
       archived: snapshot.archived,
       publicCode: (snapshot.published && snapshot.public_code) || undefined,
+      shareCode: snapshot.public_code ?? undefined,
       takenDown: !!snapshot.taken_down,
     };
   } catch (err) {

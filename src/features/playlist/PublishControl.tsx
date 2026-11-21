@@ -85,7 +85,7 @@ export default function PublishControl({
         const result = await playlistTransport.publish(playlistId, published);
         const code = result.public_code ?? publicCode;
         // The public page caches for a minute: have it read the change now.
-        if (code) await refreshPublicPlaylist(code);
+        await refreshPublicPlaylist(playlistId);
         router.refresh();
         if (published && code) {
           await copy(code, 'Published. Link copied.');
