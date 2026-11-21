@@ -1,5 +1,5 @@
 {
-  "description": "UUIDv7s and their TypeIDs, shared by relisten-web (src/domain/typeid.ts) and the User Service (UuidTypeId). The first is the TypeID spec’s own example.",
+  "description": "UUIDv7s and their TypeIDs, shared by relisten-web (src/domain/typeid.ts) and the User Service (UuidTypeId). The first is the TypeID spec’s example UUID (its spec TypeID is prefix_01h2xcejqtf2nbrexx3vqjhp41).",
   "vectors": [
     {
       "prefix": "playlist",

@@ -72,8 +72,7 @@ describe('shared playlist operation vectors', () => {
 describe('shared TypeID vectors', () => {
   it.each(typeIdVectors.vectors.map((v) => [v.typeid, v] as const))('%s', (_, vector) => {
     expect(typeIdForUuid(vector.prefix, vector.uuid)).toBe(vector.typeid);
-    if (vector.prefix !== 'prefix')
-      expect(isTypeId(vector.typeid, vector.prefix as TypeIdPrefix)).toBe(true);
+    expect(isTypeId(vector.typeid, vector.prefix as TypeIdPrefix)).toBe(true);
   });
 
   it('matches the User Service’s copy', () => {
