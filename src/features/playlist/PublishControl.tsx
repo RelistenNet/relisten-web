@@ -54,8 +54,11 @@ export default function PublishControl({
   /** Set while it's published. */
   publicCode?: string;
   takenDown: boolean;
-  /** The editor's: wait for its edits to be saved, so what's published is current. */
-  beforePublish?: () => Promise<void>;
+  /**
+   * The editor's: saves what's waiting, so what's published is what's on screen.
+   * False when it couldn't: then nothing is published.
+   */
+  beforePublish?: () => Promise<boolean>;
 }) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
@@ -75,7 +78,10 @@ export default function PublishControl({
   const setPublished = (published: boolean) =>
     startTransition(async () => {
       try {
-        if (published) await beforePublish?.();
+        if (published && beforePublish && !(await beforePublish())) {
+          notify.error('Your latest edits aren’t saved yet. Retry, then publish.');
+          return;
+        }
         const result = await playlistTransport.publish(playlistId, published);
         const code = result.public_code ?? publicCode;
         // The public page caches for a minute: have it read the change now.

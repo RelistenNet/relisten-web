@@ -6,6 +6,8 @@ import {
   type FocusEvent,
   type KeyboardEvent,
   type ReactNode,
+  useEffect,
+  useEffectEvent,
   useId,
   useRef,
   useState,
@@ -57,6 +59,7 @@ export default function MarkdownField({
   timestampTargets = [],
   ownEntryId,
   onDone,
+  onInterrupted,
 }: {
   label: string;
   initial: string;
@@ -68,10 +71,18 @@ export default function MarkdownField({
   timestampTargets?: TimestampTarget[];
   /** A track note's own entry: its timestamps link as `#t=`. */
   ownEntryId?: string;
+  /** Finished: the text, or null when cancelled (Escape). */
   onDone: (text: string | null) => void;
+  /**
+   * Closed without finishing (its block went away, or the page did): the text
+   * as it stood, so it isn't lost.
+   */
+  onInterrupted: (text: string) => void;
 }) {
   const textarea = useRef<HTMLTextAreaElement>(null);
   const cancelled = useRef(false);
+  const finished = useRef(false);
+  const interrupted = useEffectEvent(onInterrupted);
   // Only events read and write it, never rendering: a ref.
   const history = useRef(
     startHistory({ value: initial, start: initial.length, end: initial.length })
@@ -151,8 +162,17 @@ export default function MarkdownField({
   // Done when focus leaves the field entirely, not when it moves to its own toolbar.
   const leave = (e: FocusEvent<HTMLDivElement>) => {
     if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+    finished.current = true;
     onDone(cancelled.current ? null : (textarea.current?.value ?? ''));
   };
+
+  // Unmounted unfinished (its block went, or the page): hand the text back.
+  useEffect(
+    () => () => {
+      if (!finished.current) interrupted(history.current.present.value);
+    },
+    []
+  );
 
   const near = count > limit * 0.8;
   return (

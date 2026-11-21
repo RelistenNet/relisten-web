@@ -1,22 +1,32 @@
 // A playlist being edited (docs/playlist-editing.md, "Decisions"). The editor
 // shows `content`: what the server confirmed (`base`), with the edits not yet
-// confirmed applied on top by the same applyOp the server mirrors. Edits queue
-// as operations and go out in batches held to the base revision:
+// confirmed applied on top by the same applyOp the server mirrors.
 //
-// - structural edits (insert, move, delete) send at once;
-// - text edits to one field merge while they wait, and send once typing stops;
-// - a revision conflict (someone else saved first) refetches the playlist and
-//   replays the edits on top; they address IDs, not positions, so they still fit;
-// - an edit the server refuses (422) is dropped, and the content reverts;
-// - anything else (offline, signed out) keeps the edits, waiting for retry().
+// Saving is an xstate machine, so every state and its ways out are in one place:
 //
-// One batch is in flight at a time. Undo applies an edit's inverse as a new edit.
+//   idle ──edit──▶ sending ──saved──▶ idle (or sending again, if more is queued)
+//                     │ ├──conflict──▶ rebasing ──▶ sending (replayed on the new base)
+//                     │ └──refused (422)──▶ idle (the batch is dropped; `refused` says so)
+//                     └──anything else──▶ failed ──retry or edit──▶ sending
+//
+// Edits address IDs, not positions, so a batch replayed after someone else's
+// save still fits. One batch is in flight at a time; edits made meanwhile wait
+// in `queue` and go next. Undo applies an edit's inverse as a new edit.
 
-import { applyOp, applyOps, inverse, type NewId, remapIds } from '@/domain/playlistOps';
 import {
+  type ActorRefFrom,
+  assign,
+  createActor,
+  fromPromise,
+  setup,
+  type SnapshotFrom,
+} from 'xstate';
+import { applyOp, inverse, type NewId, PlaylistOpError, remapIds } from '@/domain/playlistOps';
+import {
+  type PlaylistBatchResponseWire,
   type PlaylistContent,
   type PlaylistOp,
-  type PlaylistOperationStatus,
+  type PlaylistSnapshotWire,
   toPlaylistContent,
 } from '@/domain/playlists';
 import { newTypeId } from '@/domain/typeid';
@@ -24,17 +34,19 @@ import { PlaylistWriteError, type PlaylistTransport } from './transport';
 
 export type DraftStatus = 'saved' | 'saving' | 'error';
 
+/** An edit the server refused (422): why, and the operations it dropped. */
+export type Refusal = { error: PlaylistWriteError; ops: PlaylistOp[] };
+
 export type DraftState = {
   content: PlaylistContent;
   status: DraftStatus;
-  /** Why the last save failed, while status is `error`. */
+  /** Why the last save failed, while status is `error` (Retry sends it again). */
   error?: PlaylistWriteError;
   /**
-   * The last edit the server refused (422), until the next edit: the editor
-   * says why and reopens the text. Kept apart from `error`, which a following
-   * save clears.
+   * The last batch the server refused, until the next edit: the editor says why
+   * and reopens the text it came from. Nothing is left unsaved by it.
    */
-  refused?: PlaylistWriteError;
+  refused?: Refusal;
   canUndo: boolean;
 };
 
@@ -42,228 +54,300 @@ export type DraftStore = {
   getState(): DraftState;
   subscribe(listener: () => void): () => void;
   /**
-   * Applies an edit now and queues it. Returns what the server will make of it:
-   * only `applied` queues anything. Throws PlaylistOpError for an edit the server
-   * would refuse outright (a text entry with no text, a nameless playlist).
+   * Applies edits now, in order, as one undo step, and sends them. Edits that
+   * change nothing are left out. Throws PlaylistOpError, applying none of them,
+   * for an edit the server would refuse outright (a text entry with no text, a
+   * nameless playlist).
    */
-  edit(op: PlaylistOp): PlaylistOperationStatus;
-  /**
-   * Several edits as one (a drop that moves text from one kind of place to
-   * another): applied in order, undone together. Throws like edit().
-   */
-  editMany(ops: PlaylistOp[]): void;
+  edit(...ops: PlaylistOp[]): void;
   undo(): void;
-  /** Sends whatever is waiting now (a blur, leaving the page, Retry). */
-  flush(): Promise<void>;
-  /** Sends what's waiting and resolves once nothing is (saved, or failed). */
-  whenSaved(): Promise<void>;
-  dispose(): void;
+  /** Sends again what failed to save (Retry). */
+  retry(): void;
+  /**
+   * Retries what's waiting and resolves once nothing is: true if it all saved.
+   * (Leaving the editor calls it too. Nothing needs stopping: once settled, the
+   * store holds no timers or requests.)
+   */
+  whenSaved(): Promise<boolean>;
 };
 
-/** Edits replayed after this many conflicts in a row stop and report one. */
+/** Conflicts in a row before the store stops replaying and reports one. */
 const MAX_CONFLICTS = 3;
 
-type Queued = { id: string; op: PlaylistOp; key?: string };
+type Queued = { id: string; op: PlaylistOp };
 /** An edit's inverse, and the IDs it re-creates under new names (see `inverse`). */
-type UndoStep = { ops: PlaylistOp[]; renamed: Record<string, string>; key?: string };
+type UndoStep = { ops: PlaylistOp[]; renamed: Record<string, string> };
 
-/** Text edits to the same field merge while they wait: one request, one undo step. */
-function textKey(op: PlaylistOp): string | undefined {
-  switch (op.operation_type) {
-    case 'update_entry':
-      return `entry:${op.payload.entry_id}`;
-    case 'update_segment':
-      return `segment:${op.payload.segment_id}`;
-    case 'update_metadata': {
-      const fields = Object.keys(op.payload);
-      return fields.length === 1 ? `metadata:${fields[0]}` : undefined;
+type Context = {
+  /** What the server has confirmed. */
+  base: PlaylistContent;
+  /** The batch being sent: only ever non-empty in `sending`. */
+  inflight: Queued[];
+  /** Edits waiting for the next batch. */
+  queue: Queued[];
+  undo: UndoStep[];
+  conflicts: number;
+  error?: PlaylistWriteError;
+  refused?: Refusal;
+};
+
+type Event =
+  | { type: 'EDIT'; ops: Queued[]; step: UndoStep }
+  /** The top undo step's operations, already given their IDs. */
+  | { type: 'UNDO'; ops: Queued[] }
+  | { type: 'RETRY' };
+
+const asWriteError = (err: unknown) =>
+  err instanceof PlaylistWriteError ? err : new PlaylistWriteError('unavailable');
+
+/**
+ * Applies operations as the server would, skipping one it would refuse. (A
+ * replay on someone else's newer playlist can meet one; the server refuses it
+ * in turn, and the refusal reverts it.)
+ */
+function replay(content: PlaylistContent, items: readonly Queued[]): PlaylistContent {
+  return items.reduce((c, { op }) => {
+    try {
+      return applyOp(c, op).content;
+    } catch (err) {
+      if (err instanceof PlaylistOpError) return c;
+      throw err;
     }
-    default:
-      return undefined;
-  }
+  }, content);
+}
+
+function draftMachine(transport: PlaylistTransport) {
+  /** Puts the batch back in front of the queue, to send again. */
+  const requeue = ({ inflight, queue }: Context) => ({
+    queue: [...inflight, ...queue],
+    inflight: [],
+  });
+
+  return setup({
+    types: {
+      context: {} as Context,
+      events: {} as Event,
+      input: {} as PlaylistContent,
+    },
+    actors: {
+      send: fromPromise<PlaylistBatchResponseWire, { base: PlaylistContent; ops: Queued[] }>(
+        ({ input: { base, ops } }) =>
+          transport.batch(
+            base.playlistId,
+            ops.map((q) => ({ ...q.op, operation_id: q.id, base_revision: base.revision })),
+            base.revision
+          )
+      ),
+      refetch: fromPromise<PlaylistSnapshotWire, { playlistId: string }>(({ input }) =>
+        transport.snapshot(input.playlistId)
+      ),
+    },
+    guards: {
+      queued: ({ context }) => context.queue.length > 0,
+      conflict: ({ context }, error: unknown) =>
+        asWriteError(error).kind === 'conflict' && context.conflicts < MAX_CONFLICTS,
+      refused: (_, error: unknown) => asWriteError(error).kind === 'invalid',
+    },
+    actions: {
+      enqueue: assign(({ context, event }) =>
+        event.type === 'EDIT'
+          ? {
+              queue: [...context.queue, ...event.ops],
+              undo: [...context.undo, event.step],
+              refused: undefined,
+            }
+          : {}
+      ),
+      enqueueUndo: assign(({ context, event }) => {
+        const step = context.undo.at(-1);
+        if (event.type !== 'UNDO' || !step) return {};
+        return {
+          // The undo re-creates things under new IDs: older steps follow them.
+          undo: context.undo
+            .slice(0, -1)
+            .map((s) => ({ ...s, ops: s.ops.map((o) => remapIds(o, step.renamed)) })),
+          queue: [...context.queue, ...event.ops],
+          refused: undefined,
+        };
+      }),
+      takeQueue: assign(({ context }) => ({
+        inflight: context.queue,
+        queue: [],
+        error: undefined,
+      })),
+      fail: assign(({ context }, error: unknown) => ({
+        ...requeue(context),
+        error: asWriteError(error),
+        conflicts: 0,
+      })),
+    },
+  }).createMachine({
+    id: 'playlistDraft',
+    context: ({ input }) => ({ base: input, inflight: [], queue: [], undo: [], conflicts: 0 }),
+    initial: 'idle',
+    on: {
+      EDIT: { actions: 'enqueue' },
+      UNDO: { actions: 'enqueueUndo' },
+    },
+    states: {
+      idle: {
+        always: { guard: 'queued', target: 'sending' },
+      },
+      sending: {
+        entry: 'takeQueue',
+        invoke: {
+          src: 'send',
+          input: ({ context }) => ({ base: context.base, ops: context.inflight }),
+          onDone: {
+            target: 'idle',
+            actions: assign(({ context, event }) => ({
+              base: {
+                ...replay(context.base, context.inflight),
+                revision: event.output.head_revision,
+                generation: event.output.history_generation,
+              },
+              inflight: [],
+              conflicts: 0,
+            })),
+          },
+          onError: [
+            {
+              // The batch wasn't applied: fetch the playlist as it is now, and replay.
+              guard: { type: 'conflict', params: ({ event }) => event.error },
+              target: 'rebasing',
+            },
+            {
+              // Refused: dropped. Undo steps may name what it would have made, so they
+              // go too. What's queued behind it still goes (the server skips anything
+              // naming what the refused batch would have made).
+              guard: { type: 'refused', params: ({ event }) => event.error },
+              target: 'idle',
+              actions: assign(({ context, event }) => ({
+                refused: {
+                  error: asWriteError(event.error),
+                  ops: context.inflight.map((q) => q.op),
+                },
+                inflight: [],
+                undo: [],
+              })),
+            },
+            { target: 'failed', actions: { type: 'fail', params: ({ event }) => event.error } },
+          ],
+        },
+      },
+      rebasing: {
+        invoke: {
+          src: 'refetch',
+          input: ({ context }) => ({ playlistId: context.base.playlistId }),
+          onDone: {
+            target: 'sending',
+            actions: assign(({ context, event }) => ({
+              ...requeue(context),
+              base: toPlaylistContent(event.output),
+              conflicts: context.conflicts + 1,
+            })),
+          },
+          onError: {
+            target: 'failed',
+            actions: { type: 'fail', params: ({ event }) => event.error },
+          },
+        },
+      },
+      // Edits are kept, shown, and sent again on Retry or the next edit.
+      failed: {
+        on: {
+          RETRY: 'sending',
+          EDIT: { target: 'sending', actions: 'enqueue' },
+        },
+      },
+    },
+  });
+}
+
+type DraftActor = ActorRefFrom<ReturnType<typeof draftMachine>>;
+type DraftSnapshot = SnapshotFrom<ReturnType<typeof draftMachine>>;
+
+function stateOf(snapshot: DraftSnapshot): DraftState {
+  const { base, inflight, queue, undo, error, refused } = snapshot.context;
+  return {
+    content: replay(replay(base, inflight), queue),
+    status: snapshot.matches('idle') ? 'saved' : snapshot.matches('failed') ? 'error' : 'saving',
+    error: snapshot.matches('failed') ? error : undefined,
+    refused,
+    canUndo: undo.length > 0,
+  };
+}
+
+/** Resolves once the actor is idle (true) or has failed (false). */
+function settled(actor: DraftActor): Promise<boolean> {
+  return new Promise((resolve) => {
+    const done = (s: DraftSnapshot) => {
+      if (s.matches('idle')) resolve(true);
+      else if (s.matches('failed')) resolve(false);
+      else return false;
+      return true;
+    };
+    if (done(actor.getSnapshot())) return;
+    const sub = actor.subscribe((s) => {
+      if (done(s)) sub.unsubscribe();
+    });
+  });
 }
 
 export function createDraftStore(
   initial: PlaylistContent,
-  {
-    transport,
-    newId = newTypeId,
-    textDelayMs = 800,
-  }: { transport: PlaylistTransport; newId?: NewId; textDelayMs?: number }
+  { transport, newId = newTypeId }: { transport: PlaylistTransport; newId?: NewId }
 ): DraftStore {
-  let base = initial;
-  let inflight: Queued[] = [];
-  let queue: Queued[] = [];
-  let undoSteps: UndoStep[] = [];
-  let state: DraftState = { content: initial, status: 'saved', canUndo: false };
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  let conflicts = 0;
-  const listeners = new Set<() => void>();
-
-  const ops = (items: Queued[]) => items.map((q) => q.op);
-
-  function update(next: Partial<DraftState>) {
-    state = {
-      ...state,
-      // What the editor shows is always the confirmed content plus every waiting edit.
-      content: applyOps(applyOps(base, ops(inflight)), ops(queue)),
-      canUndo: undoSteps.length > 0,
-      ...next,
-    };
-    listeners.forEach((l) => l());
-  }
-
-  function schedule(text: boolean) {
-    clearTimeout(timer);
-    // A structural edit sends everything waiting, text included.
-    if (text) timer = setTimeout(() => void flush(), textDelayMs);
-    else queueMicrotask(() => void flush());
-  }
-
-  function enqueue(op: PlaylistOp, record: boolean): PlaylistOperationStatus {
-    const before = state.content;
-    const { status } = applyOp(before, op); // throws for what the server refuses
-    if (status !== 'applied') return status;
-    const key = textKey(op);
-
-    if (record) {
-      const top = undoSteps.at(-1);
-      // Typing into the same field while its last edit still waits to be sent: the
-      // step already restores what it was before. Once sent, a new edit is a new step.
-      const typingOn = !!key && top?.key === key && queue.some((q) => q.key === key);
-      if (!typingOn) {
-        const inv = inverse(before, op, newId);
-        undoSteps.push({ ops: inv.ops, renamed: inv.renamed, key });
-      }
-    }
-
-    const waiting = key ? queue.findIndex((q) => q.key === key) : -1;
-    if (waiting >= 0) queue[waiting] = { ...queue[waiting], op };
-    else queue.push({ id: newId('playlist_operation'), op, key });
-
-    update({ status: 'saving', error: undefined, refused: undefined });
-    schedule(!!key);
-    return status;
-  }
-
-  async function flush(): Promise<void> {
-    clearTimeout(timer);
-    if (inflight.length > 0 || queue.length === 0) return;
-    inflight = queue;
-    queue = [];
-    update({ status: 'saving', error: undefined });
-
-    try {
-      const response = await transport.batch(
-        base.playlistId,
-        inflight.map((q) => ({ ...q.op, operation_id: q.id, base_revision: base.revision })),
-        base.revision
-      );
-      base = {
-        ...applyOps(base, ops(inflight)),
-        revision: response.head_revision,
-        generation: response.history_generation,
-      };
-      inflight = [];
-      conflicts = 0;
-      update({ status: queue.length ? 'saving' : 'saved' });
-      if (queue.length) await flush();
-    } catch (err) {
-      const error = err instanceof PlaylistWriteError ? err : new PlaylistWriteError('unavailable');
-      if (error.kind === 'conflict' && ++conflicts <= MAX_CONFLICTS) {
-        // The batch wasn't applied: rebase it onto the playlist as it is now.
-        try {
-          base = toPlaylistContent(await transport.snapshot(base.playlistId));
-        } catch (snapshotError) {
-          return fail(
-            snapshotError instanceof PlaylistWriteError
-              ? snapshotError
-              : new PlaylistWriteError('unavailable')
-          );
-        }
-        queue = [...inflight, ...queue];
-        inflight = [];
-        update({});
-        return flush();
-      }
-      if (error.kind === 'invalid') {
-        // Refused: drop it. Undo steps may name what it would have made, so they go too.
-        // What's queued behind it still goes (anything naming what the refused
-        // edit would have made is skipped by the server), and `refused` stays.
-        inflight = [];
-        undoSteps = [];
-        update({ status: queue.length ? 'saving' : 'error', error, refused: error });
-        if (queue.length) return flush();
-        return;
-      }
-      fail(error);
-    }
-  }
-
-  /** Keep the edits, waiting for retry (flush). */
-  function fail(error: PlaylistWriteError) {
-    queue = [...inflight, ...queue];
-    inflight = [];
-    conflicts = 0;
-    update({ status: 'error', error });
-  }
+  const actor = createActor(draftMachine(transport), { input: initial }).start();
+  // One DraftState per snapshot, so useSyncExternalStore sees a stable value.
+  let cached: { snapshot: DraftSnapshot; state: DraftState } | undefined;
+  const getState = () => {
+    const snapshot = actor.getSnapshot();
+    if (cached?.snapshot !== snapshot) cached = { snapshot, state: stateOf(snapshot) };
+    return cached.state;
+  };
+  const queued = (op: PlaylistOp): Queued => ({ id: newId('playlist_operation'), op });
 
   return {
-    getState: () => state,
+    getState,
     subscribe(listener) {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
+      const sub = actor.subscribe(() => listener());
+      return () => sub.unsubscribe();
     },
-    edit: (op) => enqueue(op, true),
-    editMany(ops) {
+    edit(...ops) {
+      // Worked out against what's shown, each op on top of the last; any refusal
+      // throws before anything is sent.
+      let content = getState().content;
+      const applied: PlaylistOp[] = [];
       const steps: UndoStep[] = [];
       for (const op of ops) {
-        const before = state.content;
-        if (enqueue(op, false) !== 'applied') continue;
-        const inv = inverse(before, op, newId);
+        const result = applyOp(content, op);
+        if (result.status !== 'applied') continue;
+        const inv = inverse(content, op, newId);
         steps.push({ ops: inv.ops, renamed: inv.renamed });
+        applied.push(op);
+        content = result.content;
       }
-      if (!steps.length) return;
-      // Undone last first; one step, so one Undo puts it all back.
-      undoSteps.push({
-        ops: steps.toReversed().flatMap((st) => st.ops),
-        renamed: Object.assign({}, ...steps.map((st) => st.renamed)),
+      if (!applied.length) return;
+      actor.send({
+        type: 'EDIT',
+        ops: applied.map(queued),
+        // Undone last first: one step, so one Undo puts it all back.
+        step: {
+          ops: steps.toReversed().flatMap((s) => s.ops),
+          renamed: Object.assign({}, ...steps.map((s) => s.renamed)),
+        },
       });
-      update({});
     },
     undo() {
-      const step = undoSteps.pop();
+      const step = actor.getSnapshot().context.undo.at(-1);
       if (!step) return;
-      for (const op of step.ops) enqueue(op, false);
-      // The undo re-created things under new IDs: older steps follow them.
-      undoSteps = undoSteps.map((s) => ({
-        ...s,
-        ops: s.ops.map((o) => remapIds(o, step.renamed)),
-      }));
-      // An undo sends at once, even a text one.
-      schedule(false);
-      update({});
+      actor.send({ type: 'UNDO', ops: step.ops.map(queued) });
     },
-    flush,
+    retry: () => actor.send({ type: 'RETRY' }),
     whenSaved() {
-      void flush();
-      return new Promise((resolve) => {
-        const check = () => {
-          if (state.status === 'saving') return false;
-          listeners.delete(check);
-          resolve();
-          return true;
-        };
-        if (!check()) listeners.add(check);
-      });
-    },
-    dispose() {
-      // Leaving the editor (Done is a client navigation, so no beforeunload): send
-      // what's still waiting, then stop.
-      // (No edits come after this, so nothing needs to be refused.)
-      clearTimeout(timer);
-      listeners.clear();
-      void flush();
+      actor.send({ type: 'RETRY' });
+      return settled(actor);
     },
   };
 }

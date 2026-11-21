@@ -119,19 +119,14 @@ describe('createDraftStore', () => {
     expect(shape(server.server)).toBe(shape(store.getState().content));
   });
 
-  it('merges typing into one field, sent once typing stops', async () => {
+  it('sends a text edit at once, as its own undo step', async () => {
     const server = fakeServer();
     const store = createDraftStore(content, { transport: server.transport, newId: ids() });
-    for (const text of ['W', 'Wo', 'Wow'])
-      store.edit(op('update_entry', { entry_id: 'e1', description: text }));
-    await vi.advanceTimersByTimeAsync(500);
-    expect(server.batches).toHaveLength(0);
-    await vi.advanceTimersByTimeAsync(400);
-    expect(server.batches).toHaveLength(1);
-    expect(server.batches[0].ops.map((o) => o.payload)).toEqual([
-      { entry_id: 'e1', description: 'Wow' },
+    store.edit(op('update_entry', { entry_id: 'e1', description: 'Wow' }));
+    await settle();
+    expect(server.batches.map((b) => b.ops.map((o) => o.payload))).toEqual([
+      [{ entry_id: 'e1', description: 'Wow' }],
     ]);
-    // One undo step for the whole run of typing.
     store.undo();
     expect(store.getState().content.segments[0].entries[0].description).toBeUndefined();
     expect(store.getState().canUndo).toBe(false);
@@ -149,15 +144,17 @@ describe('createDraftStore', () => {
     expect(shape(store.getState().content)).toBe('s2:e2');
   });
 
-  it('drops an edit the server refuses, and says why', async () => {
+  it('drops an edit the server refuses, says why, and leaves nothing unsaved', async () => {
     const server = fakeServer();
     const store = createDraftStore(content, { transport: server.transport, newId: ids() });
     server.failNext(new PlaylistWriteError('invalid', 'description cannot contain HTML.', 422));
-    store.edit(op('delete_entry', { entry_id: 'e1' }));
+    const refusedOp = op('delete_entry', { entry_id: 'e1' });
+    store.edit(refusedOp);
     await settle();
     expect(shape(store.getState().content)).toBe(shape(content));
-    expect(store.getState()).toMatchObject({ status: 'error', canUndo: false });
-    expect(store.getState().error?.detail).toBe('description cannot contain HTML.');
+    expect(store.getState()).toMatchObject({ status: 'saved', canUndo: false });
+    expect(store.getState().refused?.error.detail).toBe('description cannot contain HTML.');
+    expect(store.getState().refused?.ops).toEqual([refusedOp]);
   });
 
   it('keeps edits through an outage and sends them, with the same ids, on retry', async () => {
@@ -168,7 +165,8 @@ describe('createDraftStore', () => {
     await settle();
     expect(store.getState().status).toBe('error');
     expect(shape(store.getState().content)).toBe('s2:e2');
-    await store.flush();
+    store.retry();
+    await settle();
     expect(store.getState().status).toBe('saved');
     expect(server.batches[1].ops[0].operation_id).toBe(server.batches[0].ops[0].operation_id);
     expect(shape(server.server)).toBe('s2:e2');
@@ -192,13 +190,12 @@ describe('createDraftStore', () => {
     expect(shape(server.server)).toBe(shape(store.getState().content));
   });
 
-  it('gives each editing session of a field its own undo step', async () => {
+  it('gives each edit to a field its own undo step', async () => {
     const server = fakeServer();
     const store = createDraftStore(content, { transport: server.transport, newId: ids() });
     store.edit(op('update_metadata', { name: 'B' }));
-    await vi.advanceTimersByTimeAsync(1000); // sent
     store.edit(op('update_metadata', { name: 'C' }));
-    await vi.advanceTimersByTimeAsync(1000);
+    await settle();
     store.undo();
     expect(store.getState().content.name).toBe('B');
     store.undo();
@@ -209,32 +206,49 @@ describe('createDraftStore', () => {
     const server = fakeServer();
     const store = createDraftStore(content, { transport: server.transport, newId: ids() });
     server.failNext(new PlaylistWriteError('invalid', 'Too long.', 422));
-    store.edit(op('delete_entry', { entry_id: 'e1' }));
-    await Promise.resolve(); // the refused batch is in flight
+    store.edit(op('delete_entry', { entry_id: 'e1' })); // in flight, to be refused
     store.edit(op('update_segment', { segment_id: 's2', description: 'Later' }));
     await vi.advanceTimersByTimeAsync(1000);
     expect(server.batches).toHaveLength(2);
     expect(store.getState()).toMatchObject({ status: 'saved' });
-    expect(store.getState().refused?.detail).toBe('Too long.');
+    expect(store.getState().refused?.error.detail).toBe('Too long.');
     // The next edit clears it.
     store.edit(op('update_segment', { segment_id: 's2', description: 'Again' }));
     expect(store.getState().refused).toBeUndefined();
   });
 
-  it('sends what’s still waiting when the editor closes', async () => {
+  it('says whether everything saved, retrying what failed', async () => {
     const server = fakeServer();
     const store = createDraftStore(content, { transport: server.transport, newId: ids() });
+    server.failNext(new PlaylistWriteError('unavailable'));
     store.edit(op('update_metadata', { name: 'Renamed' }));
-    store.dispose(); // before the typing pause would have sent it
-    await vi.advanceTimersByTimeAsync(0);
+    await settle();
+    expect(store.getState().status).toBe('error');
+    server.failNext(new PlaylistWriteError('signed-out'));
+    const first = store.whenSaved();
+    await settle();
+    await expect(first).resolves.toBe(false);
+    const second = store.whenSaved();
+    await settle();
+    await expect(second).resolves.toBe(true);
     expect(server.server.name).toBe('Renamed');
+  });
+
+  it('saves what’s waiting when the editor closes, and says if it couldn’t', async () => {
+    const server = fakeServer();
+    const store = createDraftStore(content, { transport: server.transport, newId: ids() });
+    server.failNext(new PlaylistWriteError('unavailable'));
+    server.failNext(new PlaylistWriteError('unavailable'));
+    store.edit(op('update_metadata', { name: 'Renamed' }));
+    const closed = store.whenSaved();
+    await settle();
+    await expect(closed).resolves.toBe(false);
   });
 
   it('sends one batch at a time; edits made meanwhile go next', async () => {
     const server = fakeServer();
     const store = createDraftStore(content, { transport: server.transport, newId: ids() });
-    store.edit(op('delete_entry', { entry_id: 'e1' }));
-    await Promise.resolve(); // the first batch is in flight
+    store.edit(op('delete_entry', { entry_id: 'e1' })); // in flight
     store.edit(op('update_segment', { segment_id: 's2', description: 'Later' }));
     await vi.advanceTimersByTimeAsync(1000);
     expect(server.batches.map((b) => b.ops.map((o) => o.operation_type))).toEqual([
@@ -245,16 +259,16 @@ describe('createDraftStore', () => {
   });
 });
 
-describe('editMany', () => {
+describe('edit, with several operations', () => {
   beforeEach(() => vi.useFakeTimers());
   it('applies edits together and undoes them as one', async () => {
     const server = fakeServer();
     const store = createDraftStore(content, { transport: server.transport, newId: ids() });
     // s2's text moves out to stand alone: a new segment with it, and s2 loses it.
-    store.editMany([
+    store.edit(
       op('insert_segment', { segment_id: 'sN', entries: [], description: 'Set two' }),
-      op('update_segment', { segment_id: 's2', description: null }),
-    ]);
+      op('update_segment', { segment_id: 's2', description: null })
+    );
     await settle();
     expect(store.getState().content.segments.map((s) => s.description)).toEqual([
       undefined,

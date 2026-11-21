@@ -1,7 +1,7 @@
 import { type NewId, normalizeText } from '@/domain/playlistOps';
 import type { PlaylistContent, PlaylistContentSegment, PlaylistOp } from '@/domain/playlists';
 import { newTypeId } from '@/domain/typeid';
-import type { ProseOwner } from './PlaylistArticle';
+import type { ProseOwner } from './flow';
 
 // The editor's menu actions as operations (docs/playlist-editing.md). Authors
 // never pick a storage shape: where they act decides it. Pure, so the moves at
@@ -193,6 +193,18 @@ export function insertText(
           : {}),
     },
   };
+}
+
+/**
+ * Whether an owner's prose still has somewhere to live: the playlist, a segment,
+ * or an entry that's still there. (A loose group's new intro is its segment's.)
+ */
+export function hasProseOwner(content: PlaylistContent, owner: ProseOwner): boolean {
+  return (
+    owner.kind === 'playlist' ||
+    content.segments.some((s) => s.id === owner.id) ||
+    (owner.kind !== 'segment' && locate(content, owner.id) !== undefined)
+  );
 }
 
 /** The text as written, for the prose an owner has: what its editor opens with. */

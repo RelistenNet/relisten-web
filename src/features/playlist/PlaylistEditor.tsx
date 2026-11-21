@@ -31,11 +31,17 @@ import type { PlaylistContent, PlaylistOp } from '@/domain/playlists';
 import cn from '@/lib/cn';
 import { MENU_ITEM, MENU_POPUP } from '@/player/menuStyles';
 import { TOASTER_ID } from '@/player/toasts';
-import { createDraftStore, type DraftState, type DraftStore } from '@/playlists/store';
+import {
+  createDraftStore,
+  type DraftState,
+  type DraftStore,
+  type Refusal,
+} from '@/playlists/store';
 import { playlistTransport } from '@/playlists/transport';
 import { useDraft } from '@/playlists/useDraft';
 import type { PlaylistTrackGroupRow } from './blocks';
 import {
+  hasProseOwner,
   insertText,
   moveEntry,
   moveSegmentBy,
@@ -48,12 +54,7 @@ import {
 import PublishControl from './PublishControl';
 import { type DragSource, dropOps } from './dragOps';
 import MarkdownField from './MarkdownField';
-import PlaylistArticle, {
-  ACTION,
-  type ArticleSlots,
-  type GapAt,
-  type ProseOwner,
-} from './PlaylistArticle';
+import PlaylistArticle, { ACTION, type ArticleSlots, type ProseOwner } from './PlaylistArticle';
 import { PLAYLIST_PROSE, type PlaylistResolved, playlistView } from './rows';
 import { usePlaylistDrag } from './usePlaylistDrag';
 
@@ -63,22 +64,27 @@ import { usePlaylistDrag } from './usePlaylistDrag';
 // a textarea; when the edits are saved the server renders the page again, so
 // Markdown and timestamps show as readers will see them.
 
-/** Reopened after the server refused it: the text as written, and why. */
-type Refused = { draft?: string; error?: string };
+/** Reopened with the text as written, and why (the server refused it, or its block went). */
+type Reopened = { draft?: string; error?: string };
 
-/** An open text field the server could refuse, and so reopen. */
-type TextEditing = Extract<NonNullable<Editing>, { kind: 'prose' | 'gap' }>;
-
+/** The open text field, if any. */
 type Editing =
-  | ({ kind: 'prose'; owner: ProseOwner } & Refused)
-  /** New text, or tracks to add, at a gap. */
-  | ({ kind: 'gap'; at: GapAt } & Refused)
-  /** Opening the composer after a row (or at the end): laid out, then it's a gap. */
-  | { kind: 'insert'; after: string }
+  | ({ kind: 'prose'; owner: ProseOwner } & Reopened)
+  /** New text, in the composer after a row (by key), or at the end ('end'). */
+  | ({ kind: 'composer'; after: string } & Reopened)
   | null;
+
+/** Text sent from a field: where it was written, to reopen there if it's refused. */
+type Sent = { from: NonNullable<Editing>; text: string };
 
 const sameOwner = (a: ProseOwner, b: ProseOwner) =>
   a.kind === b.kind && (a.kind === 'playlist' || (b.kind !== 'playlist' && a.id === b.id));
+
+const sameField = (a: Editing, b: NonNullable<Editing>) =>
+  !!a &&
+  (a.kind === 'prose'
+    ? b.kind === 'prose' && sameOwner(a.owner, b.owner)
+    : b.kind === 'composer' && a.after === b.after);
 
 /** The server's rule for a name: 1–100 characters, trimmed. */
 const PlaylistName = z.string().trim().min(1, 'A playlist needs a name.').max(100);
@@ -107,30 +113,27 @@ export default function PlaylistEditor({
   const [store] = useState(() => createDraftStore(initial, { transport: playlistTransport }));
   const state = useDraft(store);
   const [editing, setEditing] = useState<Editing>(null);
-  // The prose last sent: reopened with its text if the server refuses it.
-  const lastProse = useRef<{ editing: TextEditing; text: string } | null>(null);
+  // Each text edit sent, by the operation itself: the store hands refused
+  // operations back as they were, so a refusal reopens the field it came from.
+  const sent = useRef(new WeakMap<PlaylistOp, Sent>());
   useStoreEvents(store, {
-    onSaved: () => {
-      lastProse.current = null;
-      // The server renders the page again only when something waits on it (prose
-      // shown as written); a move or a removal needs nothing.
-      if (view.pendingProse.length) router.refresh();
+    // The server renders the page again only when something waits on it (prose
+    // shown as written); a move or a removal needs nothing.
+    onSaved: () => view.pendingProse.length > 0 && router.refresh(),
+    onRefused: (refused) => {
+      const hit = refused.ops.map((op) => sent.current.get(op)).find(Boolean);
+      if (hit) setEditing({ ...hit.from, draft: hit.text, error: refused.error.detail });
     },
-    onRefused: (error) => {
-      const last = lastProse.current;
-      lastProse.current = null;
-      if (last) setEditing({ ...last.editing, draft: last.text, error });
-    },
+    onLeftUnsaved: () => notify('Your last edits couldn’t be saved.'),
   });
   useWarnBeforeLeaving(state);
   // The server's render of saved edits on its way back (router.refresh()).
   const refreshing = usePendingNavigation((to, from) => to.href === from.href);
 
-  /** Applies an edit; an edit the server would refuse says why instead. */
-  const edit = (op: PlaylistOp | null) => {
-    if (!op) return;
+  /** Applies edits (as one undo step); an edit the server would refuse says why instead. */
+  const edit = (...ops: (PlaylistOp | null)[]) => {
     try {
-      store.edit(op);
+      store.edit(...ops.filter((op) => op !== null));
     } catch (err) {
       if (err instanceof PlaylistOpError) notify(err.message);
       else throw err;
@@ -141,8 +144,7 @@ export default function PlaylistEditor({
   // What's being dragged: the flow lays out its drop zones while it is.
   const [dragging, setDragging] = useState<DragSource | null>(null);
   // Where the composer is: after a row's key ('end' for the Add zone at the end).
-  const composerAt =
-    editing?.kind === 'insert' ? editing.after : editing?.kind === 'gap' ? editing.at.key : null;
+  const composerAt = editing?.kind === 'composer' ? editing.after : null;
   const openField =
     editing?.kind === 'prose'
       ? `${editing.owner.kind}:${editing.owner.kind === 'playlist' ? '' : editing.owner.id}`
@@ -158,16 +160,8 @@ export default function PlaylistEditor({
     // rows slide back together (the drag is over by then).
     onDragChange: (source) =>
       source ? setDragging(source) : startTransition(() => setDragging(null)),
-    onDrop: (source, target) => {
-      // One drop can be two edits (text changing how it's stored): one undo step.
-      const ops = dropOps(content, source, target);
-      try {
-        store.editMany(ops);
-      } catch (err) {
-        if (err instanceof PlaylistOpError) notify(err.message);
-        else throw err;
-      }
-    },
+    // One drop can be two edits (text changing how it's stored): one undo step.
+    onDrop: (source, target) => edit(...dropOps(content, source, target)),
   });
   // Laid out from a deferred copy, so each edit commits as a transition and the
   // rows slide to their new places (ViewTransition in PlaylistArticle).
@@ -178,14 +172,29 @@ export default function PlaylistEditor({
       ? [{ entryId: r.id, title: r.trackTitle ?? 'Track', duration: r.songDuration ?? undefined }]
       : []
   );
-  /** Sends prose once its field closes, remembering it in case it's refused. */
-  const commitProse = (editing: TextEditing, text: string | null, op: PlaylistOp | null) => {
-    setEditing(null);
+  /** Sends prose once its field closes, remembering where it came from in case it's refused. */
+  const commitProse = (from: NonNullable<Editing>, text: string | null, op: PlaylistOp | null) => {
+    // Closes this field, unless another has opened meanwhile (a refusal reopening one).
+    setEditing((open) => (sameField(open, from) ? null : open));
     if (text === null || !op) return;
-    lastProse.current = { editing, text };
+    sent.current.set(op, { from, text });
     edit(op);
-    void store.flush();
   };
+  /**
+   * A field closed without being finished because its block went (an undo, or
+   * someone else's edit): its text is kept, in the composer at the end.
+   */
+  const keepText = (text: string) =>
+    setEditing(
+      text.trim()
+        ? {
+            kind: 'composer',
+            after: 'end',
+            draft: text,
+            error: 'What you were editing was removed. Your text is here.',
+          }
+        : null
+    );
 
   const removed = (what: string, op: PlaylistOp) => {
     edit(op);
@@ -226,6 +235,15 @@ export default function PlaylistEditor({
               text,
               text === null ? null : saveProse(content, target, text)
             )
+          }
+          onInterrupted={(text) =>
+            hasProseOwner(content, target)
+              ? commitProse(
+                  { kind: 'prose', owner: target },
+                  text,
+                  saveProse(content, target, text)
+                )
+              : keepText(text)
           }
         />
       );
@@ -269,7 +287,7 @@ export default function PlaylistEditor({
                 onIntro={() =>
                   setEditing({ kind: 'prose', owner: { kind: 'segment', id: row.row.segmentId } })
                 }
-                onAddBelow={() => setEditing({ kind: 'insert', after: row.row.id })}
+                onAddBelow={() => setEditing({ kind: 'composer', after: row.row.id })}
                 onEdit={(op) => edit(op)}
                 // Worked out when the menu opens, not for every row on every render.
                 moves={() => ({
@@ -353,27 +371,27 @@ export default function PlaylistEditor({
 
     gap: (at) => {
       // The composer's row, or the Add zone at the end.
-      const open = composerAt === at.key && editing && editing.kind !== 'prose' ? editing : null;
-      const refused = open?.kind === 'gap' ? open : undefined;
+      const open = editing?.kind === 'composer' && editing.after === at.key ? editing : null;
+      const done = (text: string | null) =>
+        commitProse(
+          { kind: 'composer', after: at.key },
+          text,
+          text === null ? null : insertText(content, at, text)
+        );
       return {
         control:
           at.key === 'end' ? (
-            <GapControl onAddText={() => setEditing({ kind: 'gap', at })} />
+            <GapControl onAddText={() => setEditing({ kind: 'composer', after: 'end' })} />
           ) : undefined,
         content: open ? (
           <MarkdownField
             label="New text"
-            initial={refused?.draft ?? ''}
-            error={refused?.error}
+            initial={open.draft ?? ''}
+            error={open.error}
             limit={2000}
             timestampTargets={timestampTargets}
-            onDone={(text) =>
-              commitProse(
-                { kind: 'gap', at },
-                text,
-                text === null ? null : insertText(content, at, text)
-              )
-            }
+            onDone={done}
+            onInterrupted={done}
           />
         ) : undefined,
       };
@@ -381,7 +399,7 @@ export default function PlaylistEditor({
 
     toolbar: (
       <div className="flex items-center gap-2 text-sm">
-        <SaveStatus state={state} refreshing={refreshing} onRetry={() => void store.flush()} />
+        <SaveStatus state={state} refreshing={refreshing} onRetry={() => store.retry()} />
         {!content.description && (
           <button
             type="button"
@@ -465,25 +483,31 @@ const TOOL = `
 
 /**
  * Calls back when the draft's edits are all saved (the server renders the page
- * again) and when the server refuses one (422).
+ * again), when the server refuses some (422), and when the editor closes with
+ * edits that then fail to save (Done is a client navigation: no beforeunload).
  */
 function useStoreEvents(
   store: DraftStore,
-  handlers: { onSaved: () => void; onRefused: (detail?: string) => void }
+  handlers: {
+    onSaved: () => void;
+    onRefused: (refused: Refusal) => void;
+    onLeftUnsaved: () => void;
+  }
 ) {
   const onSaved = useEffectEvent(handlers.onSaved);
   const onRefused = useEffectEvent(handlers.onRefused);
+  const onLeftUnsaved = useEffectEvent(handlers.onLeftUnsaved);
   useEffect(() => {
     let previous = store.getState();
     const unsubscribe = store.subscribe(() => {
       const state = store.getState();
       if (state.status === 'saved' && previous.status !== 'saved') onSaved();
-      if (state.refused && state.refused !== previous.refused) onRefused(state.refused.detail);
+      if (state.refused && state.refused !== previous.refused) onRefused(state.refused);
       previous = state;
     });
     return () => {
       unsubscribe();
-      store.dispose();
+      void store.whenSaved().then((saved) => saved || onLeftUnsaved());
     };
   }, [store]);
 }
@@ -509,28 +533,18 @@ function SaveStatus({
   refreshing: boolean;
   onRetry: () => void;
 }) {
-  if (state.refused && state.status !== 'error') {
-    // Refused, though the edits after it saved: say so until the next edit.
-    return (
-      <span role="status" className="text-red-500">
-        {state.refused.detail ?? 'That edit was refused'}
-      </span>
-    );
-  }
   if (state.status === 'error') {
     const kind = state.error?.kind;
     const message =
       kind === 'signed-out'
         ? 'Signed out: sign in to save'
-        : kind === 'invalid'
-          ? (state.error?.detail ?? 'That edit was refused')
-          : kind === 'archived'
-            ? 'Archived playlists can’t be edited'
-            : 'Couldn’t save';
+        : kind === 'archived'
+          ? 'Archived playlists can’t be edited'
+          : 'Couldn’t save';
     return (
       <span role="status" className="flex items-center gap-2 text-red-500">
         {message}
-        {kind !== 'invalid' && kind !== 'archived' && (
+        {kind !== 'archived' && (
           <button type="button" onClick={onRetry} className="underline underline-offset-2">
             Retry
           </button>
@@ -539,8 +553,13 @@ function SaveStatus({
     );
   }
   return (
-    <span role="status" className="text-text-muted">
-      {state.status === 'saving' || refreshing ? 'Saving…' : 'Saved'}
+    <span role="status" className={state.refused ? 'text-red-500' : 'text-text-muted'}>
+      {state.status === 'saving' || refreshing
+        ? 'Saving…'
+        : // Refused, though nothing's left unsaved: say why until the next edit.
+          state.refused
+          ? (state.refused.error.detail ?? 'That edit was refused')
+          : 'Saved'}
     </span>
   );
 }
