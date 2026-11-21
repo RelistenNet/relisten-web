@@ -55,7 +55,7 @@ import PublishControl from './PublishControl';
 import { type DragSource, dropOps } from './dragOps';
 import MarkdownField from './MarkdownField';
 import PlaylistArticle, { ACTION, type ArticleSlots, type ProseOwner } from './PlaylistArticle';
-import { PLAYLIST_PROSE, type PlaylistResolved, playlistView } from './rows';
+import { hasUnresolvedTracks, PLAYLIST_PROSE, type PlaylistResolved, playlistView } from './rows';
 import { draggableBlock, usePlaylistDrag } from './usePlaylistDrag';
 
 // The editor (docs/playlist-editing.md): the read view's article, laid out from
@@ -121,9 +121,13 @@ export default function PlaylistEditor({
   // operations back as they were, so a refusal reopens the field it came from.
   const sent = useRef(new WeakMap<PlaylistOp, Sent>());
   useStoreEvents(store, {
-    // The server renders the page again only when something waits on it (prose
-    // shown as written); a move or a removal needs nothing.
-    onSaved: () => view.pendingProse.length > 0 && router.refresh(),
+    // The server renders the page again only when something waits on it: prose
+    // shown as written, or a track it hasn't looked up (another tab's, arriving
+    // with a conflict's refetch, so checked in the store's content as it is now,
+    // not the last render's). A move or a removal needs nothing.
+    onSaved: () =>
+      (view.pendingProse.length > 0 || hasUnresolvedTracks(store.getState().content, resolved)) &&
+      router.refresh(),
     onRefused: (refused) => {
       const hit = refused.ops.map((op) => sent.current.get(op)).find(Boolean);
       if (hit) setEditing({ ...hit.from, draft: hit.text, error: refused.error.detail });

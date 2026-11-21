@@ -18,6 +18,12 @@ export type PlaylistResolved = {
   tracks: Record<string, ResolvedTrack>;
   /** Keyed by entry or segment id, or PLAYLIST_PROSE; `source` is the text it was made from. */
   prose: Record<string, { source: string; blocks: GuideBlock[] }>;
+  /**
+   * Track ids the server looked up and the catalog doesn't have: unavailable for
+   * good. A track id in neither this nor `tracks` was never looked up (it came
+   * in with someone else's edit), and needs the server.
+   */
+  missing: string[];
 };
 
 /** The prose key for the playlist's own description. */
@@ -40,6 +46,18 @@ export type PlaylistView = {
 };
 
 /**
+ * Whether some track would show unavailable only because the server hasn't
+ * looked it up yet (it came in with someone else's edit): the server needs to
+ * render the page again.
+ */
+export function hasUnresolvedTracks(content: PlaylistContent, resolved: PlaylistResolved) {
+  const missing = new Set(resolved.missing);
+  return content.segments.some((s) =>
+    s.entries.some((e) => e.trackId && !resolved.tracks[e.trackId] && !missing.has(e.trackId))
+  );
+}
+
+/**
  * Prose for `text`: the server's sanitized copy while it still matches, else
  * the text as written (an edit the server hasn't rendered yet).
  */
@@ -59,6 +77,7 @@ function proseFor(
 export function playlistView(content: PlaylistContent, resolved: PlaylistResolved): PlaylistView {
   const rows: PlaylistRow[] = [];
   const pendingProse: string[] = [];
+
   let duration = 0;
   for (const segment of content.segments) {
     const heading = segment.description

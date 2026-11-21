@@ -5,7 +5,7 @@ import type { Artist, ShowSummary } from '@/domain/types';
 import { songRowItem } from '@/player/queue/items';
 import { playlistBlocks } from './blocks';
 import { resolvePlaylist } from './load';
-import { playlistView as viewOf } from './rows';
+import { hasUnresolvedTracks, playlistView as viewOf } from './rows';
 
 const playlistView = (
   playlist: PlaylistContent,
@@ -142,5 +142,26 @@ describe('playlistBlocks', () => {
 
   it('boxes a described segment with its entries; loose tracks run together', () => {
     expect(blocks.map(shape)).toEqual(['section(tracks:entry_1,text)', 'tracks:entry_3,entry_4']);
+  });
+});
+
+describe('tracks the server hasn’t looked up', () => {
+  const content = (trackIds: string[]): PlaylistContent => ({
+    playlistId: 'playlist_x',
+    generation: 'g',
+    revision: 1,
+    name: 'Mix',
+    segments: [{ id: 's1', entries: trackIds.map((t, i) => ({ id: `e${i}`, trackId: t })) }],
+  });
+
+  it('tells a track the catalog doesn’t have from one that came in later', () => {
+    // Looked up: track_a is there, track_gone isn't.
+    const resolved = resolvePlaylist(content(['track_a', 'track_gone']), catalog, artists);
+    expect(resolved.missing).toEqual(['track_gone']);
+    expect(hasUnresolvedTracks(content(['track_a', 'track_gone']), resolved)).toBe(false);
+    // Someone else's edit added track_new: unavailable only until the server looks.
+    const later = content(['track_a', 'track_gone', 'track_new']);
+    expect(viewOf(later, resolved).rows.at(-1)?.kind).toBe('unavailable');
+    expect(hasUnresolvedTracks(later, resolved)).toBe(true);
   });
 });

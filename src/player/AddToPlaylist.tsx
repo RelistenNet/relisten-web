@@ -38,7 +38,7 @@ import { TOASTER_ID } from './toasts';
 // loads each time the menu opens; signed out, the server says so (401), and the
 // menu offers Sign In instead.
 
-/** What to add, looked up when it's chosen (a show's tracks are fetched then). */
+/** What to add, looked up when it's chosen (a show's tracks are fetched then); null if that failed. */
 export type PlaylistTracks = () => Promise<{ trackIds: string[] } | null>;
 
 type Library =
@@ -102,7 +102,11 @@ function usePlaylistActions(tracks: PlaylistTracks) {
   async function add(playlist: OwnPlaylist) {
     try {
       const found = await tracks();
-      if (!found?.trackIds.length) return toast.error('Nothing to add', { toasterId: TOASTER_ID });
+      if (!found)
+        return toast.error('Couldn’t load the tracks to add. Try again in a moment.', {
+          toasterId: TOASTER_ID,
+        });
+      if (!found.trackIds.length) return toast.error('Nothing to add', { toasterId: TOASTER_ID });
       const added = await addToPlaylist(playlist, found.trackIds);
       writeStorage(LAST_KEY, playlist.id);
       toast.success(`Added to ${playlist.name}`, {
@@ -282,8 +286,11 @@ export function NewPlaylistDialog({
       if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Check the name.' };
       const { name } = parsed.data;
       try {
+        // A lookup that failed (a show's tracks didn't load) creates nothing: the
+        // dialog stays open to try again.
         const found = await tracks();
-        const { playlistId } = await createPlaylist({ name, trackIds: found?.trackIds ?? [] });
+        if (!found) return { error: 'Couldn’t load the tracks to add. Try again in a moment.' };
+        const { playlistId } = await createPlaylist({ name, trackIds: found.trackIds });
         writeStorage(LAST_KEY, playlistId);
         onOpenChange(false);
         toast.success(`Created ${name}`, {
