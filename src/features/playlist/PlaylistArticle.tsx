@@ -100,7 +100,7 @@ export default function PlaylistArticle({
 }) {
   // A track's play button queues the playlist's tracks, in order.
   const items = view.rows.flatMap((r) => (isTrackRow(r) ? (songRowItem(r) ?? []) : []));
-  const unavailable = view.rows.filter((r) => r.kind === 'unavailable' && !r.pending).length;
+  const unavailable = view.rows.filter((r) => r.kind === 'unavailable').length;
   // The editor shows each segment apart (groups), so it's clear what belongs together.
   const blocks = playlistBlocks(view.rows, { segments: !!slots });
   const groups = flowRows(blocks, { editing: !!slots, ...slots?.flow });
@@ -629,19 +629,8 @@ function UnavailableCell({
       {/* The play button's width, so titles line up. */}
       <span aria-hidden className="w-7 shrink-0" />
       <div className="flex min-w-0 flex-1 flex-col pt-0.5">
-        {row.pending ? (
-          <>
-            <span className="animate-pulse text-[15px] leading-snug motion-reduce:animate-none">
-              Adding track…
-            </span>
-            <span className="text-[13px]">Looking it up.</span>
-          </>
-        ) : (
-          <>
-            <span className="text-[15px] leading-snug">Unavailable track</span>
-            <span className="text-[13px]">This recording isn&rsquo;t on Relisten anymore.</span>
-          </>
-        )}
+        <span className="text-[15px] leading-snug">Unavailable track</span>
+        <span className="text-[13px]">This recording isn&rsquo;t on Relisten anymore.</span>
         <Note id={row.id} blocks={row.prose} slots={slots} />
       </div>
     </div>

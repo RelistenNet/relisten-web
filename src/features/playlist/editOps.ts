@@ -212,38 +212,6 @@ export function sourceOf(content: PlaylistContent, owner: ProseOwner): string {
   }
 }
 
-/**
- * Tracks at a gap, like insertText: inside a group they join it there; between
- * groups they're a group of their own (so a run added together stays together).
- */
-export function insertTracks(
-  gap: { above?: { id: string; segmentId: string }; below?: { segmentId: string } },
-  trackIds: readonly string[],
-  newId: NewId = newTypeId
-): PlaylistOp | null {
-  if (!trackIds.length) return null;
-  const entries = trackIds.map((track_id) => ({ entry_id: newId('playlist_entry'), track_id }));
-  const { above, below } = gap;
-  if (above && below && above.segmentId === below.segmentId && above.id !== above.segmentId) {
-    return {
-      operation_type: 'insert_entries',
-      payload: { segment_id: above.segmentId, entries, after_entry_id: above.id },
-    };
-  }
-  return {
-    operation_type: 'insert_segment',
-    payload: {
-      segment_id: newId('playlist_segment'),
-      entries,
-      ...(above
-        ? { after_segment_id: above.segmentId }
-        : below
-          ? { before_segment_id: below.segmentId }
-          : {}),
-    },
-  };
-}
-
 /** A whole segment (a section or group) one place up or down among segments; null at an end. */
 export function moveSegmentBy(
   content: PlaylistContent,

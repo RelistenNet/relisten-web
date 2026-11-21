@@ -36,11 +36,7 @@ export type PlaylistTrackRow = ShowRow &
   };
 
 /** A text block, or a track the catalog doesn't have (anymore). Shown, never dropped. */
-export type PlaylistOtherRow = EntryFields & {
-  kind: 'text' | 'unavailable';
-  /** An unavailable row whose track was just added and isn't looked up yet. */
-  pending?: boolean;
-};
+export type PlaylistOtherRow = EntryFields & { kind: 'text' | 'unavailable' };
 
 export type PlaylistRow = PlaylistTrackRow | PlaylistOtherRow;
 

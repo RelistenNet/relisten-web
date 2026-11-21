@@ -88,8 +88,5 @@ export function resolvePlaylist(
       );
     }
   }
-  const missing = playlist.segments.flatMap((s) =>
-    s.entries.flatMap((e) => (e.trackId && !tracks[e.trackId] ? [e.trackId] : []))
-  );
-  return { tracks, missing, prose };
+  return { tracks, prose };
 }

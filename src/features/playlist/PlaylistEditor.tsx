@@ -8,7 +8,6 @@ import {
   ChevronRightIcon,
   EllipsisVerticalIcon,
   GripVerticalIcon,
-  ListMusicIcon,
   GroupIcon,
   PencilIcon,
   PlusIcon,
@@ -38,7 +37,6 @@ import { useDraft } from '@/playlists/useDraft';
 import type { PlaylistTrackGroupRow } from './blocks';
 import {
   insertText,
-  insertTracks,
   moveEntry,
   moveSegmentBy,
   moveToOwnGroup,
@@ -47,7 +45,6 @@ import {
   saveProse,
   sourceOf,
 } from './editOps';
-import AddTracks from './AddTracks';
 import PublishControl from './PublishControl';
 import { type DragSource, dropOps } from './dragOps';
 import MarkdownField from './MarkdownField';
@@ -75,9 +72,9 @@ type TextEditing = Extract<NonNullable<Editing>, { kind: 'prose' | 'gap' }>;
 type Editing =
   | ({ kind: 'prose'; owner: ProseOwner } & Refused)
   /** New text, or tracks to add, at a gap. */
-  | ({ kind: 'gap'; at: GapAt; adding?: 'text' | 'tracks' } & Refused)
+  | ({ kind: 'gap'; at: GapAt } & Refused)
   /** Opening the composer after a row (or at the end): laid out, then it's a gap. */
-  | { kind: 'insert'; after: string; adding: 'text' | 'tracks' }
+  | { kind: 'insert'; after: string }
   | null;
 
 const sameOwner = (a: ProseOwner, b: ProseOwner) =>
@@ -115,10 +112,9 @@ export default function PlaylistEditor({
   useStoreEvents(store, {
     onSaved: () => {
       lastProse.current = null;
-      // The server renders the page again only when something waits on it: prose
-      // shown as written, or a track just added. A move or a removal needs nothing.
-      if (view.pendingProse.length || view.rows.some((r) => r.kind === 'unavailable' && r.pending))
-        router.refresh();
+      // The server renders the page again only when something waits on it (prose
+      // shown as written); a move or a removal needs nothing.
+      if (view.pendingProse.length) router.refresh();
     },
     onRefused: (error) => {
       const last = lastProse.current;
@@ -273,7 +269,7 @@ export default function PlaylistEditor({
                 onIntro={() =>
                   setEditing({ kind: 'prose', owner: { kind: 'segment', id: row.row.segmentId } })
                 }
-                onAddBelow={(adding) => setEditing({ kind: 'insert', after: row.row.id, adding })}
+                onAddBelow={() => setEditing({ kind: 'insert', after: row.row.id })}
                 onEdit={(op) => edit(op)}
                 // Worked out when the menu opens, not for every row on every render.
                 moves={() => ({
@@ -358,42 +354,28 @@ export default function PlaylistEditor({
     gap: (at) => {
       // The composer's row, or the Add zone at the end.
       const open = composerAt === at.key && editing && editing.kind !== 'prose' ? editing : null;
-      const adding = open?.adding ?? null;
       const refused = open?.kind === 'gap' ? open : undefined;
       return {
         control:
           at.key === 'end' ? (
-            <GapControl
-              onAddText={() => setEditing({ kind: 'gap', at, adding: 'text' })}
-              onAddTracks={() => setEditing({ kind: 'gap', at, adding: 'tracks' })}
-            />
+            <GapControl onAddText={() => setEditing({ kind: 'gap', at })} />
           ) : undefined,
-        content:
-          adding === 'tracks' ? (
-            <AddTracks
-              onAdd={(trackIds) => {
-                setEditing(null);
-                edit(insertTracks(at, trackIds));
-                void store.flush();
-              }}
-              onClose={() => setEditing(null)}
-            />
-          ) : adding === 'text' ? (
-            <MarkdownField
-              label="New text"
-              initial={refused?.draft ?? ''}
-              error={refused?.error}
-              limit={2000}
-              timestampTargets={timestampTargets}
-              onDone={(text) =>
-                commitProse(
-                  { kind: 'gap', at, adding: 'text' },
-                  text,
-                  text === null ? null : insertText(content, at, text)
-                )
-              }
-            />
-          ) : undefined,
+        content: open ? (
+          <MarkdownField
+            label="New text"
+            initial={refused?.draft ?? ''}
+            error={refused?.error}
+            limit={2000}
+            timestampTargets={timestampTargets}
+            onDone={(text) =>
+              commitProse(
+                { kind: 'gap', at },
+                text,
+                text === null ? null : insertText(content, at, text)
+              )
+            }
+          />
+        ) : undefined,
       };
     },
 
@@ -748,7 +730,7 @@ function CellMenu({
   hasNote: boolean;
   onNote: () => void;
   onIntro: () => void;
-  onAddBelow: (adding: 'text' | 'tracks') => void;
+  onAddBelow: () => void;
   onEdit: (op: PlaylistOp | null) => void;
   moves: () => Moves;
   moveToSection: (segmentId: string) => PlaylistOp;
@@ -765,11 +747,8 @@ function CellMenu({
           Add Section Intro
         </Item>
       )}
-      <Item icon={PlusIcon} onClick={() => onAddBelow('text')}>
+      <Item icon={PlusIcon} onClick={onAddBelow}>
         Add Text Below
-      </Item>
-      <Item icon={ListMusicIcon} onClick={() => onAddBelow('tracks')}>
-        Add Tracks Below
       </Item>
       <Menu.Separator className="mx-2 my-1 h-px bg-hairline" />
       <MoveItems moves={moves} onEdit={onEdit} />
@@ -805,33 +784,20 @@ function CellMenu({
   );
 }
 
-/** Fills a gap's dashed zone: write there, or add tracks there. */
-function GapControl({
-  onAddText,
-  onAddTracks,
-}: {
-  onAddText: () => void;
-  onAddTracks: () => void;
-}) {
-  const half = `
-    flex flex-1 items-center gap-2 py-2 text-sm text-text-muted transition-colors
-    hover:bg-text-primary/[0.03] hover:text-text-primary focus-visible:outline-2
-    focus-visible:outline-accent
-  `;
+/** The Add zone at the end: click anywhere in it to write there. */
+function GapControl({ onAddText }: { onAddText: () => void }) {
   return (
-    <div className="flex rounded-[inherit]">
-      <button
-        type="button"
-        onClick={onAddText}
-        className={cn(half, 'rounded-l-[inherit] pl-[52px]')}
-      >
-        <PlusIcon className="-ml-6 size-4" aria-hidden />
-        Add Text
-      </button>
-      <button type="button" onClick={onAddTracks} className={cn(half, 'rounded-r-[inherit] pl-4')}>
-        <ListMusicIcon className="size-4" aria-hidden />
-        Add Tracks
-      </button>
-    </div>
+    <button
+      type="button"
+      onClick={onAddText}
+      className="
+        flex w-full items-center gap-2 rounded-[inherit] py-2 pl-[52px] text-sm text-text-muted
+        transition-colors hover:bg-text-primary/[0.03] hover:text-text-primary
+        focus-visible:outline-2 focus-visible:outline-accent
+      "
+    >
+      <PlusIcon className="-ml-6 size-4" aria-hidden />
+      Add Text
+    </button>
   );
 }
