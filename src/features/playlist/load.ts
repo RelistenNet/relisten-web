@@ -16,11 +16,7 @@ export type { PlaylistView } from './rows';
 export async function loadPlaylistView(
   playlist: PlaylistContent
 ): Promise<{ view: PlaylistView; resolved: PlaylistResolved }> {
-  const [catalog, directory] = await Promise.all([
-    getPlaylistCatalog(playlist),
-    getArtistDirectory(),
-  ]);
-  const resolved = resolvePlaylist(playlist, catalog, directory.byId);
+  const resolved = await loadPlaylistResolved(playlist);
   return { view: playlistView(playlist, resolved), resolved };
 }
 

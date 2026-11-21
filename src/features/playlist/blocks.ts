@@ -37,8 +37,15 @@ export type PlaylistBlock =
 function addItems(
   into: PlaylistItem[] | PlaylistBlock[],
   rows: readonly PlaylistRow[],
-  apart = false,
-  keepEmpty = false
+  {
+    apart = false,
+    keepEmpty = false,
+  }: {
+    /** Each track its own item (the editor's loose tracks, each a segment of its own). */
+    apart?: boolean;
+    /** Keep text that sanitizes to nothing, shown as written (the editor). */
+    keepEmpty?: boolean;
+  } = {}
 ) {
   for (const row of rows) {
     if (row.kind === 'text') {
@@ -76,7 +83,7 @@ export function playlistBlocks(
     const run = rows.slice(i, end);
     if (heading) {
       const items: PlaylistItem[] = [];
-      addItems(items, run, false, segments);
+      addItems(items, run, { keepEmpty: segments });
       blocks.push({
         kind: 'section',
         key: `section:${heading.id}`,
@@ -94,14 +101,14 @@ export function playlistBlocks(
         const segment = run.slice(j, k);
         if (segment.length > 1) {
           const items: PlaylistItem[] = [];
-          addItems(items, segment, false, true);
+          addItems(items, segment, { keepEmpty: true });
           blocks.push({
             kind: 'group',
             key: `group:${run[j].segmentId}`,
             segmentId: run[j].segmentId,
             items,
           });
-        } else addItems(blocks, segment, true);
+        } else addItems(blocks, segment, { apart: true });
         j = k;
       }
     }

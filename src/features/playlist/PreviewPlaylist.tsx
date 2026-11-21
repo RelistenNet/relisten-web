@@ -34,5 +34,7 @@ export default async function PreviewPlaylist({ playlistId }: { playlistId: stri
 
 export async function previewPlaylistMetadata({ playlistId }: { playlistId: string }) {
   const result = await getOwnPlaylist(playlistId).catch(() => null);
-  return { title: result?.kind === 'found' ? `[PREVIEW] ${result.playlist.name}` : 'Playlist' };
+  return {
+    title: result?.kind === 'found' ? `[PREVIEW] ${result.playlist.name}` : '[PREVIEW] Playlist',
+  };
 }

@@ -10,7 +10,7 @@ const defer = (fn: () => void) => queueMicrotask(fn);
  * The site's one <Toaster> (src/shell/NavBar.tsx; the embeds have their own).
  * sonner only shows a toast that names it, so every toast passes this.
  */
-export const TOASTER_ID = 'audio-error';
+export const TOASTER_ID = 'site';
 
 let autoplayToastVisible = false;
 let failureToastVisible = false;

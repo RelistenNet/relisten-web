@@ -26,9 +26,8 @@ import {
   useState,
 } from 'react';
 import { toast } from 'sonner';
-import { z } from 'zod/v4';
 import { PlaylistOpError } from '@/domain/playlistOps';
-import type { PlaylistContent, PlaylistOp } from '@/domain/playlists';
+import { type PlaylistContent, PlaylistName, type PlaylistOp } from '@/domain/playlists';
 import cn from '@/lib/cn';
 import { MENU_ITEM, MENU_POPUP } from '@/player/menuStyles';
 import { TOASTER_ID } from '@/player/toasts';
@@ -86,9 +85,6 @@ const sameField = (a: Editing, b: NonNullable<Editing>) =>
   (a.kind === 'prose'
     ? b.kind === 'prose' && sameOwner(a.owner, b.owner)
     : b.kind === 'composer' && a.after === b.after);
-
-/** The server's rule for a name: 1–100 characters, trimmed. */
-const PlaylistName = z.string().trim().min(1, 'A playlist needs a name.').max(100);
 
 const notify = (message: string) => toast.error(message, { toasterId: TOASTER_ID });
 
@@ -296,7 +292,8 @@ export default function PlaylistEditor({
                 }
                 moveToSection={(segmentId) => moveToSection(row.row.id, segmentId)}
                 sectionName={(segmentId) =>
-                  firstLine(content.segments.find((s) => s.id === segmentId)?.description)
+                  firstLine(content.segments.find((s) => s.id === segmentId)?.description) ||
+                  'Section'
                 }
               />
             </>
@@ -477,7 +474,7 @@ function Grip({ drag, label }: { drag: DragSource; label: string }) {
   );
 }
 
-const firstLine = (text?: string) => (text ?? '').split('\n')[0].slice(0, 40) || 'Section';
+const firstLine = (text?: string) => (text ?? '').split('\n')[0].slice(0, 40);
 
 const TOOL = `
   inline-flex items-center gap-1.5 rounded-lg border border-hairline px-2.5 py-1.5 text-sm

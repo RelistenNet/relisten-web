@@ -155,8 +155,9 @@ export default function PlaylistArticle({
             <div className="flex flex-col md:-ml-5">
               {groups.map((group) =>
                 group.segmentId ? (
-                  // A section's or group's rows together: its segment drags as one.
-                  <div key={group.key} data-section-id={group.segmentId} className="flex flex-col">
+                  // A section's or group's rows together: its segment drags as one
+                  // (by its header's grip).
+                  <div key={group.key} data-block="" className="flex flex-col">
                     {group.rows.map((row) => (
                       <Row key={row.key} row={row} slots={slots} />
                     ))}
@@ -182,15 +183,13 @@ export default function PlaylistArticle({
 /** One row of the flow: its rail cell, then its content. */
 function Row({ row, slots }: { row: FlowRow; slots?: ArticleSlots }) {
   const controls = slots?.controls?.(row);
-  const id = rowIdentity(row);
   const body = (
     <div className="group/row flex">
       <Rail rail={row.rail} />
       {/* A box (a section's tint, a group's outline) is its rows' content cells, stacked.
-      The cell carries the row's identity, so its grip drags it whole. */}
+      A track's or text's cell is what its grip drags (a header's drags its box). */}
       <div
-        data-row-id={id?.id}
-        data-segment-id={id?.segmentId}
+        data-block={row.kind === 'track' || row.kind === 'prose' ? '' : undefined}
         className={cn('relative min-w-0 flex-1', row.box && boxCell(row.box))}
       >
         <RowContent row={row} slots={slots} />
@@ -226,19 +225,6 @@ function Row({ row, slots }: { row: FlowRow; slots?: ArticleSlots }) {
 
 /** A row's view-transition name: its key, as a valid CSS identifier. */
 const transitionName = (key: string) => `pl-${key.replace(/[^\w-]/g, '-')}`;
-
-/** The row the editor's grip drags and a drop lands beside (a header has none: its box). */
-function rowIdentity(row: FlowRow): { id: string; segmentId: string } | undefined {
-  if (row.kind === 'track') return { id: row.row.id, segmentId: row.row.segmentId };
-  if (row.kind === 'prose')
-    return (
-      row.dragRow ??
-      (row.owner.kind === 'segment'
-        ? { id: `comment:${row.owner.id}`, segmentId: row.owner.id }
-        : undefined)
-    );
-  return undefined;
-}
 
 /** In the editor, room at the right of every row for its controls. */
 const CONTROLS_ROOM = 'pr-[84px]';

@@ -11,21 +11,38 @@ import { isTypeId, type TypeIdPrefix, typeIdForUuid } from './typeid';
 // RelistenUserServiceTests/Fixtures/playlists), which runs the same files against
 // its own TypeID encoding and its PlaylistEditor. Each side's copy must match.
 
-type WirePlaylist = (typeof opVectors.vectors)[number]['before'];
+/** A playlist as the vectors write it: segments and entries in order. */
+type WirePlaylist = {
+  name: string;
+  description?: string;
+  segments: {
+    id: string;
+    description?: string;
+    entries: { id: string; track_id: string | null; description?: string }[];
+  }[];
+};
+type OpVector = {
+  name: string;
+  before: WirePlaylist;
+  operations: PlaylistOp[];
+  statuses: string[];
+  after: WirePlaylist;
+};
+const vectors = opVectors.vectors as OpVector[];
 
 const toContent = (p: WirePlaylist): PlaylistContent => ({
   playlistId: 'playlist',
   generation: 'g',
   revision: 1,
   name: p.name,
-  description: 'description' in p ? (p.description as string) : undefined,
+  description: p.description,
   segments: p.segments.map((s) => ({
     id: s.id,
-    description: 'description' in s ? (s.description as string) : undefined,
+    description: s.description,
     entries: s.entries.map((e) => ({
       id: e.id,
       trackId: e.track_id,
-      description: 'description' in e ? (e.description as string) : undefined,
+      description: e.description,
     })),
   })),
 });
@@ -34,9 +51,9 @@ const upstream = (file: string) =>
   resolve(__dirname, '../../../RelistenApi/RelistenUserServiceTests/Fixtures/playlists', file);
 
 describe('shared playlist operation vectors', () => {
-  it.each(opVectors.vectors.map((v) => [v.name, v] as const))('%s', (_, vector) => {
+  it.each(vectors.map((v) => [v.name, v] as const))('%s', (_, vector) => {
     let content = toContent(vector.before);
-    const statuses = (vector.operations as PlaylistOp[]).map((op) => {
+    const statuses = vector.operations.map((op) => {
       const result = applyOp(content, op);
       content = result.content;
       return result.status;

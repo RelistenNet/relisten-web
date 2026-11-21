@@ -7,6 +7,7 @@ import { ChevronRightIcon, ListPlusIcon, LogInIcon, PlusIcon } from 'lucide-reac
 import { Suspense, use, useActionState, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod/v4';
+import { PlaylistName } from '@/domain/playlists';
 import { readStorage, writeStorage } from '@/lib/browserStorage';
 import cn from '@/lib/cn';
 import { signInHref } from '@/lib/searchParams/sessionSearchParams';
@@ -259,10 +260,8 @@ export function AddToPlaylistButton({
 
 type CreateState = { error: string } | null;
 
-/** The dialog's form. The server's own limits: a name is 1–100 characters, trimmed. */
-const NewPlaylistForm = z.object({
-  name: z.string().trim().min(1, 'Give it a name.').max(100, 'Names can be up to 100 characters.'),
-});
+/** The dialog's form. */
+const NewPlaylistForm = z.object({ name: PlaylistName });
 
 /** Names a new playlist and creates it with the tracks, in one request. */
 export function NewPlaylistDialog({

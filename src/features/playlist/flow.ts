@@ -80,6 +80,14 @@ const edgeOf = (r: Draft): BlockEdge | undefined =>
         (r.owner.kind === 'segment' ? { id: r.owner.id, segmentId: r.owner.id } : undefined))
       : undefined;
 
+/** An entry's edge (a track, or a text entry in a box); none for a section's comment. */
+const entryEdge = (r: Draft): BlockEdge | undefined =>
+  r.kind === 'track'
+    ? { id: r.row.id, segmentId: r.row.segmentId }
+    : r.kind === 'prose'
+      ? r.dragRow
+      : undefined;
+
 /** Rows for a block's items: tracks and text, `apart` inserting space between loose cards. */
 function itemRows(items: PlaylistItem[], apart: boolean): Draft[] {
   const rows: Draft[] = [];
@@ -108,12 +116,13 @@ function itemRows(items: PlaylistItem[], apart: boolean): Draft[] {
   return rows;
 }
 
-/** The entries a drop zone between `before` and `after` sits between (null: the group's edge). */
+/** A box's rows with drop zones between its entries: before the first, then after each. */
 function innerZones(rows: Draft[], segmentId: string, dragging: DragSource): Draft[] {
-  const entries = rows.filter((r) => r.kind === 'track' || (r.kind === 'prose' && r.dragRow));
+  const edges = rows.map(entryEdge);
+  const entries = rows.filter((_, i) => edges[i]);
+  const ids = edges.flatMap((e) => (e ? [e.id] : []));
   const out: Draft[] = [];
   const zone = (key: string, target: DropTarget): Draft => ({ kind: 'drop', key, target });
-  const ids = entries.map((r) => edgeOf(r)?.id as string);
   // Before the first entry, then after each: skipping the two either side of the
   // dragged entry, where dropping would leave it where it is.
   const at = ids.indexOf(dragging.id);
@@ -227,15 +236,18 @@ export function flowRows(
 
   // Each gap's neighbours, now that everything's in place.
   const flat = parts.flatMap((p) => p.rows);
-  flat.forEach((r, i) => {
-    if (r.kind !== 'gap') return;
-    const prev = flat.slice(0, i).reverse().map(edgeOf).find(Boolean);
-    const next = flat
-      .slice(i + 1)
-      .map(edgeOf)
-      .find(Boolean);
-    r.at = { ...r.at, above: prev, below: next };
-  });
+  const edges = flat.map(edgeOf);
+  const withNeighbours = (r: Draft, i: number): Draft =>
+    r.kind === 'gap'
+      ? {
+          ...r,
+          at: {
+            ...r.at,
+            above: edges.slice(0, i).findLast(Boolean),
+            below: edges.slice(i + 1).find(Boolean),
+          },
+        }
+      : r;
 
   // The rail runs from the first track's dot to the last's.
   const first = flat.findIndex((r) => r.kind === 'track');
@@ -244,8 +256,9 @@ export function flowRows(
   return parts.map((part) => ({
     key: part.key,
     segmentId: part.segmentId,
-    rows: part.rows.map((r, j, all) => {
+    rows: part.rows.map((draft, j, all) => {
       const at = i++;
+      const r = withNeighbours(draft, at);
       const inRange = first >= 0 && at >= first && at <= last;
       const position =
         all.length === 1 ? 'only' : j === 0 ? 'first' : j === all.length - 1 ? 'last' : 'middle';

@@ -16,7 +16,8 @@ import type { DragSource, DropTarget } from './dragOps';
 // and drop (native drag events):
 //
 // - each block registers itself from its grip (`draggableBlock`, in a ref
-//   callback): the element is the row, or the section/group around a header;
+//   callback): the element is the nearest [data-block], the row, or the
+//   section/group around a header;
 // - one monitor reports drags starting and ending, and drops;
 // - once a drag starts, the editor lays out drop zones (flow.ts) where it can
 //   land; each carries its target (data-drop-zone) and lights up under the
@@ -43,7 +44,7 @@ const isField = (el: EventTarget | null) =>
  * takes mouse drags inside it, so the field couldn't select text.
  */
 export function draggableBlock(handle: HTMLElement, source: DragSource, label: string) {
-  const element = handle.closest<HTMLElement>('[data-section-id], [data-row-id]');
+  const element = handle.closest<HTMLElement>('[data-block]');
   if (!element) return undefined;
   const typing = (e: FocusEvent) => {
     if (isField(e.target)) element.draggable = false;

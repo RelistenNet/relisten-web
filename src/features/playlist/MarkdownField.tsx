@@ -15,7 +15,7 @@ import {
 import { z } from 'zod/v4';
 import cn from '@/lib/cn';
 import { type FieldState, record, redo, startHistory, undo } from './fieldHistory';
-import { usePlayback, useQueue } from '@/player/hooks';
+import { readPlayback, useQueue } from '@/player/hooks';
 import {
   characterCount,
   formatTimestamp,
@@ -309,12 +309,13 @@ function TimestampRow({
 }) {
   const id = useId();
   const currentKey = useQueue((q) => q.current?.key);
-  const position = usePlayback((p) => p.currentTime);
   const [entryId, setEntryId] = useState(
     ownEntryId ?? (targets.find((t) => t.entryId === currentKey) ?? targets[0]).entryId
   );
   const playingHere = entryId === currentKey;
-  const [time, setTime] = useState(() => formatTimestamp(playingHere ? position : 0));
+  const [time, setTime] = useState(() =>
+    formatTimestamp(playingHere ? readPlayback().currentTime : 0)
+  );
   const [error, setError] = useState<string>();
 
   const insert = () => {

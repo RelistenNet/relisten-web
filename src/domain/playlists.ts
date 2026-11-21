@@ -1,3 +1,5 @@
+import { z } from 'zod/v4';
+
 // Playlists. The wire types mirror the parts of Relisten.Accounts.Contracts
 // (RelistenApi: Playlists/PlaylistResponses.cs, PlaylistSharingContracts.cs,
 // Library/FavoriteSyncContracts.cs) that the web reads, by hand. JSON is snake_case;
@@ -135,6 +137,13 @@ export function toPlaylistContent(
 }
 
 // ---- Writes (RelistenApi: Playlists/PlaylistRequests.cs, PlaylistResponses.cs) ----
+
+/** The server's rule for a playlist's name: 1–100 characters, trimmed. */
+export const PlaylistName = z
+  .string()
+  .trim()
+  .min(1, 'Give it a name.')
+  .max(100, 'Names can be up to 100 characters.');
 
 export interface PlaylistEntryInputWire {
   entry_id: string;

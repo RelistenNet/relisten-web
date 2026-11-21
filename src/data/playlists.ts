@@ -137,7 +137,7 @@ const publicPlaylistCached = timberCache.data(
   },
   {
     ttl: 60,
-    key: (code: string) => `playlist-public:${code}`,
+    key: (code: string) => publicPlaylistTag(code),
     // Publishing or unpublishing clears it at once (refreshPublicPlaylist).
     tags: (code: string) => [publicPlaylistTag(code)],
   }
