@@ -156,7 +156,11 @@ export default function MarkdownField({
 
   const near = count > limit * 0.8;
   return (
-    <div onBlur={leave} className="-mx-2 -my-1 flex flex-col gap-1">
+    // The textarea sits exactly where the text did (its padding offset by the
+    // margins), and the toolbar floats under it, so opening a block moves nothing.
+    // (A measure set on the text, like a comment's 65ch, widens by the padding too,
+    // so lines wrap where they did.)
+    <div onBlur={leave} className="relative -mx-2 -my-1 max-w-[calc(65ch+1rem)]!">
       <textarea
         ref={(t) => {
           textarea.current = t;
@@ -184,50 +188,57 @@ export default function MarkdownField({
           aria-invalid:ring-red-500/60
         "
       />
-      <div className="flex flex-wrap items-center gap-0.5 text-xs text-text-muted">
-        <Tool label="Bold (⌘B)" onClick={() => run((v, s) => toggleWrap(v, s, '**'))}>
-          <BoldIcon className="size-3.5" aria-hidden />
-        </Tool>
-        <Tool label="Italic (⌘I)" onClick={() => run((v, s) => toggleWrap(v, s, '*'))}>
-          <ItalicIcon className="size-3.5" aria-hidden />
-        </Tool>
-        <Tool label="Link (⌘K)" onClick={() => run((v, s) => insertLink(v, s))}>
-          <LinkIcon className="size-3.5" aria-hidden />
-        </Tool>
-        {timestampTargets.length > 0 && (
-          <Tool label="Insert Timestamp" onClick={() => setStamping((s) => !s)}>
-            <ClockIcon className="size-3.5" aria-hidden />
-            <span className="ml-1">Timestamp</span>
+      <div
+        className="
+          absolute inset-x-0 top-full z-30 mt-1.5 flex flex-col gap-1 rounded-lg
+          bg-surface-raised p-1 shadow-lg ring-1 ring-hairline
+        "
+      >
+        <div className="flex flex-wrap items-center gap-0.5 text-xs text-text-muted">
+          <Tool label="Bold (⌘B)" onClick={() => run((v, s) => toggleWrap(v, s, '**'))}>
+            <BoldIcon className="size-3.5" aria-hidden />
           </Tool>
-        )}
-        <span className="ml-auto pr-1 tabular-nums">
-          {error ? (
-            <span role="alert" className="text-red-500">
-              {error}
-            </span>
-          ) : near ? (
-            <span className={cn(count > limit && 'text-red-500')}>
-              {count.toLocaleString()} / {limit.toLocaleString()}
-            </span>
-          ) : (
-            '⌘↵ to finish · Esc to cancel'
+          <Tool label="Italic (⌘I)" onClick={() => run((v, s) => toggleWrap(v, s, '*'))}>
+            <ItalicIcon className="size-3.5" aria-hidden />
+          </Tool>
+          <Tool label="Link (⌘K)" onClick={() => run((v, s) => insertLink(v, s))}>
+            <LinkIcon className="size-3.5" aria-hidden />
+          </Tool>
+          {timestampTargets.length > 0 && (
+            <Tool label="Insert Timestamp" onClick={() => setStamping((s) => !s)}>
+              <ClockIcon className="size-3.5" aria-hidden />
+              <span className="ml-1">Timestamp</span>
+            </Tool>
           )}
-        </span>
+          <span className="ml-auto pr-1 tabular-nums">
+            {error ? (
+              <span role="alert" className="text-red-500">
+                {error}
+              </span>
+            ) : near ? (
+              <span className={cn(count > limit && 'text-red-500')}>
+                {count.toLocaleString()} / {limit.toLocaleString()}
+              </span>
+            ) : (
+              '⌘↵ to finish · Esc to cancel'
+            )}
+          </span>
+        </div>
+        {stamping && (
+          <TimestampRow
+            targets={timestampTargets}
+            ownEntryId={ownEntryId}
+            onInsert={(target) => {
+              setStamping(false);
+              run((v, s) => insertTimestamp(v, s, target));
+            }}
+            onCancel={() => {
+              setStamping(false);
+              textarea.current?.focus();
+            }}
+          />
+        )}
       </div>
-      {stamping && (
-        <TimestampRow
-          targets={timestampTargets}
-          ownEntryId={ownEntryId}
-          onInsert={(target) => {
-            setStamping(false);
-            run((v, s) => insertTimestamp(v, s, target));
-          }}
-          onCancel={() => {
-            setStamping(false);
-            textarea.current?.focus();
-          }}
-        />
-      )}
     </div>
   );
 }

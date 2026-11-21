@@ -22,6 +22,7 @@ import {
   useEffect,
   useEffectEvent,
   useRef,
+  startTransition,
   useState,
 } from 'react';
 import { toast } from 'sonner';
@@ -157,7 +158,10 @@ export default function PlaylistEditor({
     layoutKey: content,
     fieldKey: openField,
     dragging,
-    onDragChange: setDragging,
+    // Zones open at once (they animate in by CSS); they close as a transition, so the
+    // rows slide back together (the drag is over by then).
+    onDragChange: (source) =>
+      source ? setDragging(source) : startTransition(() => setDragging(null)),
     onDrop: (source, target) => {
       // One drop can be two edits (text changing how it's stored): one undo step.
       const ops = dropOps(content, source, target);

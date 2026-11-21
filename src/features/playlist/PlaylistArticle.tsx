@@ -210,15 +210,22 @@ function Row({ row, slots }: { row: FlowRow; slots?: ArticleSlots }) {
       </div>
     </div>
   );
-  // In the editor, rows slide to their new places when the order changes (the
-  // editor commits edits as transitions; globals.css has the timing). The read
-  // pages don't reorder, so they skip it.
-  return slots && (row.kind === 'track' || row.kind === 'prose' || row.kind === 'header') ? (
-    <ViewTransition default="playlist-move">{body}</ViewTransition>
+  // Rows glide to their new places whenever their layout changes in a transition:
+  // an edit (the editor commits them as transitions), drop zones closing, and the
+  // move between the playlist's page and its editor (a navigation), where each row
+  // is named, so it morphs from where it was on one page to where it is on the
+  // other. globals.css has the timing.
+  return row.kind === 'track' || row.kind === 'prose' || row.kind === 'header' ? (
+    <ViewTransition name={transitionName(row.key)} share="playlist-move" default="playlist-move">
+      {body}
+    </ViewTransition>
   ) : (
     body
   );
 }
+
+/** A row's view-transition name: its key, as a valid CSS identifier. */
+const transitionName = (key: string) => `pl-${key.replace(/[^\w-]/g, '-')}`;
 
 /** The row the editor's grip drags and a drop lands beside (a header has none: its box). */
 function rowIdentity(row: FlowRow): { id: string; segmentId: string } | undefined {
@@ -236,17 +243,22 @@ function rowIdentity(row: FlowRow): { id: string; segmentId: string } | undefine
 /** In the editor, room at the right of every row for its controls. */
 const CONTROLS_ROOM = 'pr-[84px]';
 
+/** A box's rounded corners, for a row at this position in it (and what fills the row). */
+function boxCorners({ position }: Box) {
+  return cn(
+    (position === 'first' || position === 'only') && 'rounded-t-2xl',
+    (position === 'last' || position === 'only') && 'rounded-b-2xl'
+  );
+}
+
 /** One row's piece of its box: the sides, and the top or bottom at the ends. */
 function boxCell({ position, tone }: Box) {
   const top = position === 'first' || position === 'only';
   const bottom = position === 'last' || position === 'only';
   return tone === 'section'
-    ? // Clipped at the ends, so a card's hover fill keeps the box's corners.
-      cn(
-        SECTION_TINT,
-        top && 'overflow-hidden rounded-t-2xl',
-        bottom && 'overflow-hidden rounded-b-2xl'
-      )
+    ? // Not clipped (a field's floating toolbar would be): what fills a box's row
+      // (a card's hover, a block's) takes the box's corners itself (boxCorners).
+      cn(SECTION_TINT, boxCorners({ position, tone }))
     : cn(
         'border-x border-dashed border-text-primary/20 px-1.5',
         top && 'rounded-t-2xl border-t pt-1.5',
@@ -299,7 +311,8 @@ function RowContent({ row, slots }: { row: FlowRow; slots?: ArticleSlots }) {
             COMMENTARY,
             // In a section's box: its tint and corners, and room inside it.
             // The box spans the row; the text inside keeps its measure.
-            row.box && 'max-w-none py-3 pr-4 *:max-w-[65ch]',
+            row.box && cn('max-w-none py-3 pr-4 *:max-w-[65ch]', boxCorners(row.box)),
+            !row.box && 'rounded-xl',
             row.box && row.owner.kind === 'segment' && 'pb-3.5',
             // The editor: the same padding for every block, and room for its controls.
             slots && cn('max-w-none py-3 *:max-w-[65ch]', CONTROLS_ROOM)
@@ -375,7 +388,14 @@ function Gap({ at, slots }: { at: GapAt; slots?: ArticleSlots }) {
  */
 function DropZone({ target, alone }: { target: DropTarget; alone: boolean }) {
   return (
-    <div className="py-1">
+    // Grows into place as the drag starts (no snap): CSS, since a view transition
+    // mid-drag would freeze the page under the pointer.
+    <div
+      className="
+        h-11 overflow-hidden py-1 transition-[height,padding,opacity] duration-200 ease-out
+        motion-reduce:transition-none starting:h-0 starting:py-0 starting:opacity-0
+      "
+    >
       <div
         data-drop-zone={JSON.stringify(target)}
         className="
@@ -424,15 +444,16 @@ export function Prose({
       className={cn(
         PROSE,
         'group/prose',
-        open && 'relative',
+        // Editable, or being edited: raised above a card's play-anywhere button, so a
+        // click on the text (or in its field) is the text's, not the card's.
+        (open || editing) && 'relative z-10',
         // Editable: above a cell's play-anywhere overlay, and marked as text to click
         // into. An outline, not padding or a margin: hovering moves nothing.
         open &&
           `
-            z-10 cursor-text outline-1 -outline-offset-1 outline-transparent
-            transition-[outline-color]
-            hover:outline-text-primary/15 hover:outline-dashed focus-visible:outline-2
-            focus-visible:outline-accent
+            z-10 cursor-text transition-colors hover:bg-text-primary/[0.03]
+            focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none
+            focus-visible:ring-inset
           `,
         // Shown as written until the server renders it: dimmed, gently pulsing.
         pending && 'animate-pulse opacity-60 motion-reduce:animate-none',
@@ -441,7 +462,6 @@ export function Prose({
       aria-busy={pending || undefined}
       {...(open && {
         tabIndex: 0,
-        title: 'Click to edit',
         // A link or button inside (a timestamp, the menu) keeps its own click.
         onClick: (e: MouseEvent<HTMLDivElement>) => {
           if (!(e.target as HTMLElement).closest('a, button')) open();
@@ -479,7 +499,7 @@ const CELL = 'relative flex gap-3 border border-transparent py-2.5 pr-1.5 pl-3';
  * A card's own look: rounded and filled, unless it's in a section, whose box
  * fills it (then the card only tints on hover).
  */
-const cardLook = (box: Box | null) => (box?.tone === 'section' ? '' : 'rounded-xl');
+const cardLook = (box: Box | null) => (box?.tone === 'section' ? boxCorners(box) : 'rounded-xl');
 /** While dragging a track: a card is somewhere to drop it, to group with it. */
 const JOIN_TARGET = `
   data-[drop-over]:ring-2 data-[drop-over]:ring-accent data-[drop-over]:ring-inset
