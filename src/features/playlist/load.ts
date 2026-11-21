@@ -7,6 +7,7 @@ import type { PlaylistContent } from '@/domain/playlists';
 import { sanitizeGuide } from '@/lib/guideMarkdown/sanitize';
 import type { GuideContext } from '@/lib/guideMarkdown/types';
 import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
+import { songRowItem } from '@/player/queue/items';
 import { showRow, type ArtistsById } from '@/ui/shows/rows';
 import { PLAYLIST_PROSE, type PlaylistResolved, type PlaylistView, playlistView } from './rows';
 
@@ -54,10 +55,16 @@ export function resolvePlaylist(
     };
   }
 
-  // A timestamp link can only play an entry whose track resolved.
+  // A timestamp link plays its entry only if the queue would: the same check as
+  // the article's queue (songRowItem), so a track without audio stays text.
   const playable = new Set(
     playlist.segments.flatMap((s) =>
-      s.entries.filter((e) => e.trackId && tracks[e.trackId]).map((e) => e.id)
+      s.entries
+        .filter((e) => {
+          const track = e.trackId ? tracks[e.trackId] : undefined;
+          return !!track && songRowItem({ ...track, id: e.id }) !== null;
+        })
+        .map((e) => e.id)
     )
   );
   const canSeek = (entryId: string) => playable.has(entryId);

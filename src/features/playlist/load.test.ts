@@ -165,3 +165,39 @@ describe('tracks the server hasn’t looked up', () => {
     expect(hasUnresolvedTracks(later, resolved)).toBe(true);
   });
 });
+
+describe('timestamp links and audio', () => {
+  // Real entry IDs: a timestamp link names one.
+  it('links a timestamp only to a track the queue would play', () => {
+    const silent: PlaylistCatalog = {
+      ...catalog,
+      tracks: {
+        ...catalog.tracks,
+        track_silent: { ...catalog.tracks.track_a, id: 'track_silent', mp3Url: undefined },
+      },
+    };
+    const playlist: PlaylistContent = {
+      playlistId: 'playlist_x',
+      generation: 'g',
+      revision: 1,
+      name: 'Mix',
+      description:
+        'Hear [this](#entry=playlist_entry_01m7tyqs5cep4vgwpf7m05ket2&t=1:00) and [that](#entry=playlist_entry_01m7tyqs5cep4vgwpf7m05ket3&t=1:00).',
+      segments: [
+        {
+          id: 's1',
+          entries: [
+            { id: 'playlist_entry_01m7tyqs5cep4vgwpf7m05ket2', trackId: 'track_a' },
+            { id: 'playlist_entry_01m7tyqs5cep4vgwpf7m05ket3', trackId: 'track_silent' },
+          ],
+        },
+      ],
+    };
+    const resolved = resolvePlaylist(playlist, silent, artists);
+    const kinds = JSON.stringify(resolved.prose.playlist.blocks);
+    expect(kinds).toContain('"entryId":"playlist_entry_01m7tyqs5cep4vgwpf7m05ket2"');
+    expect(kinds).not.toContain('"entryId":"playlist_entry_01m7tyqs5cep4vgwpf7m05ket3"');
+    // It's still a track (not unavailable): only its timestamps stay text.
+    expect(resolved.tracks.track_silent).toBeDefined();
+  });
+});
