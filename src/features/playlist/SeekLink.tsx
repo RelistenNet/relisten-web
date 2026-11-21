@@ -8,9 +8,11 @@ import { useSongQueue } from '@/player/SongQueue';
 
 /**
  * A timestamp in a playlist's prose: seeks the entry if it's the one playing,
- * else plays the playlist from that entry at that moment. The page only renders
- * one for an entry it can play; others stay text. The href is the fragment as
- * written, so it reads right on hover and does nothing harmful without JS.
+ * else plays the playlist from that entry at that moment. Whether it's a link at
+ * all is the queue's to say, as it is now: an entry that isn't in it (removed in
+ * the editor since the server rendered the prose, or with nothing to play) is
+ * text. The href is the fragment as written, so it reads right on hover and does
+ * nothing harmful without JS.
  */
 export default function SeekLink({
   entryId,
@@ -26,6 +28,8 @@ export default function SeekLink({
   const queue = useSongQueue();
   const isCurrent = useQueue((q) => q.current?.key === entryId);
   const isPlaying = useIsPlaying();
+  const inQueue = !!queue?.items.some((item) => item.key === entryId);
+  if (!isCurrent && !inQueue) return children;
   return (
     <a
       href={href}
@@ -35,7 +39,7 @@ export default function SeekLink({
         if (isCurrent) {
           seek(seconds);
           if (!isPlaying) play();
-        } else if (queue) {
+        } else if (queue && inQueue) {
           playSongRows({ ...queue, startKey: entryId, startTime: seconds });
         }
       }}

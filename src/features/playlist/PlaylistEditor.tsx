@@ -331,6 +331,22 @@ export default function PlaylistEditor({
                 <Item icon={PencilIcon} onClick={() => setEditing({ kind: 'prose', owner })}>
                   Edit
                 </Item>
+                {/* Moves, like a track's: a text entry among its group's entries, text
+                standing alone among the segments. (A section's intro moves with it.) */}
+                {!comment && (
+                  <BoxMoveItems
+                    noun=""
+                    onEdit={(op) => edit(op)}
+                    moves={() => {
+                      const drag = row.drag;
+                      const by = (d: -1 | 1) =>
+                        drag.kind === 'entry'
+                          ? moveEntry(content, drag.id, d)
+                          : moveSegmentBy(content, drag.id, d);
+                      return { up: by(-1), down: by(1) };
+                    }}
+                  />
+                )}
                 <Item
                   icon={Trash2Icon}
                   onClick={() =>
@@ -748,10 +764,10 @@ function BoxMoveItems({
   return (
     <>
       <Item icon={ArrowUpIcon} onClick={() => onEdit(up)} disabled={!up}>
-        Move {noun} Up
+        {noun ? `Move ${noun} Up` : 'Move Up'}
       </Item>
       <Item icon={ArrowDownIcon} onClick={() => onEdit(down)} disabled={!down}>
-        Move {noun} Down
+        {noun ? `Move ${noun} Down` : 'Move Down'}
       </Item>
     </>
   );
