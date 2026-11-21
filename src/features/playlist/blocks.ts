@@ -1,4 +1,5 @@
 import type { GuideBlock } from '@/lib/guideMarkdown/types';
+import { plainBlocks } from '@/lib/guideMarkdown/plain';
 import type { PlaylistRow } from './spec';
 
 // A playlist read as an article: prose in the flow, tracks as embedded cards.
@@ -36,12 +37,19 @@ export type PlaylistBlock =
 function addItems(
   into: PlaylistItem[] | PlaylistBlock[],
   rows: readonly PlaylistRow[],
-  apart = false
+  apart = false,
+  keepEmpty = false
 ) {
   for (const row of rows) {
     if (row.kind === 'text') {
-      if (row.prose?.length)
-        into.push({ kind: 'text', key: row.id, segmentId: row.segmentId, prose: row.prose });
+      // Text that sanitizes to nothing (an image alone) is skipped for readers; the
+      // editor shows it as written, so it can still be fixed or removed.
+      const prose = row.prose?.length
+        ? row.prose
+        : apart || keepEmpty
+          ? plainBlocks(row.description ?? '')
+          : [];
+      if (prose.length) into.push({ kind: 'text', key: row.id, segmentId: row.segmentId, prose });
       continue;
     }
     const last = into.at(-1);
@@ -68,7 +76,7 @@ export function playlistBlocks(
     const run = rows.slice(i, end);
     if (heading) {
       const items: PlaylistItem[] = [];
-      addItems(items, run);
+      addItems(items, run, false, segments);
       blocks.push({
         kind: 'section',
         key: `section:${heading.id}`,
@@ -86,7 +94,7 @@ export function playlistBlocks(
         const segment = run.slice(j, k);
         if (segment.length > 1) {
           const items: PlaylistItem[] = [];
-          addItems(items, segment);
+          addItems(items, segment, false, true);
           blocks.push({
             kind: 'group',
             key: `group:${run[j].segmentId}`,

@@ -3,7 +3,7 @@ import { href } from '@timber-js/app/routes';
 import { deny, redirect } from '@timber-js/app/server';
 import { getOwnPlaylist } from '@/data/playlists';
 import { signInHref } from '@/lib/searchParams/sessionSearchParams';
-import { loadPlaylistView } from './load';
+import { loadPlaylistResolved } from './load';
 import PlaylistEditor from './PlaylistEditor';
 
 /**
@@ -18,7 +18,7 @@ export default async function EditPlaylist({ playlistId }: { playlistId: string 
   if (result.kind === 'signed-out') redirect(signInHref(pathname));
   if (result.kind === 'missing') deny(404);
   if (result.archived) redirect(viewHref);
-  const { resolved } = await loadPlaylistView(result.playlist);
+  const resolved = await loadPlaylistResolved(result.playlist);
 
   return (
     <PlaylistEditor

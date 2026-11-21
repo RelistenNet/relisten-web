@@ -29,6 +29,12 @@ export type DraftState = {
   status: DraftStatus;
   /** Why the last save failed, while status is `error`. */
   error?: PlaylistWriteError;
+  /**
+   * The last edit the server refused (422), until the next edit: the editor
+   * says why and reopens the text. Kept apart from `error`, which a following
+   * save clears.
+   */
+  refused?: PlaylistWriteError;
   canUndo: boolean;
 };
 
@@ -44,6 +50,8 @@ export type DraftStore = {
   undo(): void;
   /** Sends whatever is waiting now (a blur, leaving the page, Retry). */
   flush(): Promise<void>;
+  /** Sends what's waiting and resolves once nothing is (saved, or failed). */
+  whenSaved(): Promise<void>;
   dispose(): void;
 };
 
@@ -85,7 +93,6 @@ export function createDraftStore(
   let state: DraftState = { content: initial, status: 'saved', canUndo: false };
   let timer: ReturnType<typeof setTimeout> | undefined;
   let conflicts = 0;
-  let disposed = false;
   const listeners = new Set<() => void>();
 
   const ops = (items: Queued[]) => items.map((q) => q.op);
@@ -116,8 +123,10 @@ export function createDraftStore(
 
     if (record) {
       const top = undoSteps.at(-1);
-      // Typing into the same field again: the step already restores what it was before.
-      if (!key || top?.key !== key) {
+      // Typing into the same field while its last edit still waits to be sent: the
+      // step already restores what it was before. Once sent, a new edit is a new step.
+      const typingOn = !!key && top?.key === key && queue.some((q) => q.key === key);
+      if (!typingOn) {
         const inv = inverse(before, op, newId);
         undoSteps.push({ ops: inv.ops, renamed: inv.renamed, key });
       }
@@ -127,14 +136,14 @@ export function createDraftStore(
     if (waiting >= 0) queue[waiting] = { ...queue[waiting], op };
     else queue.push({ id: newId('playlist_operation'), op, key });
 
-    update({ status: 'saving', error: undefined });
+    update({ status: 'saving', error: undefined, refused: undefined });
     schedule(!!key);
     return status;
   }
 
   async function flush(): Promise<void> {
     clearTimeout(timer);
-    if (disposed || inflight.length > 0 || queue.length === 0) return;
+    if (inflight.length > 0 || queue.length === 0) return;
     inflight = queue;
     queue = [];
     update({ status: 'saving', error: undefined });
@@ -174,9 +183,11 @@ export function createDraftStore(
       }
       if (error.kind === 'invalid') {
         // Refused: drop it. Undo steps may name what it would have made, so they go too.
+        // What's queued behind it still goes (anything naming what the refused
+        // edit would have made is skipped by the server), and `refused` stays.
         inflight = [];
         undoSteps = [];
-        update({ status: queue.length ? 'saving' : 'error', error });
+        update({ status: queue.length ? 'saving' : 'error', error, refused: error });
         if (queue.length) return flush();
         return;
       }
@@ -213,10 +224,25 @@ export function createDraftStore(
       update({});
     },
     flush,
+    whenSaved() {
+      void flush();
+      return new Promise((resolve) => {
+        const check = () => {
+          if (state.status === 'saving') return false;
+          listeners.delete(check);
+          resolve();
+          return true;
+        };
+        if (!check()) listeners.add(check);
+      });
+    },
     dispose() {
-      disposed = true;
+      // Leaving the editor (Done is a client navigation, so no beforeunload): send
+      // what's still waiting, then stop.
+      // (No edits come after this, so nothing needs to be refused.)
       clearTimeout(timer);
       listeners.clear();
+      void flush();
     },
   };
 }

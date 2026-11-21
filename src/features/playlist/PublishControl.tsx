@@ -48,29 +48,34 @@ export default function PublishControl({
   playlistId,
   publicCode,
   takenDown,
+  beforePublish,
 }: {
   playlistId: string;
   /** Set while it's published. */
   publicCode?: string;
   takenDown: boolean;
+  /** The editor's: wait for its edits to be saved, so what's published is current. */
+  beforePublish?: () => Promise<void>;
 }) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [pending, startTransition] = useTransition();
   const previewHref = href('/account/playlists/[playlistId]/preview', { playlistId });
 
-  const copy = async (code: string, message = 'Link copied.') => {
+  const copy = async (code: string, done = 'Link copied.') => {
     try {
       await navigator.clipboard.writeText(publicUrl(code));
-      notify.ok(message);
+      notify.ok(done);
     } catch {
-      notify.ok(`${message.replace(' Link copied.', '')} ${publicUrl(code)}`);
+      // No clipboard here (permission, an insecure origin): show the link instead.
+      notify.ok(`Copy the link: ${publicUrl(code)}`);
     }
   };
 
   const setPublished = (published: boolean) =>
     startTransition(async () => {
       try {
+        if (published) await beforePublish?.();
         const result = await playlistTransport.publish(playlistId, published);
         const code = result.public_code ?? publicCode;
         // The public page caches for a minute: have it read the change now.

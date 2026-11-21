@@ -68,7 +68,8 @@ async function errorFor(res: Response): Promise<PlaylistWriteError> {
   const problem = (await res.json().catch(() => ({}))) as Problem;
   const code = problem.code ?? problem.title;
   const kind: PlaylistWriteErrorKind =
-    res.status === 401
+    // A 403 that outlasts a fresh CSRF token: the session isn't good for writes.
+    res.status === 401 || res.status === 403
       ? 'signed-out'
       : res.status === 404
         ? 'not-found'

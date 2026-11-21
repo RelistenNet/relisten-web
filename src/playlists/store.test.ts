@@ -192,6 +192,44 @@ describe('createDraftStore', () => {
     expect(shape(server.server)).toBe(shape(store.getState().content));
   });
 
+  it('gives each editing session of a field its own undo step', async () => {
+    const server = fakeServer();
+    const store = createDraftStore(content, { transport: server.transport, newId: ids() });
+    store.edit(op('update_metadata', { name: 'B' }));
+    await vi.advanceTimersByTimeAsync(1000); // sent
+    store.edit(op('update_metadata', { name: 'C' }));
+    await vi.advanceTimersByTimeAsync(1000);
+    store.undo();
+    expect(store.getState().content.name).toBe('B');
+    store.undo();
+    expect(store.getState().content.name).toBe('Mix');
+  });
+
+  it('keeps a refusal showing while the edits queued behind it still go', async () => {
+    const server = fakeServer();
+    const store = createDraftStore(content, { transport: server.transport, newId: ids() });
+    server.failNext(new PlaylistWriteError('invalid', 'Too long.', 422));
+    store.edit(op('delete_entry', { entry_id: 'e1' }));
+    await Promise.resolve(); // the refused batch is in flight
+    store.edit(op('update_segment', { segment_id: 's2', description: 'Later' }));
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(server.batches).toHaveLength(2);
+    expect(store.getState()).toMatchObject({ status: 'saved' });
+    expect(store.getState().refused?.detail).toBe('Too long.');
+    // The next edit clears it.
+    store.edit(op('update_segment', { segment_id: 's2', description: 'Again' }));
+    expect(store.getState().refused).toBeUndefined();
+  });
+
+  it('sends what’s still waiting when the editor closes', async () => {
+    const server = fakeServer();
+    const store = createDraftStore(content, { transport: server.transport, newId: ids() });
+    store.edit(op('update_metadata', { name: 'Renamed' }));
+    store.dispose(); // before the typing pause would have sent it
+    await vi.advanceTimersByTimeAsync(0);
+    expect(server.server.name).toBe('Renamed');
+  });
+
   it('sends one batch at a time; edits made meanwhile go next', async () => {
     const server = fakeServer();
     const store = createDraftStore(content, { transport: server.transport, newId: ids() });

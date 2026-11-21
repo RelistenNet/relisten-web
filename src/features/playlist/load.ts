@@ -24,6 +24,15 @@ export async function loadPlaylistView(
   return { view: playlistView(playlist, resolved), resolved };
 }
 
+/** What the editor lays out its draft from: the playlist's tracks and prose, resolved. */
+export async function loadPlaylistResolved(playlist: PlaylistContent): Promise<PlaylistResolved> {
+  const [catalog, directory] = await Promise.all([
+    getPlaylistCatalog(playlist),
+    getArtistDirectory(),
+  ]);
+  return resolvePlaylist(playlist, catalog, directory.byId);
+}
+
 /** Looks up each track in the catalog and sanitizes every description, for playlistView. */
 export function resolvePlaylist(
   playlist: PlaylistContent,

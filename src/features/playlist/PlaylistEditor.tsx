@@ -113,7 +113,10 @@ export default function PlaylistEditor({
   useStoreEvents(store, {
     onSaved: () => {
       lastProse.current = null;
-      router.refresh();
+      // The server renders the page again only when something waits on it: prose
+      // shown as written, or a track just added. A move or a removal needs nothing.
+      if (view.pendingProse.length || view.rows.some((r) => r.kind === 'unavailable' && r.pending))
+        router.refresh();
     },
     onRefused: (error) => {
       const last = lastProse.current;
@@ -310,9 +313,12 @@ export default function PlaylistEditor({
           }
           onAddBelow={(adding) => setEditing({ kind: 'insert', after: row.id, adding })}
           onEdit={(op) => edit(op)}
-          moveUp={moveEntry(content, row.id, -1)}
-          moveDown={moveEntry(content, row.id, 1)}
-          ownGroup={moveToOwnGroup(content, row.id)}
+          // Worked out when the menu opens, not for every row on every render.
+          moves={() => ({
+            up: moveEntry(content, row.id, -1),
+            down: moveEntry(content, row.id, 1),
+            ownGroup: moveToOwnGroup(content, row.id),
+          })}
           onRemove={() =>
             removed('the track', { operation_type: 'delete_entry', payload: { entry_id: row.id } })
           }
@@ -408,6 +414,7 @@ export default function PlaylistEditor({
         actions={
           <>
             <PublishControl
+              beforePublish={() => store.whenSaved()}
               playlistId={initial.playlistId}
               publicCode={publicCode}
               takenDown={takenDown}
@@ -469,8 +476,7 @@ function useStoreEvents(
     const unsubscribe = store.subscribe(() => {
       const state = store.getState();
       if (state.status === 'saved' && previous.status !== 'saved') onSaved();
-      if (state.error?.kind === 'invalid' && state.error !== previous.error)
-        onRefused(state.error.detail);
+      if (state.refused && state.refused !== previous.refused) onRefused(state.refused.detail);
       previous = state;
     });
     return () => {
@@ -501,6 +507,14 @@ function SaveStatus({
   refreshing: boolean;
   onRetry: () => void;
 }) {
+  if (state.refused && state.status !== 'error') {
+    // Refused, though the edits after it saved: say so until the next edit.
+    return (
+      <span role="status" className="text-red-500">
+        {state.refused.detail ?? 'That edit was refused'}
+      </span>
+    );
+  }
   if (state.status === 'error') {
     const kind = state.error?.kind;
     const message =
@@ -616,6 +630,34 @@ function Item({
   );
 }
 
+type Moves = { up: PlaylistOp | null; down: PlaylistOp | null; ownGroup: PlaylistOp | null };
+
+/** Move Up, Move Down, Move to Its Own Group: rendered (and worked out) only while the menu is open. */
+function MoveItems({
+  moves,
+  onEdit,
+}: {
+  moves: () => Moves;
+  onEdit: (op: PlaylistOp | null) => void;
+}) {
+  const { up, down, ownGroup } = moves();
+  return (
+    <>
+      <Item icon={ArrowUpIcon} onClick={() => onEdit(up)} disabled={!up}>
+        Move Up
+      </Item>
+      <Item icon={ArrowDownIcon} onClick={() => onEdit(down)} disabled={!down}>
+        Move Down
+      </Item>
+      {ownGroup && (
+        <Item icon={GroupIcon} onClick={() => onEdit(ownGroup)}>
+          Move to Its Own Group
+        </Item>
+      )}
+    </>
+  );
+}
+
 function CellMenu({
   row,
   sections,
@@ -624,9 +666,7 @@ function CellMenu({
   onIntro,
   onAddBelow,
   onEdit,
-  moveUp,
-  moveDown,
-  ownGroup,
+  moves,
   moveToSection,
   sectionName,
   onRemove,
@@ -638,9 +678,7 @@ function CellMenu({
   onIntro: () => void;
   onAddBelow: (adding: 'text' | 'tracks') => void;
   onEdit: (op: PlaylistOp | null) => void;
-  moveUp: PlaylistOp | null;
-  moveDown: PlaylistOp | null;
-  ownGroup: PlaylistOp | null;
+  moves: () => Moves;
   moveToSection: (segmentId: string) => PlaylistOp;
   sectionName: (segmentId: string) => string;
   onRemove: () => void;
@@ -662,17 +700,7 @@ function CellMenu({
         Add Tracks Below
       </Item>
       <Menu.Separator className="mx-2 my-1 h-px bg-hairline" />
-      <Item icon={ArrowUpIcon} onClick={() => onEdit(moveUp)} disabled={!moveUp}>
-        Move Up
-      </Item>
-      <Item icon={ArrowDownIcon} onClick={() => onEdit(moveDown)} disabled={!moveDown}>
-        Move Down
-      </Item>
-      {ownGroup && (
-        <Item icon={GroupIcon} onClick={() => onEdit(ownGroup)}>
-          Move to Its Own Group
-        </Item>
-      )}
+      <MoveItems moves={moves} onEdit={onEdit} />
       {sections.length > 0 && (
         <Menu.SubmenuRoot>
           <Menu.SubmenuTrigger className={MENU_ITEM}>
