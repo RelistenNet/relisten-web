@@ -102,7 +102,7 @@ function usePlaylistActions(tracks: PlaylistTracks) {
     try {
       const found = await tracks();
       if (!found?.trackIds.length) return toast.error('Nothing to add', { toasterId: TOASTER_ID });
-      const { segmentId } = await addToPlaylist(playlist.id, found.trackIds);
+      const added = await addToPlaylist(playlist, found.trackIds);
       writeStorage(LAST_KEY, playlist.id);
       toast.success(`Added to ${playlist.name}`, {
         toasterId: TOASTER_ID,
@@ -110,7 +110,7 @@ function usePlaylistActions(tracks: PlaylistTracks) {
         cancel: {
           label: 'Undo',
           onClick: () =>
-            void removeSegment(playlist.id, segmentId).then(
+            void removeSegment(playlist.id, added).then(
               () => toast(`Removed from ${playlist.name}`, { toasterId: TOASTER_ID }),
               (err: unknown) => failed(err, 'undo that')
             ),

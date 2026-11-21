@@ -53,18 +53,24 @@ export async function createPlaylist(
   return { playlistId: created.playlist_id, revision: created.revision };
 }
 
-/** Appends tracks to a playlist as one new segment. Its ID is what undo removes. */
+/**
+ * Appends tracks to a playlist as one new segment. Its ID (and the revision it
+ * made) is what undo removes.
+ *
+ * The batch isn't held to a revision (no expected_revision): an append fits
+ * whatever the playlist has become. Each operation still says which revision it
+ * was made against, as the server records: the one the menu listed.
+ */
 export async function addToPlaylist(
-  playlistId: string,
+  playlist: { id: string; revision: number },
   trackIds: readonly string[],
   transport: PlaylistTransport = playlistTransport
 ): Promise<{ segmentId: string; revision: number }> {
   const segmentId = newTypeId('playlist_segment');
-  const response = await transport.batch(playlistId, [
+  const response = await transport.batch(playlist.id, [
     {
       operation_id: newTypeId('playlist_operation'),
-      // Informational: the batch isn't held to a revision, so it always appends.
-      base_revision: 0,
+      base_revision: playlist.revision,
       operation_type: 'insert_segment',
       payload: { segment_id: segmentId, entries: entries(trackIds) },
     },
@@ -72,16 +78,17 @@ export async function addToPlaylist(
   return { segmentId, revision: response.head_revision };
 }
 
-/** Undoes addToPlaylist. */
+/** Undoes addToPlaylist, made against the revision the add made. */
 export async function removeSegment(
   playlistId: string,
-  segmentId: string,
+  added: { segmentId: string; revision: number },
   transport: PlaylistTransport = playlistTransport
 ): Promise<void> {
+  const { segmentId, revision } = added;
   await transport.batch(playlistId, [
     {
       operation_id: newTypeId('playlist_operation'),
-      base_revision: 0,
+      base_revision: revision,
       operation_type: 'delete_segment',
       payload: { segment_id: segmentId },
     },
