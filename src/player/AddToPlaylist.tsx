@@ -211,7 +211,7 @@ export function AddToPlaylistSubmenu({
       </Menu.SubmenuTrigger>
       <Menu.Portal>
         <Menu.Positioner sideOffset={4} className="z-50 outline-none">
-          <Menu.Popup className={cn(MENU_POPUP, 'max-h-80 max-w-72 overflow-y-auto')}>
+          <Menu.Popup className={cn(MENU_POPUP, 'max-h-80 overflow-y-auto')}>
             <MenuContents library={library} tracks={tracks} onNew={onNew} />
           </Menu.Popup>
         </Menu.Positioner>
@@ -241,7 +241,7 @@ export function AddToPlaylistButton({
         </Menu.Trigger>
         <Menu.Portal>
           <Menu.Positioner align="start" sideOffset={4} className="z-50 outline-none">
-            <Menu.Popup className={cn(MENU_POPUP, 'max-h-80 max-w-72 overflow-y-auto')}>
+            <Menu.Popup className={cn(MENU_POPUP, 'max-h-80 overflow-y-auto')}>
               <MenuContents library={library} tracks={tracks} onNew={() => setNaming(true)} />
             </Menu.Popup>
           </Menu.Positioner>

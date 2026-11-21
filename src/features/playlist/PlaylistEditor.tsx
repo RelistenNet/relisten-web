@@ -761,7 +761,7 @@ function CellMenu({
           </Menu.SubmenuTrigger>
           <Menu.Portal>
             <Menu.Positioner sideOffset={4} className="z-50 outline-none">
-              <Menu.Popup className={cn(MENU_POPUP, 'max-w-72')}>
+              <Menu.Popup className={MENU_POPUP}>
                 {sections.map((s) => (
                   <Menu.Item
                     key={s.id}

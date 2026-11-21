@@ -89,7 +89,9 @@ export default function QueueMenu({
                   render={<Link href={link.href} />}
                 >
                   <MusicIcon size={16} className="shrink-0 text-text-muted" aria-hidden />
-                  {link.label}
+                  <span className="min-w-0 truncate" title={link.label}>
+                    {link.label}
+                  </span>
                 </Menu.LinkItem>
               ))}
             </Menu.Popup>

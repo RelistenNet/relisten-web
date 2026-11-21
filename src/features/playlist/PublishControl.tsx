@@ -118,7 +118,7 @@ export default function PublishControl({
         </Menu.Trigger>
         <Menu.Portal>
           <Menu.Positioner align="end" sideOffset={4} className="z-50 outline-none">
-            <Menu.Popup className={cn(MENU_POPUP, 'max-w-72')}>
+            <Menu.Popup className={MENU_POPUP}>
               {takenDown ? (
                 <p className="m-0 px-2.5 py-2 text-sm text-text-muted">
                   Taken down after a report. It stays private until it’s been reviewed.
