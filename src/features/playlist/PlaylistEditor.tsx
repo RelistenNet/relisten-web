@@ -36,6 +36,7 @@ import {
   type DraftState,
   type DraftStore,
   type Refusal,
+  type Settled,
 } from '@/playlists/store';
 import { playlistTransport } from '@/playlists/transport';
 import { useDraft } from '@/playlists/useDraft';
@@ -55,7 +56,13 @@ import PublishControl from './PublishControl';
 import { type DragSource, dropOps } from './dragOps';
 import MarkdownField from './MarkdownField';
 import PlaylistArticle, { ACTION, type ArticleSlots, type ProseOwner } from './PlaylistArticle';
-import { hasUnresolvedTracks, PLAYLIST_PROSE, type PlaylistResolved, playlistView } from './rows';
+import {
+  needsServer,
+  PLAYLIST_PROSE,
+  type PlaylistResolved,
+  playlistView,
+  unresolved,
+} from './rows';
 import { draggableBlock, usePlaylistDrag } from './usePlaylistDrag';
 
 // The editor (docs/playlist-editing.md): the read view's article, laid out from
@@ -121,18 +128,21 @@ export default function PlaylistEditor({
   // operations back as they were, so a refusal reopens the field it came from.
   const sent = useRef(new WeakMap<PlaylistOp, Sent>());
   useStoreEvents(store, {
-    // The server renders the page again only when something waits on it: prose
-    // shown as written, or a track it hasn't looked up (another tab's, arriving
-    // with a conflict's refetch, so checked in the store's content as it is now,
-    // not the last render's). A move or a removal needs nothing.
-    onSaved: () =>
-      (view.pendingProse.length > 0 || hasUnresolvedTracks(store.getState().content, resolved)) &&
-      router.refresh(),
+    // The server renders the page again only when something waits on it (see
+    // `unresolved`), checked in the store's content as it is now: a conflict's
+    // refetch lands in the same update as the save, before React renders it.
+    onSaved: () => needsServer(unresolved(store.getState().content, resolved)) && router.refresh(),
     onRefused: (refused) => {
       const hit = refused.ops.map((op) => sent.current.get(op)).find(Boolean);
       if (hit) setEditing({ ...hit.from, draft: hit.text, error: refused.error.detail });
     },
-    onLeftUnsaved: () => notify('Your last edits couldn’t be saved.'),
+    // Closed (the nav bar, Back, a link) with a save on its way: once it's in, the
+    // page now showing reads it again; if it didn't make it, say so.
+    onClosed: (settled) => {
+      const reason = unsavedReason(settled);
+      if (reason) notify(reason);
+      else router.refresh();
+    },
   });
   useWarnBeforeLeaving(state);
   // The server's render of saved edits on its way back (router.refresh()).
@@ -265,7 +275,7 @@ export default function PlaylistEditor({
     // Waiting on the server's render, unless saving it failed (the toolbar says so).
     prosePending: (owner) =>
       state.status !== 'error' &&
-      view.pendingProse.includes(owner.kind === 'playlist' ? PLAYLIST_PROSE : owner.id),
+      view.unresolved.prose.includes(owner.kind === 'playlist' ? PLAYLIST_PROSE : owner.id),
 
     // Every row's grip and menu, in the same corner (PlaylistArticle places them).
     controls: (row) => {
@@ -434,13 +444,24 @@ export default function PlaylistEditor({
         actions={
           <>
             <PublishControl
-              beforePublish={() => store.whenSaved()}
+              beforePublish={() => store.settle().then(unsavedReason)}
               playlistId={initial.playlistId}
               publicCode={publicCode}
               takenDown={takenDown}
             />
             <Link
               href={viewHref}
+              // With a save on its way, the playlist's page would read the old
+              // version: wait for it, and stay (saying why) if it doesn't make it.
+              onNavigate={(e) => {
+                if (store.getState().status === 'saved') return;
+                e.preventDefault();
+                void store.settle().then((settled) => {
+                  const reason = unsavedReason(settled);
+                  if (reason) notify(reason);
+                  else router.push(viewHref);
+                });
+              }}
               className={cn(ACTION, 'border-transparent bg-accent/15 hover:bg-accent/25')}
             >
               Done
@@ -494,21 +515,40 @@ const TOOL = `
 `;
 
 /**
+ * Why what's on screen isn't what the server has, once a save settles: null when
+ * it is. The one answer for everything that needs the server caught up (Publish,
+ * Done, the editor closing).
+ */
+function unsavedReason(settled: Settled): string | null {
+  switch (settled.kind) {
+    case 'saved':
+      return null;
+    case 'refused':
+      return `Your latest edit wasn’t saved: ${settled.refusal.error.detail ?? 'it was refused'}.`;
+    case 'failed':
+      return settled.error.kind === 'signed-out'
+        ? 'Your latest edits aren’t saved: sign in, then Retry.'
+        : 'Your latest edits aren’t saved yet. Retry them first.';
+  }
+}
+
+/**
  * Calls back when the draft's edits are all saved (the server renders the page
- * again), when the server refuses some (422), and when the editor closes with
- * edits that then fail to save (Done is a client navigation: no beforeunload).
+ * again), when the server refuses some (422), and when the editor closes with a
+ * save still on its way, once it settles (Done is a client navigation, as are
+ * the nav bar and Back: beforeunload sees none of them).
  */
 function useStoreEvents(
   store: DraftStore,
   handlers: {
     onSaved: () => void;
     onRefused: (refused: Refusal) => void;
-    onLeftUnsaved: () => void;
+    onClosed: (settled: Settled) => void;
   }
 ) {
   const onSaved = useEffectEvent(handlers.onSaved);
   const onRefused = useEffectEvent(handlers.onRefused);
-  const onLeftUnsaved = useEffectEvent(handlers.onLeftUnsaved);
+  const onClosed = useEffectEvent(handlers.onClosed);
   useEffect(() => {
     let previous = store.getState();
     const unsubscribe = store.subscribe(() => {
@@ -519,7 +559,7 @@ function useStoreEvents(
     });
     return () => {
       unsubscribe();
-      void store.whenSaved().then((saved) => saved || onLeftUnsaved());
+      if (store.getState().status !== 'saved') void store.settle().then(onClosed);
     };
   }, [store]);
 }

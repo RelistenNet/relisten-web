@@ -217,7 +217,7 @@ describe('createDraftStore', () => {
     expect(store.getState().refused).toBeUndefined();
   });
 
-  it('says whether everything saved, retrying what failed', async () => {
+  it('says how saving ended, retrying what failed', async () => {
     const server = fakeServer();
     const store = createDraftStore(content, { transport: server.transport, newId: ids() });
     server.failNext(new PlaylistWriteError('unavailable'));
@@ -225,12 +225,12 @@ describe('createDraftStore', () => {
     await settle();
     expect(store.getState().status).toBe('error');
     server.failNext(new PlaylistWriteError('signed-out'));
-    const first = store.whenSaved();
+    const first = store.settle();
     await settle();
-    await expect(first).resolves.toBe(false);
-    const second = store.whenSaved();
+    await expect(first).resolves.toMatchObject({ kind: 'failed' });
+    const second = store.settle();
     await settle();
-    await expect(second).resolves.toBe(true);
+    await expect(second).resolves.toEqual({ kind: 'saved' });
     expect(server.server.name).toBe('Renamed');
   });
 
@@ -240,9 +240,9 @@ describe('createDraftStore', () => {
     server.failNext(new PlaylistWriteError('unavailable'));
     server.failNext(new PlaylistWriteError('unavailable'));
     store.edit(op('update_metadata', { name: 'Renamed' }));
-    const closed = store.whenSaved();
+    const closed = store.settle();
     await settle();
-    await expect(closed).resolves.toBe(false);
+    await expect(closed).resolves.toMatchObject({ kind: 'failed' });
   });
 
   it('sends one batch at a time; edits made meanwhile go next', async () => {
@@ -317,21 +317,21 @@ describe('undo and timestamp links', () => {
   });
 });
 
-describe('whenSaved and refusals', () => {
+describe('settle and refusals', () => {
   beforeEach(() => vi.useFakeTimers());
-  it('is false when what was waiting is refused', async () => {
+  it('reports a refusal of what was waiting', async () => {
     const server = fakeServer();
     const store = createDraftStore(content, { transport: server.transport, newId: ids() });
     server.failNext(new PlaylistWriteError('invalid', 'Too long.', 422));
     store.edit(op('update_segment', { segment_id: 's2', description: 'x'.repeat(10) }));
-    const saved = store.whenSaved();
+    const saved = store.settle();
     await settle();
-    await expect(saved).resolves.toBe(false);
+    await expect(saved).resolves.toMatchObject({ kind: 'refused' });
     expect(store.getState().status).toBe('saved');
     // An older refusal doesn't hold up the next save.
     store.edit(op('update_segment', { segment_id: 's2', description: 'Fine' }));
-    const next = store.whenSaved();
+    const next = store.settle();
     await settle();
-    await expect(next).resolves.toBe(true);
+    await expect(next).resolves.toEqual({ kind: 'saved' });
   });
 });

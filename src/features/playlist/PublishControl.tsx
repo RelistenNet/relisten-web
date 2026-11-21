@@ -56,9 +56,9 @@ export default function PublishControl({
   takenDown: boolean;
   /**
    * The editor's: saves what's waiting, so what's published is what's on screen.
-   * False when it couldn't: then nothing is published.
+   * Resolves with why it couldn't (then nothing is published), or null.
    */
-  beforePublish?: () => Promise<boolean>;
+  beforePublish?: () => Promise<string | null>;
 }) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
@@ -78,10 +78,9 @@ export default function PublishControl({
   const setPublished = (published: boolean) =>
     startTransition(async () => {
       try {
-        if (published && beforePublish && !(await beforePublish())) {
-          notify.error(
-            'Your latest edits aren’t saved, so it wasn’t published. Fix or retry them first.'
-          );
+        const unsaved = published && beforePublish ? await beforePublish() : null;
+        if (unsaved) {
+          notify.error(`${unsaved} It wasn’t published.`);
           return;
         }
         const result = await playlistTransport.publish(playlistId, published);

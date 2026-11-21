@@ -5,7 +5,7 @@ import type { Artist, ShowSummary } from '@/domain/types';
 import { songRowItem } from '@/player/queue/items';
 import { playlistBlocks } from './blocks';
 import { resolvePlaylist } from './load';
-import { hasUnresolvedTracks, playlistView as viewOf } from './rows';
+import { playlistView as viewOf, unresolved } from './rows';
 
 const playlistView = (
   playlist: PlaylistContent,
@@ -158,11 +158,11 @@ describe('tracks the server hasn’t looked up', () => {
     // Looked up: track_a is there, track_gone isn't.
     const resolved = resolvePlaylist(content(['track_a', 'track_gone']), catalog, artists);
     expect(resolved.missing).toEqual(['track_gone']);
-    expect(hasUnresolvedTracks(content(['track_a', 'track_gone']), resolved)).toBe(false);
+    expect(unresolved(content(['track_a', 'track_gone']), resolved).tracks).toEqual([]);
     // Someone else's edit added track_new: unavailable only until the server looks.
     const later = content(['track_a', 'track_gone', 'track_new']);
     expect(viewOf(later, resolved).rows.at(-1)?.kind).toBe('unavailable');
-    expect(hasUnresolvedTracks(later, resolved)).toBe(true);
+    expect(unresolved(later, resolved).tracks).toEqual(['track_new']);
   });
 });
 
@@ -173,7 +173,7 @@ describe('timestamp links and audio', () => {
       ...catalog,
       tracks: {
         ...catalog.tracks,
-        track_silent: { ...catalog.tracks.track_a, id: 'track_silent', mp3Url: undefined },
+        track_silent: { ...catalog.tracks.track_a, id: 'track_silent', mp3Url: null },
       },
     };
     const playlist: PlaylistContent = {

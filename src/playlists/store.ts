@@ -42,6 +42,16 @@ import { PlaylistWriteError, type PlaylistTransport } from './transport';
 
 export type DraftStatus = 'saved' | 'saving' | 'error';
 
+/**
+ * How a save ended, for whatever needs the server caught up with the screen
+ * (Publish, leaving the editor): everything saved; it failed (kept, for Retry);
+ * or the server refused some of it (reverted, its text reopened).
+ */
+export type Settled =
+  | { kind: 'saved' }
+  | { kind: 'failed'; error: PlaylistWriteError }
+  | { kind: 'refused'; refusal: Refusal };
+
 /** An edit the server refused (422): why, and the operations it dropped. */
 export type Refusal = { error: PlaylistWriteError; ops: PlaylistOp[] };
 
@@ -72,11 +82,11 @@ export type DraftStore = {
   /** Sends again what failed to save (Retry). */
   retry(): void;
   /**
-   * Retries what's waiting and resolves once nothing is: true if it all saved.
-   * (Leaving the editor calls it too. Nothing needs stopping: once settled, the
-   * store holds no timers or requests.)
+   * Retries what's waiting and resolves once nothing is, with how it ended.
+   * (Nothing needs stopping afterwards: once settled, the store holds no timers
+   * or requests.)
    */
-  whenSaved(): Promise<boolean>;
+  settle(): Promise<Settled>;
 };
 
 /** Conflicts in a row before the store stops replaying and reports one. */
@@ -287,16 +297,23 @@ function stateOf(snapshot: DraftSnapshot): DraftState {
 }
 
 /**
- * Resolves once the actor is idle or has failed: true only if everything waiting
- * saved. A refusal meanwhile is false too: nothing's left unsaved, but what the
- * listener last wrote isn't what the server has.
+ * Resolves once the actor is idle or has failed. A refusal that arrives meanwhile
+ * is its own outcome: nothing's left unsaved, but what the listener last wrote
+ * isn't what the server has.
  */
-function settled(actor: DraftActor): Promise<boolean> {
+function settled(actor: DraftActor): Promise<Settled> {
   const refusedBefore = actor.getSnapshot().context.refused;
   return new Promise((resolve) => {
     const done = (s: DraftSnapshot) => {
-      if (s.matches('idle')) resolve(s.context.refused === refusedBefore || !s.context.refused);
-      else if (s.matches('failed')) resolve(false);
+      const { refused, error } = s.context;
+      if (s.matches('idle'))
+        resolve(
+          refused && refused !== refusedBefore
+            ? { kind: 'refused', refusal: refused }
+            : { kind: 'saved' }
+        );
+      else if (s.matches('failed'))
+        resolve({ kind: 'failed', error: error ?? new PlaylistWriteError('unavailable') });
       else return false;
       return true;
     };
@@ -364,7 +381,7 @@ export function createDraftStore(
       actor.send({ type: 'UNDO', ops: ops.map(queued) });
     },
     retry: () => actor.send({ type: 'RETRY' }),
-    whenSaved() {
+    settle() {
       actor.send({ type: 'RETRY' });
       return settled(actor);
     },

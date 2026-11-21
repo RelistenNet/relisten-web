@@ -38,45 +38,54 @@ export type PlaylistView = {
   trackCount: number;
   /** Seconds, over the tracks the catalog has. */
   duration: number;
-  /**
-   * Prose shown as plain text because it changed since the server rendered it
-   * (by owner id, or PLAYLIST_PROSE): the editor marks it pending until it has.
-   */
-  pendingProse: string[];
+  /** What the server hasn't rendered or looked up yet (see `unresolved`). */
+  unresolved: Unresolved;
 };
 
 /**
- * Whether some track would show unavailable only because the server hasn't
- * looked it up yet (it came in with someone else's edit): the server needs to
- * render the page again.
+ * What in `content` the server hasn't caught up with, because `resolved` was made
+ * from an older version: prose whose text changed since it was sanitized (by
+ * owner id, or PLAYLIST_PROSE), shown as written meanwhile; and tracks it never
+ * looked up (they came in with someone else's edit), shown unavailable meanwhile.
+ * The editor marks the prose pending, and once its edits are saved asks the
+ * server for a new render when any of it is here. The one place that decides.
  */
-export function hasUnresolvedTracks(content: PlaylistContent, resolved: PlaylistResolved) {
+export type Unresolved = { prose: string[]; tracks: string[] };
+
+export function unresolved(content: PlaylistContent, resolved: PlaylistResolved): Unresolved {
   const missing = new Set(resolved.missing);
-  return content.segments.some((s) =>
-    s.entries.some((e) => e.trackId && !resolved.tracks[e.trackId] && !missing.has(e.trackId))
-  );
+  const prose: string[] = [];
+  const tracks: string[] = [];
+  const text = (id: string, source?: string) => {
+    if (source && resolved.prose[id]?.source !== source) prose.push(id);
+  };
+  text(PLAYLIST_PROSE, content.description);
+  for (const segment of content.segments) {
+    text(segment.id, segment.description);
+    for (const entry of segment.entries) {
+      text(entry.id, entry.description);
+      if (entry.trackId && !resolved.tracks[entry.trackId] && !missing.has(entry.trackId))
+        tracks.push(entry.trackId);
+    }
+  }
+  return { prose, tracks };
 }
+
+/** Whether the server needs to render the page again for any of it. */
+export const needsServer = ({ prose, tracks }: Unresolved) => prose.length + tracks.length > 0;
 
 /**
  * Prose for `text`: the server's sanitized copy while it still matches, else
  * the text as written (an edit the server hasn't rendered yet).
  */
-function proseFor(
-  resolved: PlaylistResolved,
-  id: string,
-  text: string | undefined,
-  pending: string[]
-) {
+function proseFor(resolved: PlaylistResolved, id: string, text: string | undefined) {
   if (!text) return undefined;
   const known = resolved.prose[id];
-  if (known?.source === text) return known.blocks;
-  pending.push(id);
-  return plainBlocks(text);
+  return known?.source === text ? known.blocks : plainBlocks(text);
 }
 
 export function playlistView(content: PlaylistContent, resolved: PlaylistResolved): PlaylistView {
   const rows: PlaylistRow[] = [];
-  const pendingProse: string[] = [];
 
   let duration = 0;
   for (const segment of content.segments) {
@@ -84,7 +93,7 @@ export function playlistView(content: PlaylistContent, resolved: PlaylistResolve
       ? {
           id: segment.id,
           description: segment.description,
-          prose: proseFor(resolved, segment.id, segment.description, pendingProse) ?? [],
+          prose: proseFor(resolved, segment.id, segment.description) ?? [],
         }
       : null;
     // A segment of prose alone (no entries) reads as a text block between groups.
@@ -106,7 +115,7 @@ export function playlistView(content: PlaylistContent, resolved: PlaylistResolve
         position: rows.length + 1,
         segmentId: segment.id,
         description: entry.description,
-        prose: proseFor(resolved, entry.id, entry.description, pendingProse),
+        prose: proseFor(resolved, entry.id, entry.description),
         segment: heading,
       };
       const track = entry.trackId ? resolved.tracks[entry.trackId] : undefined;
@@ -120,10 +129,10 @@ export function playlistView(content: PlaylistContent, resolved: PlaylistResolve
   }
   return {
     name: content.name,
-    description: proseFor(resolved, PLAYLIST_PROSE, content.description, pendingProse),
+    description: proseFor(resolved, PLAYLIST_PROSE, content.description),
     rows,
     trackCount: rows.filter((r) => r.kind === 'track').length,
     duration,
-    pendingProse,
+    unresolved: unresolved(content, resolved),
   };
 }
