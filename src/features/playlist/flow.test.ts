@@ -131,6 +131,45 @@ describe('flowRows', () => {
     expect(rows.filter((r) => r.kind === 'drop').length).toBeGreaterThan(0);
   });
 
+  it('lays out a new intro’s row at the end of its group, even after text, and under a lone track', () => {
+    const withText: PlaylistBlock[] = [
+      {
+        kind: 'group',
+        key: 'group:s1',
+        segmentId: 's1',
+        items: [
+          { kind: 'tracks', key: 'e', rows: [track('e', 's1')] },
+          { kind: 'text', key: 't', segmentId: 's1', prose },
+        ],
+      },
+      { kind: 'tracks', key: 'g', rows: [track('g', 's2')] },
+    ];
+    const keys = (intro: string) =>
+      rowsOf(flowRows(withText, { editing: true, intro })).map((r) => r.key);
+    expect(keys('s1')).toEqual([
+      'group:s1:header',
+      'e',
+      't',
+      'group:s1:comment',
+      'space:g',
+      'g',
+      'gap:end',
+    ]);
+    expect(keys('s2')).toEqual([
+      'group:s1:header',
+      'e',
+      't',
+      'space:g',
+      'g',
+      'g:comment',
+      'gap:end',
+    ]);
+    const intro = rowsOf(flowRows(withText, { editing: true, intro: 's1' })).find(
+      (r) => r.key === 'group:s1:comment'
+    );
+    expect(intro?.kind === 'prose' && intro.owner).toEqual({ kind: 'segment', id: 's1' });
+  });
+
   it('puts the composer after the row it was opened from, and an Add zone at the end', () => {
     const rows = rowsOf(flowRows(editorBlocks, { editing: true, insertAfter: 'e' }));
     expect(rows.map((r) => r.key)).toEqual([

@@ -86,6 +86,13 @@ const sameField = (a: Editing, b: NonNullable<Editing>) =>
     ? b.kind === 'prose' && sameOwner(a.owner, b.owner)
     : b.kind === 'composer' && a.after === b.after);
 
+/**
+ * The one removal toast. Its Undo undoes the top step, so it's dismissed as soon
+ * as anything else becomes the top step (another edit, Undo) or the editor closes;
+ * a second removal replaces it.
+ */
+const REMOVED_TOAST = 'playlist-removed';
+
 const notify = (message: string) => toast.error(message, { toasterId: TOASTER_ID });
 
 export default function PlaylistEditor({
@@ -129,6 +136,8 @@ export default function PlaylistEditor({
 
   /** Applies edits (as one undo step); an edit the server would refuse says why instead. */
   const edit = (...ops: (PlaylistOp | null)[]) => {
+    // A removal's toast undoes the top step: once anything else is, it's gone.
+    toast.dismiss(REMOVED_TOAST);
     try {
       store.edit(...ops.filter((op) => op !== null));
     } catch (err) {
@@ -188,10 +197,17 @@ export default function PlaylistEditor({
   const removed = (what: string, op: PlaylistOp) => {
     edit(op);
     toast(`Removed ${what}`, {
+      id: REMOVED_TOAST,
       toasterId: TOASTER_ID,
       action: { label: 'Undo', onClick: () => store.undo() },
     });
   };
+  const undo = () => {
+    toast.dismiss(REMOVED_TOAST);
+    store.undo();
+  };
+  // Nor does it outlive the editor.
+  useEffect(() => () => void toast.dismiss(REMOVED_TOAST), []);
   const sections = content.segments.filter((s) => s.description && s.entries.length > 0);
 
   const slots: ArticleSlots = {
@@ -236,15 +252,8 @@ export default function PlaylistEditor({
           }
         />
       );
-      if (sameOwner(editing.owner, owner)) return field(owner, 'Text');
-      // A new intro for a loose group opens under its last track, where it will show.
-      if (editing.owner.kind === 'segment' && owner.kind === 'note') {
-        const segmentId = editing.owner.id;
-        const segment = content.segments.find((s) => s.id === segmentId);
-        if (segment && !segment.description && segment.entries.at(-1)?.id === owner.id)
-          return field(editing.owner, 'Section intro');
-      }
-      return undefined;
+      if (!sameOwner(editing.owner, owner)) return undefined;
+      return field(owner, owner.kind === 'segment' ? 'Section intro' : 'Text');
     },
 
     editProse: (owner) => setEditing({ kind: 'prose', owner }),
@@ -357,6 +366,9 @@ export default function PlaylistEditor({
       dragging,
       // The Add zone at the end is always there; elsewhere the composer is laid out.
       insertAfter: composerAt !== null && composerAt !== 'end' ? composerAt : null,
+      // A group's (or lone track's) first intro: laid out where it will show.
+      intro:
+        editing?.kind === 'prose' && editing.owner.kind === 'segment' ? editing.owner.id : null,
     },
 
     gap: (at) => {
@@ -400,12 +412,7 @@ export default function PlaylistEditor({
             Add Description
           </button>
         )}
-        <button
-          type="button"
-          onClick={() => store.undo()}
-          disabled={!state.canUndo}
-          className={TOOL}
-        >
+        <button type="button" onClick={undo} disabled={!state.canUndo} className={TOOL}>
           <UndoIcon className="size-4" aria-hidden />
           Undo
         </button>

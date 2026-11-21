@@ -61,6 +61,11 @@ export type FlowOptions = {
   editing?: boolean;
   /** A row key to open the composer after ('' for the very start). */
   insertAfter?: string | null;
+  /**
+   * An undescribed segment whose new intro is being written: it gets the
+   * (empty) intro row a section has, at its end, for the field.
+   */
+  intro?: string | null;
   /** What's being dragged: drop zones go wherever it can land and would move. */
   dragging?: DragSource | null;
 };
@@ -87,6 +92,15 @@ const entryEdge = (r: Draft): BlockEdge | undefined =>
     : r.kind === 'prose'
       ? r.dragRow
       : undefined;
+
+/** A segment's intro (a section's comment), under its entries. */
+const introRow = (blockKey: string, segmentId: string, prose: GuideBlock[]): Draft => ({
+  kind: 'prose',
+  key: `${blockKey}:comment`,
+  owner: { kind: 'segment', id: segmentId },
+  prose,
+  drag: { kind: 'prose', id: segmentId, role: 'comment' },
+});
 
 /** Rows for a block's items: tracks and text, `apart` inserting space between loose cards. */
 function itemRows(items: PlaylistItem[], apart: boolean): Draft[] {
@@ -147,7 +161,7 @@ function innerZones(rows: Draft[], segmentId: string, dragging: DragSource): Dra
  */
 export function flowRows(
   blocks: readonly PlaylistBlock[],
-  { editing = false, insertAfter = null, dragging = null }: FlowOptions = {}
+  { editing = false, insertAfter = null, dragging = null, intro = null }: FlowOptions = {}
 ): FlowGroup[] {
   const parts: Part[] = [];
   const space = (key: string): Part => ({
@@ -175,14 +189,10 @@ export function flowRows(
 
     if (block.kind === 'section' || block.kind === 'group') {
       let rows = itemRows(block.items, false);
-      if (block.kind === 'section')
-        rows.push({
-          kind: 'prose',
-          key: `${block.key}:comment`,
-          owner: { kind: 'segment', id: block.segmentId },
-          prose: block.comment,
-          drag: { kind: 'prose', id: block.segmentId, role: 'comment' },
-        });
+      if (block.kind === 'section' || block.segmentId === intro)
+        rows.push(
+          introRow(block.key, block.segmentId, block.kind === 'section' ? block.comment : [])
+        );
       // Inside a box only entries and text land (a whole box goes between blocks),
       // and a section's own intro has nowhere to go inside it.
       const ownIntro = dragging?.kind === 'prose' && dragging.id === block.segmentId;
@@ -203,7 +213,12 @@ export function flowRows(
       });
       return;
     }
-    parts.push({ key: block.key, rows: itemRows([block], true) });
+    const rows = itemRows([block], true);
+    // A lone track getting its first intro: the row goes under it.
+    const segmentId = firstSegment(block);
+    if (block.kind === 'tracks' && segmentId === intro)
+      rows.push(introRow(block.key, segmentId, []));
+    parts.push({ key: block.key, rows });
   });
   if (dragging && blocks.length && !holds(blocks.at(-1)))
     parts.push({
