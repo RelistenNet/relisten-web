@@ -174,8 +174,10 @@ export function flowRows(
           prose: block.comment,
           drag: { kind: 'prose', id: block.segmentId, role: 'comment' },
         });
-      // Inside a box only entries and text land (a whole box goes between blocks).
-      if (dragging && dragging.kind !== 'segment')
+      // Inside a box only entries and text land (a whole box goes between blocks),
+      // and a section's own intro has nowhere to go inside it.
+      const ownIntro = dragging?.kind === 'prose' && dragging.id === block.segmentId;
+      if (dragging && dragging.kind !== 'segment' && !ownIntro)
         rows = innerZones(rows, block.segmentId, dragging);
       if (editing)
         rows.unshift({

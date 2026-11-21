@@ -118,6 +118,19 @@ describe('flowRows', () => {
     ]);
   });
 
+  it('gives a section’s intro no zones inside its own section', () => {
+    const rows = rowsOf(
+      flowRows(blocks, {
+        editing: true,
+        dragging: { kind: 'prose', id: 's1', role: 'comment' },
+      })
+    );
+    const inside = rows.filter((r) => r.kind === 'drop' && r.box?.tone === 'section');
+    expect(inside).toEqual([]);
+    // It can still leave, to any place between blocks.
+    expect(rows.filter((r) => r.kind === 'drop').length).toBeGreaterThan(0);
+  });
+
   it('puts the composer after the row it was opened from, and an Add zone at the end', () => {
     const rows = rowsOf(flowRows(editorBlocks, { editing: true, insertAfter: 'e' }));
     expect(rows.map((r) => r.key)).toEqual([

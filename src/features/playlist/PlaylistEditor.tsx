@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import {
   type ReactNode,
+  useCallback,
   useDeferredValue,
   useEffect,
   useEffectEvent,
@@ -56,7 +57,7 @@ import { type DragSource, dropOps } from './dragOps';
 import MarkdownField from './MarkdownField';
 import PlaylistArticle, { ACTION, type ArticleSlots, type ProseOwner } from './PlaylistArticle';
 import { PLAYLIST_PROSE, type PlaylistResolved, playlistView } from './rows';
-import { usePlaylistDrag } from './usePlaylistDrag';
+import { draggableBlock, usePlaylistDrag } from './usePlaylistDrag';
 
 // The editor (docs/playlist-editing.md): the read view's article, laid out from
 // a draft, with menus on every cell, prose block and gap. Edits apply at once and
@@ -145,16 +146,8 @@ export default function PlaylistEditor({
   const [dragging, setDragging] = useState<DragSource | null>(null);
   // Where the composer is: after a row's key ('end' for the Add zone at the end).
   const composerAt = editing?.kind === 'composer' ? editing.after : null;
-  const openField =
-    editing?.kind === 'prose'
-      ? `${editing.owner.kind}:${editing.owner.kind === 'playlist' ? '' : editing.owner.id}`
-      : composerAt !== null
-        ? `gap:${composerAt}`
-        : '';
   usePlaylistDrag({
     root,
-    layoutKey: content,
-    fieldKey: openField,
     dragging,
     // Zones open at once (they animate in by CSS); they close as a transition, so the
     // rows slide back together (the drag is over by then).
@@ -451,15 +444,26 @@ export default function PlaylistEditor({
   );
 }
 
-/** Shows a block can be dragged (it drags from anywhere); the menus are the keyboard's way. */
+/**
+ * Shows a block can be dragged, and makes it so: the block drags from anywhere on
+ * it. The menus are the keyboard's way.
+ */
 function Grip({ drag, label }: { drag: DragSource; label: string }) {
+  const { kind, id } = drag;
+  const role = drag.kind === 'prose' ? drag.role : undefined;
+  // Stable while the block is the same, so a render mid-drag doesn't re-register it.
+  const register = useCallback(
+    (handle: HTMLSpanElement) =>
+      draggableBlock(
+        handle,
+        kind === 'prose' ? { kind, id, role: role ?? 'alone' } : { kind, id },
+        label
+      ),
+    [kind, id, role, label]
+  );
   return (
     <span
-      data-drag-kind={drag.kind}
-      data-drag-id={drag.id}
-      data-drag-role={drag.kind === 'prose' ? drag.role : undefined}
-      // What the drag image says (usePlaylistDrag).
-      data-drag-label={label}
+      ref={register}
       aria-hidden
       title="Drag to move"
       className={`
