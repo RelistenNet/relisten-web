@@ -104,6 +104,9 @@ export default function PlaylistArticle({
   // The editor shows each segment apart (groups), so it's clear what belongs together.
   const blocks = playlistBlocks(view.rows, { segments: !!slots });
   const groups = flowRows(blocks, { editing: !!slots, ...slots?.flow });
+  // Each animated row is captured by every transition: past this many, edits and
+  // the page ↔ editor morph cost more than a frame, so long playlists don't animate.
+  const animate = view.rows.length <= MAX_ANIMATED_ROWS;
 
   const meta = [
     ...byline,
@@ -159,13 +162,13 @@ export default function PlaylistArticle({
                   // (by its header's grip).
                   <div key={group.key} data-block="" className="flex flex-col">
                     {group.rows.map((row) => (
-                      <Row key={row.key} row={row} slots={slots} />
+                      <Row key={row.key} row={row} slots={slots} animate={animate} />
                     ))}
                   </div>
                 ) : (
                   <Fragment key={group.key}>
                     {group.rows.map((row) => (
-                      <Row key={row.key} row={row} slots={slots} />
+                      <Row key={row.key} row={row} slots={slots} animate={animate} />
                     ))}
                   </Fragment>
                 )
@@ -181,7 +184,10 @@ export default function PlaylistArticle({
 // --- Rows --------------------------------------------------------------------
 
 /** One row of the flow: its rail cell, then its content. */
-function Row({ row, slots }: { row: FlowRow; slots?: ArticleSlots }) {
+/** Above this many rows, rows don't animate (measured: 308 rows cost 90–250ms a transition). */
+const MAX_ANIMATED_ROWS = 150;
+
+function Row({ row, slots, animate }: { row: FlowRow; slots?: ArticleSlots; animate: boolean }) {
   const controls = slots?.controls?.(row);
   const body = (
     <div className="group/row flex">
@@ -214,7 +220,7 @@ function Row({ row, slots }: { row: FlowRow; slots?: ArticleSlots }) {
   // move between the playlist's page and its editor (a navigation), where each row
   // is named, so it morphs from where it was on one page to where it is on the
   // other. globals.css has the timing.
-  return row.kind === 'track' || row.kind === 'prose' || row.kind === 'header' ? (
+  return animate && (row.kind === 'track' || row.kind === 'prose' || row.kind === 'header') ? (
     <ViewTransition name={transitionName(row.key)} share="playlist-move" default="playlist-move">
       {body}
     </ViewTransition>
