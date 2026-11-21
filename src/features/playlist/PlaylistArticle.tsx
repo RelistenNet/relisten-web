@@ -12,24 +12,27 @@ import { SongQueueProvider } from '@/player/SongQueue';
 import TrackLoadDot from '@/player/TrackLoadDot';
 import { songRowItem } from '@/player/queue/items';
 import { formatShowDate } from '@/ui/shows/stats';
+import { playlistBlocks, type PlaylistTrackGroupRow } from './blocks';
 import {
-  type BlockEdge,
-  blockEdges,
-  playlistBlocks,
-  type PlaylistBlock,
-  type PlaylistItem,
-  type PlaylistTrackGroupRow,
-} from './blocks';
+  type BoxPosition,
+  type FlowRow,
+  flowRows,
+  type GapAt,
+  type ProseOwner,
+  type RailCell,
+} from './flow';
 import type { PlaylistView } from './rows';
 import SeekLink from './SeekLink';
 import { isTrackRow, type PlaylistOtherRow, type PlaylistTrackRow } from './spec';
 
 // A playlist, read like a post: a byline and lede, then the author's writing
 // with the tracks embedded in it as cards. The same layout for a published
-// playlist, a listener's own, and the editor (src/features/playlist/edit), which
-// passes slots for its controls; the read pages pass none. Descriptions are the
-// guide Markdown subset, sanitized on the server (src/lib/guideMarkdown); their
-// timestamps play. No server imports and no hooks: it renders on either side.
+// playlist, a listener's own, and the editor (PlaylistEditor), which passes slots
+// for its controls; the read pages pass none. The flow is one column of rows
+// (flow.ts), each a rail cell and a content cell, so the rail can't break.
+// Descriptions are the guide Markdown subset, sanitized on the server
+// (src/lib/guideMarkdown); their timestamps play. No server imports and no
+// hooks: it renders on either side.
 
 /** A header action's look (the owner's Edit, the editor's Done). */
 export const ACTION = `
@@ -38,23 +41,7 @@ export const ACTION = `
   focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent
 `;
 
-/** Whose prose a block is: the editor edits it by this. */
-export type ProseOwner =
-  | { kind: 'playlist' }
-  /** A described segment's comment. */
-  | { kind: 'segment'; id: string }
-  /** A text block: an entry's id, or a prose-only segment's. */
-  | { kind: 'text'; id: string }
-  /** A track's note, by entry id. */
-  | { kind: 'note'; id: string };
-
-/** A gap between blocks: the rows on either side of it, and whether the rail runs through. */
-export type GapAt = {
-  index: number;
-  above?: BlockEdge;
-  below?: BlockEdge;
-  railThrough: boolean;
-};
+export type { GapAt, ProseOwner } from './flow';
 
 /** The editor's controls. Each is optional; the read pages pass none. */
 export type ArticleSlots = {
@@ -104,7 +91,7 @@ export default function PlaylistArticle({
   const items = view.rows.flatMap((r) => (isTrackRow(r) ? (songRowItem(r) ?? []) : []));
   const unavailable = view.rows.filter((r) => r.kind === 'unavailable' && !r.pending).length;
   const blocks = playlistBlocks(view.rows);
-  const rail = railLayout(blocks);
+  const groups = flowRows(blocks, { gaps: !!slots?.gap });
 
   const meta = [
     ...byline,
@@ -148,16 +135,25 @@ export default function PlaylistArticle({
               {items.length > 0 && <ShowQueueActions playlist />}
               {slots?.toolbar}
             </div>
-            {/* The left padding holds the rail; from md up it hangs in the margin instead,
-            and everything lines up with the header. */}
-            <div className="flex flex-col gap-4 pl-6 md:-ml-6">
-              {blocks.map((block, i) => (
-                <Fragment key={block.key}>
-                  {slots?.gap && <Gap at={gapAt(blocks, i)} slots={slots} />}
-                  <Block block={block} rail={rail} slots={slots} />
-                </Fragment>
-              ))}
-              {slots?.gap && <Gap at={gapAt(blocks, blocks.length)} slots={slots} />}
+            {/* Rows sit flush (spacing is rows too). Each row's rail cell is the first
+            column; from md up it hangs in the margin, so content lines up with the header. */}
+            <div className="flex flex-col md:-ml-5">
+              {groups.map((group) =>
+                group.sectionId ? (
+                  // A section's rows together: its segment drags as one.
+                  <div key={group.key} data-section-id={group.sectionId} className="flex flex-col">
+                    {group.rows.map((row) => (
+                      <Row key={row.key} row={row} slots={slots} />
+                    ))}
+                  </div>
+                ) : (
+                  <Fragment key={group.key}>
+                    {group.rows.map((row) => (
+                      <Row key={row.key} row={row} slots={slots} />
+                    ))}
+                  </Fragment>
+                )
+              )}
             </div>
           </>
         )}
@@ -166,24 +162,116 @@ export default function PlaylistArticle({
   );
 }
 
-function gapAt(blocks: readonly PlaylistBlock[], index: number): GapAt {
-  const hasTrack = (b: PlaylistBlock) =>
-    (b.kind === 'section' ? b.items : [b]).some((item) => item.kind === 'tracks');
-  return {
-    index,
-    above: index > 0 ? blockEdges(blocks[index - 1])?.last : undefined,
-    below: index < blocks.length ? blockEdges(blocks[index])?.first : undefined,
-    railThrough: blocks.slice(0, index).some(hasTrack) && blocks.slice(index).some(hasTrack),
-  };
+// --- Rows --------------------------------------------------------------------
+
+/** One row of the flow: its rail cell, then its content. */
+function Row({ row, slots }: { row: FlowRow; slots?: ArticleSlots }) {
+  return (
+    <div className="group/row flex">
+      <Rail rail={row.rail} />
+      <div className="min-w-0 flex-1">
+        <RowContent row={row} slots={slots} />
+      </div>
+    </div>
+  );
 }
 
+function RowContent({ row, slots }: { row: FlowRow; slots?: ArticleSlots }) {
+  switch (row.kind) {
+    case 'space':
+      return <div aria-hidden style={{ height: row.height }} />;
+    case 'gap':
+      return (
+        <div className="py-2">
+          <Gap at={row.at} slots={slots} />
+        </div>
+      );
+    case 'track':
+      return isTrackRow(row.row) ? (
+        <TrackCell row={row.row} box={row.box} slots={slots} />
+      ) : (
+        <UnavailableCell row={row.row} box={row.box} slots={slots} />
+      );
+    case 'prose':
+      return (
+        <Prose
+          owner={row.owner}
+          blocks={row.prose}
+          slots={slots}
+          row={row.dragRow}
+          className={cn(
+            FLOW_INDENT,
+            COMMENTARY,
+            // In a section's box: its tint and corners, and room inside it.
+            // The box spans the row; the text inside keeps its measure.
+            row.box &&
+              cn(SECTION_TINT, BOX_CORNERS[row.box], 'max-w-none py-3 pr-4 *:max-w-[65ch]'),
+            row.box && row.owner.kind === 'segment' && 'pb-3.5'
+          )}
+        />
+      );
+  }
+}
+
+// --- The rail -----------------------------------------------------------------
+//
+// One line down the left from the first track's dot to the last's. Each row draws
+// its own stretch in its rail cell (full height between, from or to the dot at a
+// track), so the line holds whatever the rows are and however tall.
+
+/** From a row's top to the middle of a card's title line (and play button). */
+const DOT_Y = 25;
+/** The rail's x within its 20px cell; the dot (8px) centers on it. */
+const RAIL_X = 9;
+const LINE = 'pointer-events-none absolute w-px bg-text-primary/15';
+
+function Rail({ rail }: { rail: RailCell }) {
+  return (
+    <div aria-hidden className="relative w-5 shrink-0">
+      {rail.dot ? (
+        <>
+          {rail.above && <span className={LINE} style={{ left: RAIL_X, top: 0, height: DOT_Y }} />}
+          {rail.below && <span className={LINE} style={{ left: RAIL_X, top: DOT_Y, bottom: 0 }} />}
+          {/* Filled while its track is the one playing. */}
+          <span
+            className="
+              absolute size-2 rounded-full border border-text-primary/30
+              group-has-[[data-current-track]]/row:border-accent
+              group-has-[[data-current-track]]/row:bg-accent
+            "
+            style={{ left: RAIL_X - 3.5, top: DOT_Y - 4 }}
+          />
+          {/* The branch, from the dot to the card. */}
+          <span
+            className="absolute h-px bg-text-primary/30"
+            style={{ left: RAIL_X + 4.5, right: 0, top: DOT_Y }}
+          />
+        </>
+      ) : (
+        (rail.above || rail.below) && (
+          <span className={LINE} style={{ left: RAIL_X, top: 0, bottom: 0 }} />
+        )
+      )}
+    </div>
+  );
+}
+
+/** A section's tint, on each of its rows' content cells (they stack flush into one box). */
+const SECTION_TINT = 'bg-text-primary/[0.035]';
+const BOX_CORNERS: Record<BoxPosition, string> = {
+  first: 'rounded-t-2xl',
+  middle: '',
+  last: 'rounded-b-2xl',
+  only: 'rounded-2xl',
+};
+
 /**
- * The editor's place between blocks: a full-width dashed zone in the flow, holding
- * its control (Add Text) or what's being written there. Marked with the segments
- * on either side, since a drag drops into it too. The rail runs down through it.
+ * The editor's place between blocks: a full-width dashed zone holding its control
+ * (Add Text, Add Tracks) or what's being written there. Marked with the segments on
+ * either side, since a drag drops into it too.
  */
-function Gap({ at, slots }: { at: GapAt; slots: ArticleSlots }) {
-  const gap = slots.gap?.(at);
+function Gap({ at, slots }: { at: GapAt; slots?: ArticleSlots }) {
+  const gap = slots?.gap?.(at);
   if (!gap) return null;
   return (
     <div
@@ -191,19 +279,11 @@ function Gap({ at, slots }: { at: GapAt; slots: ArticleSlots }) {
       data-above={at.above?.segmentId}
       data-below={at.below?.segmentId}
       className="
-        relative rounded-xl border border-dashed border-text-primary/15 transition-colors
+        rounded-xl border border-dashed border-text-primary/15 transition-colors
         data-[drop-over]:border-accent data-[drop-over]:bg-accent/20
         data-[drop-over]:[&_button]:text-accent
       "
     >
-      {at.railThrough && (
-        // Across the gap above and down its own height, 1px in from its border like a cell's.
-        <span
-          aria-hidden
-          className={RAIL_LINE}
-          style={{ left: -12, top: -1 - FLOW_GAP, bottom: -1 }}
-        />
-      )}
       {gap.content ? <div className="py-2 pr-3 pl-[52px]">{gap.content}</div> : gap.control}
     </div>
   );
@@ -248,15 +328,20 @@ export function Prose({
         PROSE,
         'group/prose',
         (menu || open) && 'relative',
-        // Editable: above a cell's play-anywhere overlay, and marked as text to click into.
+        // Editable: above a cell's play-anywhere overlay, and marked as text to click
+        // into. An outline, not padding or a margin: hovering moves nothing.
         open &&
           `
-            z-10 -mx-1.5 cursor-text rounded-md px-1.5 transition-colors
-            hover:bg-text-primary/[0.04] focus-visible:outline-2 focus-visible:outline-accent
+            z-10 cursor-text outline-1 -outline-offset-1 outline-transparent
+            transition-[outline-color]
+            hover:outline-text-primary/15 hover:outline-dashed focus-visible:outline-2
+            focus-visible:outline-accent
           `,
         // Shown as written until the server renders it: dimmed, gently pulsing.
         pending && 'animate-pulse opacity-60 motion-reduce:animate-none',
-        className
+        className,
+        // Room for the editor's grip and menu at the top right, so they never cover text.
+        menu && !editing && 'pr-20'
       )}
       aria-busy={pending || undefined}
       data-row-id={row?.id}
@@ -295,204 +380,11 @@ const FLOW_INDENT = 'pl-[53px]';
 // commentary on them.
 const COMMENTARY = 'max-w-[calc(65ch+53px)] text-text-primary/85';
 
-// --- The rail ---------------------------------------------------------------
-//
-// A line down the left from the first track to the last, past everything
-// between. Each card has a dot beside its title with a branch to the card; each
-// element draws the line beside itself and across the gap above it, so the
-// line is unbroken however the elements are spaced.
+/** A card: a 1px border (transparent but an unavailable one's), so content lines up. */
+const CELL = 'relative flex gap-3 border border-transparent py-2.5 pr-1.5 pl-3';
 
-/** One element's piece of the rail. */
-type RailPiece = {
-  /** The gap above it (px), which its line also covers. */
-  gapAbove: number;
-  /** A track comes before it / after it: the line runs above / below its dot. */
-  before: boolean;
-  after: boolean;
-};
-
-/** Every card's and paragraph's rail piece, by key. */
-type RailLayout = Map<string, RailPiece>;
-
-const FLOW_GAP = 16; // gap-4 between blocks
-const CELL_GAP = 6; // gap-1.5 between cells, and between a section's items
-
-/**
- * Walks the blocks in order, noting the gap above each card and paragraph and
- * whether any track comes before or after it.
- */
-function railLayout(blocks: readonly PlaylistBlock[]): RailLayout {
-  const pieces: { key: string; gapAbove: number; card: boolean }[] = [];
-  let gap = 0; // the gap above the next element
-  let inSection = false;
-  const add = (key: string, card: boolean) => {
-    pieces.push({ key, gapAbove: gap, card });
-    // Inside a section everything stacks flush; elsewhere cells are 6px apart.
-    gap = inSection ? 0 : CELL_GAP;
-  };
-  const addItem = (item: PlaylistItem) => {
-    if (item.kind === 'text') add(item.key, false);
-    else
-      item.rows.forEach((row, i) => {
-        // Loose cells in a run are 6px apart; in a section they stack flush.
-        if (i > 0) gap = inSection ? 0 : CELL_GAP;
-        add(row.id, true);
-      });
-  };
-  blocks.forEach((block, i) => {
-    // Between blocks: the flow's gap (sections have no border or padding to add).
-    gap = i > 0 ? FLOW_GAP : 0;
-    if (block.kind === 'section') {
-      inSection = true;
-      block.items.forEach(addItem);
-      add(block.key, false);
-      inSection = false;
-    } else {
-      addItem(block);
-    }
-  });
-  const first = pieces.findIndex((p) => p.card);
-  const last = pieces.findLastIndex((p) => p.card);
-  return new Map(
-    pieces.map((p, i) => [p.key, { gapAbove: p.gapAbove, before: i > first, after: i < last }])
-  );
-}
-
-// Offsets count from a cell's padding box, 1px in from its border.
-const RAIL_LINE = 'pointer-events-none absolute w-px bg-text-primary/15';
-
-/** Beside a paragraph: the line, if it passes, from the gap above to its bottom. */
-function RailThrough({ piece }: { piece?: RailPiece }) {
-  if (!piece?.before || !piece.after) return null;
-  // No border: 1px further right than a cell's offsets, to line up.
-  return (
-    <span
-      aria-hidden
-      className={RAIL_LINE}
-      style={{ left: -11, top: -piece.gapAbove, bottom: 0 }}
-    />
-  );
-}
-
-/** Beside a cell: the line above its dot (across the gap above), below it, and the branch. */
-function RailStop({ piece }: { piece?: RailPiece }) {
-  if (!piece) return null;
-  return (
-    <>
-      {piece.before && (
-        <span
-          aria-hidden
-          className={RAIL_LINE}
-          style={{ left: -12, top: -1 - piece.gapAbove, height: 21 + piece.gapAbove }}
-        />
-      )}
-      {piece.after && (
-        <span aria-hidden className={RAIL_LINE} style={{ left: -12, top: 28, bottom: -1 }} />
-      )}
-      <span
-        aria-hidden
-        className="absolute top-6 h-px bg-text-primary/30"
-        // From the dot's edge to the outer edge: the cell's border, or a section box's
-        // (it stops there rather than crossing it).
-        style={{ left: -7.5, width: 6.5 }}
-      />
-    </>
-  );
-}
-
-function Block({
-  block,
-  rail,
-  slots,
-}: {
-  block: PlaylistBlock;
-  rail: RailLayout;
-  slots?: ArticleSlots;
-}) {
-  if (block.kind !== 'section') return <Item item={block} rail={rail} slots={slots} />;
-  // A described segment, boxed: its entries, then the author's comment on them.
-  return (
-    // One shape: a soft tint, no outline. Its cells drop their own fill (it comes
-    // back on hover and while playing) and stack flush, square but for the top
-    // one's corners.
-    <section
-      data-section-id={block.segmentId}
-      className={`
-        flex flex-col rounded-2xl bg-text-primary/[0.035]
-        [&_li]:rounded-none [&_li]:bg-transparent
-        [&>ol:first-child>li:first-child]:rounded-t-2xl
-      `}
-    >
-      {block.items.map((item) => (
-        <Item key={item.key} item={item} rail={rail} slots={slots} inSection />
-      ))}
-      <Prose
-        owner={{ kind: 'segment', id: block.segmentId }}
-        blocks={block.comment}
-        slots={slots}
-        className={cn(FLOW_INDENT, COMMENTARY, 'relative pt-3 pr-4 pb-3.5')}
-      >
-        <RailThrough piece={rail.get(block.key)} />
-      </Prose>
-    </section>
-  );
-}
-
-function Item({
-  item,
-  rail,
-  slots,
-  inSection = false,
-}: {
-  item: PlaylistItem;
-  rail: RailLayout;
-  slots?: ArticleSlots;
-  /** In a section box: flush, so text gets its own padding. */
-  inSection?: boolean;
-}) {
-  if (item.kind === 'text') {
-    return (
-      <Prose
-        owner={{ kind: 'text', id: item.key }}
-        blocks={item.prose}
-        slots={slots}
-        row={{ id: item.key, segmentId: item.segmentId }}
-        className={cn(FLOW_INDENT, COMMENTARY, 'relative', inSection && 'py-3 pr-4')}
-      >
-        <RailThrough piece={rail.get(item.key)} />
-      </Prose>
-    );
-  }
-  // Each track its own cell, like a notebook's; a run of them sits closer
-  // together than prose does.
-  return (
-    // Loose cells have fills, so they need a gap; a section's don't, so its rows stack flush.
-    <ol className={cn('m-0 flex list-none flex-col p-0', !inSection && 'gap-1.5')}>
-      {item.rows.map((row) => {
-        const stop = <RailStop piece={rail.get(row.id)} />;
-        return isTrackRow(row) ? (
-          <TrackCell key={row.id} row={row} rail={stop} slots={slots} />
-        ) : (
-          <UnavailableCell key={row.id} row={row} rail={stop} slots={slots} />
-        );
-      })}
-    </ol>
-  );
-}
-
-// ml-0: the global `li` rule indents list items.
-const CELL = cn(
-  // Every cell has a 1px border (transparent but the unavailable one's), so the
-  // rail's offsets match from cell to cell.
-  'relative ml-0 flex list-none gap-3 rounded-xl border border-transparent py-2.5 pr-1.5 pl-3',
-  // The rail's dot beside the title line, filled while it's the current track.
-  `
-    before:absolute before:top-5 before:left-[-15.5px] before:size-2
-    before:rounded-full before:border before:border-text-primary/30 before:content-['']
-    has-[[data-current-track]]:before:border-accent
-    has-[[data-current-track]]:before:bg-accent
-  `
-);
+/** A card's corners: its own, or its place in a section's box. */
+const cardCorners = (box: BoxPosition | null) => (box ? BOX_CORNERS[box] : 'rounded-xl');
 
 /** A track's note, under its show line. */
 function Note({ id, blocks, slots }: { id: string; blocks?: GuideBlock[]; slots?: ArticleSlots }) {
@@ -506,20 +398,21 @@ function Note({ id, blocks, slots }: { id: string; blocks?: GuideBlock[]; slots?
  */
 function TrackCell({
   row,
-  rail,
+  box,
   slots,
 }: {
   row: PlaylistTrackRow;
-  rail: ReactNode;
+  box: BoxPosition | null;
   slots?: ArticleSlots;
 }) {
   const name = `${row.trackTitle ?? 'Track'}, ${row.date}`;
   return (
-    <li
+    <div
       data-row-id={row.id}
       data-segment-id={row.segmentId}
       className={cn(
         CELL,
+        cardCorners(box),
         `
           group/cell items-start bg-text-primary/[0.035] transition-colors
           hover:bg-text-primary/[0.06]
@@ -527,7 +420,6 @@ function TrackCell({
         `
       )}
     >
-      {rail}
       <PlayTrackRow row={row} track={row.track} />
       <PlayTrackButton row={row} track={row.track} label={`Play ${name}`} />
       <div className="flex min-w-0 flex-1 flex-col pt-0.5">
@@ -570,8 +462,7 @@ function TrackCell({
           />
         )}
       </div>
-      {/* Clipped to the cell's corners; the cell itself isn't, so the rail can leave it.
-      Only the scrubber takes pointer events. */}
+      {/* Clipped to the card's corners. Only the scrubber takes pointer events. */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
         <EntryProgress
           queueKey={row.queueKey}
@@ -579,27 +470,31 @@ function TrackCell({
           fallbackDuration={row.songDuration ?? undefined}
         />
       </div>
-    </li>
+    </div>
   );
 }
 
 /** Kept in its place, with its note, so the writing around it still reads. */
 function UnavailableCell({
   row,
-  rail,
+  box,
   slots,
 }: {
   row: PlaylistOtherRow;
-  rail: ReactNode;
+  box: BoxPosition | null;
   slots?: ArticleSlots;
 }) {
   return (
-    <li
+    <div
       data-row-id={row.id}
       data-segment-id={row.segmentId}
-      className={cn(CELL, 'group/cell items-start border-dashed border-hairline text-text-muted')}
+      className={cn(
+        CELL,
+        cardCorners(box),
+        box && SECTION_TINT,
+        'group/cell items-start border-dashed border-hairline text-text-muted'
+      )}
     >
-      {rail}
       {/* The play button's width, so titles line up. */}
       <span aria-hidden className="w-7 shrink-0" />
       <div className="flex min-w-0 flex-1 flex-col pt-0.5">
@@ -619,6 +514,6 @@ function UnavailableCell({
         <Note id={row.id} blocks={row.prose} slots={slots} />
       </div>
       {slots?.cellMenu?.(row)}
-    </li>
+    </div>
   );
 }
