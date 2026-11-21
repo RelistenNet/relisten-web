@@ -79,7 +79,9 @@ export default function PublishControl({
     startTransition(async () => {
       try {
         if (published && beforePublish && !(await beforePublish())) {
-          notify.error('Your latest edits aren’t saved yet. Retry, then publish.');
+          notify.error(
+            'Your latest edits aren’t saved, so it wasn’t published. Fix or retry them first.'
+          );
           return;
         }
         const result = await playlistTransport.publish(playlistId, published);

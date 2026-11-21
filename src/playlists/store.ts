@@ -286,11 +286,16 @@ function stateOf(snapshot: DraftSnapshot): DraftState {
   };
 }
 
-/** Resolves once the actor is idle (true) or has failed (false). */
+/**
+ * Resolves once the actor is idle or has failed: true only if everything waiting
+ * saved. A refusal meanwhile is false too: nothing's left unsaved, but what the
+ * listener last wrote isn't what the server has.
+ */
 function settled(actor: DraftActor): Promise<boolean> {
+  const refusedBefore = actor.getSnapshot().context.refused;
   return new Promise((resolve) => {
     const done = (s: DraftSnapshot) => {
-      if (s.matches('idle')) resolve(true);
+      if (s.matches('idle')) resolve(s.context.refused === refusedBefore || !s.context.refused);
       else if (s.matches('failed')) resolve(false);
       else return false;
       return true;

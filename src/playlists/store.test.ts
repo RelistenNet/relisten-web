@@ -316,3 +316,22 @@ describe('undo and timestamp links', () => {
     expect(server.server.description).toBe(after.description);
   });
 });
+
+describe('whenSaved and refusals', () => {
+  beforeEach(() => vi.useFakeTimers());
+  it('is false when what was waiting is refused', async () => {
+    const server = fakeServer();
+    const store = createDraftStore(content, { transport: server.transport, newId: ids() });
+    server.failNext(new PlaylistWriteError('invalid', 'Too long.', 422));
+    store.edit(op('update_segment', { segment_id: 's2', description: 'x'.repeat(10) }));
+    const saved = store.whenSaved();
+    await settle();
+    await expect(saved).resolves.toBe(false);
+    expect(store.getState().status).toBe('saved');
+    // An older refusal doesn't hold up the next save.
+    store.edit(op('update_segment', { segment_id: 's2', description: 'Fine' }));
+    const next = store.whenSaved();
+    await settle();
+    await expect(next).resolves.toBe(true);
+  });
+});
