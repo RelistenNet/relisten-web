@@ -82,10 +82,10 @@ describe('dropOps: prose', () => {
     return () => `n${++n}`;
   };
 
-  it('moves a section’s comment out to stand alone between groups', () => {
+  it('moves a section’s intro out to stand alone between groups', () => {
     const ops = dropOps(
       content,
-      { kind: 'prose', id: 's1', role: 'comment' },
+      { kind: 'prose', id: 's1', role: 'intro' },
       { kind: 'gap', above: 's2', below: 's3' },
       ids()
     );
@@ -108,7 +108,7 @@ describe('dropOps: prose', () => {
     ).toBe('s1:e1,e2 | s3:e3,n1,e4');
   });
 
-  it('moves text alone between groups as itself, and a comment into its own section as text', () => {
+  it('moves text alone between groups as itself, and an intro into its own section as text', () => {
     expect(
       applyAll(
         dropOps(content, { kind: 'prose', id: 's2', role: 'alone' }, { kind: 'gap', below: 's1' })
@@ -116,12 +116,7 @@ describe('dropOps: prose', () => {
     ).toBe('s2: | s1:e1,e2 | s3:e3,e4');
     expect(
       applyAll(
-        dropOps(
-          content,
-          { kind: 'prose', id: 's1', role: 'comment' },
-          row('e3', 's3', 'top'),
-          ids()
-        )
+        dropOps(content, { kind: 'prose', id: 's1', role: 'intro' }, row('e3', 's3', 'top'), ids())
       )
     ).toBe('s1:e1,e2 | s2: | s3:n1,e3,e4');
   });

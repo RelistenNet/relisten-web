@@ -341,7 +341,9 @@ function RowContent({ row, slots, drop }: { row: FlowRow; slots?: ArticleSlots; 
             // The box spans the row; the text inside keeps its measure.
             row.box && cn('max-w-none py-3 pr-4 *:max-w-measure', boxCorners(row.box)),
             !row.box && 'rounded-xl',
-            row.box && row.owner.kind === 'segment' && 'pb-3.5'
+            // A section's intro, at the top of its box: room above it, as the box's
+            // last row has below.
+            row.box && row.owner.kind === 'segment' && 'pt-3.5'
           )}
         />
       );

@@ -16,13 +16,16 @@ export type PlaylistItem =
 
 export type PlaylistBlock =
   | PlaylistItem
-  /** A described segment: its entries, then its description beneath them. */
+  /**
+   * A described segment (a section): its description first, introducing its
+   * entries (RelistenApi docs/design/2026-11-18-playlist-guide-content.md).
+   */
   | {
       kind: 'section';
       key: string;
       segmentId: string;
       items: PlaylistItem[];
-      comment: GuideBlock[];
+      intro: GuideBlock[];
     };
 
 /** Appends rows as items. A track joins the run of tracks before it. */
@@ -80,7 +83,7 @@ export function playlistBlocks(
         key: `section:${heading.id}`,
         segmentId: heading.id,
         items,
-        comment: heading.prose,
+        intro: heading.prose,
       });
     } else addItems(blocks, run, { keepEmpty });
     i = end;

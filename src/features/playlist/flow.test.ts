@@ -6,7 +6,7 @@ const track = (id: string, segmentId: string) =>
   ({ id, segmentId, kind: 'track' }) as unknown as PlaylistTrackGroupRow;
 const prose = [{ type: 'paragraph' as const, children: [{ type: 'text' as const, value: 'x' }] }];
 
-// Intro text | section s1 (a, b, comment) | loose: c, d (group s2), e (alone, s3) | closing text
+// Intro text | section s1 (its intro, a, b) | loose: c, d (group s2), e (alone, s3) | closing text
 const blocks: PlaylistBlock[] = [
   { kind: 'text', key: 'intro', segmentId: 'intro', prose },
   {
@@ -14,7 +14,7 @@ const blocks: PlaylistBlock[] = [
     key: 'section:s1',
     segmentId: 's1',
     items: [{ kind: 'tracks', key: 'a', rows: [track('a', 's1'), track('b', 's1')] }],
-    comment: prose,
+    intro: prose,
   },
   { kind: 'tracks', key: 'c', rows: [track('c', 's2'), track('d', 's2'), track('e', 's3')] },
   { kind: 'text', key: 'outro', segmentId: 'outro', prose },
@@ -36,9 +36,9 @@ describe('flowRows', () => {
     expect(picture(rowsOf(flowRows(blocks)))).toEqual([
       'intro: · ',
       'space:section:s1: · ',
+      'section:s1:intro: · ',
       'a: ●│',
       'b:│●│',
-      'section:s1:comment:│·│',
       'space:c:│·│',
       'c:│●│',
       'space:d:│·│',
@@ -112,9 +112,9 @@ describe('flowRows', () => {
     expect(row(groups, 'space:start').drop).toEqual({
       center: { kind: 'gap', above: undefined, below: 'intro' },
     });
-    // A section's comment, anywhere on it: into the section, after its last entry.
-    expect(row(groups, 'section:s1:comment').drop).toEqual({
-      top: { kind: 'row', rowId: 'b', segmentId: 's1', edge: 'bottom' },
+    // A section's intro, anywhere on it: into the section, before its first entry.
+    expect(row(groups, 'section:s1:intro').drop).toEqual({
+      bottom: { kind: 'row', rowId: 'a', segmentId: 's1', edge: 'top' },
     });
     // Readers get none.
     expect(rowsOf(flowRows(blocks)).some((r) => r.drop)).toBe(false);
@@ -123,10 +123,10 @@ describe('flowRows', () => {
   it('puts the composer after the row it was opened from, in its section', () => {
     const groups = flowRows(blocks, { editing: true, insertAfter: 'a' });
     expect(groups.find((g) => g.segmentId === 's1')?.rows.map((r) => r.key)).toEqual([
+      'section:s1:intro',
       'a',
       'gap:a',
       'b',
-      'section:s1:comment',
     ]);
     const gap = row(groups, 'gap:a');
     expect(gap.kind === 'gap' && gap.at).toEqual({
@@ -136,13 +136,13 @@ describe('flowRows', () => {
     });
   });
 
-  it('lays out a new intro’s row under its segment’s last entry, in its group', () => {
+  it('lays out a new intro’s row above its segment’s first entry, in its group', () => {
     const lone = flowRows(blocks, { editing: true, intro: 's3' });
-    expect(keys(lone).indexOf('intro:s3')).toBe(keys(lone).indexOf('e') + 1);
+    expect(keys(lone).indexOf('intro:s3')).toBe(keys(lone).indexOf('e') - 1);
     // A lone track with an intro being written is outlined as a group while it is.
     expect(lone.find((g) => g.key === 'group:s3')?.rows.map((r) => r.key)).toEqual([
-      'e',
       'intro:s3',
+      'e',
     ]);
     const intro = row(lone, 'intro:s3');
     expect(intro.kind === 'prose' && intro.owner).toEqual({ kind: 'segment', id: 's3' });

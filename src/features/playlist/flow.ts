@@ -80,7 +80,7 @@ export type FlowOptions = {
   insertAfter?: string | null;
   /**
    * An undescribed segment whose new intro is being written: it gets the (empty)
-   * intro row a section has, after its last entry, for the field.
+   * intro row a section has, above its first entry, for the field.
    */
   intro?: string | null;
 };
@@ -116,13 +116,13 @@ const edgeOf = (r: Draft): BlockEdge | undefined =>
       (r.owner.kind === 'segment' ? { id: r.owner.id, segmentId: r.owner.id } : undefined))
     : undefined);
 
-/** A segment's intro (a section's comment), under its entries. */
+/** A segment's intro (a section's description), above its entries. */
 const introRow = (key: string, segmentId: string, prose: GuideBlock[]): Draft => ({
   kind: 'prose',
   key,
   owner: { kind: 'segment', id: segmentId },
   prose,
-  drag: { kind: 'prose', id: segmentId, role: 'comment' },
+  drag: { kind: 'prose', id: segmentId, role: 'intro' },
 });
 
 /** Rows for a block's items: tracks and text, `apart` inserting space between loose cards. */
@@ -164,8 +164,10 @@ export function flowRows(
     if (b > 0)
       placed.push({ row: { kind: 'space', key: `space:${block.key}`, height: BLOCK_SPACE } });
     if (block.kind === 'section') {
-      const rows = itemRows(block.items, false);
-      rows.push(introRow(`${block.key}:comment`, block.segmentId, block.comment));
+      const rows = [
+        introRow(`${block.key}:intro`, block.segmentId, block.intro),
+        ...itemRows(block.items, false),
+      ];
       placed.push(...rows.map((row) => ({ row, section: block.segmentId })));
     } else placed.push(...itemRows([block], true).map((row) => ({ row })));
   });
@@ -224,10 +226,10 @@ function editorRows(
   { insertAfter, intro }: { insertAfter: string | null; intro: string | null }
 ): Placed[] {
   const out = [...placed];
-  // A group's (or lone track's) first intro: under its last entry, where it will show.
+  // A group's (or lone track's) first intro: above its first entry, where it will show.
   if (intro && !out.some((p) => p.section === intro)) {
-    const at = out.findLastIndex((p) => segmentOf(p.row) === intro);
-    if (at >= 0) out.splice(at + 1, 0, { row: introRow(`intro:${intro}`, intro, []) });
+    const at = out.findIndex((p) => segmentOf(p.row) === intro);
+    if (at >= 0) out.splice(at, 0, { row: introRow(`intro:${intro}`, intro, []) });
   }
   if (insertAfter !== null) {
     const gap: Draft = { kind: 'gap', key: `gap:${insertAfter}`, at: { key: insertAfter } };
@@ -333,14 +335,13 @@ function dropTargets(
       return row.kind === 'track' ? { ...edges, center: next(entry, 'bottom') } : edges;
     }
     if (row.kind === 'prose' && segment) {
-      // A section's comment: anywhere on it, into the section, after its last entry
-      // (the comment always shows last, so that's where it lands). After the section,
-      // on its own, is the space below the box, not the comment's own bottom edge,
-      // which is still inside the box.
+      // A section's intro: anywhere on it, into the section, before its first entry
+      // (the intro always shows first, so that's where it lands: the line is drawn
+      // under the intro). Before the section, on its own, is the space above the box.
       if (row.owner.kind === 'segment') {
-        const above = placed.slice(0, i).findLast((p) => entryOf(p.row)?.segmentId === segment);
-        const last = above && entryOf(above.row);
-        return last ? { top: next(last, 'bottom') } : undefined;
+        const below = placed.slice(i + 1).find((p) => entryOf(p.row)?.segmentId === segment);
+        const first = below && entryOf(below.row);
+        return first ? { bottom: next(first, 'top') } : undefined;
       }
       // Text alone.
       return { top: gap(segmentBefore(i), segment), bottom: gap(segment, segmentAfter(i)) };

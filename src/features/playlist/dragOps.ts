@@ -9,13 +9,13 @@ import { newTypeId } from '@/domain/typeid';
 /**
  * What's dragged: an entry (a track, or a text block inside a group), a whole
  * segment (a section or group, by its header), or prose that's a segment's own
- * text: a section's comment, or text standing alone between groups. Prose moves
+ * text: a section's intro, or text standing alone between groups. Prose moves
  * as text wherever it lands, changing how it's stored on the way.
  */
 export type DragSource =
   | { kind: 'entry'; id: string }
   | { kind: 'segment'; id: string }
-  | { kind: 'prose'; id: string; role: 'comment' | 'alone' };
+  | { kind: 'prose'; id: string; role: 'intro' | 'alone' };
 
 /** Where it's dropped. */
 export type DropTarget =
@@ -41,7 +41,7 @@ export function dropOps(
 
 /**
  * A segment's own text moved. Text alone moves as its segment between groups; into
- * a group it becomes a text entry there. A section's comment becomes text alone
+ * a group it becomes a text entry there. A section's intro becomes text alone
  * between groups, or a text entry in a group; either way the section loses it.
  */
 function moveProse(
