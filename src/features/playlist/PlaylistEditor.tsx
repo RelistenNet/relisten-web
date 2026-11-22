@@ -149,10 +149,18 @@ export default function PlaylistEditor({
   const [opened, setEditing] = useState<Editing>(null);
   const [unsent, setUnsent] = useState<Unsent[]>([]);
   const waiting = unsent[0];
+  // Where it reopens is worked out now, not kept: its own field while that's still
+  // there, else the composer at the end. (Kept, it went stale: a block deleted while
+  // its draft waited left the draft nowhere to open, and nothing could close it.)
+  const reopenAt: NonNullable<Editing> | null = waiting
+    ? stillThere(state.content, waiting.from)
+      ? waiting.from
+      : { kind: 'composer', after: 'end' }
+    : null;
   const editing: Editing =
     opened ??
-    (waiting
-      ? { ...waiting.from, draft: waiting.text, error: waiting.error, waiting: waiting.id }
+    (waiting && reopenAt
+      ? { ...reopenAt, draft: waiting.text, error: waiting.error, waiting: waiting.id }
       : null);
   const unsentCount = useRef(0);
   useEffect(() => {
@@ -180,16 +188,11 @@ export default function PlaylistEditor({
     // refetch lands in the same update as the save, before React renders it.
     onSaved: () => needsServer(unresolved(store.getState().content, resolved)) && router.refresh(),
     // Text that didn't make it (refused, or skipped because its block went elsewhere)
-    // waits in its field, or in the composer at the end if that field's gone too.
+    // waits to reopen; where is worked out when it does (`reopenAt`).
     onRefused: (refused) => {
-      const now = store.getState().content;
       for (const op of refused.ops) {
         const hit = sent.current.get(op);
-        if (!hit) continue;
-        const from = stillThere(now, hit.from)
-          ? hit.from
-          : ({ kind: 'composer', after: 'end' } as const);
-        wait({ ...hit, from, error: refused.error.detail, refused: refused.kind === 'refused' });
+        if (hit) wait({ ...hit, error: refused.error.detail, refused: refused.kind === 'refused' });
       }
     },
     // Closed (the nav bar, Back, a link) with a save on its way: once it's in, the
