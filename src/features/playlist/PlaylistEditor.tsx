@@ -106,21 +106,25 @@ type Unsent = Sent & { id: number; error?: string; refused: boolean };
 const sameOwner = (a: ProseOwner, b: ProseOwner) =>
   a.kind === b.kind && (a.kind === 'playlist' || (b.kind !== 'playlist' && a.id === b.id));
 
-/** Whether a field still has somewhere to open: its block, or the row its composer follows. */
+/**
+ * Whether a field still has somewhere to open: its block, or the row its composer
+ * follows (and the group it was writing into, if it was).
+ */
 const stillThere = (content: PlaylistContent, from: NonNullable<Editing>) =>
   from.kind === 'prose'
     ? hasProseOwner(content, from.owner)
-    : from.after === 'end' ||
-      from.after === '' ||
-      content.segments.some(
-        (s) => s.id === from.after || s.entries.some((e) => e.id === from.after)
-      );
+    : (from.into === undefined || content.segments.some((s) => s.id === from.into)) &&
+      (from.after === 'end' ||
+        from.after === '' ||
+        content.segments.some(
+          (s) => s.id === from.after || s.entries.some((e) => e.id === from.after)
+        ));
 
 const sameField = (a: Editing, b: NonNullable<Editing>) =>
   !!a &&
   (a.kind === 'prose'
     ? b.kind === 'prose' && sameOwner(a.owner, b.owner)
-    : b.kind === 'composer' && a.after === b.after);
+    : b.kind === 'composer' && a.after === b.after && a.into === b.into);
 
 /**
  * The one removal toast. Its Undo undoes the top step, so it's dismissed as soon
@@ -290,9 +294,12 @@ export default function PlaylistEditor({
   const drafts = useRef(0);
   const wait = (draft: Omit<Unsent, 'id'>) => {
     const { kind } = draft.from;
-    // Where it reopens, without what it carried when it was last open.
+    // Where it reopens (and, for new text, the group it was going into), without
+    // what it carried when it was last open.
     const from: NonNullable<Editing> =
-      kind === 'prose' ? { kind, owner: draft.from.owner } : { kind, after: draft.from.after };
+      kind === 'prose'
+        ? { kind, owner: draft.from.owner }
+        : { kind, after: draft.from.after, into: draft.from.into };
     const id = ++drafts.current;
     setUnsent((list) => [...list, { ...draft, from, id }]);
   };
@@ -524,12 +531,15 @@ export default function PlaylistEditor({
 
     gap: (at) => {
       // The composer's row, or the Add zone at the end.
-      const open = editing?.kind === 'composer' && editing.after === at.key ? editing : null;
+      const open =
+        editing?.kind === 'composer' && editing.after === at.key && editing.into === at.into
+          ? editing
+          : null;
       // New text where the composer is: if what it was going into is gone by then, the
       // edit doesn't apply, and commitText keeps it.
       const done = (text: string | null, how: 'finished' | 'interrupted') =>
         commitText(
-          { kind: 'composer', after: at.key, waiting: open?.waiting },
+          { kind: 'composer', after: at.key, into: at.into, waiting: open?.waiting },
           text,
           how,
           (now, t) => insertText(now, at, t)
