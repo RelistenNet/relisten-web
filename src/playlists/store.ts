@@ -79,9 +79,10 @@ export type DraftStore = {
    * Applies edits now, in order, as one undo step, and sends them. Edits that
    * change nothing are left out. Throws PlaylistOpError, applying none of them,
    * for an edit the server would refuse outright (a text entry with no text, a
-   * nameless playlist).
+   * nameless playlist). Returns the ones it applied: one that changed nothing here
+   * (its target or parent is gone) isn't among them.
    */
-  edit(...ops: PlaylistOp[]): void;
+  edit(...ops: PlaylistOp[]): PlaylistOp[];
   undo(): void;
   /** Sends again what failed to save (Retry). */
   retry(): void;
@@ -431,7 +432,7 @@ export function createDraftStore(
         applied.push(op);
         content = result.content;
       }
-      if (!applied.length) return;
+      if (!applied.length) return applied;
       actor.send({
         type: 'EDIT',
         ops: queued(applied),
@@ -441,6 +442,7 @@ export function createDraftStore(
           renamed: Object.assign({}, ...steps.map((s) => s.renamed)),
         },
       });
+      return applied;
     },
     undo() {
       const step = actor.getSnapshot().context.undo.at(-1);

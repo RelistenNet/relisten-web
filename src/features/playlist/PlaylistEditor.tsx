@@ -213,14 +213,15 @@ export default function PlaylistEditor({
   const refreshing = usePendingNavigation((to, from) => to.href === from.href);
 
   /** Applies edits (as one undo step); an edit the server would refuse says why instead. */
-  const edit = (...ops: (PlaylistOp | null)[]) => {
+  const edit = (...ops: (PlaylistOp | null)[]): PlaylistOp[] => {
     // A removal's toast undoes the top step: once anything else is, it's gone.
     toast.dismiss(REMOVED_TOAST);
     try {
-      store.edit(...ops.filter((op) => op !== null));
+      return store.edit(...ops.filter((op) => op !== null));
     } catch (err) {
-      if (err instanceof PlaylistOpError) notify(err.message);
-      else throw err;
+      if (!(err instanceof PlaylistOpError)) throw err;
+      notify(err.message);
+      return [];
     }
   };
   const content = state.content;
@@ -270,43 +271,42 @@ export default function PlaylistEditor({
   };
 
   /**
-   * Sends prose once its field closes, remembering where it came from in case it's
-   * refused. A waiting draft closed unfinished and unchanged (another field opened,
-   * or the page closed) keeps waiting: sending it again would only be refused again.
+   * The one way a field's text reaches the playlist, however the field closes:
+   * finished (blur, ⌘↵, a toolbar action), interrupted (another field opened, its
+   * block went, the editor closed), or discarded (Escape: `text` null). Where it
+   * lands is decided against the store's content as it is now, not the last
+   * render's, and the store says whether the edit applied. Text that can't land
+   * (its block, or the section it was going into, is gone) isn't dropped: it waits
+   * as a draft, visibly, until it's sent or discarded. So text is always either
+   * saved, waiting, or discarded on purpose.
    */
-  const commitProse = (
+  const commitText = (
     from: NonNullable<Editing>,
     text: string | null,
-    op: PlaylistOp | null,
-    { interrupted = false }: { interrupted?: boolean } = {}
+    how: 'finished' | 'interrupted',
+    /** The edit for `text`, against `now`: null for no change, 'gone' for nowhere to go. */
+    toOp: (now: PlaylistContent, text: string) => PlaylistOp | null | 'gone'
   ) => {
+    const close = () => setEditing((open) => (sameField(open, from) ? null : open));
     // The waiting draft this field shows, if it shows one.
     const draft =
       from.waiting === undefined ? undefined : unsent.find((u) => u.id === from.waiting);
-    // Unchanged, it keeps waiting: closed unfinished (another field opened, the page
-    // closed), or refused as written (the server would only refuse it again).
-    if (draft && text === draft.text && (interrupted || draft.refused)) {
-      setEditing((open) => (sameField(open, from) ? null : open));
+    // Unchanged, a draft keeps waiting: closed unfinished, or refused as written
+    // (the server would only refuse it again).
+    if (draft && text === draft.text && (how === 'interrupted' || draft.refused)) return close();
+    // Closed: it's done waiting (sent, kept anew below, or discarded).
+    if (draft) setUnsent((list) => list.filter((u) => u.id !== draft.id));
+    close();
+    if (text === null) return;
+    const op = toOp(store.getState().content, text);
+    if (op === null) return;
+    if (op !== 'gone' && edit(op).includes(op)) {
+      sent.current.set(op, { from, text });
       return;
     }
-    // Closed: it's done waiting (sent again below, or discarded).
-    if (draft) setUnsent((list) => list.filter((u) => u.id !== draft.id));
-    setEditing((open) => (sameField(open, from) ? null : open));
-    if (text === null || !op) return;
-    sent.current.set(op, { from, text });
-    edit(op);
-  };
-  /**
-   * A field closed without being finished because its block went (an undo, or
-   * someone else's edit): its text waits, in the composer at the end.
-   */
-  const keepText = (from: NonNullable<Editing>, text: string) => {
-    setEditing((open) => (sameField(open, from) ? null : open));
-    // If it was a waiting draft, this takes its place.
-    if (from.waiting !== undefined) setUnsent((list) => list.filter((u) => u.id !== from.waiting));
     if (text.trim())
       wait({
-        from: { kind: 'composer', after: 'end' },
+        from,
         text,
         error: 'What you were editing was removed. Your text is here.',
         refused: false,
@@ -381,6 +381,8 @@ export default function PlaylistEditor({
       const open = editing;
       const field = (target: ProseOwner, label: string) => {
         const from = { kind: 'prose', owner: target, waiting: open.waiting } as const;
+        const toProse = (now: PlaylistContent, text: string) =>
+          hasProseOwner(now, target) ? saveProse(now, target, text) : 'gone';
         return (
           <MarkdownField
             // A fresh field per draft: the next one waiting doesn't inherit this one's text.
@@ -393,18 +395,8 @@ export default function PlaylistEditor({
             limit={target.kind === 'playlist' ? 1000 : 2000}
             timestampTargets={timestampTargets}
             ownEntryId={target.kind === 'note' ? target.id : undefined}
-            onDone={(text) =>
-              // Its block can go while it's open (someone else's edit, met on a refetch):
-              // then there's nothing to save it to, and its text is kept instead.
-              text !== null && !hasProseOwner(content, target)
-                ? keepText(from, text)
-                : commitProse(from, text, text === null ? null : saveProse(content, target, text))
-            }
-            onInterrupted={(text) =>
-              hasProseOwner(content, target)
-                ? commitProse(from, text, saveProse(content, target, text), { interrupted: true })
-                : keepText(from, text)
-            }
+            onDone={(text) => commitText(from, text, 'finished', toProse)}
+            onInterrupted={(text) => commitText(from, text, 'interrupted', toProse)}
           />
         );
       };
@@ -495,12 +487,14 @@ export default function PlaylistEditor({
     gap: (at) => {
       // The composer's row, or the Add zone at the end.
       const open = editing?.kind === 'composer' && editing.after === at.key ? editing : null;
-      const done = (text: string | null, interrupted = false) =>
-        commitProse(
+      // New text where the composer is: if what it was going into is gone by then, the
+      // edit doesn't apply, and commitText keeps it.
+      const done = (text: string | null, how: 'finished' | 'interrupted') =>
+        commitText(
           { kind: 'composer', after: at.key, waiting: open?.waiting },
           text,
-          text === null ? null : insertText(content, at, text),
-          { interrupted }
+          how,
+          (now, t) => insertText(now, at, t)
         );
       return {
         control:
@@ -517,8 +511,8 @@ export default function PlaylistEditor({
             error={open.error}
             limit={2000}
             timestampTargets={timestampTargets}
-            onDone={(text) => done(text)}
-            onInterrupted={(text) => done(text, true)}
+            onDone={(text) => done(text, 'finished')}
+            onInterrupted={(text) => done(text, 'interrupted')}
           />
         ) : undefined,
       };
