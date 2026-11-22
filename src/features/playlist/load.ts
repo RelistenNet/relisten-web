@@ -62,7 +62,7 @@ export function resolvePlaylist(
       s.entries
         .filter((e) => {
           const track = e.trackId ? tracks[e.trackId] : undefined;
-          return !!track && songRowItem({ ...track, id: e.id }) !== null;
+          return !!track && songRowItem(track) !== null;
         })
         .map((e) => e.id)
     )

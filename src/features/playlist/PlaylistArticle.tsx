@@ -10,12 +10,8 @@ import cn from '@/lib/cn';
 import GuideProse, { type RenderSeek } from '@/lib/guideMarkdown/GuideProse';
 import type { GuideBlock } from '@/lib/guideMarkdown/types';
 import { durationToHHMMSS, numberFormat } from '@/lib/utils';
-import EntryProgress from '@/player/EntryProgress';
-import PlayTrackButton, { PlayTrackRow } from '@/player/PlayTrackButton';
-import QueueButtons, { ShowQueueActions } from '@/player/QueueButtons';
-import QueueMenu from '@/player/QueueMenu';
+import { ShowQueueActions } from '@/player/QueueButtons';
 import { SongQueueProvider } from '@/player/SongQueue';
-import TrackLoadDot from '@/player/TrackLoadDot';
 import { songRowItem } from '@/player/queue/items';
 import { formatShowDate } from '@/ui/shows/stats';
 import { playlistBlocks, type PlaylistTrackGroupRow } from './blocks';
@@ -32,6 +28,7 @@ import {
 } from './flow';
 import type { PlaylistView } from './rows';
 import SeekLink from './SeekLink';
+import TrackCardPlayer from './TrackCardPlayer';
 import { isTrackRow, type PlaylistOtherRow, type PlaylistTrackRow } from './spec';
 
 // A playlist, read like a post: a byline and lede, then the author's writing
@@ -552,58 +549,34 @@ function TrackCell({
         `
       )}
     >
-      <PlayTrackRow row={row} track={row.track} />
-      <PlayTrackButton row={row} track={row.track} label={`Play ${name}`} />
-      <div className="flex min-w-0 flex-1 flex-col pt-0.5">
-        <span className="truncate text-[15px] leading-snug font-medium">
-          {row.trackTitle ?? 'Untitled'}
-        </span>
-        <span className="truncate text-[13px] text-text-muted">
-          <Link href={row.href} className="text-text-muted hover:text-accent">
-            {row.artistName} · {formatShowDate(row.date)}
-          </Link>
-          {row.venueName && <> · {row.venueName}</>}
-        </span>
-        <Note id={row.id} blocks={row.prose} slots={slots} />
-      </div>
-      <div className="flex shrink-0 items-center gap-1">
-        {row.track.mp3Url && (
-          <QueueButtons
-            item={songRowItem(row)}
-            name={name}
-            className={`
-              opacity-0 transition-opacity group-focus-within/cell:opacity-100
-              group-hover/cell:opacity-100 max-sm:hidden
-            `}
-          />
-        )}
-        <span className="flex items-center gap-2 px-1 text-[13px] text-text-muted tabular-nums">
-          <TrackLoadDot entryKey={row.queueKey} />
-          {row.songDuration ? durationToHHMMSS(Math.round(row.songDuration)) : '—'}
-        </span>
-        {/* Faded until the row is hovered or focused (or its menu is open); always
-        shown on touch screens, which can't hover. The editor's menu takes its place. */}
-        {slots?.cellMenu ? (
-          slots.cellMenu(row)
-        ) : (
-          <QueueMenu
-            item={songRowItem(row)}
-            name={name}
-            className={`
-              opacity-0 transition-opacity group-focus-within/cell:opacity-100
-              group-hover/cell:opacity-100 data-popup-open:opacity-100 pointer-coarse:opacity-100
-            `}
-          />
-        )}
-      </div>
-      {/* Clipped to the card's corners. Only the scrubber takes pointer events. */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
-        <EntryProgress
-          queueKey={row.queueKey}
-          title={row.trackTitle ?? 'track'}
-          fallbackDuration={row.songDuration ?? undefined}
-        />
-      </div>
+      <TrackCardPlayer
+        // Only what the player reads, once per card (not the show's stats or the note).
+        entry={{
+          queueKey: row.queueKey,
+          track: row.track,
+          showId: row.showId,
+          date: row.date,
+          artistSlug: row.artistSlug,
+          artistName: row.artistName,
+          venueName: row.venueName,
+        }}
+        name={name}
+        duration={row.songDuration ? durationToHHMMSS(Math.round(row.songDuration)) : '—'}
+        menu={slots?.cellMenu?.(row)}
+      >
+        <div className="flex min-w-0 flex-1 flex-col pt-0.5">
+          <span className="truncate text-[15px] leading-snug font-medium">
+            {row.trackTitle ?? 'Untitled'}
+          </span>
+          <span className="truncate text-[13px] text-text-muted">
+            <Link href={row.href} className="text-text-muted hover:text-accent">
+              {row.artistName} · {formatShowDate(row.date)}
+            </Link>
+            {row.venueName && <> · {row.venueName}</>}
+          </span>
+          <Note id={row.id} blocks={row.prose} slots={slots} />
+        </div>
+      </TrackCardPlayer>
     </Card>
   );
 }

@@ -81,8 +81,14 @@ export function showTrackItem({
   });
 }
 
+/** What of a row the player reads: its track, its show, and (a playlist entry) its queue key. */
+export type SongRowSource = Pick<
+  ShowRow,
+  'track' | 'showId' | 'date' | 'artistSlug' | 'artistName' | 'venueName' | 'queueKey'
+>;
+
 /** A table row's track (a song's performance, a show's or playlist's track), or null if it has no file. */
-export function songRowItem(row: ShowRow): QueueItem | null {
+export function songRowItem(row: SongRowSource): QueueItem | null {
   if (!row.track) return null;
   const item = trackItem(row.track, {
     showId: row.showId,

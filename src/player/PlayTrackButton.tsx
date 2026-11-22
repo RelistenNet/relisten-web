@@ -2,23 +2,22 @@
 
 import { Pause, Play } from 'lucide-react';
 import type { PlayableTrack } from '@/domain/types';
-import type { ShowRow } from '@/ui/shows/rows';
 import { playSongRows, togglePlayPause } from './commands';
 import { useCurrentItem, useIsPlaying, useQueue } from './hooks';
 import { useSongQueue } from './SongQueue';
-import { songRowItem } from './queue/items';
+import { songRowItem, type SongRowSource } from './queue/items';
 import type { QueueItem } from './queue/model';
 import Tooltip from '@/ui/base/Tooltip';
 
 type Props = {
-  row: ShowRow;
+  row: SongRowSource;
   track: PlayableTrack;
   /** Screen-reader label, e.g. "Play 2025-07-27 (5 of 6)". */
   label: string;
 };
 
 /** Play a row's track (then the rest of the rows on screen); toggles play/pause while it's current. */
-function usePlayTrack(row: ShowRow, track: PlayableTrack) {
+function usePlayTrack(row: SongRowSource, track: PlayableTrack) {
   // A row with a queue key (a playlist entry: the track can repeat) is matched by
   // key, so only that entry reads as current. Otherwise any entry of the track does.
   const { queueKey } = row;
@@ -90,7 +89,7 @@ export default function PlayTrackButton({ row, track, label }: Props) {
  * or resumes it. A click on the track that's playing leaves it playing. Hidden
  * from keyboards and screen readers: the row's play button does the same.
  */
-export function PlayTrackRow({ row, track }: { row: ShowRow; track: PlayableTrack }) {
+export function PlayTrackRow({ row, track }: { row: SongRowSource; track: PlayableTrack }) {
   const { isPlaying, play } = usePlayTrack(row, track);
   if (!track.mp3Url) return null;
   return (
