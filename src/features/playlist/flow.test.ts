@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { PlaylistBlock, PlaylistTrackGroupRow } from './blocks';
-import { BLOCK_SPACE, CARD_SPACE, type FlowRow, flowRows } from './flow';
+import { type FlowRow, flowRows, SPACE } from './flow';
 
 const track = (id: string, segmentId: string) =>
   ({ id, segmentId, kind: 'track' }) as unknown as PlaylistTrackGroupRow;
@@ -50,14 +50,14 @@ describe('flowRows', () => {
     ]);
   });
 
-  it('spaces blocks and loose cards, and boxes a section flush', () => {
+  it('spaces blocks and loose cards evenly, and boxes a section flush', () => {
     const groups = flowRows(blocks);
     const height = (key: string) => {
       const r = row(groups, key);
       return r.kind === 'space' ? r.height : null;
     };
-    expect(height('space:section:s1')).toBe(BLOCK_SPACE);
-    expect(height('space:d')).toBe(CARD_SPACE);
+    expect(height('space:section:s1')).toBe(SPACE);
+    expect(height('space:d')).toBe(SPACE);
     const section = groups.find((g) => g.segmentId === 's1');
     expect(section?.rows.map((r) => `${r.box?.tone}:${r.box?.position}`)).toEqual([
       'section:first',

@@ -14,9 +14,11 @@ import type { DragSource, DropTarget } from './dragOps';
 // around their rows, taking no room), and, on each row, where a drop on it
 // would land. Pure, so tested (flow.test.ts).
 
-/** Space between blocks, and between loose cards. */
-export const BLOCK_SPACE = 16;
-export const CARD_SPACE = 6;
+/**
+ * Space between any two things in the flow: blocks, boxes, loose cards. One gap,
+ * so the space above and below a card is always the same, whatever's around it.
+ */
+export const SPACE = 12;
 
 /** A row's place in a section's (tinted) box. */
 export type Box = { position: 'first' | 'middle' | 'last' | 'only'; tone: 'section' };
@@ -146,7 +148,7 @@ function itemRows(items: PlaylistItem[], apart: boolean): Draft[] {
       continue;
     }
     item.rows.forEach((row, i) => {
-      if (apart && i > 0) rows.push({ kind: 'space', key: `space:${row.id}`, height: CARD_SPACE });
+      if (apart && i > 0) rows.push({ kind: 'space', key: `space:${row.id}`, height: SPACE });
       rows.push({ kind: 'track', key: row.id, row });
     });
   }
@@ -161,8 +163,7 @@ export function flowRows(
   // The read page's rows, in order: blocks, with space between them.
   let placed: Placed[] = [];
   blocks.forEach((block, b) => {
-    if (b > 0)
-      placed.push({ row: { kind: 'space', key: `space:${block.key}`, height: BLOCK_SPACE } });
+    if (b > 0) placed.push({ row: { kind: 'space', key: `space:${block.key}`, height: SPACE } });
     if (block.kind === 'section') {
       // Its intro first, if it has one (a section boxed for its text may not).
       const rows = [
