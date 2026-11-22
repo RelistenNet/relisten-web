@@ -1,6 +1,5 @@
 'use client';
 
-import { Menu } from '@base-ui/react/menu';
 import { Link, useRouter } from '@timber-js/app/client';
 import { href } from '@timber-js/app/routes';
 import {
@@ -15,7 +14,6 @@ import {
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import cn from '@/lib/cn';
-import { MENU_ITEM, MENU_POPUP } from '@/player/menuStyles';
 import { TOASTER_ID } from '@/player/toasts';
 import { PlaylistWriteError, playlistTransport } from '@/playlists/transport';
 import { Button } from '@/ui/base/shadcn/button';
@@ -28,6 +26,14 @@ import {
   DialogTitle,
 } from '@/ui/base/shadcn/dialog';
 import { refreshPublicPlaylist } from './publishActions';
+import {
+  MenuContent,
+  MenuItem,
+  MenuLinkItem,
+  MenuRoot,
+  MenuSeparator,
+  MenuTrigger,
+} from '@/ui/base/Menu';
 
 // Publishing (RE-52; RelistenApi docs/design/2026-11-18-playlist-sharing.md): a
 // playlist is private until its owner publishes it, then anyone with its link
@@ -109,8 +115,8 @@ export default function PublishControl({
 
   return (
     <>
-      <Menu.Root>
-        <Menu.Trigger
+      <MenuRoot>
+        <MenuTrigger
           disabled={pending}
           className={cn(
             publicCode ? 'header-action-active' : 'header-action',
@@ -120,54 +126,40 @@ export default function PublishControl({
           <state.icon className="size-4" aria-hidden />
           {pending ? 'Saving…' : state.label}
           <ChevronDownIcon className="size-3.5 text-text-muted" aria-hidden />
-        </Menu.Trigger>
-        <Menu.Portal>
-          <Menu.Positioner align="end" sideOffset={4} className="z-50 outline-none">
-            <Menu.Popup className={MENU_POPUP}>
-              {takenDown ? (
-                <p className="m-0 px-2.5 py-2 text-sm text-text-muted">
-                  Taken down after a report. It stays private until it’s been reviewed.
-                </p>
-              ) : publicCode ? (
-                <>
-                  <Menu.Item className={MENU_ITEM} onClick={() => void copy(publicCode)}>
-                    <CopyIcon size={16} className="shrink-0 text-text-muted" aria-hidden />
-                    Copy Link
-                  </Menu.Item>
-                  <Menu.LinkItem
-                    className={MENU_ITEM}
-                    closeOnClick
-                    render={<Link href={href('/playlists/[publicCode]', { publicCode })} />}
-                  >
-                    <GlobeIcon size={16} className="shrink-0 text-text-muted" aria-hidden />
-                    Open Public Page
-                  </Menu.LinkItem>
-                  <Menu.Separator className="mx-2 my-1 h-px bg-hairline" />
-                  <Menu.Item className={MENU_ITEM} onClick={() => setPublished(false)}>
-                    <LockIcon size={16} className="shrink-0 text-text-muted" aria-hidden />
-                    Unpublish
-                  </Menu.Item>
-                </>
-              ) : (
-                <Menu.Item className={MENU_ITEM} onClick={() => setConfirming(true)}>
-                  <GlobeIcon size={16} className="shrink-0 text-text-muted" aria-hidden />
-                  Publish…
-                </Menu.Item>
-              )}
-              {!publicCode && (
-                <Menu.LinkItem
-                  className={MENU_ITEM}
-                  closeOnClick
-                  render={<Link href={previewHref} />}
-                >
-                  <EyeIcon size={16} className="shrink-0 text-text-muted" aria-hidden />
-                  Preview as Public
-                </Menu.LinkItem>
-              )}
-            </Menu.Popup>
-          </Menu.Positioner>
-        </Menu.Portal>
-      </Menu.Root>
+        </MenuTrigger>
+        <MenuContent align="end">
+          {takenDown ? (
+            <p className="m-0 px-2.5 py-2 text-sm text-text-muted">
+              Taken down after a report. It stays private until it’s been reviewed.
+            </p>
+          ) : publicCode ? (
+            <>
+              <MenuItem onClick={() => void copy(publicCode)} icon={CopyIcon}>
+                Copy Link
+              </MenuItem>
+              <MenuLinkItem
+                render={<Link href={href('/playlists/[publicCode]', { publicCode })} />}
+                icon={GlobeIcon}
+              >
+                Open Public Page
+              </MenuLinkItem>
+              <MenuSeparator />
+              <MenuItem onClick={() => setPublished(false)} icon={LockIcon}>
+                Unpublish
+              </MenuItem>
+            </>
+          ) : (
+            <MenuItem onClick={() => setConfirming(true)} icon={GlobeIcon}>
+              Publish…
+            </MenuItem>
+          )}
+          {!publicCode && (
+            <MenuLinkItem render={<Link href={previewHref} />} icon={EyeIcon}>
+              Preview as Public
+            </MenuLinkItem>
+          )}
+        </MenuContent>
+      </MenuRoot>
 
       <Dialog open={confirming} onOpenChange={setConfirming}>
         <DialogContent>

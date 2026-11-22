@@ -2,15 +2,15 @@
 
 Tailwind v4, with one rule: **classes stay where they're used, and meaning lives in one place.** A named class string in a `.ts` file (`const CELL = '…'`) does neither: you read the name, then go find the classes, and the reason for a value sits in a comment away from where it applies. Instead, each kind of meaning has a home that a class at the call site can name.
 
-| What it is                                                                       | Where it lives                                                               | Example                                                        |
-| -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| A value with meaning                                                             | a theme token in `globals.css` (`@theme`), used as a utility                 | `pl-flow-indent`, `top-dot-y`, `bg-surface-raised`             |
-| A value that follows from others                                                 | a token written as that relationship, so it can't drift                      | `--spacing-flow-indent: calc(1px + var(--spacing-card-x) + …)` |
-| A state                                                                          | a custom variant (`@custom-variant`), or a built-in one (`data-*`, `aria-*`) | `in-drop-join:ring-2`                                          |
-| A thing with a name in the product                                               | a component, its classes inline inside it                                    | `Card`, `Prose`, `Rail`                                        |
-| A thing applied to several kinds of element (a link, a button, a menu's trigger) | an `@utility`, with each of its kinds a utility of its own                   | `header-action`, `header-action-primary`                       |
-| One indivisible idea made of several properties (and its states)                 | an `@utility`                                                                | `drop-indicator`                                               |
-| Anything else                                                                    | plain classes, inline                                                        | `rounded-lg text-sm gap-2`                                     |
+| What it is                                                                       | Where it lives                                                               | Example                                                                      |
+| -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| A value with meaning                                                             | a theme token in `globals.css` (`@theme`), used as a utility                 | `pl-flow-indent`, `top-dot-y`, `bg-surface-raised`                           |
+| A value that follows from others                                                 | a token written as that relationship, so it can't drift                      | `--spacing-flow-indent: calc(1px + var(--spacing-card-x) + …)`               |
+| A state                                                                          | a custom variant (`@custom-variant`), or a built-in one (`data-*`, `aria-*`) | `in-drop-join:ring-2`                                                        |
+| A thing with a name in the product                                               | a component, its classes inline inside it                                    | `Card`, `Prose`, `Rail`, `MenuContent` / `MenuItem` (`src/ui/base/Menu.tsx`) |
+| A thing applied to several kinds of element (a link, a button, a menu's trigger) | an `@utility`, with each of its kinds a utility of its own                   | `menu-item`, `header-action`, `header-action-primary`                        |
+| One indivisible idea made of several properties (and its states)                 | an `@utility`                                                                | `drop-indicator`                                                             |
+| Anything else                                                                    | plain classes, inline                                                        | `rounded-lg text-sm gap-2`                                                   |
 
 ## Rules of thumb
 

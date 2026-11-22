@@ -579,6 +579,12 @@
   }
 }
 
+/* A menu's row (src/ui/base/Menu.tsx): an item, a link item or a submenu's trigger.
+   Roomier on touch screens, tighter from sm up. */
+@utility menu-item {
+  @apply flex cursor-default items-center gap-2 rounded-md py-2.5 pr-3 pl-2.5 text-base outline-none select-none data-highlighted:bg-surface-hover data-disabled:text-text-muted sm:py-1.5 sm:pr-2.5 sm:pl-2 sm:text-sm;
+}
+
 /* A playlist page's header action (Edit, Done, Publish, Report, Back to Editing):
    one look on whatever it is (a link, a button, a menu's trigger). */
 @utility header-action {

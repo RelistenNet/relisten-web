@@ -1,15 +1,13 @@
 'use client';
 
-import { Menu } from '@base-ui/react/menu';
 import { usePathname, useRouter } from '@timber-js/app/client';
 import { href } from '@timber-js/app/routes';
-import { ChevronRightIcon, ListPlusIcon, LogInIcon, PlusIcon } from 'lucide-react';
+import { ListPlusIcon, LogInIcon, PlusIcon } from 'lucide-react';
 import { Suspense, use, useActionState, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod/v4';
 import { PlaylistName } from '@/domain/playlists';
 import { readStorage, writeStorage } from '@/lib/browserStorage';
-import cn from '@/lib/cn';
 import { signInHref } from '@/lib/searchParams/sessionSearchParams';
 import {
   addToPlaylist,
@@ -29,8 +27,17 @@ import {
   DialogTitle,
 } from '@/ui/base/shadcn/dialog';
 import { Input } from '@/ui/base/shadcn/input';
-import { MENU_ITEM, MENU_POPUP } from './menuStyles';
 import { TOASTER_ID } from './toasts';
+import {
+  MenuContent,
+  MenuItem,
+  MenuLinkItem,
+  MenuRoot,
+  MenuSeparator,
+  MenuSubmenuRoot,
+  MenuSubmenuTrigger,
+  MenuTrigger,
+} from '@/ui/base/Menu';
 
 // Add to Playlist (docs/playlist-editing.md): your playlists, the one you last
 // added to first, then New Playlist…. What's added goes in as one segment, so a
@@ -141,28 +148,23 @@ function PlaylistItems({
   const pathname = usePathname();
   if (result.kind === 'signed-out') {
     return (
-      <Menu.LinkItem className={MENU_ITEM} render={<a href={signInHref(pathname)} />}>
-        <LogInIcon size={16} className="shrink-0 text-text-muted" aria-hidden />
+      <MenuLinkItem render={<a href={signInHref(pathname)} />} icon={LogInIcon}>
         Sign In to Save
-      </Menu.LinkItem>
+      </MenuLinkItem>
     );
   }
   if (result.kind === 'error') {
-    return (
-      <Menu.Item className={MENU_ITEM} disabled>
-        Couldn’t load your playlists
-      </Menu.Item>
-    );
+    return <MenuItem disabled>Couldn’t load your playlists</MenuItem>;
   }
   return (
     <>
       {result.playlists.map((p) => (
-        <Menu.Item key={p.id} className={MENU_ITEM} onClick={() => onAdd(p)}>
+        <MenuItem key={p.id} onClick={() => onAdd(p)}>
           <span className="min-w-0 flex-1 truncate">{p.name}</span>
           <span className="text-xs text-text-muted tabular-nums">{p.trackCount}</span>
-        </Menu.Item>
+        </MenuItem>
       ))}
-      {result.playlists.length > 0 && <Menu.Separator className="mx-2 my-1 h-px bg-hairline" />}
+      {result.playlists.length > 0 && <MenuSeparator />}
     </>
   );
 }
@@ -177,20 +179,15 @@ function MenuContents({
   onNew: () => void;
 }) {
   const { add } = usePlaylistActions(tracks);
-  const loading = (
-    <Menu.Item className={MENU_ITEM} disabled>
-      Loading…
-    </Menu.Item>
-  );
+  const loading = <MenuItem disabled>Loading…</MenuItem>;
   return (
     <>
       <Suspense fallback={loading}>
         {library ? <PlaylistItems library={library} onAdd={(p) => void add(p)} /> : loading}
       </Suspense>
-      <Menu.Item className={MENU_ITEM} onClick={onNew}>
-        <PlusIcon size={16} className="shrink-0 text-text-muted" aria-hidden />
+      <MenuItem onClick={onNew} icon={PlusIcon}>
         New Playlist…
-      </Menu.Item>
+      </MenuItem>
     </>
   );
 }
@@ -208,20 +205,12 @@ export function AddToPlaylistSubmenu({
 }) {
   const { library, onOpenChange } = useLibraryOnOpen();
   return (
-    <Menu.SubmenuRoot onOpenChange={onOpenChange}>
-      <Menu.SubmenuTrigger className={MENU_ITEM}>
-        <ListPlusIcon size={16} className="shrink-0 text-text-muted" aria-hidden />
-        <span className="flex-1">Add to Playlist</span>
-        <ChevronRightIcon size={14} className="shrink-0 text-text-muted" aria-hidden />
-      </Menu.SubmenuTrigger>
-      <Menu.Portal>
-        <Menu.Positioner sideOffset={4} className="z-50 outline-none">
-          <Menu.Popup className={cn(MENU_POPUP, 'max-h-80 overflow-y-auto')}>
-            <MenuContents library={library} tracks={tracks} onNew={onNew} />
-          </Menu.Popup>
-        </Menu.Positioner>
-      </Menu.Portal>
-    </Menu.SubmenuRoot>
+    <MenuSubmenuRoot onOpenChange={onOpenChange}>
+      <MenuSubmenuTrigger icon={ListPlusIcon}>Add to Playlist</MenuSubmenuTrigger>
+      <MenuContent className="max-h-80 overflow-y-auto">
+        <MenuContents library={library} tracks={tracks} onNew={onNew} />
+      </MenuContent>
+    </MenuSubmenuRoot>
   );
 }
 
@@ -239,19 +228,15 @@ export function AddToPlaylistButton({
   const { library, onOpenChange } = useLibraryOnOpen();
   return (
     <>
-      <Menu.Root onOpenChange={onOpenChange}>
-        <Menu.Trigger className={className}>
+      <MenuRoot onOpenChange={onOpenChange}>
+        <MenuTrigger className={className}>
           <ListPlusIcon className="size-4 text-text-muted" aria-hidden />
           Add to Playlist
-        </Menu.Trigger>
-        <Menu.Portal>
-          <Menu.Positioner align="start" sideOffset={4} className="z-50 outline-none">
-            <Menu.Popup className={cn(MENU_POPUP, 'max-h-80 overflow-y-auto')}>
-              <MenuContents library={library} tracks={tracks} onNew={() => setNaming(true)} />
-            </Menu.Popup>
-          </Menu.Positioner>
-        </Menu.Portal>
-      </Menu.Root>
+        </MenuTrigger>
+        <MenuContent align="start" className="max-h-80 overflow-y-auto">
+          <MenuContents library={library} tracks={tracks} onNew={() => setNaming(true)} />
+        </MenuContent>
+      </MenuRoot>
       <NewPlaylistDialog
         open={naming}
         onOpenChange={setNaming}

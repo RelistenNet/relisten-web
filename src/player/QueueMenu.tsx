@@ -1,6 +1,5 @@
 'use client';
 
-import { Menu } from '@base-ui/react/menu';
 import { Link } from '@timber-js/app/client';
 import { EllipsisVerticalIcon, ListEndIcon, ListStartIcon, MusicIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -8,9 +7,16 @@ import cn from '@/lib/cn';
 import { toast } from 'sonner';
 import { AddToPlaylistSubmenu, NewPlaylistDialog, type PlaylistTracks } from './AddToPlaylist';
 import { addToQueue, playNext, queueShow, showTrackIds } from './commands';
-import { MENU_ITEM as ITEM, MENU_POPUP } from './menuStyles';
 import { TOASTER_ID } from './toasts';
 import type { QueueTarget } from './QueueButtons';
+import {
+  MenuContent,
+  MenuItem,
+  MenuLinkItem,
+  MenuRoot,
+  MenuSeparator,
+  MenuTrigger,
+} from '@/ui/base/Menu';
 
 /** A page the menu links to, below the queue actions. */
 export type QueueMenuLink = { label: string; href: string };
@@ -47,8 +53,8 @@ export default function QueueMenu({
   };
   return (
     <>
-      <Menu.Root>
-        <Menu.Trigger
+      <MenuRoot>
+        <MenuTrigger
           aria-label={`More for ${name}`}
           className={cn(
             `
@@ -65,39 +71,27 @@ export default function QueueMenu({
             className="absolute top-1/2 left-1/2 size-[max(100%,3rem)] -translate-1/2 pointer-fine:hidden"
             aria-hidden
           />
-        </Menu.Trigger>
-        <Menu.Portal>
-          <Menu.Positioner align="end" sideOffset={4} className="z-50 outline-none">
-            <Menu.Popup className={MENU_POPUP}>
-              <Menu.Item className={ITEM} onClick={run('next')}>
-                <ListStartIcon size={16} className="shrink-0 text-text-muted" aria-hidden />
-                Play Next
-              </Menu.Item>
-              <Menu.Item className={ITEM} onClick={run('end')}>
-                <ListEndIcon size={16} className="shrink-0 text-text-muted" aria-hidden />
-                Add to Queue
-              </Menu.Item>
-              <AddToPlaylistSubmenu tracks={tracks} onNew={() => setNaming(true)} />
-              {!!links?.length && <Menu.Separator className="mx-2 my-1 h-px bg-hairline" />}
-              {links?.map((link) => (
-                // LinkItem stays open by default (built for full page loads); a
-                // client navigation leaves the page behind, so close it.
-                <Menu.LinkItem
-                  key={link.href}
-                  className={ITEM}
-                  closeOnClick
-                  render={<Link href={link.href} />}
-                >
-                  <MusicIcon size={16} className="shrink-0 text-text-muted" aria-hidden />
-                  <span className="min-w-0 truncate" title={link.label}>
-                    {link.label}
-                  </span>
-                </Menu.LinkItem>
-              ))}
-            </Menu.Popup>
-          </Menu.Positioner>
-        </Menu.Portal>
-      </Menu.Root>
+        </MenuTrigger>
+        <MenuContent align="end">
+          <MenuItem onClick={run('next')} icon={ListStartIcon}>
+            Play Next
+          </MenuItem>
+          <MenuItem onClick={run('end')} icon={ListEndIcon}>
+            Add to Queue
+          </MenuItem>
+          <AddToPlaylistSubmenu tracks={tracks} onNew={() => setNaming(true)} />
+          {!!links?.length && <MenuSeparator />}
+          {links?.map((link) => (
+            // LinkItem stays open by default (built for full page loads); a
+            // client navigation leaves the page behind, so close it.
+            <MenuLinkItem key={link.href} render={<Link href={link.href} />} icon={MusicIcon}>
+              <span className="min-w-0 truncate" title={link.label}>
+                {link.label}
+              </span>
+            </MenuLinkItem>
+          ))}
+        </MenuContent>
+      </MenuRoot>
       <NewPlaylistDialog
         open={naming}
         onOpenChange={setNaming}

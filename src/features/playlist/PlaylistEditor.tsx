@@ -1,11 +1,9 @@
 'use client';
 
-import { Menu } from '@base-ui/react/menu';
 import { Link, usePendingNavigation, useRouter } from '@timber-js/app/client';
 import {
   ArrowDownIcon,
   ArrowUpIcon,
-  ChevronRightIcon,
   EllipsisVerticalIcon,
   GroupIcon,
   PencilIcon,
@@ -27,7 +25,6 @@ import { toast } from 'sonner';
 import { PlaylistOpError } from '@/domain/playlistOps';
 import { type PlaylistContent, PlaylistName, type PlaylistOp } from '@/domain/playlists';
 import cn from '@/lib/cn';
-import { MENU_ITEM, MENU_POPUP } from '@/player/menuStyles';
 import { TOASTER_ID } from '@/player/toasts';
 import {
   createDraftStore,
@@ -62,6 +59,15 @@ import {
   unresolved,
 } from './rows';
 import { usePlaylistDrag } from './usePlaylistDrag';
+import {
+  MenuContent,
+  MenuItem,
+  MenuRoot,
+  MenuSeparator,
+  MenuSubmenuRoot,
+  MenuSubmenuTrigger,
+  MenuTrigger,
+} from '@/ui/base/Menu';
 
 // The editor (docs/playlist-editing.md): the read view's article, laid out from
 // a draft, with menus on every cell, prose block and gap. Edits apply at once and
@@ -781,8 +787,8 @@ function EditMenu({
   children: ReactNode;
 }) {
   return (
-    <Menu.Root>
-      <Menu.Trigger
+    <MenuRoot>
+      <MenuTrigger
         aria-label={label}
         className={cn(
           `
@@ -795,32 +801,9 @@ function EditMenu({
         )}
       >
         <EllipsisVerticalIcon className="size-4" aria-hidden />
-      </Menu.Trigger>
-      <Menu.Portal>
-        <Menu.Positioner align="end" sideOffset={4} className="z-50 outline-none">
-          <Menu.Popup className={MENU_POPUP}>{children}</Menu.Popup>
-        </Menu.Positioner>
-      </Menu.Portal>
-    </Menu.Root>
-  );
-}
-
-function Item({
-  icon: Icon,
-  onClick,
-  disabled,
-  children,
-}: {
-  icon: typeof PencilIcon;
-  onClick: () => void;
-  disabled?: boolean;
-  children: ReactNode;
-}) {
-  return (
-    <Menu.Item className={MENU_ITEM} onClick={onClick} disabled={disabled}>
-      <Icon size={16} className="shrink-0 text-text-muted" aria-hidden />
-      {children}
-    </Menu.Item>
+      </MenuTrigger>
+      <MenuContent align="end">{children}</MenuContent>
+    </MenuRoot>
   );
 }
 
@@ -844,15 +827,15 @@ function BoxMenu({
   return (
     <EditMenu label={`Edit ${noun.toLowerCase()}`}>
       {tone === 'group' && (
-        <Item icon={TextIcon} onClick={onIntro}>
+        <MenuItem icon={TextIcon} onClick={onIntro}>
           Add Section Intro
-        </Item>
+        </MenuItem>
       )}
       <BoxMoveItems moves={moves} onEdit={onEdit} noun={noun} />
-      <Menu.Separator className="mx-2 my-1 h-px bg-hairline" />
-      <Item icon={Trash2Icon} onClick={onRemove}>
+      <MenuSeparator />
+      <MenuItem icon={Trash2Icon} onClick={onRemove}>
         Remove {noun} and Tracks
-      </Item>
+      </MenuItem>
     </EditMenu>
   );
 }
@@ -870,12 +853,12 @@ function BoxMoveItems({
   const { up, down } = moves();
   return (
     <>
-      <Item icon={ArrowUpIcon} onClick={() => onEdit(up)} disabled={!up}>
+      <MenuItem icon={ArrowUpIcon} onClick={() => onEdit(up)} disabled={!up}>
         {noun ? `Move ${noun} Up` : 'Move Up'}
-      </Item>
-      <Item icon={ArrowDownIcon} onClick={() => onEdit(down)} disabled={!down}>
+      </MenuItem>
+      <MenuItem icon={ArrowDownIcon} onClick={() => onEdit(down)} disabled={!down}>
         {noun ? `Move ${noun} Down` : 'Move Down'}
-      </Item>
+      </MenuItem>
     </>
   );
 }
@@ -891,16 +874,16 @@ function MoveItems({
   const { up, down, ownGroup } = moves();
   return (
     <>
-      <Item icon={ArrowUpIcon} onClick={() => onEdit(up)} disabled={!up}>
+      <MenuItem icon={ArrowUpIcon} onClick={() => onEdit(up)} disabled={!up}>
         Move Up
-      </Item>
-      <Item icon={ArrowDownIcon} onClick={() => onEdit(down)} disabled={!down}>
+      </MenuItem>
+      <MenuItem icon={ArrowDownIcon} onClick={() => onEdit(down)} disabled={!down}>
         Move Down
-      </Item>
+      </MenuItem>
       {ownGroup && (
-        <Item icon={GroupIcon} onClick={() => onEdit(ownGroup)}>
+        <MenuItem icon={GroupIcon} onClick={() => onEdit(ownGroup)}>
           Move to Its Own Group
-        </Item>
+        </MenuItem>
       )}
     </>
   );
@@ -933,47 +916,39 @@ function CellMenu({
 }) {
   return (
     <EditMenu label={`Edit ${row.kind === 'track' ? (row.trackTitle ?? 'track') : 'track'}`}>
-      <Item icon={PencilIcon} onClick={onNote}>
+      <MenuItem icon={PencilIcon} onClick={onNote}>
         {hasNote ? 'Edit Note' : 'Add Note'}
-      </Item>
+      </MenuItem>
       {!row.segment && (
-        <Item icon={TextIcon} onClick={onIntro}>
+        <MenuItem icon={TextIcon} onClick={onIntro}>
           Add Section Intro
-        </Item>
+        </MenuItem>
       )}
-      <Item icon={PlusIcon} onClick={onAddBelow}>
+      <MenuItem icon={PlusIcon} onClick={onAddBelow}>
         Add Text Below
-      </Item>
-      <Menu.Separator className="mx-2 my-1 h-px bg-hairline" />
+      </MenuItem>
+      <MenuSeparator />
       <MoveItems moves={moves} onEdit={onEdit} />
       {sections.length > 0 && (
-        <Menu.SubmenuRoot>
-          <Menu.SubmenuTrigger className={MENU_ITEM}>
-            <GroupIcon size={16} className="shrink-0 text-text-muted" aria-hidden />
-            <span className="flex-1">Move to Section</span>
-            <ChevronRightIcon size={14} className="shrink-0 text-text-muted" aria-hidden />
-          </Menu.SubmenuTrigger>
-          <Menu.Portal>
-            <Menu.Positioner sideOffset={4} className="z-50 outline-none">
-              <Menu.Popup className={MENU_POPUP}>
-                {sections.map((s) => (
-                  <Menu.Item
-                    key={s.id}
-                    className={MENU_ITEM}
-                    onClick={() => onEdit(moveToSection(s.id))}
-                  >
-                    <span className="truncate">{sectionName(s.id)}</span>
-                  </Menu.Item>
-                ))}
-              </Menu.Popup>
-            </Menu.Positioner>
-          </Menu.Portal>
-        </Menu.SubmenuRoot>
+        <MenuSubmenuRoot>
+          <MenuSubmenuTrigger icon={GroupIcon}>Move to Section</MenuSubmenuTrigger>
+          <MenuContent>
+            {sections.map((s) => (
+              <MenuItem
+                key={s.id}
+
+                onClick={() => onEdit(moveToSection(s.id))}
+              >
+                <span className="truncate">{sectionName(s.id)}</span>
+              </MenuItem>
+            ))}
+          </MenuContent>
+        </MenuSubmenuRoot>
       )}
-      <Menu.Separator className="mx-2 my-1 h-px bg-hairline" />
-      <Item icon={Trash2Icon} onClick={onRemove}>
+      <MenuSeparator />
+      <MenuItem icon={Trash2Icon} onClick={onRemove}>
         Remove
-      </Item>
+      </MenuItem>
     </EditMenu>
   );
 }
