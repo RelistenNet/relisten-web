@@ -125,10 +125,10 @@ export default function PlaylistEditor({
   // Each text edit sent, by the operation itself: the store hands refused
   // operations back as they were, so a refusal reopens the field it came from.
   const sent = useRef(new WeakMap<PlaylistOp, Sent>());
-  // The open field's hand-over (MarkdownField sets it): leaving the editor takes its
-  // text before deciding what's left to save.
-  const handOverRef = useRef<(() => void) | null>(null);
-  useStoreEvents(store, handOverRef, {
+  // The fields holding text not yet handed over (the title, an open text field):
+  // leaving the editor takes their text before deciding what's left to save.
+  const openFieldsRef = useRef(new Set<() => void>());
+  useStoreEvents(store, openFieldsRef, {
     // The server renders the page again only when something waits on it (see
     // `unresolved`), checked in the store's content as it is now: a conflict's
     // refetch lands in the same update as the save, before React renders it.
@@ -260,6 +260,7 @@ export default function PlaylistEditor({
   const slots: ArticleSlots = {
     title: (
       <TitleInput
+        openFieldsRef={openFieldsRef}
         name={content.name}
         onSave={(name) => {
           const parsed = PlaylistName.safeParse(name);
@@ -275,7 +276,7 @@ export default function PlaylistEditor({
       const open = editing;
       const field = (target: ProseOwner, label: string) => (
         <MarkdownField
-          handOverRef={handOverRef}
+          openFieldsRef={openFieldsRef}
           actions={proseActions(target)}
           label={label}
           initial={open.draft ?? sourceOf(content, target)}
@@ -401,7 +402,7 @@ export default function PlaylistEditor({
           ) : undefined,
         content: open ? (
           <MarkdownField
-            handOverRef={handOverRef}
+            openFieldsRef={openFieldsRef}
             label="New text"
             initial={open.draft ?? ''}
             error={open.error}
@@ -508,7 +509,7 @@ function unsavedReason(settled: Settled): string | null {
  */
 function useStoreEvents(
   store: DraftStore,
-  handOverRef: RefObject<(() => void) | null>,
+  openFieldsRef: RefObject<Set<() => void>>,
   handlers: {
     onSaved: () => void;
     onRefused: (refused: Refusal) => void;
@@ -528,13 +529,13 @@ function useStoreEvents(
     });
     return () => {
       unsubscribe();
-      // An open field's text first (unmount order doesn't decide it), then whatever
-      // is still on its way.
-      // oxlint-disable-next-line react-hooks/exhaustive-deps -- the field open now, on purpose
-      handOverRef.current?.();
+      // Open fields' text first (unmount order doesn't decide it), then whatever is
+      // still on its way.
+      // oxlint-disable-next-line react-hooks/exhaustive-deps -- the fields open now, on purpose
+      for (const handOver of openFieldsRef.current) handOver();
       if (store.getState().status !== 'saved') void store.settle().then(onClosed);
     };
-  }, [store, handOverRef]);
+  }, [store, openFieldsRef]);
 }
 
 /** Asks before leaving with edits not yet saved. */
@@ -600,11 +601,34 @@ function SaveStatus({
 }
 
 /** The title, as an input that looks like it. Saves on Enter or blur; Escape reverts. */
-function TitleInput({ name, onSave }: { name: string; onSave: (name: string) => void }) {
+function TitleInput({
+  name,
+  onSave,
+  openFieldsRef,
+}: {
+  name: string;
+  onSave: (name: string) => void;
+  /** The editor's open fields: a name typed but not yet saved is handed over when it closes. */
+  openFieldsRef: RefObject<Set<() => void>>;
+}) {
+  const field = useRef<HTMLTextAreaElement>(null);
+  const save = useEffectEvent(onSave);
+  useEffect(() => {
+    // The element, kept (React clears the ref before the editor's cleanup runs).
+    const t = field.current;
+    const open = openFieldsRef.current;
+    if (!t) return;
+    const handOver = () => {
+      if (t.value !== t.defaultValue) save(t.value.replace(/\s+/g, ' '));
+    };
+    open.add(handOver);
+    return () => void open.delete(handOver);
+  }, [openFieldsRef, name]);
   return (
     // A one-row textarea that grows, so a long name wraps like the heading does.
     // Enter saves (a name is one line); Escape reverts.
     <textarea
+      ref={field}
       key={name}
       defaultValue={name}
       aria-label="Playlist name"

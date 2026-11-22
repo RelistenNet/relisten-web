@@ -75,7 +75,7 @@ export default function MarkdownField({
   actions = [],
   onDone,
   onInterrupted,
-  handOverRef,
+  openFieldsRef,
 }: {
   label: string;
   initial: string;
@@ -97,11 +97,12 @@ export default function MarkdownField({
    */
   onInterrupted: (text: string) => void;
   /**
-   * Set (while the field is open) to hand its text over now, as if interrupted:
-   * the editor calls it when it closes, before checking what's left to save, so
-   * the order the two unmount in doesn't matter. Doing it twice does nothing more.
+   * The editor's open fields: while open, this one is in it, as a way to hand its
+   * text over now (as if interrupted). The editor calls them when it closes, before
+   * checking what's left to save, so the order the two unmount in doesn't matter.
+   * Handing over twice does nothing more.
    */
-  handOverRef?: RefObject<(() => void) | null>;
+  openFieldsRef?: RefObject<Set<() => void>>;
 }) {
   const textarea = useRef<HTMLTextAreaElement>(null);
   const cancelled = useRef(false);
@@ -198,12 +199,13 @@ export default function MarkdownField({
       finished.current = true;
       interrupted(history.current.present.value);
     };
-    if (handOverRef) handOverRef.current = give;
+    const open = openFieldsRef?.current;
+    open?.add(give);
     return () => {
       give();
-      if (handOverRef?.current === give) handOverRef.current = null;
+      open?.delete(give);
     };
-  }, [handOverRef]);
+  }, [openFieldsRef]);
 
   const near = count > limit * 0.8;
   return (
