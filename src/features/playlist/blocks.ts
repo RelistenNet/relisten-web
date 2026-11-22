@@ -23,26 +23,15 @@ export type PlaylistBlock =
       segmentId: string;
       items: PlaylistItem[];
       comment: GuideBlock[];
-    }
-  /**
-   * The editor only: an undescribed segment of two or more entries, shown as a
-   * group so it's clear what belongs together (readers see loose tracks).
-   */
-  | { kind: 'group'; key: string; segmentId: string; items: PlaylistItem[] };
+    };
 
-/**
- * Appends rows as items. A track joins the run of tracks before it, unless
- * `apart` (the editor's loose tracks, each in a segment of its own).
- */
+/** Appends rows as items. A track joins the run of tracks before it. */
 function addItems(
   into: PlaylistItem[] | PlaylistBlock[],
   rows: readonly PlaylistRow[],
   {
-    apart = false,
     keepEmpty = false,
   }: {
-    /** Each track its own item (the editor's loose tracks, each a segment of its own). */
-    apart?: boolean;
     /** Keep text that sanitizes to nothing, shown as written (the editor). */
     keepEmpty?: boolean;
   } = {}
@@ -53,25 +42,27 @@ function addItems(
       // editor shows it as written, so it can still be fixed or removed.
       const prose = row.prose?.length
         ? row.prose
-        : apart || keepEmpty
+        : keepEmpty
           ? plainBlocks(row.description ?? '')
           : [];
       if (prose.length) into.push({ kind: 'text', key: row.id, segmentId: row.segmentId, prose });
       continue;
     }
     const last = into.at(-1);
-    if (last?.kind === 'tracks' && !apart) last.rows.push(row);
+    if (last?.kind === 'tracks') last.rows.push(row);
     else into.push({ kind: 'tracks', key: row.id, rows: [row] });
   }
 }
 
 /**
- * The flow's blocks. With `segments` (the editor), undescribed segments stay
- * apart: one of two or more entries is a group; a lone track is its own block.
+ * The flow's blocks: the same for readers and the editor, so opening the editor
+ * moves nothing (it outlines its groups over these rows: flow.ts). With
+ * `keepEmpty` (the editor), text that sanitizes to nothing still shows, as
+ * written, so it can be fixed.
  */
 export function playlistBlocks(
   rows: readonly PlaylistRow[],
-  { segments = false }: { segments?: boolean } = {}
+  { keepEmpty = false }: { keepEmpty?: boolean } = {}
 ): PlaylistBlock[] {
   const blocks: PlaylistBlock[] = [];
   let i = 0;
@@ -83,7 +74,7 @@ export function playlistBlocks(
     const run = rows.slice(i, end);
     if (heading) {
       const items: PlaylistItem[] = [];
-      addItems(items, run, { keepEmpty: segments });
+      addItems(items, run, { keepEmpty });
       blocks.push({
         kind: 'section',
         key: `section:${heading.id}`,
@@ -91,47 +82,11 @@ export function playlistBlocks(
         items,
         comment: heading.prose,
       });
-    } else if (!segments) {
-      addItems(blocks, run);
-    } else {
-      // Undescribed segments ran together above: split them back apart.
-      for (let j = 0; j < run.length;) {
-        let k = j;
-        while (k < run.length && run[k].segmentId === run[j].segmentId) k++;
-        const segment = run.slice(j, k);
-        if (segment.length > 1) {
-          const items: PlaylistItem[] = [];
-          addItems(items, segment, { keepEmpty: true });
-          blocks.push({
-            kind: 'group',
-            key: `group:${run[j].segmentId}`,
-            segmentId: run[j].segmentId,
-            items,
-          });
-        } else addItems(blocks, segment, { apart: true });
-        j = k;
-      }
-    }
+    } else addItems(blocks, run, { keepEmpty });
     i = end;
   }
   return blocks;
 }
 
-/** Where a block starts and ends: the first and last row (entry or prose-only segment) in it. */
+/** An entry's (or a prose-only segment's) place: the row a drop or new text goes next to. */
 export type BlockEdge = { id: string; segmentId: string };
-
-export function blockEdges(block: PlaylistBlock): { first: BlockEdge; last: BlockEdge } | null {
-  const items = block.kind === 'section' || block.kind === 'group' ? block.items : [block];
-  const edges = items.flatMap((item): BlockEdge[] =>
-    item.kind === 'text'
-      ? [{ id: item.key, segmentId: item.segmentId }]
-      : item.rows.map((r) => ({ id: r.id, segmentId: r.segmentId }))
-  );
-  // A section with only its comment: the segment itself.
-  if (!edges.length && block.kind === 'section')
-    return {
-      first: { id: block.segmentId, segmentId: block.segmentId },
-      last: { id: block.segmentId, segmentId: block.segmentId },
-    };
-  return edges.length ? { first: edges[0], last: edges[edges.length - 1] } : null;
-}

@@ -19,9 +19,10 @@ import TrackLoadDot from '@/player/TrackLoadDot';
 import { songRowItem } from '@/player/queue/items';
 import { formatShowDate } from '@/ui/shows/stats';
 import { playlistBlocks, type PlaylistTrackGroupRow } from './blocks';
-import type { DropTarget } from './dragOps';
+import type { DragSource } from './dragOps';
 import {
   type Box,
+  type FlowGroup,
   type FlowOptions,
   type FlowRow,
   flowRows,
@@ -62,10 +63,17 @@ export type ArticleSlots = {
   /** Opens a prose block for editing: a click on it (not on a link in it), or Enter. */
   editProse?: (owner: ProseOwner) => void;
   /**
-   * A row's controls (the editor's grip and menu): every kind of row gets them in
-   * the same place, at the top right of its content.
+   * A card's menu, in the read view's ⋯ place (so nothing moves): the editor's
+   * Edit menu instead of the queue menu.
    */
-  controls?: (row: FlowRow) => ReactNode;
+  cellMenu?: (row: PlaylistTrackGroupRow) => ReactNode;
+  /** A section's or group's menu, at its box's top-right corner. */
+  boxMenu?: (group: { segmentId: string; tone: 'section' | 'group' }) => ReactNode;
+  /**
+   * What dragging a row or box moves, and what the drag image says (the editor's
+   * drag wiring reads it from `data-drag`); undefined for what doesn't drag.
+   */
+  drag?: (target: FlowRow | FlowGroup) => DragSpec | undefined;
   /**
    * At each gap between blocks (and before the first, and past the last): its
    * control (Add Text), or the text being written there in its place.
@@ -73,9 +81,12 @@ export type ArticleSlots = {
   gap?: (at: GapAt) => { control?: ReactNode; content?: ReactNode };
   /** Beside the play actions (save status, undo, Done). */
   toolbar?: ReactNode;
-  /** The editor's state the flow lays out: what's being dragged, where the composer is. */
+  /** The editor's state the flow lays out: where the composer is, a new intro. */
   flow?: Omit<FlowOptions, 'editing'>;
 };
+
+/** A drag's source and its image's label, as a row's or box's `data-drag`. */
+export type DragSpec = { source: DragSource; label: string };
 
 /** "27 min", "1 hr 12 min". */
 export function readableDuration(seconds: number) {
@@ -101,8 +112,9 @@ export default function PlaylistArticle({
   // A track's play button queues the playlist's tracks, in order.
   const items = view.rows.flatMap((r) => (isTrackRow(r) ? (songRowItem(r) ?? []) : []));
   const unavailable = view.rows.filter((r) => r.kind === 'unavailable').length;
-  // The editor shows each segment apart (groups), so it's clear what belongs together.
-  const blocks = playlistBlocks(view.rows, { segments: !!slots });
+  // The same blocks for readers and the editor (which outlines its groups over
+  // them), so opening the editor moves nothing.
+  const blocks = playlistBlocks(view.rows, { keepEmpty: !!slots });
   const groups = flowRows(blocks, { editing: !!slots, ...slots?.flow });
   // Each animated row is captured by every transition: past this many, edits and
   // the page ↔ editor morph cost more than a frame, so long playlists don't animate.
@@ -157,10 +169,20 @@ export default function PlaylistArticle({
             column; from md up it hangs in the margin, so content lines up with the header. */}
             <div className="flex flex-col md:-ml-5">
               {groups.map((group) =>
-                group.segmentId ? (
-                  // A section's or group's rows together: its segment drags as one
-                  // (by its header's grip).
-                  <div key={group.key} data-block="" className="flex flex-col">
+                group.segmentId && group.tone ? (
+                  // A section's or group's rows together: its segment drags as one,
+                  // by its label.
+                  <div
+                    key={group.key}
+                    data-drag={dragAttr(slots?.drag?.(group))}
+                    className="relative flex flex-col"
+                  >
+                    {slots && (
+                      <BoxFrame
+                        tone={group.tone}
+                        menu={slots.boxMenu?.({ segmentId: group.segmentId, tone: group.tone })}
+                      />
+                    )}
                     {group.rows.map((row) => (
                       <Row key={row.key} row={row} slots={slots} animate={animate} />
                     ))}
@@ -188,30 +210,24 @@ export default function PlaylistArticle({
 const MAX_ANIMATED_ROWS = 150;
 
 function Row({ row, slots, animate }: { row: FlowRow; slots?: ArticleSlots; animate: boolean }) {
-  const controls = slots?.controls?.(row);
+  // The editor: where a drop on this row lands (the drag wiring reads it), and the
+  // indicator it draws while one's over it: over the row, so nothing moves.
+  const drop = slots && row.drop ? JSON.stringify(row.drop) : undefined;
   const body = (
     <div className="group/row flex">
       <Rail rail={row.rail} />
-      {/* A box (a section's tint, a group's outline) is its rows' content cells, stacked.
-      A track's or text's cell is what its grip drags (a header's drags its box). */}
+      {/* A section's tint is its rows' content cells, stacked. A track's or text's
+      cell is what dragging it moves. */}
       <div
-        data-block={row.kind === 'track' || row.kind === 'prose' ? '' : undefined}
-        className={cn('relative min-w-0 flex-1', row.box && boxCell(row.box))}
-      >
-        <RowContent row={row} slots={slots} />
-        {controls && (
-          // The same place on every row: the top right, centered on the first line
-          // (a card's play button, a block's first line of text).
-          <div
-            className={cn(
-              'absolute right-2 z-20 flex items-center',
-              row.kind === 'header' ? 'top-[5px]' : 'top-[9px]',
-              row.box?.tone === 'group' && 'right-3.5'
-            )}
-          >
-            {controls}
-          </div>
+        data-drag={dragAttr(slots?.drag?.(row))}
+        data-drop={row.kind === 'space' ? undefined : drop}
+        className={cn(
+          'relative min-w-0 flex-1',
+          row.box && boxCell(row.box),
+          drop && row.kind !== 'space' && EDGE_INDICATOR
         )}
+      >
+        <RowContent row={row} slots={slots} drop={drop} />
       </div>
     </div>
   );
@@ -220,7 +236,7 @@ function Row({ row, slots, animate }: { row: FlowRow; slots?: ArticleSlots; anim
   // move between the playlist's page and its editor (a navigation), where each row
   // is named, so it morphs from where it was on one page to where it is on the
   // other. globals.css has the timing.
-  return animate && (row.kind === 'track' || row.kind === 'prose' || row.kind === 'header') ? (
+  return animate && (row.kind === 'track' || row.kind === 'prose') ? (
     <ViewTransition name={transitionName(row.key)} share="playlist-move" default="playlist-move">
       {body}
     </ViewTransition>
@@ -232,8 +248,75 @@ function Row({ row, slots, animate }: { row: FlowRow; slots?: ArticleSlots; anim
 /** A row's view-transition name: its key, as a valid CSS identifier. */
 const transitionName = (key: string) => `pl-${key.replace(/[^\w-]/g, '-')}`;
 
-/** In the editor, room at the right of every row for its controls. */
-const CONTROLS_ROOM = 'pr-[84px]';
+const dragAttr = (spec: DragSpec | undefined) => (spec ? JSON.stringify(spec) : undefined);
+
+// While dragging, the row under the pointer draws where the drop would land (the
+// drag wiring sets data-drop-edge and data-drop-label on it): a line at its top or
+// bottom edge, a card's outline for "Group with this", and a label. All drawn over
+// the rows (pseudo-elements), never between them.
+const DROP_LINE = `
+  before:pointer-events-none before:absolute before:inset-x-2 before:z-30 before:hidden
+  before:h-0.5 before:rounded-full before:bg-accent
+`;
+const LABEL = `
+  after:pointer-events-none after:absolute after:right-3 after:z-30 after:hidden
+  after:rounded-full after:bg-accent after:px-2 after:py-0.5 after:text-[11px]
+  after:leading-4 after:font-medium after:text-white after:content-[attr(data-drop-label)]
+  data-[drop-edge]:after:block
+`;
+const EDGE_INDICATOR = cn(
+  DROP_LINE,
+  LABEL,
+  `
+    data-[drop-edge=bottom]:before:-bottom-[4px] data-[drop-edge=bottom]:before:block
+    data-[drop-edge=bottom]:after:-bottom-[12px]
+    data-[drop-edge=center]:after:bottom-2 data-[drop-edge=top]:before:-top-[4px]
+    data-[drop-edge=top]:before:block
+    data-[drop-edge=top]:after:-top-[12px]
+  `
+);
+/** Space between rows: the line through its middle. */
+const SPACE_INDICATOR = cn(
+  DROP_LINE,
+  LABEL,
+  `
+    data-[drop-edge]:before:top-1/2 data-[drop-edge]:before:block
+    data-[drop-edge]:before:-translate-y-1/2 data-[drop-edge]:after:top-1/2
+    data-[drop-edge]:after:-translate-y-1/2
+  `
+);
+
+/**
+ * The editor's frame for a section or group, drawn over its rows (it takes no
+ * room): a group's dashed outline, its label on the top border (which is what
+ * drags the box), and its menu at the top-right corner.
+ */
+function BoxFrame({ tone, menu }: { tone: 'section' | 'group'; menu?: ReactNode }) {
+  return (
+    <>
+      {tone === 'group' && (
+        <div
+          aria-hidden
+          className="
+            pointer-events-none absolute -inset-x-1 -inset-y-[3px] rounded-2xl border
+            border-dashed border-text-primary/20
+          "
+        />
+      )}
+      <span
+        title="Drag to move"
+        className="
+          absolute -top-[9px] left-12 z-20 cursor-grab rounded-full bg-surface px-1.5
+          text-[10px] leading-[18px] font-semibold tracking-wide text-text-muted uppercase
+          select-none active:cursor-grabbing
+        "
+      >
+        {tone === 'section' ? 'Section' : 'Group'}
+      </span>
+      {menu && <div className="absolute -top-4 right-1 z-20">{menu}</div>}
+    </>
+  );
+}
 
 /** A box's rounded corners, for a row at this position in it (and what fills the row). */
 function boxCorners({ position }: Box) {
@@ -243,54 +326,45 @@ function boxCorners({ position }: Box) {
   );
 }
 
-/** One row's piece of its box: the sides, and the top or bottom at the ends. */
-function boxCell({ position, tone }: Box) {
-  const top = position === 'first' || position === 'only';
-  const bottom = position === 'last' || position === 'only';
-  return tone === 'section'
-    ? // Not clipped (a field's floating toolbar would be): what fills a box's row
-      // (a card's hover, a block's) takes the box's corners itself (boxCorners).
-      cn(SECTION_TINT, boxCorners({ position, tone }))
-    : cn(
-        'border-x border-dashed border-text-primary/20 px-1.5',
-        top && 'rounded-t-2xl border-t pt-1.5',
-        bottom && 'rounded-b-2xl border-b pb-1.5'
-      );
+/**
+ * One row's piece of a section's box. Not clipped (a field's floating toolbar
+ * would be): what fills a box's row (a card's hover, a block's) takes the box's
+ * corners itself (boxCorners).
+ */
+function boxCell(box: Box) {
+  return cn(SECTION_TINT, boxCorners(box));
 }
 
-function RowContent({ row, slots }: { row: FlowRow; slots?: ArticleSlots }) {
+function RowContent({ row, slots, drop }: { row: FlowRow; slots?: ArticleSlots; drop?: string }) {
   switch (row.kind) {
     case 'space':
-      return <div aria-hidden style={{ height: row.height }} />;
+      return (
+        <div aria-hidden style={{ height: row.height }} className="relative">
+          {drop && (
+            // A place to drop; with no height (before everything), it reaches up into
+            // the space above.
+            <div
+              data-drop={drop}
+              className={cn(
+                'absolute inset-x-0',
+                row.height ? 'inset-y-0' : '-top-5 h-5',
+                SPACE_INDICATOR
+              )}
+            />
+          )}
+        </div>
+      );
     case 'gap':
       return (
         <div className="py-2">
           <Gap at={row.at} slots={slots} />
         </div>
       );
-    case 'drop':
-      return (
-        <DropZone
-          target={row.target}
-          alone={row.target.kind === 'gap' && slots?.flow?.dragging?.kind === 'entry'}
-        />
-      );
     case 'track':
       return isTrackRow(row.row) ? (
         <TrackCell row={row.row} box={row.box} slots={slots} />
       ) : (
         <UnavailableCell row={row.row} box={row.box} slots={slots} />
-      );
-    case 'header':
-      return (
-        <div
-          className="
-          flex h-[42px] items-center pl-[53px] text-[11px] font-semibold tracking-wide
-          text-text-muted uppercase
-        "
-        >
-          {row.tone === 'section' ? 'Section' : 'Group'}
-        </div>
       );
     case 'prose':
       return (
@@ -305,9 +379,7 @@ function RowContent({ row, slots }: { row: FlowRow; slots?: ArticleSlots }) {
             // The box spans the row; the text inside keeps its measure.
             row.box && cn('max-w-none py-3 pr-4 *:max-w-[65ch]', boxCorners(row.box)),
             !row.box && 'rounded-xl',
-            row.box && row.owner.kind === 'segment' && 'pb-3.5',
-            // The editor: the same padding for every block, and room for its controls.
-            slots && cn('max-w-none py-3 *:max-w-[65ch]', CONTROLS_ROOM)
+            row.box && row.owner.kind === 'segment' && 'pb-3.5'
           )}
         />
       );
@@ -374,34 +446,6 @@ function Gap({ at, slots }: { at: GapAt; slots?: ArticleSlots }) {
   );
 }
 
-/**
- * While dragging: a place it can land. usePlaylistDrag finds it by its target and
- * lights it up when the pointer's over it.
- */
-function DropZone({ target, alone }: { target: DropTarget; alone: boolean }) {
-  return (
-    // Grows into place as the drag starts (no snap): CSS, since a view transition
-    // mid-drag would freeze the page under the pointer.
-    <div
-      className="
-        h-11 overflow-hidden py-1 transition-[height,padding,opacity] duration-200 ease-out
-        motion-reduce:transition-none starting:h-0 starting:py-0 starting:opacity-0
-      "
-    >
-      <div
-        data-drop-zone={JSON.stringify(target)}
-        className="
-          flex h-9 items-center justify-center gap-1.5 rounded-xl border border-dashed
-          border-text-primary/20 text-xs text-text-muted transition-colors
-          data-[drop-over]:border-accent data-[drop-over]:bg-accent/15 data-[drop-over]:text-accent
-        "
-      >
-        {alone ? 'Move here, on its own' : 'Move here'}
-      </div>
-    </div>
-  );
-}
-
 /** A timestamp in the prose: plays its entry from there. */
 const renderSeek: RenderSeek = (seek, label, href) => (
   <SeekLink entryId={seek.entryId} seconds={seek.seconds} href={href}>
@@ -440,12 +484,12 @@ export function Prose({
         // click on the text (or in its field) is the text's, not the card's.
         (open || editing) && 'relative z-10',
         // Editable: above a cell's play-anywhere overlay, and marked as text to click
-        // into. An outline, not padding or a margin: hovering moves nothing.
+        // into. An outline drawn outside it, not padding or a margin: hovering (or
+        // focusing) moves nothing.
         open &&
           `
-            z-10 cursor-text transition-colors hover:bg-text-primary/[0.03]
-            focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none
-            focus-visible:ring-inset
+            z-10 cursor-text rounded-lg outline-offset-[5px] hover:outline
+            hover:outline-text-primary/15 focus-visible:outline-2 focus-visible:outline-accent
           `,
         // Shown as written until the server renders it: dimmed, gently pulsing.
         pending && 'animate-pulse opacity-60 motion-reduce:animate-none',
@@ -492,12 +536,10 @@ const CELL = 'relative flex gap-3 border border-transparent py-2.5 pr-1.5 pl-3';
  * fills it (then the card only tints on hover).
  */
 const cardLook = (box: Box | null) => (box?.tone === 'section' ? boxCorners(box) : 'rounded-xl');
-/** While dragging a track: a card is somewhere to drop it, to group with it. */
+/** While dragging: a card the drop would group with is outlined (its row draws the label). */
 const JOIN_TARGET = `
-  data-[drop-over]:ring-2 data-[drop-over]:ring-accent data-[drop-over]:ring-inset
-  data-[drop-over]:after:absolute data-[drop-over]:after:right-3 data-[drop-over]:after:bottom-2
-  data-[drop-over]:after:text-xs data-[drop-over]:after:text-accent
-  data-[drop-over]:after:content-['Group_with_this']
+  in-data-[drop-edge=center]:ring-2 in-data-[drop-edge=center]:ring-accent
+  in-data-[drop-edge=center]:ring-inset
 `;
 
 /** A track's note, under its show line. */
@@ -528,8 +570,6 @@ function TrackCell({
       className={cn(
         CELL,
         cardLook(box),
-        // The editor: room for the row's controls at the right.
-        slots && CONTROLS_ROOM,
         JOIN_TARGET,
         box?.tone !== 'section' && 'bg-text-primary/[0.035]',
         `
@@ -569,9 +609,10 @@ function TrackCell({
           {row.songDuration ? durationToHHMMSS(Math.round(row.songDuration)) : '—'}
         </span>
         {/* Faded until the row is hovered or focused (or its menu is open); always
-        shown on touch screens, which can't hover. */}
-        {/* The editor has its own controls in the row's corner. */}
-        {!slots && (
+        shown on touch screens, which can't hover. The editor's menu takes its place. */}
+        {slots?.cellMenu ? (
+          slots.cellMenu(row)
+        ) : (
           <QueueMenu
             item={songRowItem(row)}
             name={name}
@@ -612,8 +653,6 @@ function UnavailableCell({
       className={cn(
         CELL,
         cardLook(box),
-        // The editor: room for the row's controls at the right.
-        slots && CONTROLS_ROOM,
         JOIN_TARGET,
         'group/cell items-start border-dashed border-hairline text-text-muted'
       )}
@@ -625,6 +664,8 @@ function UnavailableCell({
         <span className="text-[13px]">This recording isn&rsquo;t on Relisten anymore.</span>
         <Note id={row.id} blocks={row.prose} slots={slots} />
       </div>
+      {/* The editor's menu, at the right (readers have none here). */}
+      {slots?.cellMenu && <div className="shrink-0">{slots.cellMenu(row)}</div>}
     </div>
   );
 }

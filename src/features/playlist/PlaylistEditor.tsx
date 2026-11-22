@@ -7,7 +7,6 @@ import {
   ArrowUpIcon,
   ChevronRightIcon,
   EllipsisVerticalIcon,
-  GripVerticalIcon,
   GroupIcon,
   PencilIcon,
   PlusIcon,
@@ -17,12 +16,10 @@ import {
 } from 'lucide-react';
 import {
   type ReactNode,
-  useCallback,
   useDeferredValue,
   useEffect,
   useEffectEvent,
   useRef,
-  startTransition,
   useState,
 } from 'react';
 import { toast } from 'sonner';
@@ -54,7 +51,7 @@ import {
 } from './editOps';
 import PublishControl from './PublishControl';
 import { type DragSource, dropOps } from './dragOps';
-import MarkdownField from './MarkdownField';
+import MarkdownField, { type FieldAction } from './MarkdownField';
 import PlaylistArticle, { ACTION, type ArticleSlots, type ProseOwner } from './PlaylistArticle';
 import {
   needsServer,
@@ -63,7 +60,7 @@ import {
   playlistView,
   unresolved,
 } from './rows';
-import { draggableBlock, usePlaylistDrag } from './usePlaylistDrag';
+import { usePlaylistDrag } from './usePlaylistDrag';
 
 // The editor (docs/playlist-editing.md): the read view's article, laid out from
 // a draft, with menus on every cell, prose block and gap. Edits apply at once and
@@ -168,10 +165,9 @@ export default function PlaylistEditor({
   usePlaylistDrag({
     root,
     dragging,
-    // Zones open at once (they animate in by CSS); they close as a transition, so the
-    // rows slide back together (the drag is over by then).
-    onDragChange: (source) =>
-      source ? setDragging(source) : startTransition(() => setDragging(null)),
+    // A drop only where it would change something (no indicator elsewhere).
+    canDrop: (source, target) => dropOps(content, source, target).length > 0,
+    onDragChange: setDragging,
     // One drop can be two edits (text changing how it's stored): one undo step.
     onDrop: (source, target) => edit(...dropOps(content, source, target)),
   });
@@ -224,6 +220,39 @@ export default function PlaylistEditor({
   useEffect(() => () => void toast.dismiss(REMOVED_TOAST), []);
   const sections = content.segments.filter((s) => s.description && s.entries.length > 0);
 
+  /**
+   * What a text block's field offers besides editing (its block has no menu, so
+   * nothing takes room beside it): moves, and removal. A move saves the text first;
+   * a removal discards it.
+   */
+  const proseActions = (owner: ProseOwner): FieldAction[] => {
+    if (owner.kind === 'segment')
+      return [
+        {
+          label: 'Remove Intro',
+          icon: Trash2Icon,
+          discard: true,
+          run: () => edit(saveProse(content, owner, '')),
+        },
+      ];
+    if (owner.kind !== 'text') return [];
+    const alone = content.segments.some((seg) => seg.id === owner.id);
+    const by = (d: -1 | 1) =>
+      alone ? moveSegmentBy(content, owner.id, d) : moveEntry(content, owner.id, d);
+    const up = by(-1);
+    const down = by(1);
+    return [
+      { label: 'Move Up', icon: ArrowUpIcon, disabled: !up, run: () => edit(up) },
+      { label: 'Move Down', icon: ArrowDownIcon, disabled: !down, run: () => edit(down) },
+      {
+        label: 'Remove',
+        icon: Trash2Icon,
+        discard: true,
+        run: () => removed('the text', removeText(content, owner.id)),
+      },
+    ];
+  };
+
   const slots: ArticleSlots = {
     title: (
       <TitleInput
@@ -242,6 +271,7 @@ export default function PlaylistEditor({
       const open = editing;
       const field = (target: ProseOwner, label: string) => (
         <MarkdownField
+          actions={proseActions(target)}
           label={label}
           initial={open.draft ?? sourceOf(content, target)}
           error={open.error}
@@ -277,123 +307,72 @@ export default function PlaylistEditor({
       state.status !== 'error' &&
       view.unresolved.prose.includes(owner.kind === 'playlist' ? PLAYLIST_PROSE : owner.id),
 
-    // Every row's grip and menu, in the same corner (PlaylistArticle places them).
-    controls: (row) => {
-      switch (row.kind) {
-        case 'track':
-          return (
-            <>
-              <Grip
-                drag={{ kind: 'entry', id: row.row.id }}
-                label={
-                  row.row.kind === 'track' ? (row.row.trackTitle ?? 'Track') : 'Unavailable track'
-                }
-              />
-              <CellMenu
-                row={row.row}
-                sections={sections.filter((s) => s.id !== row.row.segmentId)}
-                hasNote={!!row.row.description}
-                onNote={() =>
-                  setEditing({ kind: 'prose', owner: { kind: 'note', id: row.row.id } })
-                }
-                onIntro={() =>
-                  setEditing({ kind: 'prose', owner: { kind: 'segment', id: row.row.segmentId } })
-                }
-                onAddBelow={() => setEditing({ kind: 'composer', after: row.row.id })}
-                onEdit={(op) => edit(op)}
-                // Worked out when the menu opens, not for every row on every render.
-                moves={() => ({
-                  up: moveEntry(content, row.row.id, -1),
-                  down: moveEntry(content, row.row.id, 1),
-                  ownGroup: moveToOwnGroup(content, row.row.id),
-                })}
-                onRemove={() =>
-                  removed('the track', {
-                    operation_type: 'delete_entry',
-                    payload: { entry_id: row.row.id },
-                  })
-                }
-                moveToSection={(segmentId) => moveToSection(row.row.id, segmentId)}
-                sectionName={(segmentId) =>
-                  firstLine(content.segments.find((s) => s.id === segmentId)?.description) ||
-                  'Section'
-                }
-              />
-            </>
-          );
-        case 'prose': {
-          const owner = row.owner;
-          const comment = owner.kind === 'segment';
-          return (
-            <>
-              <Grip drag={row.drag} label={firstLine(sourceOf(content, owner)) || 'Text'} />
-              <EditMenu label={comment ? 'Edit section intro' : 'Edit text'}>
-                <Item icon={PencilIcon} onClick={() => setEditing({ kind: 'prose', owner })}>
-                  Edit
-                </Item>
-                {/* Moves, like a track's: a text entry among its group's entries, text
-                standing alone among the segments. (A section's intro moves with it.) */}
-                {!comment && (
-                  <BoxMoveItems
-                    noun=""
-                    onEdit={(op) => edit(op)}
-                    moves={() => {
-                      const drag = row.drag;
-                      const by = (d: -1 | 1) =>
-                        drag.kind === 'entry'
-                          ? moveEntry(content, drag.id, d)
-                          : moveSegmentBy(content, drag.id, d);
-                      return { up: by(-1), down: by(1) };
-                    }}
-                  />
-                )}
-                <Item
-                  icon={Trash2Icon}
-                  onClick={() =>
-                    comment
-                      ? edit(saveProse(content, owner, ''))
-                      : owner.kind === 'text' && removed('the text', removeText(content, owner.id))
-                  }
-                >
-                  {comment ? 'Remove Intro' : 'Remove'}
-                </Item>
-              </EditMenu>
-            </>
-          );
+    // A card's Edit menu, in the read view's ⋯ place.
+    cellMenu: (row) => (
+      <CellMenu
+        row={row}
+        sections={sections.filter((s) => s.id !== row.segmentId)}
+        hasNote={!!row.description}
+        onNote={() => setEditing({ kind: 'prose', owner: { kind: 'note', id: row.id } })}
+        onIntro={() => setEditing({ kind: 'prose', owner: { kind: 'segment', id: row.segmentId } })}
+        onAddBelow={() => setEditing({ kind: 'composer', after: row.id })}
+        onEdit={(op) => edit(op)}
+        // Worked out when the menu opens, not for every row on every render.
+        moves={() => ({
+          up: moveEntry(content, row.id, -1),
+          down: moveEntry(content, row.id, 1),
+          ownGroup: moveToOwnGroup(content, row.id),
+        })}
+        onRemove={() =>
+          removed('the track', { operation_type: 'delete_entry', payload: { entry_id: row.id } })
         }
-        case 'header':
-          return (
-            <>
-              <Grip
-                drag={{ kind: 'segment', id: row.segmentId }}
-                label={row.tone === 'section' ? 'Section' : 'Group'}
-              />
-              <BoxMenu
-                tone={row.tone}
-                moves={() => ({
-                  up: moveSegmentBy(content, row.segmentId, -1),
-                  down: moveSegmentBy(content, row.segmentId, 1),
-                })}
-                onEdit={(op) => edit(op)}
-                onIntro={() =>
-                  setEditing({ kind: 'prose', owner: { kind: 'segment', id: row.segmentId } })
-                }
-                onRemove={() =>
-                  removed(row.tone === 'section' ? 'the section' : 'the group', {
-                    operation_type: 'delete_segment',
-                    payload: { segment_id: row.segmentId },
-                  })
-                }
-              />
-            </>
-          );
-        default:
-          return null;
-      }
+        moveToSection={(segmentId) => moveToSection(row.id, segmentId)}
+        sectionName={(segmentId) =>
+          firstLine(content.segments.find((s) => s.id === segmentId)?.description) || 'Section'
+        }
+      />
+    ),
+
+    // A section's or group's menu, at its box's corner.
+    boxMenu: ({ segmentId, tone }) => (
+      <BoxMenu
+        tone={tone}
+        moves={() => ({
+          up: moveSegmentBy(content, segmentId, -1),
+          down: moveSegmentBy(content, segmentId, 1),
+        })}
+        onEdit={(op) => edit(op)}
+        onIntro={() => setEditing({ kind: 'prose', owner: { kind: 'segment', id: segmentId } })}
+        onRemove={() =>
+          removed(tone === 'section' ? 'the section' : 'the group', {
+            operation_type: 'delete_segment',
+            payload: { segment_id: segmentId },
+          })
+        }
+      />
+    ),
+
+    // What dragging a row or box moves, and its drag image's label.
+    drag: (target) => {
+      if ('rows' in target)
+        return target.segmentId && target.tone
+          ? {
+              source: { kind: 'segment', id: target.segmentId },
+              label: target.tone === 'section' ? 'Section' : 'Group',
+            }
+          : undefined;
+      if (target.kind === 'track')
+        return {
+          source: { kind: 'entry', id: target.row.id },
+          label:
+            target.row.kind === 'track' ? (target.row.trackTitle ?? 'Track') : 'Unavailable track',
+        };
+      if (target.kind === 'prose' && target.owner.kind !== 'playlist')
+        return { source: target.drag, label: firstLine(sourceOf(content, target.owner)) || 'Text' };
+      return undefined;
     },
 
     flow: {
-      dragging,
       // The Add zone at the end is always there; elsewhere the composer is laid out.
       insertAfter: composerAt !== null && composerAt !== 'end' ? composerAt : null,
       // A group's (or lone track's) first intro: laid out where it will show.
@@ -486,39 +465,6 @@ export default function PlaylistEditor({
         }
       />
     </div>
-  );
-}
-
-/**
- * Shows a block can be dragged, and makes it so: the block drags from anywhere on
- * it. The menus are the keyboard's way.
- */
-function Grip({ drag, label }: { drag: DragSource; label: string }) {
-  const { kind, id } = drag;
-  const role = drag.kind === 'prose' ? drag.role : undefined;
-  // Stable while the block is the same, so a render mid-drag doesn't re-register it.
-  const register = useCallback(
-    (handle: HTMLSpanElement) =>
-      draggableBlock(
-        handle,
-        kind === 'prose' ? { kind, id, role: role ?? 'alone' } : { kind, id },
-        label
-      ),
-    [kind, id, role, label]
-  );
-  return (
-    <span
-      ref={register}
-      aria-hidden
-      title="Drag to move"
-      className={`
-        inline-flex size-8 cursor-grab items-center justify-center rounded-md
-        text-text-muted/60 hover:bg-surface-hover hover:text-text-primary
-        active:cursor-grabbing
-      `}
-    >
-      <GripVerticalIcon className="size-4" />
-    </span>
   );
 }
 

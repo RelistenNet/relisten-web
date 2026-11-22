@@ -34,6 +34,19 @@ import {
 // Done when focus leaves the field (the toolbar and timestamp row are inside it),
 // or ⌘/Ctrl+Enter; Escape cancels.
 
+/**
+ * Something the field's block can do besides being edited (it has no menu of its
+ * own): it closes the field first, saving the text, or discarding it.
+ */
+export type FieldAction = {
+  label: string;
+  icon: typeof BoldIcon;
+  run: () => void;
+  disabled?: boolean;
+  /** Close without saving the text (a removal). */
+  discard?: boolean;
+};
+
 /** A track a timestamp can point into. */
 export type TimestampTarget = { entryId: string; title: string; duration?: number };
 
@@ -58,6 +71,7 @@ export default function MarkdownField({
   error,
   timestampTargets = [],
   ownEntryId,
+  actions = [],
   onDone,
   onInterrupted,
 }: {
@@ -71,6 +85,8 @@ export default function MarkdownField({
   timestampTargets?: TimestampTarget[];
   /** A track note's own entry: its timestamps link as `#t=`. */
   ownEntryId?: string;
+  /** The block's moves and removal, in the toolbar. */
+  actions?: FieldAction[];
   /** Finished: the text, or null when cancelled (Escape). */
   onDone: (text: string | null) => void;
   /**
@@ -230,6 +246,21 @@ export default function MarkdownField({
               <span className="ml-1">Timestamp</span>
             </Tool>
           )}
+          {actions.length > 0 && <span aria-hidden className="mx-1 h-4 w-px bg-hairline" />}
+          {actions.map((action) => (
+            <Tool
+              key={action.label}
+              label={action.label}
+              disabled={action.disabled}
+              onClick={() => {
+                finished.current = true;
+                onDone(action.discard ? null : (textarea.current?.value ?? ''));
+                action.run();
+              }}
+            >
+              <action.icon className="size-3.5" aria-hidden />
+            </Tool>
+          ))}
           <span className="ml-auto pr-1 tabular-nums">
             {error ? (
               <span role="alert" className="text-red-500">
@@ -266,10 +297,12 @@ export default function MarkdownField({
 function Tool({
   label,
   onClick,
+  disabled,
   children,
 }: {
   label: string;
   onClick: () => void;
+  disabled?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -277,10 +310,14 @@ function Tool({
       type="button"
       aria-label={label}
       title={label}
+      disabled={disabled}
       // Keep the textarea's selection: the click mustn't take focus first.
       onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
-      className="inline-flex items-center rounded-md px-1.5 py-1 hover:bg-surface-hover hover:text-text-primary"
+      className="
+        inline-flex items-center rounded-md px-1.5 py-1 hover:bg-surface-hover
+        hover:text-text-primary disabled:opacity-40 disabled:hover:bg-transparent
+      "
     >
       {children}
     </button>

@@ -6,15 +6,20 @@ import type { DragSource, DropTarget } from './dragOps';
 // row has the same two cells, the rail and the content, and rows sit flush: the
 // spacing between blocks is rows too. So the rail is one line drawn piecewise,
 // each row drawing its own height, and nothing about a row's kind or size can
-// break it. In the editor, groups and the drop zones a drag needs are rows too.
-// Pure, so tested (flow.test.ts).
+// break it.
+//
+// The editor lays out the same rows as the read page, so opening it, or dragging
+// in it, moves nothing. It adds only what's being written (the composer, a new
+// intro), the Add zone at the end, the spans of its groups (an outline drawn
+// around their rows, taking no room), and, on each row, where a drop on it
+// would land. Pure, so tested (flow.test.ts).
 
 /** Space between blocks, and between loose cards. */
 export const BLOCK_SPACE = 16;
 export const CARD_SPACE = 6;
 
-/** A row's place in a box: a section's (tinted) or, in the editor, a group's (outlined). */
-export type Box = { position: 'first' | 'middle' | 'last' | 'only'; tone: 'section' | 'group' };
+/** A row's place in a section's (tinted) box. */
+export type Box = { position: 'first' | 'middle' | 'last' | 'only'; tone: 'section' };
 
 /** The rail beside a row: the line above and below its middle, and a dot for a track. */
 export type RailCell = { above: boolean; below: boolean; dot: boolean };
@@ -32,7 +37,14 @@ export type ProseOwner =
   /** A track's note, by entry id. */
   | { kind: 'note'; id: string };
 
-type RowBase = { key: string; rail: RailCell; box: Box | null };
+/**
+ * The editor: where a drop on this row lands, by where on it the pointer is (its
+ * top edge, its bottom edge, or a card's middle, which groups with it). Whether
+ * a drop there would change anything is dropOps' to say, when it happens.
+ */
+export type RowDrops = { top?: DropTarget; bottom?: DropTarget; center?: DropTarget };
+
+type RowBase = { key: string; rail: RailCell; box: Box | null; drop?: RowDrops };
 
 export type FlowRow =
   | (RowBase & { kind: 'track'; row: PlaylistTrackGroupRow })
@@ -45,29 +57,32 @@ export type FlowRow =
       /** What dragging it moves: itself as an entry, or as a segment's own text. */
       drag: DragSource;
     })
-  /** The editor only: a box's header, its handle and its menu. */
-  | (RowBase & { kind: 'header'; segmentId: string; tone: Box['tone'] })
   | (RowBase & { kind: 'space'; height: number })
   /** The editor's composer, or its Add zone at the end. */
-  | (RowBase & { kind: 'gap'; at: GapAt })
-  /** While dragging: a place to drop it. */
-  | (RowBase & { kind: 'drop'; target: DropTarget });
+  | (RowBase & { kind: 'gap'; at: GapAt });
 
-/** A section's or group's rows, wrapped together (its segment drags as one). */
-export type FlowGroup = { key: string; segmentId?: string; rows: FlowRow[] };
+/**
+ * Rows drawn together: a section (tinted), a group (the editor's outline around
+ * an undescribed segment of two or more entries), or loose rows. A section or
+ * group drags as one, by its label.
+ */
+export type FlowGroup = {
+  key: string;
+  segmentId?: string;
+  tone?: 'section' | 'group';
+  rows: FlowRow[];
+};
 
 export type FlowOptions = {
-  /** The editor: an Add zone at the end, and the composer after `insertAfter`. */
+  /** The editor: groups, drop targets, an Add zone at the end, the composer after `insertAfter`. */
   editing?: boolean;
   /** A row key to open the composer after ('' for the very start). */
   insertAfter?: string | null;
   /**
-   * An undescribed segment whose new intro is being written: it gets the
-   * (empty) intro row a section has, at its end, for the field.
+   * An undescribed segment whose new intro is being written: it gets the (empty)
+   * intro row a section has, after its last entry, for the field.
    */
   intro?: string | null;
-  /** What's being dragged: drop zones go wherever it can land and would move. */
-  dragging?: DragSource | null;
 };
 
 type Draft = FlowRow extends infer R
@@ -75,28 +90,36 @@ type Draft = FlowRow extends infer R
     ? Omit<R, 'rail' | 'box'>
     : never
   : never;
-type Part = { key: string; segmentId?: string; tone?: Box['tone']; rows: Draft[] };
+/** A row while laid out: the section it's in, if any. */
+type Placed = { row: Draft; section?: string };
 
-const edgeOf = (r: Draft): BlockEdge | undefined =>
+/** The segment a row stands for: its entry's, a comment's section, or text alone's own. */
+const segmentOf = (r: Draft): string | undefined =>
   r.kind === 'track'
-    ? { id: r.row.id, segmentId: r.row.segmentId }
+    ? r.row.segmentId
     : r.kind === 'prose'
-      ? (r.dragRow ??
-        (r.owner.kind === 'segment' ? { id: r.owner.id, segmentId: r.owner.id } : undefined))
+      ? (r.dragRow?.segmentId ?? (r.owner.kind === 'segment' ? r.owner.id : undefined))
       : undefined;
 
-/** An entry's edge (a track, or a text entry in a box); none for a section's comment. */
-const entryEdge = (r: Draft): BlockEdge | undefined =>
+/** The entry a row is (a track, or a text entry): what a drop lands next to. */
+const entryOf = (r: Draft): BlockEdge | undefined =>
   r.kind === 'track'
     ? { id: r.row.id, segmentId: r.row.segmentId }
-    : r.kind === 'prose'
+    : r.kind === 'prose' && r.dragRow && r.dragRow.id !== r.dragRow.segmentId
       ? r.dragRow
       : undefined;
 
+const edgeOf = (r: Draft): BlockEdge | undefined =>
+  entryOf(r) ??
+  (r.kind === 'prose'
+    ? (r.dragRow ??
+      (r.owner.kind === 'segment' ? { id: r.owner.id, segmentId: r.owner.id } : undefined))
+    : undefined);
+
 /** A segment's intro (a section's comment), under its entries. */
-const introRow = (blockKey: string, segmentId: string, prose: GuideBlock[]): Draft => ({
+const introRow = (key: string, segmentId: string, prose: GuideBlock[]): Draft => ({
   kind: 'prose',
-  key: `${blockKey}:comment`,
+  key,
   owner: { kind: 'segment', id: segmentId },
   prose,
   drag: { kind: 'prose', id: segmentId, role: 'comment' },
@@ -108,7 +131,7 @@ function itemRows(items: PlaylistItem[], apart: boolean): Draft[] {
   for (const item of items) {
     if (item.kind === 'text') {
       // Text alone is a segment of its own (its key is the segment's); other text is
-      // an entry in a group.
+      // an entry in a segment of tracks.
       const alone = item.key === item.segmentId;
       rows.push({
         kind: 'prose',
@@ -130,195 +153,207 @@ function itemRows(items: PlaylistItem[], apart: boolean): Draft[] {
   return rows;
 }
 
-/** A box's rows with drop zones between its entries: before the first, then after each. */
-function innerZones(rows: Draft[], segmentId: string, dragging: DragSource): Draft[] {
-  const edges = rows.map(entryEdge);
-  const entries = rows.filter((_, i) => edges[i]);
-  const ids = edges.flatMap((e) => (e ? [e.id] : []));
-  const out: Draft[] = [];
-  const zone = (key: string, target: DropTarget): Draft => ({ kind: 'drop', key, target });
-  // Before the first entry, then after each: skipping the two either side of the
-  // dragged entry, where dropping would leave it where it is.
-  const at = ids.indexOf(dragging.id);
-  for (const row of rows) {
-    const i = entries.indexOf(row);
-    if (i === 0 && at !== 0)
-      out.push(
-        zone(`drop:before:${ids[0]}`, { kind: 'row', rowId: ids[0], segmentId, edge: 'top' })
-      );
-    out.push(row);
-    if (i >= 0 && i !== at && i !== at - 1)
-      out.push(
-        zone(`drop:after:${ids[i]}`, { kind: 'row', rowId: ids[i], segmentId, edge: 'bottom' })
-      );
-  }
-  return out;
-}
-
-/**
- * The flow's rows, grouped by section or group. In the editor, `dragging` adds
- * drop zones and `insertAfter` the composer.
- */
+/** The flow's rows, grouped by section and (in the editor) group. */
 export function flowRows(
   blocks: readonly PlaylistBlock[],
-  { editing = false, insertAfter = null, dragging = null, intro = null }: FlowOptions = {}
+  { editing = false, insertAfter = null, intro = null }: FlowOptions = {}
 ): FlowGroup[] {
-  const parts: Part[] = [];
-  const space = (key: string): Part => ({
-    key: `between:${key}`,
-    rows: [{ kind: 'space', key: `space:${key}`, height: BLOCK_SPACE }],
-  });
-  /** The segments on either side of the space before block `b`. */
-  const around = (b: number) => ({
-    above: b > 0 ? lastSegment(blocks[b - 1]) : undefined,
-    below: b < blocks.length ? firstSegment(blocks[b]) : undefined,
-  });
-  const holds = (block: PlaylistBlock | undefined) =>
-    !!block && !!dragging && blockHolds(block, dragging);
-
+  // The read page's rows, in order: blocks, with space between them.
+  let placed: Placed[] = [];
   blocks.forEach((block, b) => {
-    // Between blocks: a zone while dragging (unless dropping there changes nothing),
-    // else plain space.
-    const { above, below } = around(b);
-    if (dragging && !holds(blocks[b - 1]) && !holds(block))
-      parts.push({
-        key: `between:${block.key}`,
-        rows: [{ kind: 'drop', key: `drop:gap:${b}`, target: { kind: 'gap', above, below } }],
-      });
-    else if (b > 0) parts.push(space(block.key));
-
-    if (block.kind === 'section' || block.kind === 'group') {
-      let rows = itemRows(block.items, false);
-      if (block.kind === 'section' || block.segmentId === intro)
-        rows.push(
-          introRow(block.key, block.segmentId, block.kind === 'section' ? block.comment : [])
-        );
-      // Inside a box only entries and text land (a whole box goes between blocks),
-      // and a section's own intro has nowhere to go inside it.
-      const ownIntro = dragging?.kind === 'prose' && dragging.id === block.segmentId;
-      if (dragging && dragging.kind !== 'segment' && !ownIntro)
-        rows = innerZones(rows, block.segmentId, dragging);
-      if (editing)
-        rows.unshift({
-          kind: 'header',
-          key: `${block.key}:header`,
-          segmentId: block.segmentId,
-          tone: block.kind === 'section' ? 'section' : 'group',
-        });
-      parts.push({
-        key: block.key,
-        segmentId: block.segmentId,
-        tone: block.kind === 'section' ? 'section' : 'group',
-        rows,
-      });
-      return;
-    }
-    const rows = itemRows([block], true);
-    // A lone track getting its first intro: the row goes under it.
-    const segmentId = firstSegment(block);
-    if (block.kind === 'tracks' && segmentId === intro)
-      rows.push(introRow(block.key, segmentId, []));
-    parts.push({ key: block.key, rows });
+    if (b > 0)
+      placed.push({ row: { kind: 'space', key: `space:${block.key}`, height: BLOCK_SPACE } });
+    if (block.kind === 'section') {
+      const rows = itemRows(block.items, false);
+      rows.push(introRow(`${block.key}:comment`, block.segmentId, block.comment));
+      placed.push(...rows.map((row) => ({ row, section: block.segmentId })));
+    } else placed.push(...itemRows([block], true).map((row) => ({ row })));
   });
-  if (dragging && blocks.length && !holds(blocks.at(-1)))
-    parts.push({
-      key: 'between:end',
-      rows: [
-        {
-          kind: 'drop',
-          key: 'drop:gap:end',
-          target: { kind: 'gap', above: lastSegment(blocks[blocks.length - 1]) },
-        },
-      ],
-    });
 
-  // The composer, after the row it was opened from; and the Add zone at the end.
-  if (editing) {
-    if (insertAfter !== null) {
-      const gap: Draft = { kind: 'gap', key: `gap:${insertAfter}`, at: { key: insertAfter } };
-      const part = insertAfter
-        ? parts.find((p) => p.rows.some((r) => r.key === insertAfter))
-        : undefined;
-      if (part) part.rows.splice(part.rows.findIndex((r) => r.key === insertAfter) + 1, 0, gap);
-      else parts.unshift({ key: 'between:start', rows: [gap] });
-    }
-    if (!dragging)
-      parts.push({
-        key: 'between:add',
-        rows: [{ kind: 'gap', key: 'gap:end', at: { key: 'end' } }],
-      });
-  }
+  if (editing) placed = editorRows(placed, { insertAfter, intro });
 
   // Each gap's neighbours, now that everything's in place.
-  const flat = parts.flatMap((p) => p.rows);
-  const edges = flat.map(edgeOf);
-  const withNeighbours = (r: Draft, i: number): Draft =>
-    r.kind === 'gap'
+  const edges = placed.map((p) => edgeOf(p.row));
+  placed = placed.map((p, i) =>
+    p.row.kind === 'gap'
       ? {
-          ...r,
-          at: {
-            ...r.at,
-            above: edges.slice(0, i).findLast(Boolean),
-            below: edges.slice(i + 1).find(Boolean),
+          ...p,
+          row: {
+            ...p.row,
+            at: {
+              ...p.row.at,
+              above: edges.slice(0, i).findLast(Boolean),
+              below: edges.slice(i + 1).find(Boolean),
+            },
           },
         }
-      : r;
+      : p
+  );
+
+  const groups = groupRows(placed, editing);
+  const drops = editing ? dropTargets(placed, groups) : undefined;
 
   // The rail runs from the first track's dot to the last's.
-  const first = flat.findIndex((r) => r.kind === 'track');
-  const last = flat.findLastIndex((r) => r.kind === 'track');
+  const first = placed.findIndex((p) => p.row.kind === 'track');
+  const last = placed.findLastIndex((p) => p.row.kind === 'track');
   let i = 0;
-  return parts.map((part) => ({
-    key: part.key,
-    segmentId: part.segmentId,
-    rows: part.rows.map((draft, j, all) => {
+  return groups.map((group) => ({
+    ...group,
+    rows: group.rows.map((draft, j, all) => {
       const at = i++;
-      const r = withNeighbours(draft, at);
       const inRange = first >= 0 && at >= first && at <= last;
       const position =
         all.length === 1 ? 'only' : j === 0 ? 'first' : j === all.length - 1 ? 'last' : 'middle';
       return {
-        ...r,
-        box: part.tone ? { position, tone: part.tone } : null,
+        ...draft,
+        box: group.tone === 'section' ? { position, tone: 'section' } : null,
+        ...(drops?.[at] && { drop: drops[at] }),
         rail: {
           above: inRange && at > first,
           below: inRange && at < last,
-          dot: r.kind === 'track',
+          dot: draft.kind === 'track',
         },
       } as FlowRow;
     }),
   }));
 }
 
-function itemsOf(block: PlaylistBlock): PlaylistItem[] {
-  return block.kind === 'section' || block.kind === 'group' ? block.items : [block];
+/** The editor's additions: a new intro's row, the composer, and the Add zone at the end. */
+function editorRows(
+  placed: Placed[],
+  { insertAfter, intro }: { insertAfter: string | null; intro: string | null }
+): Placed[] {
+  const out = [...placed];
+  // A group's (or lone track's) first intro: under its last entry, where it will show.
+  if (intro && !out.some((p) => p.section === intro)) {
+    const at = out.findLastIndex((p) => segmentOf(p.row) === intro);
+    if (at >= 0) out.splice(at + 1, 0, { row: introRow(`intro:${intro}`, intro, []) });
+  }
+  if (insertAfter !== null) {
+    const gap: Draft = { kind: 'gap', key: `gap:${insertAfter}`, at: { key: insertAfter } };
+    const at = insertAfter ? out.findIndex((p) => p.row.key === insertAfter) : -1;
+    // Inside a section, it's in the section.
+    if (at >= 0) out.splice(at + 1, 0, { row: gap, section: out[at].section });
+    else out.unshift({ row: gap });
+  }
+  // Before everything: a place to drop with no height (its target reaches up into
+  // the space above the flow), so something can go first, even before a section.
+  out.unshift({ row: { kind: 'space', key: 'space:start', height: 0 } });
+  out.push({ row: { kind: 'gap', key: 'gap:end', at: { key: 'end' } } });
+  return out;
 }
 
-function segmentOf(item: PlaylistItem): string | undefined {
-  return item.kind === 'text' ? item.segmentId : item.rows[0]?.segmentId;
+/** Undescribed segments of two or more entries: groups, in the editor. */
+function groupSegments(placed: Placed[]): Set<string> {
+  const count = new Map<string, number>();
+  for (const { row, section } of placed) {
+    const entry = entryOf(row);
+    const intro = row.kind === 'prose' && row.owner.kind === 'segment' ? row.owner.id : undefined;
+    const segment = section ? undefined : (entry?.segmentId ?? intro);
+    if (segment) count.set(segment, (count.get(segment) ?? 0) + 1);
+  }
+  return new Set([...count].filter(([, n]) => n > 1).map(([id]) => id));
 }
 
-function firstSegment(block: PlaylistBlock): string | undefined {
-  return block.kind === 'section' || block.kind === 'group'
-    ? block.segmentId
-    : segmentOf(itemsOf(block)[0]);
+/** Sections, the editor's groups, and the loose rows between them. */
+function groupRows(
+  placed: Placed[],
+  editing: boolean
+): (Omit<FlowGroup, 'rows'> & { rows: Draft[] })[] {
+  const grouped = editing ? groupSegments(placed) : new Set<string>();
+  const out: (Omit<FlowGroup, 'rows'> & { rows: Draft[] })[] = [];
+  for (let i = 0; i < placed.length;) {
+    const { row, section } = placed[i];
+    if (section) {
+      let j = i;
+      while (j < placed.length && placed[j].section === section) j++;
+      out.push({
+        key: `section:${section}`,
+        segmentId: section,
+        tone: 'section',
+        rows: placed.slice(i, j).map((p) => p.row),
+      });
+      i = j;
+      continue;
+    }
+    const segment = segmentOf(row);
+    if (segment && grouped.has(segment)) {
+      // From its first row to its last, with the space between them.
+      const end = placed.findLastIndex((p) => !p.section && segmentOf(p.row) === segment);
+      out.push({
+        key: `group:${segment}`,
+        segmentId: segment,
+        tone: 'group',
+        rows: placed.slice(i, end + 1).map((p) => p.row),
+      });
+      i = end + 1;
+      continue;
+    }
+    const last = out.at(-1);
+    if (last && !last.tone) last.rows.push(row);
+    else out.push({ key: `loose:${row.key}`, rows: [row] });
+    i++;
+  }
+  return out;
 }
 
-function lastSegment(block: PlaylistBlock): string | undefined {
-  return block.kind === 'section' || block.kind === 'group'
-    ? block.segmentId
-    : segmentOf(itemsOf(block).at(-1) as PlaylistItem);
-}
+/**
+ * Where a drop on each row lands (by its index in `placed`). Next to an entry in
+ * a section or group: into it, there. Next to anything else (a lone track, text
+ * alone): a place of its own, between segments. A card's middle: into its
+ * segment, after it (a lone track becomes a group). Space between rows: between
+ * the rows around it, by the same rule.
+ */
+function dropTargets(
+  placed: Placed[],
+  groups: { tone?: string; segmentId?: string; rows: Draft[] }[]
+) {
+  const boxOf = new Map<Draft, string>();
+  for (const g of groups)
+    if (g.tone && g.segmentId) for (const r of g.rows) boxOf.set(r, g.segmentId);
+  const segments = placed.map((p) => segmentOf(p.row));
+  const segmentBefore = (i: number) => segments.slice(0, i).findLast((s) => s !== undefined);
+  const segmentAfter = (i: number) => segments.slice(i + 1).find((s) => s !== undefined);
+  const gap = (above?: string, below?: string): DropTarget => ({ kind: 'gap', above, below });
+  const next = (entry: BlockEdge, edge: 'top' | 'bottom'): DropTarget => ({
+    kind: 'row',
+    rowId: entry.id,
+    segmentId: entry.segmentId,
+    edge,
+  });
 
-/** Whether a drop beside this block would leave the dragged thing where it is. */
-function blockHolds(block: PlaylistBlock, dragging: DragSource): boolean {
-  // A section's comment can always leave it; text alone moves like a segment.
-  if (dragging.kind === 'prose' && dragging.role === 'comment') return false;
-  if (dragging.kind === 'segment' || dragging.kind === 'prose')
-    return firstSegment(block) === dragging.id || lastSegment(block) === dragging.id;
-  // A loose block (a lone track, or text alone) that is the dragged entry.
-  if (block.kind === 'section' || block.kind === 'group') return false;
-  return block.kind === 'text'
-    ? block.key === dragging.id
-    : block.rows.some((r) => r.id === dragging.id);
+  return placed.map(({ row }, i): RowDrops | undefined => {
+    const segment = segments[i];
+    const box = boxOf.get(row);
+    const entry = entryOf(row);
+    if (entry) {
+      const edges: RowDrops = box
+        ? { top: next(entry, 'top'), bottom: next(entry, 'bottom') }
+        : { top: gap(segmentBefore(i), segment), bottom: gap(segment, segmentAfter(i)) };
+      return row.kind === 'track' ? { ...edges, center: next(entry, 'bottom') } : edges;
+    }
+    if (row.kind === 'prose' && segment) {
+      // A section's comment: after its last entry above, or after the section below.
+      if (row.owner.kind === 'segment') {
+        const above = placed.slice(0, i).findLast((p) => entryOf(p.row)?.segmentId === segment);
+        const last = above && entryOf(above.row);
+        return {
+          ...(last && { top: next(last, 'bottom') }),
+          bottom: gap(segment, segmentAfter(i)),
+        };
+      }
+      // Text alone.
+      return { top: gap(segmentBefore(i), segment), bottom: gap(segment, segmentAfter(i)) };
+    }
+    if (row.kind === 'space') {
+      const above = placed.slice(0, i).findLast((p) => segmentOf(p.row) !== undefined);
+      const below = placed.slice(i + 1).find((p) => segmentOf(p.row) !== undefined);
+      const aboveEntry = above && entryOf(above.row);
+      // Within a group (between two of its entries): into it.
+      if (aboveEntry && box && below && segmentOf(below.row) === aboveEntry.segmentId)
+        return { center: next(aboveEntry, 'bottom') };
+      return { center: gap(above && segmentOf(above.row), below && segmentOf(below.row)) };
+    }
+    return undefined;
+  });
 }
