@@ -213,7 +213,16 @@ export default function MarkdownField({
     // margins), and the toolbar floats under it, so opening a block moves nothing.
     // (A measure set on the text, like a comment's --spacing-measure, widens by the padding too,
     // so lines wrap where they did.)
-    <div onBlur={leave} className="relative -mx-2 -my-1 max-w-[calc(var(--spacing-measure)+1rem)]!">
+    <div
+      onBlur={leave}
+      // Back in it (the editor kept it open: a refused draft closed unchanged), it's
+      // unfinished again, so what's typed now is handed over like anything else.
+      onFocus={() => {
+        finished.current = false;
+        cancelled.current = false;
+      }}
+      className="relative -mx-2 -my-1 max-w-[calc(var(--spacing-measure)+1rem)]!"
+    >
       <textarea
         ref={(t) => {
           textarea.current = t;

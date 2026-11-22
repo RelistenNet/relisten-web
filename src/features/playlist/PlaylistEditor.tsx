@@ -70,7 +70,12 @@ import { usePlaylistDrag } from './usePlaylistDrag';
 // Markdown and timestamps show as readers will see them.
 
 /** Reopened with the text as written, and why (the server refused it, or its block went). */
-type Reopened = { draft?: string; error?: string };
+type Reopened = {
+  draft?: string;
+  error?: string;
+  /** The waiting draft it shows (its own id: two can wait to reopen in one place). */
+  waiting?: number;
+};
 
 /** The open text field, if any. */
 type Editing =
@@ -86,7 +91,7 @@ type Sent = { from: NonNullable<Editing>; text: string };
  * Text that didn't make it, waiting in its field, and why: refused as written (sent
  * again only once it's changed), or displaced (its block went: fine to send as is).
  */
-type Unsent = Sent & { error?: string; refused: boolean };
+type Unsent = Sent & { id: number; error?: string; refused: boolean };
 
 const sameOwner = (a: ProseOwner, b: ProseOwner) =>
   a.kind === b.kind && (a.kind === 'playlist' || (b.kind !== 'playlist' && a.id === b.id));
@@ -145,7 +150,10 @@ export default function PlaylistEditor({
   const [unsent, setUnsent] = useState<Unsent[]>([]);
   const waiting = unsent[0];
   const editing: Editing =
-    opened ?? (waiting ? { ...waiting.from, draft: waiting.text, error: waiting.error } : null);
+    opened ??
+    (waiting
+      ? { ...waiting.from, draft: waiting.text, error: waiting.error, waiting: waiting.id }
+      : null);
   const unsentCount = useRef(0);
   useEffect(() => {
     unsentCount.current = unsent.length;
@@ -238,9 +246,19 @@ export default function PlaylistEditor({
       ? [{ entryId: r.id, title: r.trackTitle ?? 'Track', duration: r.songDuration ?? undefined }]
       : []
   );
-  /** Text that didn't make it, to wait in its field (replacing what waited there). */
-  const wait = (draft: Unsent) =>
-    setUnsent((list) => [...list.filter((u) => !sameField(u.from, draft.from)), draft]);
+  /**
+   * Text that didn't make it, to wait (in order) to reopen in its field. Each is its
+   * own draft: two can reopen in one place (the composer at the end) and both wait.
+   */
+  const drafts = useRef(0);
+  const wait = (draft: Omit<Unsent, 'id'>) => {
+    const { kind } = draft.from;
+    // Where it reopens, without what it carried when it was last open.
+    const from: NonNullable<Editing> =
+      kind === 'prose' ? { kind, owner: draft.from.owner } : { kind, after: draft.from.after };
+    const id = ++drafts.current;
+    setUnsent((list) => [...list, { ...draft, from, id }]);
+  };
 
   /**
    * Sends prose once its field closes, remembering where it came from in case it's
@@ -253,7 +271,9 @@ export default function PlaylistEditor({
     op: PlaylistOp | null,
     { interrupted = false }: { interrupted?: boolean } = {}
   ) => {
-    const draft = unsent.find((u) => sameField(u.from, from));
+    // The waiting draft this field shows, if it shows one.
+    const draft =
+      from.waiting === undefined ? undefined : unsent.find((u) => u.id === from.waiting);
     // Unchanged, it keeps waiting: closed unfinished (another field opened, the page
     // closed), or refused as written (the server would only refuse it again).
     if (draft && text === draft.text && (interrupted || draft.refused)) {
@@ -261,7 +281,7 @@ export default function PlaylistEditor({
       return;
     }
     // Closed: it's done waiting (sent again below, or discarded).
-    setUnsent((list) => list.filter((u) => !sameField(u.from, from)));
+    if (draft) setUnsent((list) => list.filter((u) => u.id !== draft.id));
     setEditing((open) => (sameField(open, from) ? null : open));
     if (text === null || !op) return;
     sent.current.set(op, { from, text });
@@ -273,6 +293,8 @@ export default function PlaylistEditor({
    */
   const keepText = (from: NonNullable<Editing>, text: string) => {
     setEditing((open) => (sameField(open, from) ? null : open));
+    // If it was a waiting draft, this takes its place.
+    if (from.waiting !== undefined) setUnsent((list) => list.filter((u) => u.id !== from.waiting));
     if (text.trim())
       wait({
         from: { kind: 'composer', after: 'end' },
@@ -348,41 +370,35 @@ export default function PlaylistEditor({
     prose: (owner) => {
       if (editing?.kind !== 'prose') return undefined;
       const open = editing;
-      const field = (target: ProseOwner, label: string) => (
-        <MarkdownField
-          openFieldsRef={openFieldsRef}
-          actions={proseActions(target)}
-          label={label}
-          initial={open.draft ?? sourceOf(content, target)}
-          error={open.error}
-          limit={target.kind === 'playlist' ? 1000 : 2000}
-          timestampTargets={timestampTargets}
-          ownEntryId={target.kind === 'note' ? target.id : undefined}
-          onDone={(text) =>
-            // Its block can go while it's open (someone else's edit, met on a refetch):
-            // then there's nothing to save it to, and its text is kept instead.
-            text !== null && !hasProseOwner(content, target)
-              ? keepText({ kind: 'prose', owner: target }, text)
-              : commitProse(
-                  { kind: 'prose', owner: target },
-                  text,
-                  text === null ? null : saveProse(content, target, text)
-                )
-          }
-          onInterrupted={(text) =>
-            hasProseOwner(content, target)
-              ? commitProse(
-                  { kind: 'prose', owner: target },
-                  text,
-                  saveProse(content, target, text),
-                  {
-                    interrupted: true,
-                  }
-                )
-              : keepText({ kind: 'prose', owner: target }, text)
-          }
-        />
-      );
+      const field = (target: ProseOwner, label: string) => {
+        const from = { kind: 'prose', owner: target, waiting: open.waiting } as const;
+        return (
+          <MarkdownField
+            // A fresh field per draft: the next one waiting doesn't inherit this one's text.
+            key={open.waiting ?? 'open'}
+            openFieldsRef={openFieldsRef}
+            actions={proseActions(target)}
+            label={label}
+            initial={open.draft ?? sourceOf(content, target)}
+            error={open.error}
+            limit={target.kind === 'playlist' ? 1000 : 2000}
+            timestampTargets={timestampTargets}
+            ownEntryId={target.kind === 'note' ? target.id : undefined}
+            onDone={(text) =>
+              // Its block can go while it's open (someone else's edit, met on a refetch):
+              // then there's nothing to save it to, and its text is kept instead.
+              text !== null && !hasProseOwner(content, target)
+                ? keepText(from, text)
+                : commitProse(from, text, text === null ? null : saveProse(content, target, text))
+            }
+            onInterrupted={(text) =>
+              hasProseOwner(content, target)
+                ? commitProse(from, text, saveProse(content, target, text), { interrupted: true })
+                : keepText(from, text)
+            }
+          />
+        );
+      };
       if (!sameOwner(editing.owner, owner)) return undefined;
       return field(owner, owner.kind === 'segment' ? 'Section intro' : 'Text');
     },
@@ -472,7 +488,7 @@ export default function PlaylistEditor({
       const open = editing?.kind === 'composer' && editing.after === at.key ? editing : null;
       const done = (text: string | null, interrupted = false) =>
         commitProse(
-          { kind: 'composer', after: at.key },
+          { kind: 'composer', after: at.key, waiting: open?.waiting },
           text,
           text === null ? null : insertText(content, at, text),
           { interrupted }
@@ -484,6 +500,8 @@ export default function PlaylistEditor({
           ) : undefined,
         content: open ? (
           <MarkdownField
+            // A fresh field per draft: the next one waiting doesn't inherit this one's text.
+            key={open.waiting ?? 'open'}
             openFieldsRef={openFieldsRef}
             label="New text"
             initial={open.draft ?? ''}
