@@ -82,8 +82,11 @@ type Editing =
 /** Text sent from a field: where it was written, to reopen there if it's refused. */
 type Sent = { from: NonNullable<Editing>; text: string };
 
-/** Text that didn't make it (refused, or its block went), waiting in its field, and why. */
-type Unsent = Sent & { error?: string };
+/**
+ * Text that didn't make it, waiting in its field, and why: refused as written (sent
+ * again only once it's changed), or displaced (its block went: fine to send as is).
+ */
+type Unsent = Sent & { error?: string; refused: boolean };
 
 const sameOwner = (a: ProseOwner, b: ProseOwner) =>
   a.kind === b.kind && (a.kind === 'playlist' || (b.kind !== 'playlist' && a.id === b.id));
@@ -147,6 +150,16 @@ export default function PlaylistEditor({
   useEffect(() => {
     unsentCount.current = unsent.length;
   }, [unsent]);
+  /**
+   * Whether what's on screen is all saved, once what's on its way settles; if not,
+   * why. The one check before Publish and Done: a save that failed or was refused,
+   * or text waiting in its field (refused earlier, or its block gone).
+   */
+  const unsavedNow = async () =>
+    unsavedReason(await store.settle()) ??
+    (unsentCount.current
+      ? 'Some text you wrote isn’t saved (it’s open, with why). Save or discard it first.'
+      : null);
   // Each text edit sent, by the operation itself: the store hands refused
   // operations back as they were, so a refusal reopens the field it came from.
   const sent = useRef(new WeakMap<PlaylistOp, Sent>());
@@ -168,7 +181,7 @@ export default function PlaylistEditor({
         const from = stillThere(now, hit.from)
           ? hit.from
           : ({ kind: 'composer', after: 'end' } as const);
-        wait({ ...hit, from, error: refused.error.detail });
+        wait({ ...hit, from, error: refused.error.detail, refused: refused.kind === 'refused' });
       }
     },
     // Closed (the nav bar, Back, a link) with a save on its way: once it's in, the
@@ -241,7 +254,12 @@ export default function PlaylistEditor({
     { interrupted = false }: { interrupted?: boolean } = {}
   ) => {
     const draft = unsent.find((u) => sameField(u.from, from));
-    if (interrupted && draft && text === draft.text) return;
+    // Unchanged, it keeps waiting: closed unfinished (another field opened, the page
+    // closed), or refused as written (the server would only refuse it again).
+    if (draft && text === draft.text && (interrupted || draft.refused)) {
+      setEditing((open) => (sameField(open, from) ? null : open));
+      return;
+    }
     // Closed: it's done waiting (sent again below, or discarded).
     setUnsent((list) => list.filter((u) => !sameField(u.from, from)));
     setEditing((open) => (sameField(open, from) ? null : open));
@@ -260,6 +278,7 @@ export default function PlaylistEditor({
         from: { kind: 'composer', after: 'end' },
         text,
         error: 'What you were editing was removed. Your text is here.',
+        refused: false,
       });
   };
 
@@ -509,7 +528,7 @@ export default function PlaylistEditor({
         actions={
           <>
             <PublishControl
-              beforePublish={() => store.settle().then(unsavedReason)}
+              beforePublish={unsavedNow}
               playlistId={initial.playlistId}
               publicCode={publicCode}
               takenDown={takenDown}
@@ -517,15 +536,13 @@ export default function PlaylistEditor({
             <Link
               href={viewHref}
               // With a save on its way, the playlist's page would read the old
-              // version: wait for it, and stay (saying why) if it doesn't make it.
+              // version: wait for it. With anything unsaved, stay, saying why.
               onNavigate={(e) => {
-                if (store.getState().status === 'saved') return;
+                if (store.getState().status === 'saved' && !unsent.length) return;
                 e.preventDefault();
-                void store.settle().then((settled) => {
-                  const reason = unsavedReason(settled);
-                  if (reason) notify(reason);
-                  else router.push(viewHref);
-                });
+                void unsavedNow().then((reason) =>
+                  reason ? notify(reason) : router.push(viewHref)
+                );
               }}
               className="header-action-primary"
             >

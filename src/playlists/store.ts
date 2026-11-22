@@ -52,8 +52,12 @@ export type Settled =
   | { kind: 'failed'; error: PlaylistWriteError }
   | { kind: 'refused'; refusal: Refusal };
 
-/** An edit the server refused (422): why, and the operations it dropped. */
-export type Refusal = { error: PlaylistWriteError; ops: PlaylistOp[] };
+/**
+ * Text that didn't make it, handed back: refused (422: as written, the server won't
+ * take it), or skipped (its block went, in someone else's edit; the text itself
+ * is fine). Why, and the operations.
+ */
+export type Refusal = { kind: 'refused' | 'skipped'; error: PlaylistWriteError; ops: PlaylistOp[] };
 
 export type DraftState = {
   content: PlaylistContent;
@@ -280,6 +284,7 @@ function draftMachine(transport: PlaylistTransport) {
                 conflicts: 0,
                 ...(lost.length && {
                   refused: {
+                    kind: 'skipped',
                     error: new PlaylistWriteError(
                       'invalid',
                       'What you were writing in was removed elsewhere. Your text is kept.'
@@ -304,6 +309,7 @@ function draftMachine(transport: PlaylistTransport) {
               target: 'idle',
               actions: assign(({ context, event }) => ({
                 refused: {
+                  kind: 'refused',
                   error: asWriteError(event.error),
                   ops: context.inflight.map((q) => q.op),
                 },
