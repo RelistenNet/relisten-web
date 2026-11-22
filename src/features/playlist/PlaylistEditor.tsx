@@ -22,7 +22,7 @@ import {
   useState,
 } from 'react';
 import { toast } from 'sonner';
-import { PlaylistOpError } from '@/domain/playlistOps';
+import { applyOp, PlaylistOpError } from '@/domain/playlistOps';
 import { type PlaylistContent, PlaylistName, type PlaylistOp } from '@/domain/playlists';
 import cn from '@/lib/cn';
 import { TOASTER_ID } from '@/player/toasts';
@@ -245,7 +245,25 @@ export default function PlaylistEditor({
     canDrop: (source, target) => dropOps(content, source, target).length > 0,
     onDragChange: setDragging,
     // One drop can be two edits (text changing how it's stored): one undo step.
-    onDrop: (source, target) => edit(...dropOps(content, source, target)),
+    onDrop: (source, target) => {
+      const ops = dropOps(content, source, target);
+      // Text moved as text is a copy placed, then the original removed. The copy is
+      // registered like a field's save, so if its place is gone by the time it's
+      // saved (another tab's edit, met on a replay), it comes back as a draft; and
+      // the pair is only sent if the copy applies here, so the original never goes
+      // without it.
+      const [place] = ops;
+      const text =
+        source.kind === 'prose' && place && 'entries' in place.payload
+          ? (place.payload.entries.find((e) => e.description)?.description ??
+            ('description' in place.payload ? place.payload.description : undefined))
+          : undefined;
+      if (text) {
+        if (applyOp(store.getState().content, place).status !== 'applied') return;
+        sent.current.set(place, { from: { kind: 'composer', after: 'end' }, text });
+      }
+      edit(...ops);
+    },
   });
   // Laid out from a deferred copy, so each edit commits as a transition and the
   // rows slide to their new places (ViewTransition in PlaylistArticle).

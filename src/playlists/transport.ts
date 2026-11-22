@@ -130,6 +130,9 @@ export function createPlaylistTransport({
   ): Promise<{ kind: 'ok'; body: unknown } | { kind: 'transit'; status?: number }> {
     try {
       const csrf = await request('/api/user/v1/csrf');
+      // The token's endpoint failing on the way (a 5xx) is retried like the write;
+      // its refusal (signed out) isn't.
+      if (csrf.status >= 500) return { kind: 'transit', status: csrf.status };
       if (!csrf.ok) throw await errorFor(csrf);
       const { request_token } = (await csrf.json()) as { request_token: string };
       const res = await request(path, {

@@ -131,3 +131,25 @@ describe('a reply cut off', () => {
     expect(new Set(writes).size).toBe(1);
   });
 });
+
+describe('the CSRF endpoint failing on the way', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+  it('retries a 5xx from it like the write’s own, but not its refusal', async () => {
+    const { fetch, calls } = fakeFetch([json(503, {}), csrf(), json(200, batchOk)]);
+    const pending = createPlaylistTransport({ fetch }).batch('playlist_1', [], 1);
+    await vi.runAllTimersAsync();
+    await expect(pending).resolves.toEqual(batchOk);
+    expect(calls.map((c) => c.url)).toEqual([
+      '/api/user/v1/csrf',
+      '/api/user/v1/csrf',
+      '/v1/playlists/playlist_1/operations:batch',
+    ]);
+    const refused = fakeFetch([json(401, {})]);
+    const error = await createPlaylistTransport({ fetch: refused.fetch })
+      .batch('playlist_1', [])
+      .catch((e: unknown) => e);
+    expect((error as PlaylistWriteError).kind).toBe('signed-out');
+    expect(refused.calls).toHaveLength(1);
+  });
+});
