@@ -262,7 +262,11 @@ export function AddToPlaylistButton({
   );
 }
 
-type CreateState = { error: string } | null;
+/**
+ * A failed create: why, and the name as typed (React resets the form after its
+ * action, so the field takes it back as its default rather than losing it).
+ */
+type CreateState = { error: string; name: string } | null;
 
 /** The dialog's form. */
 const NewPlaylistForm = z.object({ name: PlaylistName });
@@ -282,14 +286,17 @@ export function NewPlaylistDialog({
   const { open: openPlaylist } = usePlaylistActions(tracks);
   const [state, create, pending] = useActionState(
     async (_prev: CreateState, form: FormData): Promise<CreateState> => {
+      const typed = String(form.get('name') ?? '');
       const parsed = NewPlaylistForm.safeParse(Object.fromEntries(form));
-      if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Check the name.' };
+      if (!parsed.success)
+        return { error: parsed.error.issues[0]?.message ?? 'Check the name.', name: typed };
       const { name } = parsed.data;
       try {
         // A lookup that failed (a show's tracks didn't load) creates nothing: the
         // dialog stays open to try again.
         const found = await tracks();
-        if (!found) return { error: 'Couldn’t load the tracks to add. Try again in a moment.' };
+        if (!found)
+          return { error: 'Couldn’t load the tracks to add. Try again in a moment.', name: typed };
         const { playlistId } = await createPlaylist({ name, trackIds: found.trackIds });
         writeStorage(LAST_KEY, playlistId);
         onOpenChange(false);
@@ -300,10 +307,10 @@ export function NewPlaylistDialog({
         return null;
       } catch (err) {
         if (err instanceof PlaylistWriteError && err.kind === 'signed-out')
-          return { error: 'Sign in to create playlists.' };
+          return { error: 'Sign in to create playlists.', name: typed };
         if (err instanceof PlaylistWriteError && err.kind === 'invalid' && err.detail)
-          return { error: err.detail };
-        return { error: "Couldn't create it. Try again in a moment." };
+          return { error: err.detail, name: typed };
+        return { error: "Couldn't create it. Try again in a moment.", name: typed };
       }
     },
     null
@@ -321,7 +328,7 @@ export function NewPlaylistDialog({
             name="name"
             aria-label="Name"
             placeholder="Name"
-            defaultValue={defaultName}
+            defaultValue={state?.name ?? defaultName}
             maxLength={100}
             required
             autoFocus

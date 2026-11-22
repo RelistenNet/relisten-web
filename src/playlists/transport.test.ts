@@ -113,3 +113,21 @@ describe('createPlaylistTransport', () => {
     expect(((await pending) as PlaylistWriteError).kind).toBe('unavailable');
   });
 });
+
+describe('a reply cut off', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+  it('retries a write whose response body fails to arrive, with the same body', async () => {
+    const cutOff = new Response(
+      new ReadableStream({ start: (c) => c.error(new TypeError('connection reset')) }),
+      { status: 200, headers: { 'content-type': 'application/json' } }
+    );
+    const { fetch, calls } = fakeFetch([csrf(), cutOff, csrf(), json(200, batchOk)]);
+    const pending = createPlaylistTransport({ fetch }).batch('playlist_1', [], 1);
+    await vi.runAllTimersAsync();
+    await expect(pending).resolves.toEqual(batchOk);
+    const writes = calls.filter((c) => c.url.endsWith(':batch')).map((c) => c.init?.body);
+    expect(writes).toHaveLength(2);
+    expect(new Set(writes).size).toBe(1);
+  });
+});

@@ -118,22 +118,31 @@ export function createPlaylistTransport({
   }
 
   /**
-   * One try at a write: a CSRF token, then the write with it. Null when either
-   * failed in transit; a refusal of the token (signed out) throws.
+   * One try at a write: a CSRF token, then the write with it, then its answer read
+   * in full. A refusal (a 4xx, or the token's) throws; anything that failed on the
+   * way (the network, a timeout, a 5xx, a body cut off) is `transit`, to retry
+   * with the same request: its IDs make that safe.
    */
-  async function attempt(path: string, body: unknown, method: string): Promise<Response | null> {
+  async function attempt(
+    path: string,
+    body: unknown,
+    method: string
+  ): Promise<{ kind: 'ok'; body: unknown } | { kind: 'transit'; status?: number }> {
     try {
       const csrf = await request('/api/user/v1/csrf');
       if (!csrf.ok) throw await errorFor(csrf);
       const { request_token } = (await csrf.json()) as { request_token: string };
-      return await request(path, {
+      const res = await request(path, {
         method,
         headers: { 'content-type': 'application/json', 'x-relisten-csrf': request_token },
         body: JSON.stringify(body),
       });
+      if (res.status >= 500) return { kind: 'transit', status: res.status };
+      if (!res.ok) throw await errorFor(res);
+      return { kind: 'ok', body: res.status === 204 ? undefined : await res.json() };
     } catch (err) {
       if (err instanceof PlaylistWriteError) throw err;
-      return null;
+      return { kind: 'transit' };
     }
   }
 
@@ -143,10 +152,9 @@ export function createPlaylistTransport({
     { method = 'POST', tries = ATTEMPTS }: { method?: string; tries?: number } = {}
   ): Promise<T> {
     for (let n = 1; ; n++) {
-      const res = await attempt(path, body, method);
-      if (res?.ok) return (res.status === 204 ? undefined : await res.json()) as T;
-      if (res && res.status < 500) throw await errorFor(res);
-      if (n >= tries) throw new PlaylistWriteError('unavailable', undefined, res?.status);
+      const result = await attempt(path, body, method);
+      if (result.kind === 'ok') return result.body as T;
+      if (n >= tries) throw new PlaylistWriteError('unavailable', undefined, result.status);
       await delay(300 * 2 ** (n - 1));
     }
   }

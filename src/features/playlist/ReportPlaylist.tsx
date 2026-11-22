@@ -33,15 +33,21 @@ const ReportForm = z.object({
     .max(300, 'Keep it to 300 characters.'),
 });
 
-type ReportState = { error: string; signIn?: boolean } | null;
+/**
+ * A failed report: why, and the reason as written (React resets the form after its
+ * action, so the field takes it back as its default rather than losing it).
+ */
+type ReportState = { error: string; signIn?: boolean; reason: string } | null;
 
 export default function ReportPlaylist({ publicCode }: { publicCode: string }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const [state, report, pending] = useActionState(
     async (_prev: ReportState, form: FormData): Promise<ReportState> => {
+      const reason = String(form.get('reason') ?? '');
       const parsed = ReportForm.safeParse(Object.fromEntries(form));
-      if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Check the reason.' };
+      if (!parsed.success)
+        return { error: parsed.error.issues[0]?.message ?? 'Check the reason.', reason };
       try {
         await playlistTransport.report(publicCode, parsed.data.reason);
         setOpen(false);
@@ -49,10 +55,10 @@ export default function ReportPlaylist({ publicCode }: { publicCode: string }) {
         return null;
       } catch (err) {
         if (err instanceof PlaylistWriteError && err.kind === 'signed-out')
-          return { error: 'Sign in to report a playlist.', signIn: true };
+          return { error: 'Sign in to report a playlist.', signIn: true, reason };
         if (err instanceof PlaylistWriteError && err.kind === 'invalid' && err.detail)
-          return { error: err.detail };
-        return { error: 'Couldn’t send that. Try again in a moment.' };
+          return { error: err.detail, reason };
+        return { error: 'Couldn’t send that. Try again in a moment.', reason };
       }
     },
     null
@@ -79,6 +85,7 @@ export default function ReportPlaylist({ publicCode }: { publicCode: string }) {
             </DialogHeader>
             <textarea
               name="reason"
+              defaultValue={state?.reason}
               aria-label="Reason"
               rows={4}
               maxLength={300}
