@@ -82,6 +82,9 @@ type Editing =
 /** Text sent from a field: where it was written, to reopen there if it's refused. */
 type Sent = { from: NonNullable<Editing>; text: string };
 
+/** Text that didn't make it (refused, or its block went), waiting in its field, and why. */
+type Unsent = Sent & { error?: string };
+
 const sameOwner = (a: ProseOwner, b: ProseOwner) =>
   a.kind === b.kind && (a.kind === 'playlist' || (b.kind !== 'playlist' && a.id === b.id));
 
@@ -121,7 +124,19 @@ export default function PlaylistEditor({
   // One draft per playlist for as long as the page is open; the route keys this by id.
   const [store] = useState(() => createDraftStore(initial, { transport: playlistTransport }));
   const state = useDraft(store);
-  const [editing, setEditing] = useState<Editing>(null);
+  // The field you opened. Text that didn't make it waits in `unsent`, oldest first,
+  // and shows in its field when no other is open: a refusal never takes the place
+  // of a field that's open (which would close it unfinished and send its text
+  // again), so refusals can't chase each other.
+  const [opened, setEditing] = useState<Editing>(null);
+  const [unsent, setUnsent] = useState<Unsent[]>([]);
+  const waiting = unsent[0];
+  const editing: Editing =
+    opened ?? (waiting ? { ...waiting.from, draft: waiting.text, error: waiting.error } : null);
+  const unsentCount = useRef(0);
+  useEffect(() => {
+    unsentCount.current = unsent.length;
+  }, [unsent]);
   // Each text edit sent, by the operation itself: the store hands refused
   // operations back as they were, so a refusal reopens the field it came from.
   const sent = useRef(new WeakMap<PlaylistOp, Sent>());
@@ -135,7 +150,7 @@ export default function PlaylistEditor({
     onSaved: () => needsServer(unresolved(store.getState().content, resolved)) && router.refresh(),
     onRefused: (refused) => {
       const hit = refused.ops.map((op) => sent.current.get(op)).find(Boolean);
-      if (hit) setEditing({ ...hit.from, draft: hit.text, error: refused.error.detail });
+      if (hit) wait({ ...hit, error: refused.error.detail });
     },
     // Closed (the nav bar, Back, a link) with a save on its way: once it's in, the
     // page now showing reads it again; if it didn't make it, say so.
@@ -161,7 +176,14 @@ export default function PlaylistEditor({
   };
   const content = state.content;
   const root = useRef<HTMLDivElement>(null);
-  useWarnBeforeLeaving(store, root);
+  useWarnBeforeLeaving(store, root, unsentCount);
+  // Leaving within the site with text that didn't make it: say so (it's not saved).
+  useEffect(
+    () => () => {
+      if (unsentCount.current) notify('Some text you wrote wasn’t saved.');
+    },
+    []
+  );
   // What's being dragged: the flow lays out its drop zones while it is.
   const [dragging, setDragging] = useState<DragSource | null>(null);
   // Where the composer is: after a row's key ('end' for the Add zone at the end).
@@ -184,9 +206,25 @@ export default function PlaylistEditor({
       ? [{ entryId: r.id, title: r.trackTitle ?? 'Track', duration: r.songDuration ?? undefined }]
       : []
   );
-  /** Sends prose once its field closes, remembering where it came from in case it's refused. */
-  const commitProse = (from: NonNullable<Editing>, text: string | null, op: PlaylistOp | null) => {
-    // Closes this field, unless another has opened meanwhile (a refusal reopening one).
+  /** Text that didn't make it, to wait in its field (replacing what waited there). */
+  const wait = (draft: Unsent) =>
+    setUnsent((list) => [...list.filter((u) => !sameField(u.from, draft.from)), draft]);
+
+  /**
+   * Sends prose once its field closes, remembering where it came from in case it's
+   * refused. A waiting draft closed unfinished and unchanged (another field opened,
+   * or the page closed) keeps waiting: sending it again would only be refused again.
+   */
+  const commitProse = (
+    from: NonNullable<Editing>,
+    text: string | null,
+    op: PlaylistOp | null,
+    { interrupted = false }: { interrupted?: boolean } = {}
+  ) => {
+    const draft = unsent.find((u) => sameField(u.from, from));
+    if (interrupted && draft && text === draft.text) return;
+    // Closed: it's done waiting (sent again below, or discarded).
+    setUnsent((list) => list.filter((u) => !sameField(u.from, from)));
     setEditing((open) => (sameField(open, from) ? null : open));
     if (text === null || !op) return;
     sent.current.set(op, { from, text });
@@ -194,19 +232,17 @@ export default function PlaylistEditor({
   };
   /**
    * A field closed without being finished because its block went (an undo, or
-   * someone else's edit): its text is kept, in the composer at the end.
+   * someone else's edit): its text waits, in the composer at the end.
    */
-  const keepText = (text: string) =>
-    setEditing(
-      text.trim()
-        ? {
-            kind: 'composer',
-            after: 'end',
-            draft: text,
-            error: 'What you were editing was removed. Your text is here.',
-          }
-        : null
-    );
+  const keepText = (from: NonNullable<Editing>, text: string) => {
+    setEditing((open) => (sameField(open, from) ? null : open));
+    if (text.trim())
+      wait({
+        from: { kind: 'composer', after: 'end' },
+        text,
+        error: 'What you were editing was removed. Your text is here.',
+      });
+  };
 
   const removed = (what: string, op: PlaylistOp) => {
     edit(op);
@@ -296,9 +332,12 @@ export default function PlaylistEditor({
               ? commitProse(
                   { kind: 'prose', owner: target },
                   text,
-                  saveProse(content, target, text)
+                  saveProse(content, target, text),
+                  {
+                    interrupted: true,
+                  }
                 )
-              : keepText(text)
+              : keepText({ kind: 'prose', owner: target }, text)
           }
         />
       );
@@ -389,11 +428,12 @@ export default function PlaylistEditor({
     gap: (at) => {
       // The composer's row, or the Add zone at the end.
       const open = editing?.kind === 'composer' && editing.after === at.key ? editing : null;
-      const done = (text: string | null) =>
+      const done = (text: string | null, interrupted = false) =>
         commitProse(
           { kind: 'composer', after: at.key },
           text,
-          text === null ? null : insertText(content, at, text)
+          text === null ? null : insertText(content, at, text),
+          { interrupted }
         );
       return {
         control:
@@ -408,8 +448,8 @@ export default function PlaylistEditor({
             error={open.error}
             limit={2000}
             timestampTargets={timestampTargets}
-            onDone={done}
-            onInterrupted={done}
+            onDone={(text) => done(text)}
+            onInterrupted={(text) => done(text, true)}
           />
         ) : undefined,
       };
@@ -546,17 +586,22 @@ function useStoreEvents(
  * leaving, from the store and the fields themselves (an uncontrolled field's
  * value against its defaultValue), so nothing needs reporting as it's typed.
  */
-function useWarnBeforeLeaving(store: DraftStore, root: RefObject<HTMLElement | null>) {
+function useWarnBeforeLeaving(
+  store: DraftStore,
+  root: RefObject<HTMLElement | null>,
+  /** Drafts that didn't make it (refused), waiting: unsaved too. */
+  unsentCount: RefObject<number>
+) {
   useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => {
       const typing = [...(root.current?.querySelectorAll('textarea') ?? [])].some(
         (t) => t.value !== t.defaultValue
       );
-      if (store.getState().status !== 'saved' || typing) e.preventDefault();
+      if (store.getState().status !== 'saved' || typing || unsentCount.current) e.preventDefault();
     };
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
-  }, [store, root]);
+  }, [store, root, unsentCount]);
 }
 
 function SaveStatus({
