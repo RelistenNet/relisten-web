@@ -1,8 +1,7 @@
 'use client';
 
-import { BoldIcon, ClockIcon, ItalicIcon, LinkIcon } from 'lucide-react';
+import { BoldIcon, ClockIcon, ItalicIcon } from 'lucide-react';
 import {
-  type ClipboardEvent,
   type FocusEvent,
   type KeyboardEvent,
   type ReactNode,
@@ -20,10 +19,8 @@ import { readPlayback, useQueue } from '@/player/hooks';
 import {
   characterCount,
   formatTimestamp,
-  insertLink,
   insertTimestamp,
   parseTimestamp,
-  pasteAsLink,
   type TextEdit,
   toggleWrap,
 } from './markdownEdits';
@@ -171,17 +168,10 @@ export default function MarkdownField({
     } else if (mod && (e.key === 'z' || e.key === 'Z' || e.key === 'y')) {
       e.preventDefault();
       step(e.key === 'y' || e.shiftKey ? 'redo' : 'undo');
-    } else if (mod && (e.key === 'b' || e.key === 'i' || e.key === 'k')) {
+    } else if (mod && (e.key === 'b' || e.key === 'i')) {
       e.preventDefault();
-      run((v, s) =>
-        e.key === 'k' ? insertLink(v, s) : toggleWrap(v, s, e.key === 'b' ? '**' : '*')
-      );
+      run((v, s) => toggleWrap(v, s, e.key === 'b' ? '**' : '*'));
     }
-  };
-
-  const paste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
-    const pasted = e.clipboardData.getData('text/plain');
-    if (run((v, s) => pasteAsLink(v, s, pasted))) e.preventDefault();
   };
 
   // Done when focus leaves the field entirely, not when it moves to its own toolbar.
@@ -235,7 +225,6 @@ export default function MarkdownField({
         rows={Math.max(2, initial.split('\n').length + 1)}
         autoFocus
         onKeyDown={keys}
-        onPaste={paste}
         onInput={(e) => {
           const t = e.currentTarget;
           // Typing groups into steps; a paste or a drop is a step of its own.
@@ -262,9 +251,6 @@ export default function MarkdownField({
           </Tool>
           <Tool label="Italic (⌘I)" onClick={() => run((v, s) => toggleWrap(v, s, '*'))}>
             <ItalicIcon className="size-3.5" aria-hidden />
-          </Tool>
-          <Tool label="Link (⌘K)" onClick={() => run((v, s) => insertLink(v, s))}>
-            <LinkIcon className="size-3.5" aria-hidden />
           </Tool>
           {timestampTargets.length > 0 && (
             <Tool label="Insert Timestamp" onClick={() => setStamping((s) => !s)}>

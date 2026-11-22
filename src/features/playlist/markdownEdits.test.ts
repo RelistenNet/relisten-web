@@ -2,10 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   characterCount,
   formatTimestamp,
-  insertLink,
   insertTimestamp,
   parseTimestamp,
-  pasteAsLink,
   type TextEdit,
   toggleWrap,
 } from './markdownEdits';
@@ -50,24 +48,6 @@ describe('toggleWrap', () => {
   it("doesn't take italic markers from bold", () => {
     const b = at('a **[big]** jam');
     expect(apply(b.value, toggleWrap(b.value, b.sel, '*'))).toBe('a ***[big]*** jam');
-  });
-});
-
-describe('links', () => {
-  it('wraps the selection and puts the cursor in the URL', () => {
-    const a = at('see [Relisten] now');
-    expect(apply(a.value, insertLink(a.value, a.sel))).toBe('see [Relisten](|) now');
-  });
-
-  it('turns a pasted https URL over a selection into a link', () => {
-    const a = at('see [Relisten] now');
-    expect(apply(a.value, pasteAsLink(a.value, a.sel, ' https://relisten.net '))).toBe(
-      'see [Relisten](https://relisten.net)| now'
-    );
-    expect(pasteAsLink(a.value, a.sel, 'http://relisten.net')).toBeNull();
-    expect(pasteAsLink(a.value, a.sel, 'just words')).toBeNull();
-    const caret = at('see | now');
-    expect(pasteAsLink(caret.value, caret.sel, 'https://relisten.net')).toBeNull();
   });
 });
 

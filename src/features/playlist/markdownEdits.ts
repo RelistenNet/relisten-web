@@ -54,36 +54,6 @@ function isMarker(wrapped: string, n: number, marker: string) {
   return wrapped[n] !== '*' && wrapped[wrapped.length - n - 1] !== '*';
 }
 
-/**
- * A link around the selection: `[selection](url)`. Without a URL the cursor
- * lands where it goes; without a selection the label is the URL's own place.
- */
-export function insertLink(value: string, sel: Selection, url = ''): TextEdit {
-  const label = value.slice(sel.start, sel.end);
-  const text = `[${label}](${url})`;
-  const urlStart = sel.start + label.length + 3;
-  return {
-    range: sel,
-    text,
-    select: label
-      ? url
-        ? { start: sel.start + text.length, end: sel.start + text.length }
-        : { start: urlStart, end: urlStart }
-      : // No label yet: select its place, so typing fills it.
-        { start: sel.start + 1, end: sel.start + 1 },
-  };
-}
-
-/** A pasted `https:` URL over a selection becomes a link to it; anything else pastes as is. */
-export function pasteAsLink(value: string, sel: Selection, pasted: string): TextEdit | null {
-  const url = pasted.trim();
-  if (sel.start === sel.end || !/^https:\/\/\S+$/i.test(url)) return null;
-  const label = value.slice(sel.start, sel.end);
-  // Don't nest: a selection that already holds link syntax pastes as text.
-  if (/[[\]]/.test(label)) return null;
-  return insertLink(value, sel, url);
-}
-
 /** `m:ss`, or `h:mm:ss` from an hour, the grammar links use. */
 export function formatTimestamp(seconds: number): string {
   const total = Math.max(0, Math.floor(seconds));

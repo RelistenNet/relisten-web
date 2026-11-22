@@ -8,11 +8,6 @@ import type { GuideBlock, GuideInline, GuideSeek } from './types';
 
 export type RenderSeek = (seek: GuideSeek, label: ReactNode, href: string) => ReactNode;
 
-const LINK = `
-  underline decoration-current/30 underline-offset-2 transition-colors
-  hover:decoration-current
-`;
-
 export default function GuideProse({
   blocks,
   renderSeek,
@@ -101,18 +96,10 @@ function renderInlines(nodes: GuideInline[], renderSeek?: RenderSeek): ReactNode
         );
       case 'emphasis':
         return <em key={i}>{renderInlines(node.children, renderSeek)}</em>;
+      // No links off Relisten: the subset allows them (and the app and API keep
+      // them), but the web shows only their label.
       case 'link':
-        return (
-          <a
-            key={i}
-            href={node.href}
-            target="_blank"
-            rel="noopener noreferrer nofollow ugc"
-            className={LINK}
-          >
-            {renderInlines(node.children, renderSeek)}
-          </a>
-        );
+        return <Fragment key={i}>{renderInlines(node.children, renderSeek)}</Fragment>;
       case 'seek': {
         const label = renderInlines(node.children, renderSeek);
         return (

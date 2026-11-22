@@ -578,39 +578,60 @@ export default function PlaylistEditor({
   };
 
   return (
-    // What's being dragged fades where it was.
-    <div ref={root} className="[&_[data-dragging]]:opacity-40">
-      <PlaylistArticle
-        view={view}
-        byline={byline}
-        slots={slots}
-        actions={
-          <>
-            <PublishControl
-              beforePublish={unsavedNow}
-              playlistId={initial.playlistId}
-              publicCode={publicCode}
-              takenDown={takenDown}
-            />
-            <Link
-              href={viewHref}
-              // With a save on its way, the playlist's page would read the old
-              // version: wait for it. With anything unsaved, stay, saying why.
-              onNavigate={(e) => {
-                if (store.getState().status === 'saved' && !unsent.length) return;
-                e.preventDefault();
-                void unsavedNow().then((reason) =>
-                  reason ? notify(reason) : router.push(viewHref)
-                );
-              }}
-              className="header-action-primary"
-            >
-              Done
-            </Link>
-          </>
-        }
-      />
+    <div className="flex flex-col gap-6">
+      <EditingNotice />
+      {/* What's being dragged fades where it was. */}
+      <div ref={root} className="[&_[data-dragging]]:opacity-40">
+        <PlaylistArticle
+          view={view}
+          byline={byline}
+          slots={slots}
+          actions={
+            <>
+              <PublishControl
+                beforePublish={unsavedNow}
+                playlistId={initial.playlistId}
+                publicCode={publicCode}
+                takenDown={takenDown}
+              />
+              <Link
+                href={viewHref}
+                // With a save on its way, the playlist's page would read the old
+                // version: wait for it. With anything unsaved, stay, saying why.
+                onNavigate={(e) => {
+                  if (store.getState().status === 'saved' && !unsent.length) return;
+                  e.preventDefault();
+                  void unsavedNow().then((reason) =>
+                    reason ? notify(reason) : router.push(viewHref)
+                  );
+                }}
+                className="header-action-primary"
+              >
+                Done
+              </Link>
+            </>
+          }
+        />
+      </div>
     </div>
+  );
+}
+
+/** Above the playlist, so there's no mistaking the editor for the page. */
+function EditingNotice() {
+  return (
+    <p
+      className="
+        mb-0 flex items-center gap-2.5 rounded-xl bg-accent/10 px-4 py-3 text-sm
+        text-text-secondary ring-1 ring-accent/40
+      "
+    >
+      <PencilIcon className="size-4 shrink-0 text-accent" aria-hidden />
+      <span>
+        <strong className="font-semibold text-text-primary">You’re editing this playlist.</strong>{' '}
+        Changes save automatically.
+      </span>
+    </p>
   );
 }
 
