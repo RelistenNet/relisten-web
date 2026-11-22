@@ -88,8 +88,8 @@ export function moveToOwnGroup(
   };
 }
 
-/** To the end of another section. */
-export function moveToSection(entryId: string, segmentId: string): PlaylistOp {
+/** To the end of another group. */
+export function moveToGroup(entryId: string, segmentId: string): PlaylistOp {
   return {
     operation_type: 'move_entry',
     payload: { entry_id: entryId, destination: { segment_id: segmentId } },

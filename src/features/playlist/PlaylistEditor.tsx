@@ -42,7 +42,7 @@ import {
   moveEntry,
   moveSegmentBy,
   moveToOwnGroup,
-  moveToSection,
+  moveToGroup,
   removeText,
   saveProse,
   sourceOf,
@@ -327,7 +327,16 @@ export default function PlaylistEditor({
   };
   // Nor does it outlive the editor.
   useEffect(() => () => void toast.dismiss(REMOVED_TOAST), []);
-  const sections = content.segments.filter((s) => s.description && s.entries.length > 0);
+  // The groups a track can move into (each box: two or more entries, or writing).
+  const groups = content.segments.filter(
+    (s) => s.entries.length > 1 || (s.description && s.entries.length > 0)
+  );
+  /** A group's name in a menu: its intro's first line, else its first track's title. */
+  const groupName = (segmentId: string) =>
+    firstLine(content.segments.find((s) => s.id === segmentId)?.description) ||
+    view.rows.flatMap((r) => (r.segmentId === segmentId && r.kind === 'track' ? [r] : []))[0]
+      ?.trackTitle ||
+    'Group';
 
   /**
    * What a text block's field offers besides editing (its block has no menu, so
@@ -401,7 +410,7 @@ export default function PlaylistEditor({
         );
       };
       if (!sameOwner(editing.owner, owner)) return undefined;
-      return field(owner, owner.kind === 'segment' ? 'Section intro' : 'Text');
+      return field(owner, owner.kind === 'segment' ? 'Intro' : 'Text');
     },
 
     editProse: (owner) => setEditing({ kind: 'prose', owner }),
@@ -415,7 +424,7 @@ export default function PlaylistEditor({
     cellMenu: (row) => (
       <CellMenu
         row={row}
-        sections={sections.filter((s) => s.id !== row.segmentId)}
+        groups={groups.filter((s) => s.id !== row.segmentId)}
         hasNote={!!row.description}
         onNote={() => setEditing({ kind: 'prose', owner: { kind: 'note', id: row.id } })}
         onIntro={() => setEditing({ kind: 'prose', owner: { kind: 'segment', id: row.segmentId } })}
@@ -430,17 +439,14 @@ export default function PlaylistEditor({
         onRemove={() =>
           removed('the track', { operation_type: 'delete_entry', payload: { entry_id: row.id } })
         }
-        moveToSection={(segmentId) => moveToSection(row.id, segmentId)}
-        sectionName={(segmentId) =>
-          firstLine(content.segments.find((s) => s.id === segmentId)?.description) || 'Section'
-        }
+        moveToGroup={(segmentId) => moveToGroup(row.id, segmentId)}
+        groupName={groupName}
       />
     ),
 
     // A section's or group's menu, at its box's corner.
-    boxMenu: ({ segmentId, tone }) => (
+    boxMenu: ({ segmentId }) => (
       <BoxMenu
-        tone={tone}
         hasIntro={!!content.segments.find((s) => s.id === segmentId)?.description}
         moves={() => ({
           up: moveSegmentBy(content, segmentId, -1),
@@ -449,7 +455,7 @@ export default function PlaylistEditor({
         onEdit={(op) => edit(op)}
         onIntro={() => setEditing({ kind: 'prose', owner: { kind: 'segment', id: segmentId } })}
         onRemove={() =>
-          removed(tone === 'section' ? 'the section' : 'the group', {
+          removed('the group', {
             operation_type: 'delete_segment',
             payload: { segment_id: segmentId },
           })
@@ -463,7 +469,7 @@ export default function PlaylistEditor({
         return target.segmentId && target.tone
           ? {
               source: { kind: 'segment', id: target.segmentId },
-              label: target.tone === 'section' ? 'Section' : 'Group',
+              label: 'Group',
             }
           : undefined;
       if (target.kind === 'track')
@@ -804,29 +810,27 @@ function EditMenu({
 
 type Moves = { up: PlaylistOp | null; down: PlaylistOp | null; ownGroup: PlaylistOp | null };
 
-/** A section's or group's own menu, on its header: move it, give it an intro, remove it. */
+/** A group's own menu, at its box's corner: move it, give it an intro, remove it. */
 function BoxMenu({
-  tone,
   hasIntro,
   moves,
   onEdit,
   onIntro,
   onRemove,
 }: {
-  tone: 'section' | 'group';
-  /** Whether it has an intro yet (a section boxed for its text may not). */
+  /** Whether it has an intro yet. */
   hasIntro: boolean;
   moves: () => Pick<Moves, 'up' | 'down'>;
   onEdit: (op: PlaylistOp | null) => void;
   onIntro: () => void;
   onRemove: () => void;
 }) {
-  const noun = tone === 'section' ? 'Section' : 'Group';
+  const noun = 'Group';
   return (
     <EditMenu label={`Edit ${noun.toLowerCase()}`}>
       {!hasIntro && (
         <MenuItem icon={TextIcon} onClick={onIntro}>
-          Add Section Intro
+          Add Intro
         </MenuItem>
       )}
       <BoxMoveItems moves={moves} onEdit={onEdit} noun={noun} />
@@ -889,27 +893,27 @@ function MoveItems({
 
 function CellMenu({
   row,
-  sections,
+  groups,
   hasNote,
   onNote,
   onIntro,
   onAddBelow,
   onEdit,
   moves,
-  moveToSection,
-  sectionName,
+  moveToGroup,
+  groupName,
   onRemove,
 }: {
   row: PlaylistTrackGroupRow;
-  sections: { id: string }[];
+  groups: { id: string }[];
   hasNote: boolean;
   onNote: () => void;
   onIntro: () => void;
   onAddBelow: () => void;
   onEdit: (op: PlaylistOp | null) => void;
   moves: () => Moves;
-  moveToSection: (segmentId: string) => PlaylistOp;
-  sectionName: (segmentId: string) => string;
+  moveToGroup: (segmentId: string) => PlaylistOp;
+  groupName: (segmentId: string) => string;
   onRemove: () => void;
 }) {
   return (
@@ -919,7 +923,7 @@ function CellMenu({
       </MenuItem>
       {!row.segment && (
         <MenuItem icon={TextIcon} onClick={onIntro}>
-          Add Section Intro
+          Add Intro
         </MenuItem>
       )}
       <MenuItem icon={PlusIcon} onClick={onAddBelow}>
@@ -927,17 +931,17 @@ function CellMenu({
       </MenuItem>
       <MenuSeparator />
       <MoveItems moves={moves} onEdit={onEdit} />
-      {sections.length > 0 && (
+      {groups.length > 0 && (
         <MenuSubmenuRoot>
-          <MenuSubmenuTrigger icon={GroupIcon}>Move to Section</MenuSubmenuTrigger>
+          <MenuSubmenuTrigger icon={GroupIcon}>Move to Group</MenuSubmenuTrigger>
           <MenuContent>
-            {sections.map((s) => (
+            {groups.map((s) => (
               <MenuItem
                 key={s.id}
 
-                onClick={() => onEdit(moveToSection(s.id))}
+                onClick={() => onEdit(moveToGroup(s.id))}
               >
-                <span className="truncate">{sectionName(s.id)}</span>
+                <span className="truncate">{groupName(s.id)}</span>
               </MenuItem>
             ))}
           </MenuContent>

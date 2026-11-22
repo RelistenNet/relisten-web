@@ -169,7 +169,6 @@ export default function PlaylistArticle({
                   >
                     {slots && (
                       <BoxFrame
-                        tone={group.tone}
                         menu={slots.boxMenu?.({ segmentId: group.segmentId, tone: group.tone })}
                       />
                     )}
@@ -248,18 +247,18 @@ const dragAttr = (spec: DragSpec | undefined) => (spec ? JSON.stringify(spec) : 
  * room): a group's dashed outline, its label on the top border (which is what
  * drags the box), and its menu at the top-right corner.
  */
-function BoxFrame({ tone, menu }: { tone: 'section' | 'group'; menu?: ReactNode }) {
+function BoxFrame({ menu }: { menu?: ReactNode }) {
+  // One frame for every group, tinted or not: the tint (on its rows) is what readers
+  // will see boxed, a group with writing in it; the outline is the editor's.
   return (
     <>
-      {tone === 'group' && (
-        <div
-          aria-hidden
-          className="
-            pointer-events-none absolute -inset-x-1 -inset-y-[3px] rounded-2xl border
-            border-dashed border-text-primary/20
-          "
-        />
-      )}
+      <div
+        aria-hidden
+        className="
+          pointer-events-none absolute -inset-x-1 -inset-y-[3px] rounded-2xl border
+          border-dashed border-text-primary/20
+        "
+      />
       <span
         title="Drag to move"
         className="
@@ -268,7 +267,7 @@ function BoxFrame({ tone, menu }: { tone: 'section' | 'group'; menu?: ReactNode 
           select-none active:cursor-grabbing
         "
       >
-        {tone === 'section' ? 'Section' : 'Group'}
+        Group
       </span>
       {menu && <div className="absolute -top-4 right-1 z-20">{menu}</div>}
     </>
