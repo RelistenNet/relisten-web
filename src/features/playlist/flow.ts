@@ -164,8 +164,11 @@ export function flowRows(
     if (b > 0)
       placed.push({ row: { kind: 'space', key: `space:${block.key}`, height: BLOCK_SPACE } });
     if (block.kind === 'section') {
+      // Its intro first, if it has one (a section boxed for its text may not).
       const rows = [
-        introRow(`${block.key}:intro`, block.segmentId, block.intro),
+        ...(block.intro.length
+          ? [introRow(`${block.key}:intro`, block.segmentId, block.intro)]
+          : []),
         ...itemRows(block.items, false),
       ];
       placed.push(...rows.map((row) => ({ row, section: block.segmentId })));
@@ -226,10 +229,15 @@ function editorRows(
   { insertAfter, intro }: { insertAfter: string | null; intro: string | null }
 ): Placed[] {
   const out = [...placed];
-  // A group's (or lone track's) first intro: above its first entry, where it will show.
-  if (intro && !out.some((p) => p.section === intro)) {
+  // A first intro (a group's, a lone track's, a section boxed for its text): above
+  // its first entry, where it will show, and in its box if it has one.
+  const hasIntroRow = out.some(
+    (p) => p.row.kind === 'prose' && p.row.owner.kind === 'segment' && p.row.owner.id === intro
+  );
+  if (intro && !hasIntroRow) {
     const at = out.findIndex((p) => segmentOf(p.row) === intro);
-    if (at >= 0) out.splice(at, 0, { row: introRow(`intro:${intro}`, intro, []) });
+    if (at >= 0)
+      out.splice(at, 0, { row: introRow(`intro:${intro}`, intro, []), section: out[at].section });
   }
   if (insertAfter !== null) {
     const gap: Draft = { kind: 'gap', key: `gap:${insertAfter}`, at: { key: insertAfter } };

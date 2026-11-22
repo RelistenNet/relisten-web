@@ -441,6 +441,7 @@ export default function PlaylistEditor({
     boxMenu: ({ segmentId, tone }) => (
       <BoxMenu
         tone={tone}
+        hasIntro={!!content.segments.find((s) => s.id === segmentId)?.description}
         moves={() => ({
           up: moveSegmentBy(content, segmentId, -1),
           down: moveSegmentBy(content, segmentId, 1),
@@ -806,12 +807,15 @@ type Moves = { up: PlaylistOp | null; down: PlaylistOp | null; ownGroup: Playlis
 /** A section's or group's own menu, on its header: move it, give it an intro, remove it. */
 function BoxMenu({
   tone,
+  hasIntro,
   moves,
   onEdit,
   onIntro,
   onRemove,
 }: {
   tone: 'section' | 'group';
+  /** Whether it has an intro yet (a section boxed for its text may not). */
+  hasIntro: boolean;
   moves: () => Pick<Moves, 'up' | 'down'>;
   onEdit: (op: PlaylistOp | null) => void;
   onIntro: () => void;
@@ -820,7 +824,7 @@ function BoxMenu({
   const noun = tone === 'section' ? 'Section' : 'Group';
   return (
     <EditMenu label={`Edit ${noun.toLowerCase()}`}>
-      {tone === 'group' && (
+      {!hasIntro && (
         <MenuItem icon={TextIcon} onClick={onIntro}>
           Add Section Intro
         </MenuItem>

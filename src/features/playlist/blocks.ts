@@ -83,9 +83,33 @@ export function playlistBlocks(
         key: `section:${heading.id}`,
         segmentId: heading.id,
         items,
-        intro: heading.prose,
+        // An intro that sanitizes to nothing still shows in the editor, as written.
+        intro:
+          heading.prose.length || !keepEmpty ? heading.prose : plainBlocks(heading.description),
       });
-    } else addItems(blocks, run, { keepEmpty });
+    } else {
+      // Undescribed segments run together as loose tracks, except one holding
+      // writing (a text entry): it's boxed like a section, so its writing reads as
+      // part of it. (Text standing alone, a segment of prose only, isn't.)
+      for (let j = 0; j < run.length;) {
+        let k = j;
+        while (k < run.length && run[k].segmentId === run[j].segmentId) k++;
+        const segment = run.slice(j, k);
+        if (segment.some((r) => r.kind === 'text' && r.id !== r.segmentId)) {
+          const items: PlaylistItem[] = [];
+          addItems(items, segment, { keepEmpty });
+          const segmentId = segment[0].segmentId;
+          blocks.push({
+            kind: 'section',
+            key: `section:${segmentId}`,
+            segmentId,
+            items,
+            intro: [],
+          });
+        } else addItems(blocks, segment, { keepEmpty });
+        j = k;
+      }
+    }
     i = end;
   }
   return blocks;
