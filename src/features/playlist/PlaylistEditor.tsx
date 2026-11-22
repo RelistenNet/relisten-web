@@ -125,7 +125,10 @@ export default function PlaylistEditor({
   // Each text edit sent, by the operation itself: the store hands refused
   // operations back as they were, so a refusal reopens the field it came from.
   const sent = useRef(new WeakMap<PlaylistOp, Sent>());
-  useStoreEvents(store, {
+  // The open field's hand-over (MarkdownField sets it): leaving the editor takes its
+  // text before deciding what's left to save.
+  const handOverRef = useRef<(() => void) | null>(null);
+  useStoreEvents(store, handOverRef, {
     // The server renders the page again only when something waits on it (see
     // `unresolved`), checked in the store's content as it is now: a conflict's
     // refetch lands in the same update as the save, before React renders it.
@@ -272,6 +275,7 @@ export default function PlaylistEditor({
       const open = editing;
       const field = (target: ProseOwner, label: string) => (
         <MarkdownField
+          handOverRef={handOverRef}
           actions={proseActions(target)}
           label={label}
           initial={open.draft ?? sourceOf(content, target)}
@@ -397,6 +401,7 @@ export default function PlaylistEditor({
           ) : undefined,
         content: open ? (
           <MarkdownField
+            handOverRef={handOverRef}
             label="New text"
             initial={open.draft ?? ''}
             error={open.error}
@@ -503,6 +508,7 @@ function unsavedReason(settled: Settled): string | null {
  */
 function useStoreEvents(
   store: DraftStore,
+  handOverRef: RefObject<(() => void) | null>,
   handlers: {
     onSaved: () => void;
     onRefused: (refused: Refusal) => void;
@@ -522,9 +528,13 @@ function useStoreEvents(
     });
     return () => {
       unsubscribe();
+      // An open field's text first (unmount order doesn't decide it), then whatever
+      // is still on its way.
+      // oxlint-disable-next-line react-hooks/exhaustive-deps -- the field open now, on purpose
+      handOverRef.current?.();
       if (store.getState().status !== 'saved') void store.settle().then(onClosed);
     };
-  }, [store]);
+  }, [store, handOverRef]);
 }
 
 /** Asks before leaving with edits not yet saved. */

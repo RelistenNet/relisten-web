@@ -6,6 +6,7 @@ import {
   type FocusEvent,
   type KeyboardEvent,
   type ReactNode,
+  type RefObject,
   useEffect,
   useEffectEvent,
   useId,
@@ -74,6 +75,7 @@ export default function MarkdownField({
   actions = [],
   onDone,
   onInterrupted,
+  handOverRef,
 }: {
   label: string;
   initial: string;
@@ -94,6 +96,12 @@ export default function MarkdownField({
    * as it stood, so it isn't lost.
    */
   onInterrupted: (text: string) => void;
+  /**
+   * Set (while the field is open) to hand its text over now, as if interrupted:
+   * the editor calls it when it closes, before checking what's left to save, so
+   * the order the two unmount in doesn't matter. Doing it twice does nothing more.
+   */
+  handOverRef?: RefObject<(() => void) | null>;
 }) {
   const textarea = useRef<HTMLTextAreaElement>(null);
   const cancelled = useRef(false);
@@ -182,13 +190,20 @@ export default function MarkdownField({
     onDone(cancelled.current ? null : (textarea.current?.value ?? ''));
   };
 
-  // Unmounted unfinished (its block went, or the page): hand the text back.
-  useEffect(
-    () => () => {
-      if (!finished.current) interrupted(history.current.present.value);
-    },
-    []
-  );
+  // Unmounted unfinished (its block went, or the page): hand the text back, once,
+  // whether this field or the editor around it gets there first.
+  useEffect(() => {
+    const give = () => {
+      if (finished.current) return;
+      finished.current = true;
+      interrupted(history.current.present.value);
+    };
+    if (handOverRef) handOverRef.current = give;
+    return () => {
+      give();
+      if (handOverRef?.current === give) handOverRef.current = null;
+    };
+  }, [handOverRef]);
 
   const near = count > limit * 0.8;
   return (
