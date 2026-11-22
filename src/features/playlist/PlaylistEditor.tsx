@@ -50,7 +50,11 @@ import {
 import PublishControl from './PublishControl';
 import { type DragSource, dropOps } from './dragOps';
 import MarkdownField, { type FieldAction } from './MarkdownField';
-import PlaylistArticle, { type ArticleSlots, type ProseOwner } from './PlaylistArticle';
+import PlaylistArticle, {
+  MAX_ANIMATED_ROWS,
+  type ArticleSlots,
+  type ProseOwner,
+} from './PlaylistArticle';
 import {
   needsServer,
   PLAYLIST_PROSE,
@@ -266,8 +270,13 @@ export default function PlaylistEditor({
     },
   });
   // Laid out from a deferred copy, so each edit commits as a transition and the
-  // rows slide to their new places (ViewTransition in PlaylistArticle).
-  const shown = useDeferredValue(content);
+  // rows slide to their new places (ViewTransition in PlaylistArticle). Not a long
+  // playlist: its rows don't animate, and its background render (slow, and
+  // restarted by every urgent update, like playback's) could keep an edit off
+  // screen, a closed field's text nowhere, for as long as it took.
+  const deferred = useDeferredValue(content);
+  const entries = content.segments.reduce((n, s) => n + Math.max(1, s.entries.length), 0);
+  const shown = entries > MAX_ANIMATED_ROWS ? content : deferred;
   const view = playlistView(shown, resolved);
   const timestampTargets = view.rows.flatMap((r) =>
     r.kind === 'track'

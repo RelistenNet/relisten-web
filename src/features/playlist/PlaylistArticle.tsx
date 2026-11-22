@@ -196,7 +196,7 @@ export default function PlaylistArticle({
 
 /** One row of the flow: its rail cell, then its content. */
 /** Above this many rows, rows don't animate (measured: 308 rows cost 90–250ms a transition). */
-const MAX_ANIMATED_ROWS = 150;
+export const MAX_ANIMATED_ROWS = 150;
 
 function Row({ row, slots, animate }: { row: FlowRow; slots?: ArticleSlots; animate: boolean }) {
   // The editor: where a drop on this row lands (the drag wiring reads it), and the
