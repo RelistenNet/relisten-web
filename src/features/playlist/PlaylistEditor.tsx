@@ -53,7 +53,7 @@ import {
 import PublishControl from './PublishControl';
 import { type DragSource, dropOps } from './dragOps';
 import MarkdownField, { type FieldAction } from './MarkdownField';
-import PlaylistArticle, { ACTION, type ArticleSlots, type ProseOwner } from './PlaylistArticle';
+import PlaylistArticle, { type ArticleSlots, type ProseOwner } from './PlaylistArticle';
 import {
   needsServer,
   PLAYLIST_PROSE,
@@ -504,7 +504,7 @@ export default function PlaylistEditor({
                   else router.push(viewHref);
                 });
               }}
-              className={cn(ACTION, 'border-transparent bg-accent/15 hover:bg-accent/25')}
+              className="header-action-primary"
             >
               Done
             </Link>
@@ -914,7 +914,8 @@ function GapControl({ onAddText }: { onAddText: () => void }) {
       type="button"
       onClick={onAddText}
       className="
-        flex w-full items-center gap-2 rounded-[inherit] py-2 pl-[52px] text-sm text-text-muted
+        flex w-full items-center gap-2 rounded-[inherit] py-2
+        pl-[calc(var(--spacing-flow-indent)-1px)] text-sm text-text-muted
         transition-colors hover:bg-text-primary/[0.03] hover:text-text-primary
         focus-visible:outline-2 focus-visible:outline-accent
       "

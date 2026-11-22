@@ -211,9 +211,9 @@ export default function MarkdownField({
   return (
     // The textarea sits exactly where the text did (its padding offset by the
     // margins), and the toolbar floats under it, so opening a block moves nothing.
-    // (A measure set on the text, like a comment's 65ch, widens by the padding too,
+    // (A measure set on the text, like a comment's --spacing-measure, widens by the padding too,
     // so lines wrap where they did.)
-    <div onBlur={leave} className="relative -mx-2 -my-1 max-w-[calc(65ch+1rem)]!">
+    <div onBlur={leave} className="relative -mx-2 -my-1 max-w-[calc(var(--spacing-measure)+1rem)]!">
       <textarea
         ref={(t) => {
           textarea.current = t;

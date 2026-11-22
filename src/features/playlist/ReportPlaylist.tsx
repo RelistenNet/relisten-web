@@ -5,7 +5,6 @@ import { FlagIcon } from 'lucide-react';
 import { useActionState, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod/v4';
-import cn from '@/lib/cn';
 import { signInHref } from '@/lib/searchParams/sessionSearchParams';
 import { TOASTER_ID } from '@/player/toasts';
 import { PlaylistWriteError, playlistTransport } from '@/playlists/transport';
@@ -18,7 +17,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/ui/base/shadcn/dialog';
-import { ACTION } from './PlaylistArticle';
 
 // Report a public playlist (RelistenApi docs/design/2026-11-18-playlist-sharing.md,
 // "Reporting and takedown"). Anyone signed in can report; the User Service
@@ -66,11 +64,7 @@ export default function ReportPlaylist({ publicCode }: { publicCode: string }) {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className={cn(ACTION, 'border-transparent text-text-muted hover:text-text-primary')}
-      >
+      <button type="button" onClick={() => setOpen(true)} className="header-action-quiet">
         <FlagIcon className="size-4" aria-hidden />
         Report
       </button>

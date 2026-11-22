@@ -27,7 +27,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/ui/base/shadcn/dialog';
-import { ACTION } from './PlaylistArticle';
 import { refreshPublicPlaylist } from './publishActions';
 
 // Publishing (RE-52; RelistenApi docs/design/2026-11-18-playlist-sharing.md): a
@@ -114,8 +113,7 @@ export default function PublishControl({
         <Menu.Trigger
           disabled={pending}
           className={cn(
-            ACTION,
-            publicCode && 'border-accent/40 text-accent',
+            publicCode ? 'header-action-active' : 'header-action',
             pending && 'opacity-60'
           )}
         >

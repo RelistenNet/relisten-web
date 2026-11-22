@@ -4,7 +4,6 @@ import { deny, redirect } from '@timber-js/app/server';
 import { getOwnPlaylist } from '@/data/playlists';
 import { getCurrentUser } from '@/data/session';
 import { signInHref } from '@/lib/searchParams/sessionSearchParams';
-import { ACTION } from './PlaylistArticle';
 import PlaylistDetail from './PlaylistDetail';
 
 /**
@@ -23,7 +22,7 @@ export default async function PreviewPlaylist({ playlistId }: { playlistId: stri
       actions={
         <Link
           href={href('/account/playlists/[playlistId]/edit', { playlistId })}
-          className={ACTION}
+          className="header-action"
         >
           Back to Editing
         </Link>

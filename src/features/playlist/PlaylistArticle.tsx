@@ -43,13 +43,6 @@ import { isTrackRow, type PlaylistOtherRow, type PlaylistTrackRow } from './spec
 // (src/lib/guideMarkdown); their timestamps play. No server imports and no
 // hooks: it renders on either side.
 
-/** A header action's look (the owner's Edit, the editor's Done). */
-export const ACTION = `
-  inline-flex items-center gap-1.5 rounded-lg border border-hairline px-3 py-1.5 text-sm
-  font-medium text-text-primary transition-colors hover:bg-surface-hover
-  focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent
-`;
-
 export type { GapAt, ProseOwner } from './flow';
 
 /** The editor's controls. Each is optional; the read pages pass none. */
@@ -167,7 +160,7 @@ export default function PlaylistArticle({
             </div>
             {/* Rows sit flush (spacing is rows too). Each row's rail cell is the first
             column; from md up it hangs in the margin, so content lines up with the header. */}
-            <div className="flex flex-col md:-ml-5">
+            <div className="flex flex-col md:-ml-rail">
               {groups.map((group) =>
                 group.segmentId && group.tone ? (
                   // A section's or group's rows together: its segment drags as one,
@@ -224,7 +217,8 @@ function Row({ row, slots, animate }: { row: FlowRow; slots?: ArticleSlots; anim
         className={cn(
           'relative min-w-0 flex-1',
           row.box && boxCell(row.box),
-          drop && row.kind !== 'space' && EDGE_INDICATOR
+          // Where a drop lands, drawn over the row (globals.css).
+          drop && row.kind !== 'space' && 'drop-indicator'
         )}
       >
         <RowContent row={row} slots={slots} drop={drop} />
@@ -249,42 +243,6 @@ function Row({ row, slots, animate }: { row: FlowRow; slots?: ArticleSlots; anim
 const transitionName = (key: string) => `pl-${key.replace(/[^\w-]/g, '-')}`;
 
 const dragAttr = (spec: DragSpec | undefined) => (spec ? JSON.stringify(spec) : undefined);
-
-// While dragging, the row under the pointer draws where the drop would land (the
-// drag wiring sets data-drop-edge and data-drop-label on it): a line at its top or
-// bottom edge, a card's outline for "Group with this", and a label. All drawn over
-// the rows (pseudo-elements), never between them.
-const DROP_LINE = `
-  before:pointer-events-none before:absolute before:inset-x-2 before:z-30 before:hidden
-  before:h-0.5 before:rounded-full before:bg-accent
-`;
-const LABEL = `
-  after:pointer-events-none after:absolute after:right-3 after:z-30 after:hidden
-  after:rounded-full after:bg-accent after:px-2 after:py-0.5 after:text-[11px]
-  after:leading-4 after:font-medium after:text-white after:content-[attr(data-drop-label)]
-  data-[drop-edge]:after:block
-`;
-const EDGE_INDICATOR = cn(
-  DROP_LINE,
-  LABEL,
-  `
-    data-[drop-edge=bottom]:before:-bottom-[4px] data-[drop-edge=bottom]:before:block
-    data-[drop-edge=bottom]:after:-bottom-[12px]
-    data-[drop-edge=center]:after:bottom-2 data-[drop-edge=top]:before:-top-[4px]
-    data-[drop-edge=top]:before:block
-    data-[drop-edge=top]:after:-top-[12px]
-  `
-);
-/** Space between rows: the line through its middle. */
-const SPACE_INDICATOR = cn(
-  DROP_LINE,
-  LABEL,
-  `
-    data-[drop-edge]:before:top-1/2 data-[drop-edge]:before:block
-    data-[drop-edge]:before:-translate-y-1/2 data-[drop-edge]:after:top-1/2
-    data-[drop-edge]:after:-translate-y-1/2
-  `
-);
 
 /**
  * The editor's frame for a section or group, drawn over its rows (it takes no
@@ -332,7 +290,7 @@ function boxCorners({ position }: Box) {
  * corners itself (boxCorners).
  */
 function boxCell(box: Box) {
-  return cn(SECTION_TINT, boxCorners(box));
+  return cn('bg-text-primary/[0.035]', boxCorners(box));
 }
 
 function RowContent({ row, slots, drop }: { row: FlowRow; slots?: ArticleSlots; drop?: string }) {
@@ -348,7 +306,7 @@ function RowContent({ row, slots, drop }: { row: FlowRow; slots?: ArticleSlots; 
               className={cn(
                 'absolute inset-x-0',
                 row.height ? 'inset-y-0' : '-top-5 h-5',
-                SPACE_INDICATOR
+                'drop-indicator-between'
               )}
             />
           )}
@@ -373,11 +331,16 @@ function RowContent({ row, slots, drop }: { row: FlowRow; slots?: ArticleSlots; 
           blocks={row.prose}
           slots={slots}
           className={cn(
-            FLOW_INDENT,
-            COMMENTARY,
+            // The author's longer writing, between the tracks: it starts where their
+            // titles do, so it reads as one column with them; about 65 characters a
+            // line; a touch softer than the titles, as commentary on them.
+            `
+              max-w-[calc(var(--spacing-measure)+var(--spacing-flow-indent))] pl-flow-indent
+              text-text-primary/85
+            `,
             // In a section's box: its tint and corners, and room inside it.
             // The box spans the row; the text inside keeps its measure.
-            row.box && cn('max-w-none py-3 pr-4 *:max-w-[65ch]', boxCorners(row.box)),
+            row.box && cn('max-w-none py-3 pr-4 *:max-w-measure', boxCorners(row.box)),
             !row.box && 'rounded-xl',
             row.box && row.owner.kind === 'segment' && 'pb-3.5'
           )}
@@ -392,45 +355,42 @@ function RowContent({ row, slots, drop }: { row: FlowRow; slots?: ArticleSlots; 
 // its own stretch in its rail cell (full height between, from or to the dot at a
 // track), so the line holds whatever the rows are and however tall.
 
-/** From a row's top to the middle of a card's title line (and play button). */
-const DOT_Y = 25;
-/** The rail's x within its 20px cell; the dot (8px) centers on it. */
-const RAIL_X = 9;
-const LINE = 'pointer-events-none absolute w-px bg-text-primary/15';
+/** A stretch of the rail's line (`--spacing-rail-line`). */
+function RailLine({ className }: { className: string }) {
+  return (
+    <span
+      className={cn(
+        'pointer-events-none absolute left-rail-line w-px bg-text-primary/15',
+        className
+      )}
+    />
+  );
+}
 
 function Rail({ rail }: { rail: RailCell }) {
   return (
-    <div aria-hidden className="relative w-5 shrink-0">
+    <div aria-hidden className="relative w-rail shrink-0">
       {rail.dot ? (
         <>
-          {rail.above && <span className={LINE} style={{ left: RAIL_X, top: 0, height: DOT_Y }} />}
-          {rail.below && <span className={LINE} style={{ left: RAIL_X, top: DOT_Y, bottom: 0 }} />}
-          {/* Filled while its track is the one playing. */}
+          {rail.above && <RailLine className="top-0 h-dot-y" />}
+          {rail.below && <RailLine className="top-dot-y bottom-0" />}
+          {/* On the line, level with the play button. Filled while its track is the one playing. */}
           <span
             className="
-              absolute size-2 rounded-full border border-text-primary/30
-              group-has-[[data-current-track]]/row:border-accent
+              absolute top-dot-y left-rail-center size-2 -translate-1/2 rounded-full border
+              border-text-primary/30 group-has-[[data-current-track]]/row:border-accent
               group-has-[[data-current-track]]/row:bg-accent
             "
-            style={{ left: RAIL_X - 3.5, top: DOT_Y - 4 }}
           />
-          {/* The branch, from the dot to the card. */}
-          <span
-            className="absolute h-px bg-text-primary/30"
-            style={{ left: RAIL_X + 4.5, right: 0, top: DOT_Y }}
-          />
+          {/* The branch, from the dot's edge (half its 8px past the line) to the card. */}
+          <span className="absolute top-dot-y right-0 left-[calc(var(--spacing-rail-center)+4px)] h-px bg-text-primary/30" />
         </>
       ) : (
-        (rail.above || rail.below) && (
-          <span className={LINE} style={{ left: RAIL_X, top: 0, bottom: 0 }} />
-        )
+        (rail.above || rail.below) && <RailLine className="inset-y-0" />
       )}
     </div>
   );
 }
-
-/** A section's tint, on each of its rows' content cells (they stack flush into one box). */
-const SECTION_TINT = 'bg-text-primary/[0.035]';
 
 /**
  * The editor's composer (text or tracks being added there), or its Add zone at
@@ -441,7 +401,12 @@ function Gap({ at, slots }: { at: GapAt; slots?: ArticleSlots }) {
   if (!gap) return null;
   return (
     <div className="rounded-xl border border-dashed border-text-primary/15">
-      {gap.content ? <div className="py-2 pr-3 pl-[52px]">{gap.content}</div> : gap.control}
+      {/* Its text starts where the flow's writing does, inside the box's 1px border. */}
+      {gap.content ? (
+        <div className="py-2 pr-3 pl-[calc(var(--spacing-flow-indent)-1px)]">{gap.content}</div>
+      ) : (
+        gap.control
+      )}
     </div>
   );
 }
@@ -478,8 +443,9 @@ export function Prose({
   return (
     <div
       className={cn(
-        PROSE,
-        'group/prose',
+        // One voice for everything the author wrote (description, sections, text,
+        // track notes); metadata around it is smaller and muted.
+        'group/prose text-[15px] leading-relaxed text-pretty text-text-primary',
         // Editable, or being edited: raised above a card's play-anywhere button, so a
         // click on the text (or in its field) is the text's, not the card's.
         (open || editing) && 'relative z-10',
@@ -516,31 +482,42 @@ export function Prose({
   );
 }
 
-// One voice for everything the author wrote (description, sections, text,
-// track notes); metadata is smaller and muted.
-const PROSE = 'text-[15px] leading-relaxed text-pretty text-text-primary';
-// Prose between tracks starts where track titles and notes do (a cell's 1px
-// border, 12px padding, 28px play button and 12px gap), so the writing reads
-// as one column. The rail's segments sit left of it, at -12px from the block.
-const FLOW_INDENT = 'pl-[53px]';
-// The author's longer writing (comments, text blocks): about 65 characters a
-// line past the indent, and a touch softer than track titles, so it reads as
-// commentary on them.
-const COMMENTARY = 'max-w-[calc(65ch+53px)] text-text-primary/85';
-
-/** A card: a 1px border (transparent but an unavailable one's), so content lines up. */
-const CELL = 'relative flex gap-3 border border-transparent py-2.5 pr-1.5 pl-3';
-
 /**
- * A card's own look: rounded and filled, unless it's in a section, whose box
- * fills it (then the card only tints on hover).
+ * A card's shell, the track's or the unavailable one's: its border (transparent but
+ * an unavailable one's, so content lines up either way), the theme's card padding
+ * and gap (which the writing's indent and the rail's dot follow), rounded and
+ * filled unless a section's box fills it, and outlined while a drag would group
+ * with it.
  */
-const cardLook = (box: Box | null) => (box?.tone === 'section' ? boxCorners(box) : 'rounded-xl');
-/** While dragging: a card the drop would group with is outlined (its row draws the label). */
-const JOIN_TARGET = `
-  in-data-[drop-edge=center]:ring-2 in-data-[drop-edge=center]:ring-accent
-  in-data-[drop-edge=center]:ring-inset
-`;
+function Card({
+  row,
+  box,
+  className,
+  children,
+}: {
+  row: { id: string; segmentId: string };
+  box: Box | null;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      data-row-id={row.id}
+      data-segment-id={row.segmentId}
+      data-card=""
+      className={cn(
+        `
+          relative flex gap-card-gap border border-transparent py-card-y pr-1.5 pl-card-x
+          in-drop-join:ring-2 in-drop-join:ring-accent in-drop-join:ring-inset
+        `,
+        box?.tone === 'section' ? boxCorners(box) : 'rounded-xl',
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+}
 
 /** A track's note, under its show line. */
 function Note({ id, blocks, slots }: { id: string; blocks?: GuideBlock[]; slots?: ArticleSlots }) {
@@ -563,14 +540,10 @@ function TrackCell({
 }) {
   const name = `${row.trackTitle ?? 'Track'}, ${row.date}`;
   return (
-    <div
-      data-row-id={row.id}
-      data-segment-id={row.segmentId}
-      data-card=""
+    <Card
+      row={row}
+      box={box}
       className={cn(
-        CELL,
-        cardLook(box),
-        JOIN_TARGET,
         box?.tone !== 'section' && 'bg-text-primary/[0.035]',
         `
           group/cell items-start transition-colors
@@ -631,7 +604,7 @@ function TrackCell({
           fallbackDuration={row.songDuration ?? undefined}
         />
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -646,19 +619,13 @@ function UnavailableCell({
   slots?: ArticleSlots;
 }) {
   return (
-    <div
-      data-row-id={row.id}
-      data-segment-id={row.segmentId}
-      data-card=""
-      className={cn(
-        CELL,
-        cardLook(box),
-        JOIN_TARGET,
-        'group/cell items-start border-dashed border-hairline text-text-muted'
-      )}
+    <Card
+      row={row}
+      box={box}
+      className="group/cell items-start border-dashed border-hairline text-text-muted"
     >
       {/* The play button's width, so titles line up. */}
-      <span aria-hidden className="w-7 shrink-0" />
+      <span aria-hidden className="w-play-button shrink-0" />
       <div className="flex min-w-0 flex-1 flex-col pt-0.5">
         <span className="text-[15px] leading-snug">Unavailable track</span>
         <span className="text-[13px]">This recording isn&rsquo;t on Relisten anymore.</span>
@@ -666,6 +633,6 @@ function UnavailableCell({
       </div>
       {/* The editor's menu, at the right (readers have none here). */}
       {slots?.cellMenu && <div className="shrink-0">{slots.cellMenu(row)}</div>}
-    </div>
+    </Card>
   );
 }

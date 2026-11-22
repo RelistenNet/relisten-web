@@ -4,7 +4,6 @@ import { deny, redirect } from '@timber-js/app/server';
 import { getOwnPlaylist } from '@/data/playlists';
 import { signInHref } from '@/lib/searchParams/sessionSearchParams';
 import { PencilIcon } from 'lucide-react';
-import { ACTION } from './PlaylistArticle';
 import PublishControl from './PublishControl';
 import PlaylistDetail from './PlaylistDetail';
 
@@ -42,7 +41,7 @@ export default async function OwnPlaylist({ playlistId }: { playlistId: string }
             />
             <Link
               href={href('/account/playlists/[playlistId]/edit', { playlistId })}
-              className={ACTION}
+              className="header-action"
             >
               <PencilIcon className="size-4" aria-hidden />
               Edit

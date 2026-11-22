@@ -67,7 +67,11 @@ export default function PlayTrackButton({ row, track, label }: Props) {
       // DataTable marks the row: the current track (accent bar and tint), or a queued one (faint bar).
       data-current-track={isCurrent || undefined}
       data-queued-track={isQueued || undefined}
-      className="inline-flex rounded-full p-1.5 text-accent hover:bg-surface-hover"
+      // --spacing-play-button: a card's geometry (and the writing's indent) follows it.
+      className="
+        inline-flex size-play-button items-center justify-center rounded-full text-accent
+        hover:bg-surface-hover
+      "
     >
       <Icon className="size-4 shrink-0" aria-hidden />
     </button>
