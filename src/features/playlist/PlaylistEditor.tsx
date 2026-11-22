@@ -88,6 +88,16 @@ type Unsent = Sent & { error?: string };
 const sameOwner = (a: ProseOwner, b: ProseOwner) =>
   a.kind === b.kind && (a.kind === 'playlist' || (b.kind !== 'playlist' && a.id === b.id));
 
+/** Whether a field still has somewhere to open: its block, or the row its composer follows. */
+const stillThere = (content: PlaylistContent, from: NonNullable<Editing>) =>
+  from.kind === 'prose'
+    ? hasProseOwner(content, from.owner)
+    : from.after === 'end' ||
+      from.after === '' ||
+      content.segments.some(
+        (s) => s.id === from.after || s.entries.some((e) => e.id === from.after)
+      );
+
 const sameField = (a: Editing, b: NonNullable<Editing>) =>
   !!a &&
   (a.kind === 'prose'
@@ -148,9 +158,18 @@ export default function PlaylistEditor({
     // `unresolved`), checked in the store's content as it is now: a conflict's
     // refetch lands in the same update as the save, before React renders it.
     onSaved: () => needsServer(unresolved(store.getState().content, resolved)) && router.refresh(),
+    // Text that didn't make it (refused, or skipped because its block went elsewhere)
+    // waits in its field, or in the composer at the end if that field's gone too.
     onRefused: (refused) => {
-      const hit = refused.ops.map((op) => sent.current.get(op)).find(Boolean);
-      if (hit) wait({ ...hit, error: refused.error.detail });
+      const now = store.getState().content;
+      for (const op of refused.ops) {
+        const hit = sent.current.get(op);
+        if (!hit) continue;
+        const from = stillThere(now, hit.from)
+          ? hit.from
+          : ({ kind: 'composer', after: 'end' } as const);
+        wait({ ...hit, from, error: refused.error.detail });
+      }
     },
     // Closed (the nav bar, Back, a link) with a save on its way: once it's in, the
     // page now showing reads it again; if it didn't make it, say so.
@@ -321,11 +340,15 @@ export default function PlaylistEditor({
           timestampTargets={timestampTargets}
           ownEntryId={target.kind === 'note' ? target.id : undefined}
           onDone={(text) =>
-            commitProse(
-              { kind: 'prose', owner: target },
-              text,
-              text === null ? null : saveProse(content, target, text)
-            )
+            // Its block can go while it's open (someone else's edit, met on a refetch):
+            // then there's nothing to save it to, and its text is kept instead.
+            text !== null && !hasProseOwner(content, target)
+              ? keepText({ kind: 'prose', owner: target }, text)
+              : commitProse(
+                  { kind: 'prose', owner: target },
+                  text,
+                  text === null ? null : saveProse(content, target, text)
+                )
           }
           onInterrupted={(text) =>
             hasProseOwner(content, target)
@@ -658,23 +681,33 @@ function TitleInput({
 }) {
   const field = useRef<HTMLTextAreaElement>(null);
   const save = useEffectEvent(onSave);
+  // The name the field last showed as saved. A new one (yours, saved; or someone
+  // else's, from a conflict's refetch) replaces what it shows, unless you're
+  // typing in it: then what you've typed stays, to be saved as usual.
+  const shown = useRef(name);
+  useEffect(() => {
+    const t = field.current;
+    if (!t) return;
+    const typing = document.activeElement === t && t.value !== shown.current;
+    if (!typing) t.value = name;
+    shown.current = name;
+  }, [name]);
   useEffect(() => {
     // The element, kept (React clears the ref before the editor's cleanup runs).
     const t = field.current;
     const open = openFieldsRef.current;
     if (!t) return;
     const handOver = () => {
-      if (t.value !== t.defaultValue) save(t.value.replace(/\s+/g, ' '));
+      if (t.value !== shown.current) save(t.value.replace(/\s+/g, ' '));
     };
     open.add(handOver);
     return () => void open.delete(handOver);
-  }, [openFieldsRef, name]);
+  }, [openFieldsRef]);
   return (
     // A one-row textarea that grows, so a long name wraps like the heading does.
     // Enter saves (a name is one line); Escape reverts.
     <textarea
       ref={field}
-      key={name}
       defaultValue={name}
       aria-label="Playlist name"
       maxLength={100}

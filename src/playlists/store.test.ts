@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { applyOps } from '@/domain/playlistOps';
+import { applyOp, applyOps } from '@/domain/playlistOps';
 import type {
   PlaylistBatchResponseWire,
   PlaylistContent,
@@ -67,14 +67,21 @@ function fakeServer(start = content) {
       if (failure) throw failure;
       if (expected !== undefined && expected !== server.revision)
         throw new PlaylistWriteError('conflict');
-      server = { ...applyOps(server, ops), revision: server.revision + 1 };
+      // Each operation's status, as the server reports it (a skipped one changes nothing).
+      let next = server;
+      const statuses = ops.map((o) => {
+        const result = applyOp(next, o);
+        next = result.content;
+        return result.status;
+      });
+      server = { ...next, revision: server.revision + 1 };
       return {
         contract_version: 1,
         history_generation: 'g',
         head_revision: server.revision,
-        results: ops.map((o) => ({
+        results: ops.map((o, i) => ({
           operation_id: o.operation_id,
-          status: 'applied',
+          status: statuses[i],
           revision: server.revision,
         })),
       } satisfies PlaylistBatchResponseWire;
@@ -375,5 +382,22 @@ describe('batches and text', () => {
       ['e2', undefined],
     ]);
     expect(server.server.segments.find((s) => s.id === 's2')?.description).toBe('Set two');
+  });
+});
+
+describe('text whose block went elsewhere', () => {
+  beforeEach(() => vi.useFakeTimers());
+  it('hands it back when the server skips it, rather than reporting it saved', async () => {
+    const server = fakeServer();
+    const store = createDraftStore(content, { transport: server.transport, newId: ids() });
+    // Someone else deletes e1; then this tab saves a note on it (a conflict, then a replay).
+    server.external(op('delete_entry', { entry_id: 'e1' }));
+    const note = op('update_entry', { entry_id: 'e1', description: 'Lost?' });
+    store.edit(note);
+    const settled = store.settle();
+    await settle();
+    expect(server.batches.map((b) => b.expected)).toEqual([1, 2]);
+    expect(store.getState().refused?.ops).toEqual([note]);
+    await expect(settled).resolves.toMatchObject({ kind: 'refused' });
   });
 });

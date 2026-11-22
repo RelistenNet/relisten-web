@@ -261,15 +261,34 @@ function draftMachine(transport: PlaylistTransport) {
           input: ({ context }) => ({ base: context.base, ops: context.inflight }),
           onDone: {
             target: 'idle',
-            actions: assign(({ context, event }) => ({
-              base: {
-                ...replay(context.base, context.inflight),
-                revision: event.output.head_revision,
-                generation: event.output.history_generation,
-              },
-              inflight: [],
-              conflicts: 0,
-            })),
+            actions: assign(({ context, event }) => {
+              // Text the server skipped (its block went: someone else's edit, met on a
+              // replay) didn't make it: like a refusal, it's handed back to reopen.
+              const skipped = new Set(
+                event.output.results
+                  .filter((r) => r.status !== 'applied' && r.status !== 'no_op')
+                  .map((r) => r.operation_id)
+              );
+              const lost = context.inflight.filter((q) => skipped.has(q.id) && carriesText(q.op));
+              return {
+                base: {
+                  ...replay(context.base, context.inflight),
+                  revision: event.output.head_revision,
+                  generation: event.output.history_generation,
+                },
+                inflight: [],
+                conflicts: 0,
+                ...(lost.length && {
+                  refused: {
+                    error: new PlaylistWriteError(
+                      'invalid',
+                      'What you were writing in was removed elsewhere. Your text is kept.'
+                    ),
+                    ops: lost.map((q) => q.op),
+                  },
+                }),
+              };
+            }),
           },
           onError: [
             {
