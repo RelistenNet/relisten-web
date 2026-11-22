@@ -138,3 +138,16 @@ describe('removeText', () => {
     expect(after(removeText(content, 's2'))).toBe('s1:e1,e2 | s3:e3,t1,e4');
   });
 });
+
+describe('insertText into a group (its Add Text)', () => {
+  it('adds an entry at the group’s end, not a block after it', () => {
+    // Opened after the group's last row (e4): before the next segment would be a block.
+    expect(
+      after(insertText(content, { above: { id: 'e4', segmentId: 's3' }, into: 's3' }, 'More', id))
+    ).toBe('s1:e1,e2 | s2: | s3:e3,t1,e4,new');
+    // Without `into`, the same gap is a block of its own after the group.
+    expect(after(insertText(content, { above: { id: 'e4', segmentId: 's3' } }, 'More', id))).toBe(
+      's1:e1,e2 | s2: | s3:e3,t1,e4 | new:'
+    );
+  });
+});

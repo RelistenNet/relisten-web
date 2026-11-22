@@ -26,8 +26,11 @@ export type Box = { position: 'first' | 'middle' | 'last' | 'only'; tone: 'secti
 /** The rail beside a row: the line above and below its middle, and a dot for a track. */
 export type RailCell = { above: boolean; below: boolean; dot: boolean };
 
-/** Where the editor's composer (or its Add zone) sits: the rows on either side. */
-export type GapAt = { key: string; above?: BlockEdge; below?: BlockEdge };
+/**
+ * Where the editor's composer (or its Add zone) sits: the rows on either side, and
+ * (opened from a group's Add Text) the group its text goes into.
+ */
+export type GapAt = { key: string; above?: BlockEdge; below?: BlockEdge; into?: string };
 
 /** Whose prose a block is: the editor edits it by this. */
 export type ProseOwner =
@@ -80,6 +83,8 @@ export type FlowOptions = {
   editing?: boolean;
   /** A row key to open the composer after ('' for the very start). */
   insertAfter?: string | null;
+  /** The group the composer's text goes into (its Add Text): the composer is in its frame. */
+  insertInto?: string | null;
   /**
    * An undescribed segment whose new intro is being written: it gets the (empty)
    * intro row a section has, above its first entry, for the field.
@@ -101,7 +106,9 @@ const segmentOf = (r: Draft): string | undefined =>
     ? r.row.segmentId
     : r.kind === 'prose'
       ? (r.dragRow?.segmentId ?? (r.owner.kind === 'segment' ? r.owner.id : undefined))
-      : undefined;
+      : r.kind === 'gap'
+        ? r.at.into
+        : undefined;
 
 /** The entry a row is (a track, or a text entry): what a drop lands next to. */
 const entryOf = (r: Draft): BlockEdge | undefined =>
@@ -158,7 +165,7 @@ function itemRows(items: PlaylistItem[], apart: boolean): Draft[] {
 /** The flow's rows, grouped by section and (in the editor) group. */
 export function flowRows(
   blocks: readonly PlaylistBlock[],
-  { editing = false, insertAfter = null, intro = null }: FlowOptions = {}
+  { editing = false, insertAfter = null, insertInto = null, intro = null }: FlowOptions = {}
 ): FlowGroup[] {
   // The read page's rows, in order: blocks, with space between them.
   let placed: Placed[] = [];
@@ -176,7 +183,7 @@ export function flowRows(
     } else placed.push(...itemRows([block], true).map((row) => ({ row })));
   });
 
-  if (editing) placed = editorRows(placed, { insertAfter, intro });
+  if (editing) placed = editorRows(placed, { insertAfter, insertInto, intro });
 
   // Each gap's neighbours, now that everything's in place.
   const edges = placed.map((p) => edgeOf(p.row));
@@ -227,7 +234,11 @@ export function flowRows(
 /** The editor's additions: a new intro's row, the composer, and the Add zone at the end. */
 function editorRows(
   placed: Placed[],
-  { insertAfter, intro }: { insertAfter: string | null; intro: string | null }
+  {
+    insertAfter,
+    insertInto,
+    intro,
+  }: { insertAfter: string | null; insertInto: string | null; intro: string | null }
 ): Placed[] {
   const out = [...placed];
   // A first intro (a group's, a lone track's, a section boxed for its text): above
@@ -241,7 +252,11 @@ function editorRows(
       out.splice(at, 0, { row: introRow(`intro:${intro}`, intro, []), section: out[at].section });
   }
   if (insertAfter !== null) {
-    const gap: Draft = { kind: 'gap', key: `gap:${insertAfter}`, at: { key: insertAfter } };
+    const gap: Draft = {
+      kind: 'gap',
+      key: `gap:${insertAfter}`,
+      at: { key: insertAfter, ...(insertInto && { into: insertInto }) },
+    };
     const at = insertAfter ? out.findIndex((p) => p.row.key === insertAfter) : -1;
     // Inside a section, it's in the section.
     if (at >= 0) out.splice(at + 1, 0, { row: gap, section: out[at].section });

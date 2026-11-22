@@ -57,6 +57,8 @@ export type ArticleSlots = {
    * Edit menu instead of the queue menu.
    */
   cellMenu?: (row: PlaylistTrackGroupRow) => ReactNode;
+  /** Opens the composer at the end of a group, its text going into the group. */
+  addText?: (group: { segmentId: string; after: string }) => void;
   /** A section's or group's menu, at its box's top-right corner. */
   boxMenu?: (group: { segmentId: string; tone: 'section' | 'group' }) => ReactNode;
   /**
@@ -165,11 +167,19 @@ export default function PlaylistArticle({
                   <div
                     key={group.key}
                     data-drag={dragAttr(slots?.drag?.(group))}
-                    className="relative flex flex-col"
+                    className="group/box relative flex flex-col"
                   >
                     {slots && (
                       <BoxFrame
                         menu={slots.boxMenu?.({ segmentId: group.segmentId, tone: group.tone })}
+                        onAddText={
+                          slots.addText &&
+                          (() => {
+                            const after = group.rows.at(-1)?.key;
+                            if (group.segmentId && after)
+                              slots.addText?.({ segmentId: group.segmentId, after });
+                          })
+                        }
                       />
                     )}
                     {group.rows.map((row) => (
@@ -247,29 +257,58 @@ const dragAttr = (spec: DragSpec | undefined) => (spec ? JSON.stringify(spec) : 
  * room): a group's dashed outline, its label on the top border (which is what
  * drags the box), and its menu at the top-right corner.
  */
-function BoxFrame({ menu }: { menu?: ReactNode }) {
+/**
+ * Whether the editor draws each group's dashed outline and its label. Off for now
+ * (hidden while we look at the editor without them): a group is still moved from
+ * its menu (Move Group Up/Down), and its rows drag on their own.
+ */
+const SHOW_GROUP_FRAME = false;
+
+function BoxFrame({ menu, onAddText }: { menu?: ReactNode; onAddText?: () => void }) {
   // One frame for every group, tinted or not: the tint (on its rows) is what readers
   // will see boxed, a group with writing in it; the outline is the editor's.
   return (
     <>
-      <div
-        aria-hidden
-        className="
+      {SHOW_GROUP_FRAME && (
+        <>
+          <div
+            aria-hidden
+            className="
           pointer-events-none absolute -inset-x-1 -inset-y-[3px] rounded-2xl border
           border-dashed border-text-primary/20
         "
-      />
-      <span
-        title="Drag to move"
-        className="
+          />
+          <span
+            title="Drag to move"
+            className="
           absolute -top-[9px] left-12 z-20 cursor-grab rounded-full bg-surface px-1.5
           text-[10px] leading-[18px] font-semibold tracking-wide text-text-muted uppercase
           select-none active:cursor-grabbing
         "
-      >
-        Group
-      </span>
+          >
+            Group
+          </span>
+        </>
+      )}
       {menu && <div className="absolute -top-4 right-1 z-20">{menu}</div>}
+      {/* Add Text, on the bottom border (at the right: the next box's label is at the left of its top), over the frame, so
+      showing it (on hover, focus, and always on touch) moves nothing. */}
+      {onAddText && (
+        <button
+          type="button"
+          onClick={onAddText}
+          className="
+            absolute right-12 -bottom-[9px] z-20 inline-flex items-center gap-1 rounded-full
+            bg-surface px-1.5 text-[10px] leading-[18px] font-semibold tracking-wide
+            text-text-muted uppercase opacity-0 transition-opacity select-none
+            group-focus-within/box:opacity-100 group-hover/box:opacity-100
+            hover:text-text-primary focus-visible:opacity-100 focus-visible:outline-2
+            focus-visible:outline-accent pointer-coarse:opacity-100
+          "
+        >
+          <span aria-hidden>+</span> Add Text
+        </button>
+      )}
     </>
   );
 }

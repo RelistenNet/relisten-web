@@ -163,13 +163,29 @@ export function removeText(content: PlaylistContent, id: string): PlaylistOp {
  */
 export function insertText(
   content: PlaylistContent,
-  gap: { above?: { id: string; segmentId: string }; below?: { segmentId: string } },
+  gap: {
+    above?: { id: string; segmentId: string };
+    below?: { segmentId: string };
+    /** A group's Add Text: into that group, after the entry above (or at its end). */
+    into?: string;
+  },
   text: string,
   newId: NewId = newTypeId
 ): PlaylistOp | null {
   const value = normalizeText(text);
   if (!value) return null;
-  const { above, below } = gap;
+  const { above, below, into } = gap;
+  if (into) {
+    const after = above && above.segmentId === into && above.id !== into ? above.id : undefined;
+    return {
+      operation_type: 'insert_entries',
+      payload: {
+        segment_id: into,
+        entries: [{ entry_id: newId('playlist_entry'), description: value }],
+        ...(after && { after_entry_id: after }),
+      },
+    };
+  }
   if (above && below && above.segmentId === below.segmentId && above.id !== above.segmentId) {
     return {
       operation_type: 'insert_entries',

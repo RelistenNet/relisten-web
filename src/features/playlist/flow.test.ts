@@ -150,3 +150,17 @@ describe('flowRows', () => {
     expect(keys(flowRows(blocks, { editing: true, intro: 's1' }))).not.toContain('intro:s1');
   });
 });
+
+describe('a group’s Add Text', () => {
+  it('lays the composer out at the end of the group, in its frame', () => {
+    const groups = flowRows(blocks, { editing: true, insertAfter: 'd', insertInto: 's2' });
+    expect(groups.find((g) => g.key === 'group:s2')?.rows.map((r) => r.key)).toEqual([
+      'c',
+      'space:d',
+      'd',
+      'gap:d',
+    ]);
+    const gap = row(groups, 'gap:d');
+    expect(gap.kind === 'gap' && gap.at.into).toBe('s2');
+  });
+});

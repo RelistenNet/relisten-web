@@ -91,7 +91,7 @@ type Reopened = {
 type Editing =
   | ({ kind: 'prose'; owner: ProseOwner } & Reopened)
   /** New text, in the composer after a row (by key), or at the end ('end'). */
-  | ({ kind: 'composer'; after: string } & Reopened)
+  | ({ kind: 'composer'; after: string; into?: string } & Reopened)
   | null;
 
 /** Text sent from a field: where it was written, to reopen there if it's refused. */
@@ -472,6 +472,9 @@ export default function PlaylistEditor({
     ),
 
     // A section's or group's menu, at its box's corner.
+    // A group's Add Text: the composer at its end, the text going into it.
+    addText: ({ segmentId, after }) => setEditing({ kind: 'composer', after, into: segmentId }),
+
     boxMenu: ({ segmentId }) => (
       <BoxMenu
         hasIntro={!!content.segments.find((s) => s.id === segmentId)?.description}
@@ -513,6 +516,7 @@ export default function PlaylistEditor({
     flow: {
       // The Add zone at the end is always there; elsewhere the composer is laid out.
       insertAfter: composerAt !== null && composerAt !== 'end' ? composerAt : null,
+      insertInto: editing?.kind === 'composer' ? (editing.into ?? null) : null,
       // A group's (or lone track's) first intro: laid out where it will show.
       intro:
         editing?.kind === 'prose' && editing.owner.kind === 'segment' ? editing.owner.id : null,
