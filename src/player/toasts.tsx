@@ -6,6 +6,12 @@ import { toast } from 'sonner';
 
 const defer = (fn: () => void) => queueMicrotask(fn);
 
+/**
+ * The site's one <Toaster> (src/shell/NavBar.tsx; the embeds have their own).
+ * sonner only shows a toast that names it, so every toast passes this.
+ */
+export const TOASTER_ID = 'site';
+
 let autoplayToastVisible = false;
 let failureToastVisible = false;
 
@@ -30,7 +36,7 @@ export function showPlaybackFailure({
   const show = stalled ? toast.warning : toast.error;
   defer(() =>
     show(stalled ? `"${title}" is taking a while to load` : `Can't play "${title}"`, {
-      toasterId: 'audio-error',
+      toasterId: TOASTER_ID,
       id: 'playback-failure',
       description,
       duration: Infinity,
@@ -84,7 +90,7 @@ export function showPlayPrompt({
   autoplayToastVisible = true;
   defer(() =>
     toast.warning(blockedByBrowser ? 'Autoplay blocked' : 'Ready to play', {
-      toasterId: 'audio-error',
+      toasterId: TOASTER_ID,
       id: 'autoplay-blocked',
       duration: Infinity,
       description: (

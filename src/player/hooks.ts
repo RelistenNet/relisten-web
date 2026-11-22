@@ -18,6 +18,9 @@ export function useQueue<T>(
   return useSelector(playerActor, (s) => select(s.context.queue), compare);
 }
 
+/** The playback state now, without subscribing (an initial value, a click). */
+export const readPlayback = (): PlaybackState => playbackActor.getSnapshot().context;
+
 export function usePlayback<T>(
   select: (playback: PlaybackState) => T,
   compare?: (a: T, b: T) => boolean

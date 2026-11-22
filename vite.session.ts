@@ -20,7 +20,15 @@ const WEB_ORIGIN = `https://${WEB_HOST}:${PORT}`;
 const USER_SERVICE = new URL('https://accounts.relisten.localhost:5443');
 const TIMEOUT_MS = 10_000;
 
-const ROUTES = [/^\/auth\/session(\/|$)/, /^\/api\/user\/v1\/csrf$/, /^\/v1\/me$/];
+// The User Service paths the relisten.net ingress routes (and the preview gateway forwards).
+const ROUTES = [
+  /^\/auth\/session(\/|$)/,
+  /^\/api\/user\/v1\/csrf$/,
+  /^\/v1\/me$/,
+  /^\/v1\/library(\/|$)/,
+  /^\/v1\/playlists(\/|$)/,
+  /^\/v1\/public-playlists(\/|$)/,
+];
 
 // Hop-by-hop, plus anything that could influence the User Service's origin reconstruction.
 const DROP_REQUEST = new Set([

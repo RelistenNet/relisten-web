@@ -2,23 +2,22 @@
 
 import { Pause, Play } from 'lucide-react';
 import type { PlayableTrack } from '@/domain/types';
-import type { ShowRow } from '@/ui/shows/rows';
 import { playSongRows, togglePlayPause } from './commands';
 import { useCurrentItem, useIsPlaying, useQueue } from './hooks';
 import { useSongQueue } from './SongQueue';
-import { songRowItem } from './queue/items';
+import { songRowItem, type SongRowSource } from './queue/items';
 import type { QueueItem } from './queue/model';
 import Tooltip from '@/ui/base/Tooltip';
 
 type Props = {
-  row: ShowRow;
+  row: SongRowSource;
   track: PlayableTrack;
   /** Screen-reader label, e.g. "Play 2025-07-27 (5 of 6)". */
   label: string;
 };
 
 /** Play a row's track (then the rest of the rows on screen); toggles play/pause while it's current. */
-function usePlayTrack(row: ShowRow, track: PlayableTrack) {
+function usePlayTrack(row: SongRowSource, track: PlayableTrack) {
   // A row with a queue key (a playlist entry: the track can repeat) is matched by
   // key, so only that entry reads as current. Otherwise any entry of the track does.
   const { queueKey } = row;
@@ -67,7 +66,11 @@ export default function PlayTrackButton({ row, track, label }: Props) {
       // DataTable marks the row: the current track (accent bar and tint), or a queued one (faint bar).
       data-current-track={isCurrent || undefined}
       data-queued-track={isQueued || undefined}
-      className="inline-flex rounded-full p-1.5 text-accent hover:bg-surface-hover"
+      // --spacing-play-button: a card's geometry (and the writing's indent) follows it.
+      className="
+        inline-flex size-play-button items-center justify-center rounded-full text-accent
+        hover:bg-surface-hover
+      "
     >
       <Icon className="size-4 shrink-0" aria-hidden />
     </button>
@@ -86,7 +89,7 @@ export default function PlayTrackButton({ row, track, label }: Props) {
  * or resumes it. A click on the track that's playing leaves it playing. Hidden
  * from keyboards and screen readers: the row's play button does the same.
  */
-export function PlayTrackRow({ row, track }: { row: ShowRow; track: PlayableTrack }) {
+export function PlayTrackRow({ row, track }: { row: SongRowSource; track: PlayableTrack }) {
   const { isPlaying, play } = usePlayTrack(row, track);
   if (!track.mp3Url) return null;
   return (

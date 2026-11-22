@@ -75,13 +75,18 @@ export function playSongRows({
   items,
   label,
   startKey,
+  startTime,
 }: {
   items: QueueItem[];
   label: string;
   startKey: string;
+  /** Seconds into the start entry (a playlist's timestamp link). */
+  startTime?: number;
 }): void {
   const start = items.find((i) => i.key === startKey);
   if (!start) return;
+  // The entry isn't loaded yet: start it at `startTime` when the engine makes it current.
+  if (startTime && startTime > 0) getEngine()?.startAt(start.key, startTime);
   playerActor.send({ type: 'PLAY_CONTEXT', ctx: { label, items }, startKey: start.key });
   startPlayback();
 }
@@ -181,7 +186,14 @@ export async function playShowById(showId: string): Promise<boolean> {
   return true;
 }
 
+/** A show's tracks (the tape its page opens on), to add to a playlist. */
+export async function showTrackIds(showId: string): Promise<{ trackIds: string[] } | null> {
+  const ctx = await showQueue(showId);
+  return ctx?.items.length ? { trackIds: ctx.items.map((i) => i.trackId) } : null;
+}
+
 /** Play next / Add to queue for a whole show. False if it couldn't load. */
+
 export async function queueShow(showId: string, where: 'next' | 'end'): Promise<boolean> {
   const ctx = await showQueue(showId);
   if (!ctx?.items.length) return false;

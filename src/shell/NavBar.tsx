@@ -13,6 +13,7 @@ import ArtistTabs from './ArtistTabs';
 import { accountSection, siteSections } from './siteSections';
 import { hasRecentPost } from '@/lib/blog/getPosts';
 import { sessionCookie } from '@/lib/session/sessionCookie';
+import { TOASTER_ID } from '@/player/toasts';
 
 // The same on every page: what depends on the page (the artist, the site
 // page's title, active tabs) the client components read from the URL and the
@@ -26,7 +27,7 @@ export default function NavBar() {
   return (
     <>
       {/* The player's toasts (playback failures, play prompts), wherever the player is. */}
-      <Toaster id="audio-error" position="top-center" offset="54px" richColors closeButton />
+      <Toaster id={TOASTER_ID} position="top-center" offset="54px" richColors closeButton />
       <div
         className="
           navigation relative grid h-[50px] max-h-[50px] min-h-[50px] grid-cols-[auto_1fr_auto]

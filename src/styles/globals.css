@@ -485,6 +485,139 @@
   z-index: 0;
 }
 
+/* ── A playlist's geometry (src/features/playlist) ──
+   Each value is named for what it is, and the ones that follow from others are
+   written as that relationship, so they can't drift apart. Use them as utilities
+   (pl-flow-indent, top-dot-y, w-rail). */
+@theme {
+  /* A track's play button: a 16px icon with 6px around it (PlayTrackButton). */
+  --spacing-play-button: 28px;
+  /* A card: its padding before the play button and above it, and the gap after. */
+  --spacing-card-x: 12px;
+  --spacing-card-y: 10px;
+  --spacing-card-gap: 12px;
+  /* Where a card's title starts (its 1px border, padding, play button, gap): the
+     writing between cards starts there too, so it reads as one column. */
+  --spacing-flow-indent: calc(
+    1px + var(--spacing-card-x) + var(--spacing-play-button) + var(--spacing-card-gap)
+  );
+  /* The author's longer writing: about 65 characters a line. */
+  --spacing-measure: 65ch;
+  /* The rail: its column (from md up it hangs in the margin), its 1px line in the
+     column's middle (at a whole pixel, so it stays crisp), and that line's center. */
+  --spacing-rail: 20px;
+  --spacing-rail-line: calc(var(--spacing-rail) / 2 - 1px);
+  --spacing-rail-center: calc(var(--spacing-rail-line) + 0.5px);
+  /* Where a track's dot sits on the rail: level with the middle of its play button. */
+  --spacing-dot-y: calc(1px + var(--spacing-card-y) + var(--spacing-play-button) / 2);
+}
+
+/* A card the dragged track would be grouped with (its row is the drop target). */
+@custom-variant in-drop-join (:where([data-drop-edge='center']) &);
+
+/* Where a drop would land, drawn over the rows (never between them): the row
+   under the pointer gets data-drop-edge and data-drop-label (usePlaylistDrag),
+   and draws an accent line at that edge with the label beside it. */
+@utility drop-indicator {
+  &::before,
+  &::after {
+    pointer-events: none;
+    position: absolute;
+    z-index: 30;
+    display: none;
+  }
+  &::before {
+    content: '';
+    inset-inline: 0.5rem;
+    height: 2px;
+    border-radius: 9999px;
+    background-color: var(--color-accent);
+  }
+  &::after {
+    content: attr(data-drop-label);
+    right: 0.75rem;
+    border-radius: 9999px;
+    background-color: var(--color-accent);
+    padding: 0.125rem 0.5rem;
+    font-size: 11px;
+    line-height: 1rem;
+    font-weight: 500;
+    color: white;
+  }
+  &[data-drop-edge]::after {
+    display: block;
+  }
+  /* Its top edge, its bottom edge (the line in the gap between rows)… */
+  &[data-drop-edge='top']::before {
+    display: block;
+    top: -4px;
+  }
+  &[data-drop-edge='top']::after {
+    top: -12px;
+  }
+  &[data-drop-edge='bottom']::before {
+    display: block;
+    bottom: -4px;
+  }
+  &[data-drop-edge='bottom']::after {
+    bottom: -12px;
+  }
+  /* …or a card's middle: the card outlines itself (in-drop-join), the label sits low. */
+  &[data-drop-edge='center']::after {
+    bottom: 0.5rem;
+  }
+}
+
+/* The space between rows as a drop target: the line runs through its middle. */
+@utility drop-indicator-between {
+  @apply drop-indicator;
+  &[data-drop-edge]::before,
+  &[data-drop-edge]::after {
+    display: block;
+    top: 50%;
+    translate: 0 -50%;
+  }
+}
+
+/* A menu's row (src/ui/base/Menu.tsx): an item, a link item or a submenu's trigger.
+   Roomier on touch screens, tighter from sm up. */
+@utility menu-item {
+  @apply flex cursor-default items-center gap-2 rounded-md py-2.5 pr-3 pl-2.5 text-base outline-none select-none data-highlighted:bg-surface-hover data-disabled:text-text-muted sm:py-1.5 sm:pr-2.5 sm:pl-2 sm:text-sm;
+}
+
+/* A playlist page's header action (Edit, Done, Publish, Report, Back to Editing):
+   one look on whatever it is (a link, a button, a menu's trigger). */
+@utility header-action {
+  @apply inline-flex items-center gap-1.5 rounded-lg border border-hairline px-3 py-1.5 text-sm font-medium text-text-primary transition-colors hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent;
+}
+/* Its kinds, each one rule (so nothing depends on which utility the stylesheet puts
+   last): the one to press when you're done (Done), a quiet one (Report), and one
+   showing a state that's on (Published). */
+@utility header-action-primary {
+  @apply header-action border-transparent bg-accent/15 hover:bg-accent/25;
+}
+@utility header-action-quiet {
+  @apply header-action border-transparent text-text-muted hover:text-text-primary;
+}
+@utility header-action-active {
+  @apply header-action border-accent/40 text-accent;
+}
+
+/* ── A playlist's rows sliding to their new places (the editor) ──
+   React's <ViewTransition default="playlist-move"> on each row: after a drop, a
+   menu move or an undo, rows glide from where they were to where they are. */
+::view-transition-group(.playlist-move) {
+  animation-duration: 240ms;
+  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(.playlist-move),
+  ::view-transition-old(.playlist-move),
+  ::view-transition-new(.playlist-move) {
+    animation: none;
+  }
+}
+
 /* ── A label rolling to its next value (ShowQueueActions' Play → Resume → Pause) ──
    React's <ViewTransition update="label-roll">: the old text rotates up and
    away while the new one rolls in from below, cross-fading, like a drum turning.

@@ -53,7 +53,7 @@ describe('showRow', () => {
       rating: 9.5,
       plays30d: 100,
       addedAt: '2018-10-23T07:00:49Z',
-      href: '/grateful-dead/1977/05/08',
+      href: '/artists/grateful-dead/shows/1977-05-08',
     });
   });
 
@@ -80,8 +80,8 @@ describe('showRows', () => {
       artists
     );
     expect(rows.map((r) => [r.id, r.href])).toEqual([
-      ['a', '/grateful-dead/1977/05/08'],
-      ['c', '/phish/1997/11/22'],
+      ['a', '/artists/grateful-dead/shows/1977-05-08'],
+      ['c', '/artists/phish/shows/1997-11-22'],
     ]);
   });
 });
@@ -113,7 +113,8 @@ describe('songRows', () => {
     const segue = must(rows.find((r) => r.date === '2016-12-28'));
     expect(segue).toMatchObject({
       artistSlug: 'phish',
-      href: '/phish/2016/12/28',
+      // The performance's own tape.
+      href: '/artists/phish/shows/2016-12-28?source=1wtafzwcyrx9z7wdeymdax1xws',
       trackTitle: 'Martian Monster > Tweezer Reprise Jam > Martian Monster',
       songDuration: 587,
       songDurationApprox: true,

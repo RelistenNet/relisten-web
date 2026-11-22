@@ -1,0 +1,50 @@
+{
+  "description": "UUIDv7s and their TypeIDs, shared by relisten-web (src/domain/typeid.ts) and the User Service (UuidTypeId). The first is the TypeID spec’s example UUID (its spec TypeID is prefix_01h2xcejqtf2nbrexx3vqjhp41).",
+  "vectors": [
+    {
+      "prefix": "playlist",
+      "uuid": "0188bac7-4afa-78aa-bc3b-bd1eef28d881",
+      "typeid": "playlist_01h2xcejqtf2nbrexx3vqjhp41"
+    },
+    {
+      "prefix": "playlist_segment",
+      "uuid": "00000000-0000-7000-8000-000000000000",
+      "typeid": "playlist_segment_0000000000e008000000000000"
+    },
+    {
+      "prefix": "playlist_entry",
+      "uuid": "ffffffff-ffff-7fff-bfff-ffffffffffff",
+      "typeid": "playlist_entry_7zzzzzzzzzfzzvzzzzzzzzzzzz"
+    },
+    {
+      "prefix": "playlist_operation",
+      "uuid": "40000000-0000-7000-8800-000000000008",
+      "typeid": "playlist_operation_2000000000e008g00000000008"
+    },
+    {
+      "prefix": "command",
+      "uuid": "00000000-0000-7000-8000-000000000000",
+      "typeid": "command_0000000000e008000000000000"
+    },
+    {
+      "prefix": "playlist",
+      "uuid": "00000000-0000-7000-8000-090000000000",
+      "typeid": "playlist_0000000000e008000900000000"
+    },
+    {
+      "prefix": "playlist_segment",
+      "uuid": "00000000-0000-7900-8000-000000000000",
+      "typeid": "playlist_segment_0000000000f408000000000000"
+    },
+    {
+      "prefix": "playlist_entry",
+      "uuid": "00000000-0000-7000-8000-000000000000",
+      "typeid": "playlist_entry_0000000000e008000000000000"
+    },
+    {
+      "prefix": "playlist_operation",
+      "uuid": "00000000-0000-7000-8000-000000000000",
+      "typeid": "playlist_operation_0000000000e008000000000000"
+    }
+  ]
+}

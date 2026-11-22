@@ -111,6 +111,28 @@ export default defineConfig({
       },
     },
     {
+      // The playlist client service, like the player: features use it, never the reverse.
+      files: ['src/playlists/**'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              {
+                group: ['@/api', '@/api/**'],
+                message: 'Only src/data imports the API client; use src/data and src/domain types.',
+              },
+              {
+                group: ['@/features/**', '@/shell/**', '@/data/**'],
+                message:
+                  'src/playlists is a client service: it never imports features, the shell, or server-only src/data.',
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
       // Tests assemble fixtures across layers (API responses → domain → rows).
       files: ['src/**/*.test.ts', 'src/**/__fixtures__/**'],
       rules: { 'no-restricted-imports': 'off' },

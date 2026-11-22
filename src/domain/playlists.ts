@@ -1,3 +1,5 @@
+import { z } from 'zod/v4';
+
 // Playlists. The wire types mirror the parts of Relisten.Accounts.Contracts
 // (RelistenApi: Playlists/PlaylistResponses.cs, PlaylistSharingContracts.cs,
 // Library/FavoriteSyncContracts.cs) that the web reads, by hand. JSON is snake_case;
@@ -82,4 +84,175 @@ export interface PublicPlaylistSnapshotWire {
   owner: PublicPlaylistOwnerWire;
   metadata: PlaylistMetadataWire;
   segments: PlaylistSegmentWire[];
+}
+
+// ---- Authored content, as pages and the editor read it -------------------------
+
+/**
+ * A playlist's authored content: segments and entries in play order, with no
+ * ranks (the server owns those). Descriptions are absent rather than blank.
+ */
+export type PlaylistContent = {
+  playlistId: string;
+  generation: string;
+  revision: number;
+  name: string;
+  description?: string;
+  segments: PlaylistContentSegment[];
+};
+
+export type PlaylistContentSegment = {
+  id: string;
+  description?: string;
+  entries: PlaylistContentEntry[];
+};
+
+/** `trackId` is null for a text-only entry, which always has a description. */
+export type PlaylistContentEntry = { id: string; trackId: string | null; description?: string };
+
+const text = (s: string | null | undefined) => (s?.trim() ? s : undefined);
+
+export function toPlaylistContent(
+  s: Pick<
+    PlaylistSnapshotWire,
+    'playlist_id' | 'history_generation' | 'revision' | 'metadata' | 'segments'
+  >
+): PlaylistContent {
+  return {
+    playlistId: s.playlist_id,
+    generation: s.history_generation,
+    revision: s.revision,
+    name: s.metadata.name,
+    description: text(s.metadata.description),
+    segments: s.segments.map((seg) => ({
+      id: seg.segment_id,
+      description: text(seg.description),
+      entries: seg.entries.map((e) => ({
+        id: e.entry_id,
+        trackId: e.track_id,
+        description: text(e.description),
+      })),
+    })),
+  };
+}
+
+// ---- Writes (RelistenApi: Playlists/PlaylistRequests.cs, PlaylistResponses.cs) ----
+
+/** The server's rule for a playlist's name: 1–100 characters, trimmed. */
+export const PlaylistName = z
+  .string()
+  .trim()
+  .min(1, 'Give it a name.')
+  .max(100, 'Names can be up to 100 characters.');
+
+export interface PlaylistEntryInputWire {
+  entry_id: string;
+  /** Omitted for a text-only entry. */
+  track_id?: string;
+  description?: string;
+}
+
+export interface PlaylistSegmentInputWire {
+  segment_id: string;
+  entries: PlaylistEntryInputWire[];
+  description?: string;
+}
+
+/** `POST /v1/playlists`. */
+export interface CreatePlaylistRequestWire {
+  contract_version: 1;
+  command_id: string;
+  playlist_id: string;
+  metadata: { name: string; description?: string };
+  segments: PlaylistSegmentInputWire[];
+}
+
+export interface PlaylistCreatedWire {
+  contract_version: 1;
+  history_generation: string;
+  playlist_id: string;
+  revision: number;
+}
+
+/**
+ * Where an entry moves: into an existing segment (after or before an entry in it,
+ * else at its end), or into a new segment (after or before a segment, else last).
+ */
+export type PlaylistEntryDestinationWire =
+  | { segment_id: string; after_entry_id?: string; before_entry_id?: string }
+  | { new_segment_id: string; after_segment_id?: string; before_segment_id?: string };
+
+/**
+ * An operation's type and payload, by type. A text field that's present sets it
+ * (null clears it); absent leaves it alone. Anchors that no longer exist fall
+ * back to the end, as the server does.
+ */
+export type PlaylistOperationPayloads = {
+  update_metadata: { name?: string; description?: string | null };
+  insert_segment: {
+    segment_id: string;
+    entries: PlaylistEntryInputWire[];
+    after_segment_id?: string;
+    before_segment_id?: string;
+    description?: string;
+  };
+  update_segment: { segment_id: string; description?: string | null };
+  move_segment: { segment_id: string; after_segment_id?: string; before_segment_id?: string };
+  delete_segment: { segment_id: string };
+  insert_entries: {
+    segment_id: string;
+    entries: PlaylistEntryInputWire[];
+    after_entry_id?: string;
+    before_entry_id?: string;
+  };
+  update_entry: { entry_id: string; description?: string | null };
+  move_entry: { entry_id: string; destination: PlaylistEntryDestinationWire };
+  delete_entry: { entry_id: string };
+};
+
+export type PlaylistOperationType = keyof PlaylistOperationPayloads;
+
+/** One operation, before it's sent: the envelope adds its id and base revision. */
+export type PlaylistOp = {
+  [T in PlaylistOperationType]: { operation_type: T; payload: PlaylistOperationPayloads[T] };
+}[PlaylistOperationType];
+
+export type PlaylistOperationWire = PlaylistOp & { operation_id: string; base_revision: number };
+
+/** `PUT /v1/playlists/{id}/publication`: converges on the state asked for. */
+export interface PlaylistPublicationWire {
+  contract_version: 1;
+  history_generation: string;
+  playlist_id: string;
+  published: boolean;
+  public_code: string | null;
+  changed: boolean;
+}
+
+/** `POST /v1/playlists/{id}/operations:batch`. */
+export interface PlaylistBatchRequestWire {
+  contract_version: 1;
+  operations: PlaylistOperationWire[];
+  /** Refuse the batch (409 `revision_conflict`) unless the playlist is at this revision. */
+  expected_revision?: number;
+}
+
+/**
+ * `applied` and `no_op` succeeded. The rest were skipped: `target_missing`,
+ * `target_deleted`, `parent_missing` (its segment is gone), `id_conflict` (a
+ * created ID was used before).
+ */
+export type PlaylistOperationStatus =
+  | 'applied'
+  | 'no_op'
+  | 'target_missing'
+  | 'target_deleted'
+  | 'parent_missing'
+  | 'id_conflict';
+
+export interface PlaylistBatchResponseWire {
+  contract_version: 1;
+  history_generation: string;
+  head_revision: number;
+  results: { operation_id: string; status: PlaylistOperationStatus; revision: number | null }[];
 }
