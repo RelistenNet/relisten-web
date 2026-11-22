@@ -112,10 +112,9 @@ describe('flowRows', () => {
     expect(row(groups, 'space:start').drop).toEqual({
       center: { kind: 'gap', above: undefined, below: 'intro' },
     });
-    // A section's comment: after its last entry, or after the section.
+    // A section's comment, anywhere on it: into the section, after its last entry.
     expect(row(groups, 'section:s1:comment').drop).toEqual({
       top: { kind: 'row', rowId: 'b', segmentId: 's1', edge: 'bottom' },
-      bottom: { kind: 'gap', above: 's1', below: 's2' },
     });
     // Readers get none.
     expect(rowsOf(flowRows(blocks)).some((r) => r.drop)).toBe(false);

@@ -333,14 +333,14 @@ function dropTargets(
       return row.kind === 'track' ? { ...edges, center: next(entry, 'bottom') } : edges;
     }
     if (row.kind === 'prose' && segment) {
-      // A section's comment: after its last entry above, or after the section below.
+      // A section's comment: anywhere on it, into the section, after its last entry
+      // (the comment always shows last, so that's where it lands). After the section,
+      // on its own, is the space below the box, not the comment's own bottom edge,
+      // which is still inside the box.
       if (row.owner.kind === 'segment') {
         const above = placed.slice(0, i).findLast((p) => entryOf(p.row)?.segmentId === segment);
         const last = above && entryOf(above.row);
-        return {
-          ...(last && { top: next(last, 'bottom') }),
-          bottom: gap(segment, segmentAfter(i)),
-        };
+        return last ? { top: next(last, 'bottom') } : undefined;
       }
       // Text alone.
       return { top: gap(segmentBefore(i), segment), bottom: gap(segment, segmentAfter(i)) };
