@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import {
   type ReactNode,
+  type RefObject,
   useDeferredValue,
   useEffect,
   useEffectEvent,
@@ -141,7 +142,6 @@ export default function PlaylistEditor({
       else router.refresh();
     },
   });
-  useWarnBeforeLeaving(state);
   // The server's render of saved edits on its way back (router.refresh()).
   const refreshing = usePendingNavigation((to, from) => to.href === from.href);
 
@@ -158,6 +158,7 @@ export default function PlaylistEditor({
   };
   const content = state.content;
   const root = useRef<HTMLDivElement>(null);
+  useWarnBeforeLeaving(store, root);
   // What's being dragged: the flow lays out its drop zones while it is.
   const [dragging, setDragging] = useState<DragSource | null>(null);
   // Where the composer is: after a row's key ('end' for the Add zone at the end).
@@ -527,14 +528,24 @@ function useStoreEvents(
 }
 
 /** Asks before leaving with edits not yet saved. */
-function useWarnBeforeLeaving(state: DraftState) {
-  const unsaved = state.status !== 'saved';
+/**
+ * Asks before leaving the page (a reload, closing the tab) with anything unsaved:
+ * edits not yet saved, or text typed into a field that hasn't closed (fields
+ * commit when they close, and unloading the page closes nothing). Decided when
+ * leaving, from the store and the fields themselves (an uncontrolled field's
+ * value against its defaultValue), so nothing needs reporting as it's typed.
+ */
+function useWarnBeforeLeaving(store: DraftStore, root: RefObject<HTMLElement | null>) {
   useEffect(() => {
-    if (!unsaved) return;
-    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
+    const warn = (e: BeforeUnloadEvent) => {
+      const typing = [...(root.current?.querySelectorAll('textarea') ?? [])].some(
+        (t) => t.value !== t.defaultValue
+      );
+      if (store.getState().status !== 'saved' || typing) e.preventDefault();
+    };
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
-  }, [unsaved]);
+  }, [store, root]);
 }
 
 function SaveStatus({

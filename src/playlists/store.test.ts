@@ -335,3 +335,45 @@ describe('settle and refusals', () => {
     await expect(next).resolves.toEqual({ kind: 'saved' });
   });
 });
+
+describe('batches and text', () => {
+  beforeEach(() => vi.useFakeTimers());
+  it('sends each text edit alone, so a refusal is only ever that edit', async () => {
+    const server = fakeServer();
+    const store = createDraftStore(content, { transport: server.transport, newId: ids() });
+    store.edit(op('move_entry', { entry_id: 'e2', destination: { segment_id: 's1' } })); // in flight
+    // Queued behind it: two text edits and a move.
+    store.edit(op('update_entry', { entry_id: 'e1', description: 'Fine' }));
+    store.edit(op('update_segment', { segment_id: 's2', description: 'More' }));
+    store.edit(op('update_metadata', { name: 'Renamed' }));
+    await settle();
+    expect(server.batches.map((b) => b.ops.map((o) => o.operation_type))).toEqual([
+      ['move_entry'],
+      ['update_entry'],
+      ['update_segment'],
+      ['update_metadata'],
+    ]);
+  });
+
+  it('keeps every other edit when one text edit is refused', async () => {
+    const server = fakeServer();
+    const store = createDraftStore(content, { transport: server.transport, newId: ids() });
+    // Batches: the name, e1's note, s2's text (refused), the move.
+    server.failNext(undefined as never);
+    server.failNext(undefined as never);
+    server.failNext(new PlaylistWriteError('invalid', 'Too long.', 422));
+    store.edit(op('update_metadata', { name: 'Renamed' }));
+    store.edit(op('update_entry', { entry_id: 'e1', description: 'Kept' }));
+    const refusedOp = op('update_segment', { segment_id: 's2', description: 'Refused' });
+    store.edit(refusedOp);
+    store.edit(op('move_entry', { entry_id: 'e2', destination: { segment_id: 's1' } }));
+    await settle();
+    expect(store.getState().refused?.ops).toEqual([refusedOp]);
+    expect(server.server.name).toBe('Renamed');
+    expect(server.server.segments[0].entries.map((e) => [e.id, e.description])).toEqual([
+      ['e1', 'Kept'],
+      ['e2', undefined],
+    ]);
+    expect(server.server.segments.find((s) => s.id === 's2')?.description).toBe('Set two');
+  });
+});

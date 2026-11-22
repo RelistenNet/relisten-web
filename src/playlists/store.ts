@@ -92,7 +92,47 @@ export type DraftStore = {
 /** Conflicts in a row before the store stops replaying and reports one. */
 const MAX_CONFLICTS = 3;
 
-type Queued = { id: string; op: PlaylistOp };
+/** An operation waiting to be sent, and which edit it's part of (ops of one edit go together). */
+type Queued = { id: string; op: PlaylistOp; edit: number };
+
+/** Whether an operation carries text the server could refuse (too long, bad Markdown). */
+function carriesText(op: PlaylistOp): boolean {
+  switch (op.operation_type) {
+    case 'update_metadata':
+    case 'update_segment':
+    case 'update_entry':
+      return true;
+    case 'insert_segment':
+      return !!op.payload.description || op.payload.entries.some((e) => !!e.description);
+    case 'insert_entries':
+      return op.payload.entries.some((e) => !!e.description);
+    default:
+      return false;
+  }
+}
+
+/**
+ * The next batch from the front of the queue: whole edits only. An edit with text
+ * goes alone, so a refusal (the server refuses a batch whole) is always that one
+ * edit's, and reopens just its field; edits without text go together.
+ */
+function nextBatch(queue: Queued[]): number {
+  const edits: Queued[][] = [];
+  for (const q of queue) {
+    const last = edits.at(-1);
+    if (last && last[0].edit === q.edit) last.push(q);
+    else edits.push([q]);
+  }
+  const text = (edit: Queued[]) => edit.some((q) => carriesText(q.op));
+  if (!edits.length) return 0;
+  if (text(edits[0])) return edits[0].length;
+  let n = 0;
+  for (const edit of edits) {
+    if (text(edit)) break;
+    n += edit.length;
+  }
+  return n;
+}
 /** An edit's inverse, and the IDs it re-creates under new names (see `inverse`). */
 type UndoStep = { ops: PlaylistOp[]; renamed: Record<string, string> };
 
@@ -188,11 +228,14 @@ function draftMachine(transport: PlaylistTransport) {
           refused: undefined,
         };
       }),
-      takeQueue: assign(({ context }) => ({
-        inflight: context.queue,
-        queue: [],
-        error: undefined,
-      })),
+      takeQueue: assign(({ context }) => {
+        const n = nextBatch(context.queue);
+        return {
+          inflight: context.queue.slice(0, n),
+          queue: context.queue.slice(n),
+          error: undefined,
+        };
+      }),
       fail: assign(({ context }, error: unknown) => ({
         ...requeue(context),
         error: asWriteError(error),
@@ -336,7 +379,12 @@ export function createDraftStore(
     if (cached?.snapshot !== snapshot) cached = { snapshot, state: stateOf(snapshot) };
     return cached.state;
   };
-  const queued = (op: PlaylistOp): Queued => ({ id: newId('playlist_operation'), op });
+  // Each edit (or undo) numbered, so its operations are sent together.
+  let edits = 0;
+  const queued = (ops: PlaylistOp[]): Queued[] => {
+    const edit = ++edits;
+    return ops.map((op) => ({ id: newId('playlist_operation'), op, edit }));
+  };
 
   return {
     getState,
@@ -361,7 +409,7 @@ export function createDraftStore(
       if (!applied.length) return;
       actor.send({
         type: 'EDIT',
-        ops: applied.map(queued),
+        ops: queued(applied),
         // Undone last first: one step, so one Undo puts it all back.
         step: {
           ops: steps.toReversed().flatMap((s) => s.ops),
@@ -378,7 +426,7 @@ export function createDraftStore(
         ...step.ops.map((op) => retargetOpLinks(op, step.renamed)),
         ...retargetProse(getState().content, step.renamed),
       ];
-      actor.send({ type: 'UNDO', ops: ops.map(queued) });
+      actor.send({ type: 'UNDO', ops: queued(ops) });
     },
     retry: () => actor.send({ type: 'RETRY' }),
     settle() {
