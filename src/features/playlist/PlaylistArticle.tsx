@@ -212,7 +212,9 @@ function Row({ row, slots, animate }: { row: FlowRow; slots?: ArticleSlots; anim
         data-drag={dragAttr(slots?.drag?.(row))}
         data-drop={row.kind === 'space' ? undefined : drop}
         className={cn(
-          'relative min-w-0 flex-1',
+          // A row with a field open in it sits above the rows after it, so the field's
+          // floating toolbar isn't drawn under the next row's text.
+          'relative min-w-0 flex-1 has-[textarea]:z-30',
           row.box && boxCell(row.box),
           // Where a drop lands, drawn over the row (globals.css).
           drop && row.kind !== 'space' && 'drop-indicator'
