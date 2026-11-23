@@ -2,6 +2,7 @@ import { href } from '@timber-js/app/routes';
 import { deny, redirect } from '@timber-js/app/server';
 import { getOwnPlaylist } from '@/data/playlists';
 import { signInPageHref } from '@/lib/searchParams/sessionSearchParams';
+import { PencilIcon } from 'lucide-react';
 import { loadPlaylistResolved } from './load';
 import { OWN_PLAYLISTS_CRUMB } from './PlaylistArticle';
 import PlaylistEditor from './PlaylistEditor';
@@ -31,7 +32,14 @@ export default async function EditPlaylist({ playlistId }: { playlistId: string 
       takenDown={result.takenDown}
       // The page's, so opening the editor moves nothing.
       crumb={OWN_PLAYLISTS_CRUMB}
-      byline={['Editing']}
+      // In the read view's byline slot ("Published"), so opening the editor shifts nothing.
+      byline={[
+        <span key="editing" className="font-medium text-amber-600 dark:text-amber-400">
+          <PencilIcon className="mr-1 inline size-3.5 align-[-0.125em]" aria-hidden />
+          Editing
+        </span>,
+        'Changes save automatically',
+      ]}
     />
   );
 }

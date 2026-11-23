@@ -597,7 +597,6 @@ export default function PlaylistEditor({
 
   return (
     <div className="flex flex-col gap-6">
-      <EditingNotice />
       {/* What's being dragged fades where it was. */}
       <div ref={root} className="[&_[data-dragging]]:opacity-40">
         <PlaylistArticle
@@ -634,24 +633,6 @@ export default function PlaylistEditor({
         />
       </div>
     </div>
-  );
-}
-
-/** Above the playlist, so there's no mistaking the editor for the page. */
-function EditingNotice() {
-  return (
-    <p
-      className="
-        mb-0 flex items-center gap-2.5 rounded-xl bg-accent/10 px-4 py-3 text-sm
-        text-text-secondary ring-1 ring-accent/40
-      "
-    >
-      <PencilIcon className="size-4 shrink-0 text-accent" aria-hidden />
-      <span>
-        <strong className="font-semibold text-text-primary">You’re editing this playlist.</strong>{' '}
-        Changes save automatically.
-      </span>
-    </p>
   );
 }
 
