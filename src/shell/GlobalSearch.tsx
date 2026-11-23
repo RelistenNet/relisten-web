@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, use, useDeferredValue, useEffect, useState } from 'react';
+import { Suspense, use, useEffect, useState, useTransition } from 'react';
 import { useRouter } from '@timber-js/app/client';
 import { ArrowRightIcon, SearchIcon } from 'lucide-react';
 import {
@@ -21,33 +21,25 @@ import cn from '@/lib/cn';
 // The nav bar's search (⌘K): typeahead over /api/search, the top matches
 // across kinds, and a way through to the full /search page.
 //
-// React does the scheduling. The box updates on every keystroke; the results
-// render from `useDeferredValue(query)`, which suspends on that query's
-// request (`use`), keeps the previous results on screen meanwhile, and drops
-// renders the user has typed past. Each query's request is cached, so a
-// re-render or a backspace reuses it.
+// The box updates on every keystroke. Once typing pauses
+// (REQUEST_DEBOUNCE_MS), a transition starts that query's
+// request and puts its promise in state; the results read it with `use`.
+// While it loads, the transition keeps the previous results on screen; they
+// stay faded from the keystroke until the new ones render. A backspace to an earlier query refetches, which
+// the browser answers from its HTTP cache (/api/search is cacheable).
 
+const REQUEST_DEBOUNCE_MS = 180;
 const FETCH_TIMEOUT_MS = 6_000;
 const MAX_HITS = 8;
 
-const requests = new Map<string, Promise<SearchResults>>();
+type SearchRequest = { query: string; results: Promise<SearchResults> };
 
-/** One request per query, shared by every render that asks for it. Failures aren't kept. */
-function searchRequest(query: string): Promise<SearchResults> {
-  let request = requests.get(query);
-  if (!request) {
-    request = fetch(searchSearchParams.href('/api/search', { q: query }), {
-      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-    })
-      .then((res) => (res.ok ? (res.json() as Promise<SearchResults>) : UNAVAILABLE_SEARCH))
-      .catch(() => UNAVAILABLE_SEARCH)
-      .then((results) => {
-        if (results.availability !== 'full') requests.delete(query);
-        return results;
-      });
-    requests.set(query, request);
-  }
-  return request;
+function fetchSearch(query: string): Promise<SearchResults> {
+  return fetch(searchSearchParams.href('/api/search', { q: query }), {
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+  })
+    .then((res) => (res.ok ? (res.json() as Promise<SearchResults>) : UNAVAILABLE_SEARCH))
+    .catch(() => UNAVAILABLE_SEARCH);
 }
 
 const normalize = (query: string) => query.trim().toLowerCase();
@@ -105,28 +97,39 @@ export default function GlobalSearch() {
 
 function SearchPanel({ onNavigate }: { onNavigate: () => void }) {
   const [query, setQuery] = useState('');
-  const deferredQuery = useDeferredValue(query);
+  const [request, setRequest] = useState<SearchRequest | null>(null);
+  const [isPending, startTransition] = useTransition();
   // The highlighted row belongs to the results it was chosen in. New results
   // start with none, and cmdk highlights their first row.
   const [selection, setSelection] = useState({ query: '', value: '' });
   const router = useRouter();
+
+  const typed = query.trim();
+
+  // Request the query once typing pauses: any keystroke, a space too, restarts the wait.
+  useEffect(() => {
+    const q = normalize(query);
+    if (q.length < MIN_QUERY_LENGTH) return;
+    const timer = setTimeout(() => {
+      startTransition(() => setRequest({ query: q, results: fetchSearch(q) }));
+    }, REQUEST_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [query]);
 
   const navigate = (to: string) => {
     onNavigate();
     router.push(to);
   };
 
-  const typed = query.trim();
-  const deferred = normalize(deferredQuery);
   const allResults = searchPageSearchParams.href('/search', { q: typed });
-  const selected = selection.query === deferred ? selection.value : '';
+  const selected = request && selection.query === request.query ? selection.value : '';
 
   return (
     <Command
       shouldFilter={false}
       loop
       value={selected}
-      onValueChange={(value) => setSelection({ query: deferred, value })}
+      onValueChange={(value) => request && setSelection({ query: request.query, value })}
       onKeyDown={(e) => {
         // Enter before any results: the full results page.
         if (e.key === 'Enter' && !selected && typed.length >= MIN_QUERY_LENGTH)
@@ -142,19 +145,19 @@ function SearchPanel({ onNavigate }: { onNavigate: () => void }) {
       <CommandList className="max-h-[min(24rem,60dvh)]">
         {typed.length < MIN_QUERY_LENGTH ? (
           <CommandEmpty className="text-text-muted">Search all of Relisten.</CommandEmpty>
-        ) : deferred.length < MIN_QUERY_LENGTH ? (
+        ) : !request ? (
           <Message>Searching…</Message>
         ) : (
           <Suspense fallback={<Message>Searching…</Message>}>
-            {/* Older results than the box: faded until the new ones render. */}
+            {/* Not the box's results: faded while typing pauses and while the new request loads. */}
             <div
               className={cn(
                 'transition-opacity duration-150',
-                query !== deferredQuery && 'opacity-50'
+                (isPending || request.query !== normalize(query)) && 'opacity-50'
               )}
             >
               {/* A new result set is new rows, so cmdk highlights its first. */}
-              <Results key={deferred} query={deferred} onSelect={navigate} />
+              <Results key={request.query} results={request.results} onSelect={navigate} />
               <AllResultsItem query={typed} href={allResults} onSelect={navigate} />
             </div>
           </Suspense>
@@ -164,8 +167,14 @@ function SearchPanel({ onNavigate }: { onNavigate: () => void }) {
   );
 }
 
-function Results({ query, onSelect }: { query: string; onSelect: (href: string) => void }) {
-  const results = use(searchRequest(query));
+function Results({
+  results: request,
+  onSelect,
+}: {
+  results: Promise<SearchResults>;
+  onSelect: (href: string) => void;
+}) {
+  const results = use(request);
   const hits = results.top.slice(0, MAX_HITS);
 
   if (results.availability === 'unavailable') {
