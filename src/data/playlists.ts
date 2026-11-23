@@ -21,6 +21,8 @@ import {
   USER_SERVICE_URL,
   userServiceRoutingHeaders,
 } from '@/lib/session/config';
+import { oneLine } from '@/lib/guideMarkdown/plain';
+import { sanitizeGuide } from '@/lib/guideMarkdown/sanitize';
 import { sessionCookie } from '@/lib/session/sessionCookie';
 import { toTrack } from './adapters';
 import { MINUTES } from './resource';
@@ -194,6 +196,8 @@ export type PlaylistListRow = {
   /** The `/playlists/[playlist]` param: the share code (published) or the id (their own). */
   playlist: string;
   name: string;
+  /** The description as one line of plain text (published only). */
+  summary?: string;
   /** The username of the listener who made it. */
   creator?: string;
   trackCount: number;
@@ -259,6 +263,9 @@ const publicPlaylistPageCached = timberCache.data(
         playlistId: p.playlist_id,
         playlist: p.public_code,
         name: p.name,
+        summary: p.description
+          ? oneLine(sanitizeGuide(p.description, { kind: 'playlist' })) || undefined
+          : undefined,
         creator: p.owner.username,
         trackCount: p.track_count,
         duration: p.duration_seconds,

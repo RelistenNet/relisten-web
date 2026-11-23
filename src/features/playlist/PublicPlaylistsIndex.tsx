@@ -82,6 +82,7 @@ const columns: Column<PlaylistListRow>[] = [
         <Link href={playlistHref(p)} className="truncate font-medium hover:underline">
           {p.name}
         </Link>
+        {p.summary && <span className="truncate text-sm text-text-muted">{p.summary}</span>}
         {/* The creator's column is hidden on phones: say it here instead. */}
         {p.creator && (
           <span className="truncate text-xs text-text-muted sm:hidden">By {p.creator}</span>

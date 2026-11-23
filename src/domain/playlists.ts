@@ -91,6 +91,8 @@ export interface PublicPlaylistListItemWire {
   playlist_id: string;
   public_code: string;
   name: string;
+  /** The author's Markdown. Absent from User Services older than the field. */
+  description?: string | null;
   owner: PublicPlaylistOwnerWire;
   track_count: number;
   duration_seconds: number;
