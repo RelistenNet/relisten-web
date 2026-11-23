@@ -1,4 +1,4 @@
-name: Build and publish GHCR timber image
+name: Build and publish GHCR image
 
 on:
   workflow_dispatch:

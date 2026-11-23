@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Deploys relisten.net. GitHub Actions builds the timber image from a pushed
 # ref (with the server action key), publishes it to GHCR and rolls out
-# relisten-web-timber on relisten3 (.github/workflows/build-and-push-timber.yml).
+# relisten-web-timber on relisten3 (.github/workflows/build-and-push.yml).
 #
 #   ./deploy                    the current branch, which must match what's pushed
 #   ./deploy <ref>              any pushed branch or tag
 #   ./deploy --staging [ref]    the same, to soundcheck.relisten.net instead
 set -euo pipefail
 
-WORKFLOW=build-and-push-timber.yml
+WORKFLOW=build-and-push.yml
 
 target=production
 if [ "${1:-}" = "--staging" ]; then
@@ -28,7 +28,7 @@ else
   fi
 fi
 
-echo "Deploying $ref to $target…"
+echo "Deploying ${ref} to ${target}…"
 out="$(gh workflow run "$WORKFLOW" --ref "$ref" -f target="$target" 2>&1)" || {
   echo "$out" >&2
   exit 1
