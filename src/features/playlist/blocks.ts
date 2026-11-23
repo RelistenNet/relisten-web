@@ -3,9 +3,9 @@ import { plainBlocks } from '@/lib/guideMarkdown/plain';
 import type { PlaylistRow } from './spec';
 
 // A playlist read as an article: prose in the flow, tracks as embedded cards.
-// A segment with a description is a section: its entries and the author's
-// comment on them, together. Tracks with no prose between them share one list;
-// an unavailable track keeps its place in it.
+// Every segment of two or more entries is a box, as the app draws it; one with a
+// description is a section, its description introducing its entries. A lone
+// track or lone text is loose. An unavailable track keeps its place.
 
 export type PlaylistTrackGroupRow = Exclude<PlaylistRow, { kind: 'text' }>;
 
@@ -88,14 +88,13 @@ export function playlistBlocks(
           heading.prose.length || !keepEmpty ? heading.prose : plainBlocks(heading.description),
       });
     } else {
-      // Undescribed segments run together as loose tracks, except one holding
-      // writing (a text entry): it's boxed like a section, so its writing reads as
-      // part of it. (Text standing alone, a segment of prose only, isn't.)
+      // Undescribed segments: one of two or more entries is boxed; a lone
+      // track or lone text is loose.
       for (let j = 0; j < run.length;) {
         let k = j;
         while (k < run.length && run[k].segmentId === run[j].segmentId) k++;
         const segment = run.slice(j, k);
-        if (segment.some((r) => r.kind === 'text' && r.id !== r.segmentId)) {
+        if (segment.length > 1) {
           const items: PlaylistItem[] = [];
           addItems(items, segment, { keepEmpty });
           const segmentId = segment[0].segmentId;

@@ -28,10 +28,10 @@ describe('playlistBlocks', () => {
     track('e', 's5'),
   ];
 
-  it('boxes a segment holding a text entry like a section, and nothing else', () => {
+  it('boxes every segment of two or more entries, and nothing else', () => {
     expect(playlistBlocks(rows).map((b) => `${b.kind}:${b.key}`)).toEqual([
-      'tracks:a', // s1's tracks, loose
-      'section:section:s2', // s2: its writing, in a box
+      'section:section:s1', // s1: two tracks, in a box
+      'section:section:s2', // s2: a track and its writing, in a box
       'text:s3', // text alone stays alone
       'tracks:d', // s4 and s5 run together, loose
     ]);
