@@ -196,7 +196,7 @@ export type PlaylistListRow = {
   /** The `/playlists/[playlist]` param: the share code (published) or the id (their own). */
   playlist: string;
   name: string;
-  /** The description as one line of plain text (published only). */
+  /** The description as one line of plain text. */
   summary?: string;
   /** The username of the listener who made it. */
   creator?: string;
@@ -211,12 +211,17 @@ export type PlaylistListRow = {
   status?: OwnPlaylistStatus;
 };
 
+/** A description as the listing shows it: one line of plain text, or absent. */
+const listingSummary = (description: string | null | undefined) =>
+  (description && oneLine(sanitizeGuide(description, { kind: 'playlist' }))) || undefined;
+
 /** The listener's own playlists as listing rows, by id (their page shows their controls). */
 export const ownPlaylistRows = (owned: PlaylistSummaryWire[]): PlaylistListRow[] =>
   owned.map((p) => ({
     playlistId: p.playlist_id,
     playlist: p.playlist_id,
     name: p.name,
+    summary: listingSummary(p.description),
     trackCount: p.track_count ?? p.entry_count,
     updatedAt: p.updated_at,
     status: p.taken_down
@@ -263,9 +268,7 @@ const publicPlaylistPageCached = timberCache.data(
         playlistId: p.playlist_id,
         playlist: p.public_code,
         name: p.name,
-        summary: p.description
-          ? oneLine(sanitizeGuide(p.description, { kind: 'playlist' })) || undefined
-          : undefined,
+        summary: listingSummary(p.description),
         creator: p.owner.username,
         trackCount: p.track_count,
         duration: p.duration_seconds,

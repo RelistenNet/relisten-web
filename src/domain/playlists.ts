@@ -12,6 +12,8 @@ export interface PlaylistSummaryWire {
   entry_count: number;
   /** Absent in summaries stored before text entries existed: then every entry is a track. */
   track_count?: number;
+  /** The author's Markdown. Absent from User Services older than the field. */
+  description?: string | null;
   archived: boolean;
   revision: number;
   updated_at: string;
