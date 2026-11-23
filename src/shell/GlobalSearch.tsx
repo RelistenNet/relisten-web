@@ -95,18 +95,23 @@ export default function GlobalSearch() {
   );
 }
 
-function SearchPanel({ onNavigate }: { onNavigate: () => void }) {
-  const [query, setQuery] = useState('');
+/**
+ * The latest search request for `query`, started once typing pauses: every
+ * change, a space too, restarts the wait. The request is made in a transition
+ * and kept in state, so its promise is stable for `use()`, the previous
+ * results stay on screen while it loads, and `isPending` says it's loading.
+ * A newer request replaces an older one; one still in flight resolves into
+ * nothing. Emptying the box drops the request. Unmounting cancels a request
+ * that hasn't started.
+ */
+function useSearchRequest(query: string): { request: SearchRequest | null; isPending: boolean } {
   const [request, setRequest] = useState<SearchRequest | null>(null);
   const [isPending, startTransition] = useTransition();
-  // The highlighted row belongs to the results it was chosen in. New results
-  // start with none, and cmdk highlights their first row.
-  const [selection, setSelection] = useState({ query: '', value: '' });
-  const router = useRouter();
 
-  const typed = query.trim();
+  // A query too short to search has no request, so the next query starts
+  // fresh ("Searching…") instead of showing whatever was searched before.
+  if (request && normalize(query).length < MIN_QUERY_LENGTH) setRequest(null);
 
-  // Request the query once typing pauses: any keystroke, a space too, restarts the wait.
   useEffect(() => {
     const q = normalize(query);
     if (q.length < MIN_QUERY_LENGTH) return;
@@ -115,6 +120,19 @@ function SearchPanel({ onNavigate }: { onNavigate: () => void }) {
     }, REQUEST_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [query]);
+
+  return { request, isPending };
+}
+
+function SearchPanel({ onNavigate }: { onNavigate: () => void }) {
+  const [query, setQuery] = useState('');
+  const { request, isPending } = useSearchRequest(query);
+  // The highlighted row belongs to the results it was chosen in. New results
+  // start with none, and cmdk highlights their first row.
+  const [selection, setSelection] = useState({ query: '', value: '' });
+  const router = useRouter();
+
+  const typed = query.trim();
 
   const navigate = (to: string) => {
     onNavigate();
@@ -222,5 +240,5 @@ function AllResultsItem({
 }
 
 function Message({ children }: { children: React.ReactNode }) {
-  return <p className="py-6 text-center text-sm text-text-muted">{children}</p>;
+  return <p className="mb-0 py-6 text-center text-sm text-text-muted">{children}</p>;
 }
