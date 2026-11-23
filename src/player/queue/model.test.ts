@@ -8,6 +8,7 @@ import {
   nextUpKey,
   playContext,
   playNext,
+  playlistCredit,
   remove,
   queueView,
   type QueueContext,
@@ -277,5 +278,27 @@ describe('queueView', () => {
     s = advanceTo(s, 'a'); // a Next up entry is current: the cursor (c2) has been played
     expect(queueView(s).played.map((i) => i.key)).toEqual(['c1', 'c2']);
     expect(queueView(addToQueue(emptyQueue, [item('a')])).played).toEqual([]);
+  });
+});
+
+describe('playlistCredit', () => {
+  const PLAYLIST = 'playlist_2xxbrj4z66fx0a0mk8paz6em6v';
+  const fromPlaylist = () => playContext(emptyQueue, { ...ctx(3), playlistId: PLAYLIST }, 'c1');
+
+  it('credits the playlist for the context entry playing', () => {
+    const s = fromPlaylist();
+    expect(playlistCredit(s, 'c1')).toBe(PLAYLIST);
+    expect(playlistCredit(advanceTo(s, 'c2'), 'c2')).toBe(PLAYLIST);
+  });
+
+  it("doesn't credit a Next up entry, or an entry that isn't current", () => {
+    const s = advanceTo(playNext(fromPlaylist(), [item('a')]), 'a');
+    expect(playlistCredit(s, 'a')).toBeUndefined();
+    expect(playlistCredit(fromPlaylist(), 'c2')).toBeUndefined();
+  });
+
+  it('stops crediting once another context replaces the playlist', () => {
+    const s = playContext(fromPlaylist(), ctx(2, 'd'), 'd1');
+    expect(playlistCredit(s, 'd1')).toBeUndefined();
   });
 });

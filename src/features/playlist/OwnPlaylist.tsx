@@ -5,6 +5,7 @@ import { getOwnPlaylist } from '@/data/playlists';
 import { signInHref } from '@/lib/searchParams/sessionSearchParams';
 import { PencilIcon } from 'lucide-react';
 import PublishControl from './PublishControl';
+import { OWN_PLAYLISTS_CRUMB } from './PlaylistArticle';
 import PlaylistDetail from './PlaylistDetail';
 
 /** One of the signed-in listener's playlists. Someone else's is a 404, as the User Service answers. */
@@ -18,10 +19,8 @@ export default async function OwnPlaylist({ playlistId }: { playlistId: string }
   return (
     <PlaylistDetail
       playlist={playlist}
+      crumb={OWN_PLAYLISTS_CRUMB}
       byline={[
-        <Link key="account" href={href('/account')}>
-          Your playlists
-        </Link>,
         archived && 'Archived',
         publicCode ? (
           <Link key="public" href={href('/playlists/[publicCode]', { publicCode })}>

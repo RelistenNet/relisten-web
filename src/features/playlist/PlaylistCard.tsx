@@ -83,7 +83,7 @@ export async function playlistCard(publicCode: string): Promise<Response> {
           {playlist.name}
         </div>
         <div tw="text-center" style={{ color: C.label, fontSize: 30 }}>
-          {`by ${playlist.owner}`}
+          {`by ${playlist.creator}`}
         </div>
         {shown.length > 0 && (
           <div tw="flex flex-wrap items-center justify-center" style={{ gap: 14, marginTop: 8 }}>

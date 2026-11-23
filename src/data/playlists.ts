@@ -11,6 +11,7 @@ import {
   type PlaylistContent,
   type PlaylistSnapshotWire,
   type PlaylistSummaryWire,
+  type PublicPlaylistListWire,
   type PublicPlaylistSnapshotWire,
   toPlaylistContent,
 } from '@/domain/playlists';
@@ -110,7 +111,8 @@ export const getOwnPlaylist = requestCache(async (playlistId: string): Promise<O
 
 // --- Published ---------------------------------------------------------------
 
-export type PublicPlaylist = PlaylistContent & { publicCode: string; owner: string };
+/** `creator`: the username of the listener who made it. */
+export type PublicPlaylist = PlaylistContent & { publicCode: string; creator: string };
 
 /**
  * No stale-while-revalidate: a takedown has to reach readers within a minute,
@@ -132,7 +134,7 @@ const publicPlaylistCached = timberCache.data(
     return {
       ...toPlaylistContent(snapshot),
       publicCode: snapshot.public_code,
-      owner: snapshot.owner.username,
+      creator: snapshot.owner.username,
     };
   },
   {
@@ -148,6 +150,81 @@ export const publicPlaylistTag = (code: string) => `playlist-public:${code}`;
 
 /** A published playlist by its share code, or null when it isn't (or is no longer) public. */
 export const getPublicPlaylist = requestCache((code: string) => publicPlaylistCached(code));
+
+// --- Public listing ----------------------------------------------------------
+
+/** A public playlist as the listing table shows it. Plain data: the value is cached. */
+export type PublicPlaylistRow = {
+  playlistId: string;
+  publicCode: string;
+  name: string;
+  /** The username of the listener who made it. */
+  creator: string;
+  trackCount: number;
+  /** Seconds. */
+  duration: number;
+  updatedAt: string;
+  followerCount: number;
+  /** Plays started from it over the last 30 days. */
+  recentPlayCount: number;
+};
+
+const LISTING_PAGE_SIZE = 50;
+/** Pages fetched per listing at most: the table holds the whole list in memory. */
+const LISTING_MAX_PAGES = 20;
+
+/**
+ * Every published playlist (or every one with an artist's tracks), by
+ * following the User Service's cursor: the table sorts, searches and pages it
+ * in memory, like the other tables. Cookieless and cached for the minute a
+ * takedown may take to show, like the snapshot. Pages can shift while they're
+ * read, so a playlist seen twice is kept once.
+ */
+const publicPlaylistsCached = timberCache.data(
+  async (artist: string): Promise<PublicPlaylistRow[]> => {
+    const rows = new Map<string, PublicPlaylistRow>();
+    let cursor: string | null = null;
+    for (let page = 0; page < LISTING_MAX_PAGES; page++) {
+      const query = new URLSearchParams({ sort: 'recent', limit: String(LISTING_PAGE_SIZE) });
+      if (artist) query.set('artist', artist);
+      if (cursor) query.set('cursor', cursor);
+      const res = await fetch(`${USER_SERVICE_URL}/v1/public-playlists?${query}`, {
+        headers: { accept: 'application/json' },
+        cache: 'no-store',
+        signal: AbortSignal.timeout(USER_SERVICE_TIMEOUT_MS),
+      });
+      if (!res.ok) throw new UserServiceError(res.status, '/v1/public-playlists');
+      const body = (await res.json()) as PublicPlaylistListWire;
+      for (const p of body.playlists) {
+        if (rows.has(p.playlist_id)) continue;
+        rows.set(p.playlist_id, {
+          playlistId: p.playlist_id,
+          publicCode: p.public_code,
+          name: p.name,
+          creator: p.owner.username,
+          trackCount: p.track_count,
+          duration: p.duration_seconds,
+          updatedAt: p.updated_at,
+          followerCount: p.follower_count,
+          recentPlayCount: p.recent_play_count,
+        });
+      }
+      cursor = body.next_cursor;
+      if (!cursor) break;
+    }
+    return [...rows.values()];
+  },
+  { ttl: 60, key: (artist: string) => `playlist-listing:${artist}` }
+);
+
+/**
+ * Published playlists, most recently updated first: every one, or (`artist`,
+ * an `artist_…` id) those with at least one of the artist's tracks. Throws
+ * when the User Service is down.
+ */
+export const getPublicPlaylists = requestCache((artist?: string) =>
+  publicPlaylistsCached(artist ?? '')
+);
 
 // --- Catalog -----------------------------------------------------------------
 

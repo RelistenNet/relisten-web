@@ -37,6 +37,12 @@ export type QueueContext = {
   /** e.g. "Grateful Dead · 1977-05-08" */
   label: string;
   items: QueueItem[];
+  /**
+   * The public playlist the context was played from (its `playlist_…` id): its
+   * entries' plays are credited to it. Unset for every other context, a
+   * listener's own playlist page included.
+   */
+  playlistId?: string;
 };
 
 export type QueueState = {
@@ -55,6 +61,16 @@ export const emptyQueue: QueueState = {
   current: null,
   cursor: null,
 };
+
+/**
+ * The public playlist a play of `key` counts for: only while it's the entry
+ * playing from that playlist's context. Not a Next up entry (even of the same
+ * track), and not once another context replaced the playlist's.
+ */
+export function playlistCredit(state: QueueState, key: string): string | undefined {
+  const { current, context } = state;
+  return current?.key === key && current.from === 'context' ? context?.playlistId : undefined;
+}
 
 /**
  * The full list for gapless: context history, the current entry, Next up,

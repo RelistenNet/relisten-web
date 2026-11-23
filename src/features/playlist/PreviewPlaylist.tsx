@@ -4,6 +4,7 @@ import { deny, redirect } from '@timber-js/app/server';
 import { getOwnPlaylist } from '@/data/playlists';
 import { getCurrentUser } from '@/data/session';
 import { signInHref } from '@/lib/searchParams/sessionSearchParams';
+import { PUBLIC_PLAYLISTS_CRUMB } from './PlaylistArticle';
 import PlaylistDetail from './PlaylistDetail';
 
 /**
@@ -18,6 +19,8 @@ export default async function PreviewPlaylist({ playlistId }: { playlistId: stri
   return (
     <PlaylistDetail
       playlist={result.playlist}
+      // As the public page will read.
+      crumb={PUBLIC_PLAYLISTS_CRUMB}
       byline={[`By ${me?.username ?? 'you'}`, 'Preview of the public page']}
       actions={
         <Link

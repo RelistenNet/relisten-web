@@ -74,11 +74,14 @@ export function playShow({
 export function playSongRows({
   items,
   label,
+  playlistId,
   startKey,
   startTime,
 }: {
   items: QueueItem[];
   label: string;
+  /** The public playlist the rows are (QueueContext.playlistId). */
+  playlistId?: string;
   startKey: string;
   /** Seconds into the start entry (a playlist's timestamp link). */
   startTime?: number;
@@ -87,7 +90,8 @@ export function playSongRows({
   if (!start) return;
   // The entry isn't loaded yet: start it at `startTime` when the engine makes it current.
   if (startTime && startTime > 0) getEngine()?.startAt(start.key, startTime);
-  playerActor.send({ type: 'PLAY_CONTEXT', ctx: { label, items }, startKey: start.key });
+  const ctx = playlistId ? { label, items, playlistId } : { label, items };
+  playerActor.send({ type: 'PLAY_CONTEXT', ctx, startKey: start.key });
   startPlayback();
 }
 

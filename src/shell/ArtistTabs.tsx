@@ -53,6 +53,7 @@ function tabsFor(artistSlug: string, features?: Partial<ArtistFeatures>): Tab[] 
   if (SHOW_TOURS_TAB && sections.tours)
     tabs.push(page('Tours', href('/artists/[artistSlug]/tours', { artistSlug })));
   tabs.push(
+    page('Playlists', href('/artists/[artistSlug]/playlists', { artistSlug })),
     page('Recently Added', href('/artists/[artistSlug]/recently-added', { artistSlug })),
     page('Today In History', href('/artists/[artistSlug]/today-in-history', { artistSlug }))
   );

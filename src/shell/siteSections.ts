@@ -9,6 +9,7 @@ export const siteSections = [
   { label: 'Today', href: href('/today'), group: 'primary' },
   { label: 'Live', href: href('/recently-played'), group: 'primary' },
   { label: 'Venues', href: href('/venues'), group: 'primary' },
+  { label: 'Playlists', href: href('/playlists'), group: 'primary' },
   { label: 'Blog', href: href('/blog'), group: 'more' },
   { label: 'Chat', href: href('/chat'), group: 'more' },
   { label: 'Apps', href: href('/app'), group: 'more' },
