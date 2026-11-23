@@ -1,12 +1,17 @@
+/** The public staging deployment: trusted builds against the production API and accounts. */
+export const STAGING_URL = 'https://soundcheck.relisten.net';
+
 /** Public runtime context. Never pass process.env across the server boundary. */
 export type DeploymentEnvironment =
-  | { isPreview: false }
-  | { isPreview: true; prNumber: number; branch: string; headSha: string; url: string };
+  | { kind: 'production' }
+  | { kind: 'staging'; url: string }
+  | { kind: 'preview'; prNumber: number; branch: string; headSha: string; url: string };
 
 export function parseDeploymentEnvironment(
   env: Record<string, string | undefined>
 ): DeploymentEnvironment {
-  if (env.RELISTEN_DEPLOYMENT_ENV !== 'preview') return { isPreview: false };
+  if (env.RELISTEN_DEPLOYMENT_ENV === 'staging') return { kind: 'staging', url: STAGING_URL };
+  if (env.RELISTEN_DEPLOYMENT_ENV !== 'preview') return { kind: 'production' };
 
   const number = env.RELISTEN_PREVIEW_PR_NUMBER ?? '';
   const headSha = env.RELISTEN_PREVIEW_HEAD_SHA ?? '';
@@ -24,5 +29,5 @@ export function parseDeploymentEnvironment(
   ) {
     throw new Error('Invalid preview deployment metadata; check the injected preview environment.');
   }
-  return { isPreview: true, prNumber: Number(number), branch, headSha, url };
+  return { kind: 'preview', prNumber: Number(number), branch, headSha, url };
 }

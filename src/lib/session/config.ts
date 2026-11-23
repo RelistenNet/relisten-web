@@ -16,19 +16,26 @@ export function webOrigin(): string {
   if (process.env.RELISTEN_WEB_ORIGIN) return process.env.RELISTEN_WEB_ORIGIN;
   if (localSession) return LOCAL_WEB_ORIGIN;
   const deployment = getDeploymentEnvironment();
-  return deployment.isPreview ? deployment.url : 'https://relisten.net';
+  return deployment.kind === 'production' ? 'https://relisten.net' : deployment.url;
 }
 
 /**
  * Where server-side session calls go: the local accounts host under
- * `dev:session`, otherwise relisten.net. Previews set RELISTEN_USER_SERVICE_URL to
- * their in-cluster gateway route, which supplies the preview's origin itself.
+ * `dev:session`, staging's own host on staging (the User Service binds sessions
+ * to the origin they were made on), otherwise relisten.net. Previews set
+ * RELISTEN_USER_SERVICE_URL to their in-cluster gateway route, which supplies
+ * the preview's origin itself.
  */
+const deployment = getDeploymentEnvironment();
 export const USER_SERVICE_URL =
   process.env.RELISTEN_USER_SERVICE_URL ??
-  (localSession ? 'https://accounts.relisten.localhost:5443' : 'https://relisten.net');
+  (localSession
+    ? 'https://accounts.relisten.localhost:5443'
+    : deployment.kind === 'staging'
+      ? deployment.url
+      : 'https://relisten.net');
 
-if (getDeploymentEnvironment().isPreview && !process.env.RELISTEN_USER_SERVICE_URL) {
+if (deployment.kind === 'preview' && !process.env.RELISTEN_USER_SERVICE_URL) {
   console.warn(
     '[session] RELISTEN_USER_SERVICE_URL is unset on a preview; session lookups go to relisten.net and will read as signed out.'
   );
