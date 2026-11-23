@@ -40,11 +40,24 @@ jobs:
           echo "image=${REGISTRY}/${IMAGE_NAME}" >> "$GITHUB_OUTPUT"
           echo "package=${IMAGE_NAME#relistennet/}" >> "$GITHUB_OUTPUT"
 
+      # Without it, timber picks random server action IDs and every deploy
+      # breaks actions in tabs that were already open. Refuse instead.
+      - name: Require the server action key
+        env:
+          KEY: ${{ secrets.TIMBER_ACTIONS_ENCRYPTION_KEY }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "::error::TIMBER_ACTIONS_ENCRYPTION_KEY is not set in the relisten3 environment"
+            exit 1
+          fi
+
       - name: Build and push image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           platforms: linux/amd64
+          secrets: |
+            timber_actions_key=${{ secrets.TIMBER_ACTIONS_ENCRYPTION_KEY }}
           tags: |
             ${{ steps.meta.outputs.image }}:latest
             ${{ steps.meta.outputs.image }}:sha-${{ steps.meta.outputs.short_sha }}
