@@ -1,6 +1,15 @@
 name: Build and publish GHCR timber image
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: relisten.net (production) or soundcheck.relisten.net (staging)
+        type: choice
+        options:
+          - production
+          - staging
+        default: production
 
 permissions:
   contents: read
@@ -11,6 +20,11 @@ env:
   IMAGE_NAME: relistennet/relisten-web-timber
   REGISTRY: ghcr.io
   KEEP_GHCR_SHA_VERSIONS: '5'
+  # Staging is its own Deployment with its own server action key, so a staging
+  # build never moves :latest or breaks actions in open relisten.net tabs.
+  DEPLOYMENT: ${{ inputs.target == 'staging' && 'relisten-web-staging' || 'relisten-web-timber' }}
+  ACTIONS_SECRET: ${{ inputs.target == 'staging' && 'relisten-web-staging-actions' || 'relisten-web-timber-actions' }}
+  CHANNEL_TAG: ${{ inputs.target == 'staging' && 'staging' || 'latest' }}
 
 jobs:
   build_and_publish:
@@ -73,10 +87,10 @@ jobs:
       - name: Read the server action key
         run: |
           set -euo pipefail
-          key="$(kubectl -n default get secret relisten-web-timber-actions \
+          key="$(kubectl -n default get secret "$ACTIONS_SECRET" \
             -o jsonpath='{.data.TIMBER_ACTIONS_ENCRYPTION_KEY}' | base64 -d)"
           if [ -z "$key" ]; then
-            echo "::error::default/relisten-web-timber-actions has no TIMBER_ACTIONS_ENCRYPTION_KEY"
+            echo "::error::default/$ACTIONS_SECRET has no TIMBER_ACTIONS_ENCRYPTION_KEY"
             exit 1
           fi
           echo "::add-mask::$key"
@@ -91,7 +105,7 @@ jobs:
           secret-files: |
             timber_actions_key=${{ runner.temp }}/timber_actions_key
           tags: |
-            ${{ steps.meta.outputs.image }}:latest
+            ${{ steps.meta.outputs.image }}:${{ env.CHANNEL_TAG }}
             ${{ steps.meta.outputs.image }}:sha-${{ steps.meta.outputs.short_sha }}
           labels: |
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
@@ -129,7 +143,7 @@ jobs:
               sort_by(.created_at) | reverse
               | map(select(any(.tags[]?; startswith("sha-"))))
               | .[$keep:]
-              | map(select((.tags | index("latest")) | not))
+              | map(select((.tags | index("latest") or index("staging")) | not))
               | .[].id
             '
           )"
@@ -146,5 +160,5 @@ jobs:
       - name: Restart relisten3 deployment
         run: |
           set -euo pipefail
-          kubectl -n default rollout restart deployment/relisten-web-timber
-          kubectl -n default rollout status deployment/relisten-web-timber --timeout=10m
+          kubectl -n default rollout restart "deployment/$DEPLOYMENT"
+          kubectl -n default rollout status "deployment/$DEPLOYMENT" --timeout=10m
