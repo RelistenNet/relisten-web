@@ -3,7 +3,13 @@
 import { type KeyboardEvent, type PointerEvent, useRef, useState } from 'react';
 import { durationToHHMMSS } from '@/lib/utils';
 import { seek } from './commands';
-import { readPlayback, usePlayback, usePlaybackFrame, useQueue } from './hooks';
+import {
+  readPlayback,
+  usePlayback,
+  usePlaybackFrame,
+  usePlaybackTransition,
+  useQueue,
+} from './hooks';
 
 const KEY_STEP = 5; // seconds per arrow key
 
@@ -25,9 +31,9 @@ export default function EntryProgress({
   fallbackDuration?: number;
 }) {
   const isCurrent = useQueue((q) => q.current?.key === queueKey);
-  // Whole seconds, for the slider's value: renders once a second. The fill is
-  // painted per frame instead (usePlaybackFrame).
-  const second = usePlayback((p) => (isCurrent ? Math.round(p.currentTime) : 0));
+  // Whole seconds, for the slider's value: renders once a second, as a
+  // transition. The fill is painted per frame instead (usePlaybackFrame).
+  const second = usePlaybackTransition((p) => (isCurrent ? Math.round(p.currentTime) : 0));
   const fileDuration = usePlayback((p) => (isCurrent ? p.duration : 0));
   const duration =
     Number.isFinite(fileDuration) && fileDuration > 0 ? fileDuration : (fallbackDuration ?? 0);

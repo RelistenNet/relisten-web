@@ -8,7 +8,13 @@ import { browser } from 'react-dom';
 
 import { FastForwardIcon, PauseIcon, PlayIcon, RewindIcon } from 'lucide-react';
 import { next, previous, seek, setVolume as setPlayerVolume, togglePlayPause } from './commands';
-import { useCurrentItem, useIsPlaying, usePlayback, usePlaybackFrame } from './hooks';
+import {
+  useCurrentItem,
+  useIsPlaying,
+  usePlayback,
+  usePlaybackFrame,
+  usePlaybackTransition,
+} from './hooks';
 import type { PlaybackState } from './playback';
 import QueueButton from './QueuePanel';
 import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '@/lib/utils';
@@ -18,15 +24,16 @@ import Flex from '@/ui/base/Flex';
 const lengthOf = (p: PlaybackState, fallback: number | undefined) =>
   Number.isFinite(p.duration) && p.duration > 0 ? p.duration : (fallback ?? 0);
 
-// The times select the text they show, so they render once a second, not per frame.
+// The times select the text they show, so they render once a second, not per
+// frame, and as transitions, so a tick never interrupts a navigation.
 
 function Elapsed() {
-  return <div>{usePlayback((p) => durationToHHMMSS(p.currentTime))}</div>;
+  return <div>{usePlaybackTransition((p) => durationToHHMMSS(p.currentTime))}</div>;
 }
 
 function Remaining({ fallback }: { fallback?: number }) {
   const [showRemaining, setShowRemaining] = useState(false);
-  const text = usePlayback((p) => {
+  const text = usePlaybackTransition((p) => {
     const duration = lengthOf(p, fallback);
     return durationToHHMMSS(showRemaining ? p.currentTime - duration : duration);
   });
