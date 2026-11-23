@@ -31,6 +31,11 @@ export type QueueItem = {
   venue?: string;
   /** The file, as the API gives it (proxied when played; see proxyStreamUrl). */
   mp3Url: string;
+  /**
+   * Added by the listener (Play Next, Add to Queue) from a public playlist's
+   * page: the playlist (`playlist_…`) its play counts for. See playlistCredit.
+   */
+  playlistId?: string;
 };
 
 export type QueueContext = {
@@ -63,16 +68,18 @@ export const emptyQueue: QueueState = {
 };
 
 /**
- * The public playlist a play of `key` counts for: only while it's one of that
- * playlist's own entries playing from its context. Not a Next up entry (even of
- * the same track), not one added to the end with Add to Queue (it joins the
- * context, but keeps its Next up key), and not once another context replaced
- * the playlist's.
+ * The public playlist a play of `key` (the current entry) counts for: the one
+ * it came from. A playlist's own entry, playing from its context, counts for
+ * the context's playlist (none once another context replaced it). An entry the
+ * listener added (Play Next, Add to Queue: a Next up key, even once Add to Queue
+ * has appended it to the context) counts for the playlist whose page it was
+ * added from, if any; a track queued from anywhere else counts for none.
  */
 export function playlistCredit(state: QueueState, key: string): string | undefined {
   const { current, context } = state;
-  if (current?.key !== key || current.from !== 'context' || isNextUpKey(key)) return undefined;
-  return context?.playlistId;
+  if (current?.key !== key) return undefined;
+  if (isNextUpKey(key)) return current.item.playlistId;
+  return current.from === 'context' ? context?.playlistId : undefined;
 }
 
 /**

@@ -105,20 +105,28 @@ export function playFromTrackList(args: Parameters<typeof playShow>[0]): void {
   followCurrent();
 }
 
-/** Give Next up entries keys of their own (the same track can also be in the context). */
-const asNextUp = (items: QueueItem[]) =>
-  items.map((item) => ({ ...item, key: nextUpKey(item.trackId, newId()) }));
+/**
+ * Give Next up entries keys of their own (the same track can also be in the
+ * context), and the public playlist they were added from, if any: their plays
+ * count for it (playlistCredit).
+ */
+const asNextUp = (items: QueueItem[], playlistId?: string) =>
+  items.map((item) => ({
+    ...item,
+    key: nextUpKey(item.trackId, newId()),
+    ...(playlistId ? { playlistId } : {}),
+  }));
 
 const newId = () =>
   crypto.randomUUID?.() ?? `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
 
-/** Add to the front of Next up. */
-export const playNext = (items: QueueItem[]) =>
-  playerActor.send({ type: 'PLAY_NEXT', items: asNextUp(items) });
+/** Add to the front of Next up. `playlistId`: the public playlist whose page they're added from. */
+export const playNext = (items: QueueItem[], playlistId?: string) =>
+  playerActor.send({ type: 'PLAY_NEXT', items: asNextUp(items, playlistId) });
 
-/** Add to the end of the queue (after the rest of the context). */
-export const addToQueue = (items: QueueItem[]) =>
-  playerActor.send({ type: 'ADD_TO_QUEUE', items: asNextUp(items) });
+/** Add to the end of the queue (after the rest of the context). `playlistId`: as playNext's. */
+export const addToQueue = (items: QueueItem[], playlistId?: string) =>
+  playerActor.send({ type: 'ADD_TO_QUEUE', items: asNextUp(items, playlistId) });
 
 /** Move an entry to just after another in the queue panel's list (null: the top); see move(). */
 export const moveInQueue = (key: string, after: string | null) =>

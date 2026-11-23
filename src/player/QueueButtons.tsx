@@ -45,6 +45,8 @@ export default function QueueButtons({
   name: string;
   className?: string;
 }) {
+  // On a public playlist's page, what's queued counts for that playlist.
+  const playlistId = useSongQueue()?.playlistId;
   if ('item' in target && !target.item) return null;
   const run = (where: 'next' | 'end') => async () => {
     if ('showId' in target) {
@@ -52,7 +54,7 @@ export default function QueueButtons({
       if (!ok) toast.error(SHOW_FAILED, { toasterId: TOASTER_ID });
       return ok;
     }
-    if (target.item) (where === 'next' ? playNext : addToQueue)([target.item]);
+    if (target.item) (where === 'next' ? playNext : addToQueue)([target.item], playlistId);
     return true;
   };
   return (
@@ -249,13 +251,13 @@ export function ShowQueueActions({ playlist = false }: { playlist?: boolean }) {
         icon={ListStartIcon}
         text="Play Next"
         iconOnly={playlist}
-        onClick={() => playNext(items)}
+        onClick={() => playNext(items, playlistId)}
       />
       <ShowQueuePill
         icon={ListEndIcon}
         text="Add to Queue"
         iconOnly={playlist}
-        onClick={() => addToQueue(items)}
+        onClick={() => addToQueue(items, playlistId)}
       />
       {!playlist && (
         <AddToPlaylistButton
