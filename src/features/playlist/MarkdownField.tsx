@@ -215,6 +215,9 @@ export default function MarkdownField({
     >
       <textarea
         ref={(t) => {
+          // Opened with the cursor at the end of the text (where its history starts),
+          // not the start, where focusing a field puts it. Once: this runs every render.
+          if (t && textarea.current !== t) t.setSelectionRange(t.value.length, t.value.length);
           textarea.current = t;
           return browserUndo(t);
         }}
