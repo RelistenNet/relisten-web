@@ -528,20 +528,13 @@ export function Prose({
       className={cn(
         // One voice for everything the author wrote (description, sections, text,
         // track notes); metadata around it is smaller and muted.
-        'group/prose text-[15px] leading-relaxed text-pretty text-text-primary',
+        'group/prose text-[15px] leading-relaxed text-pretty wrap-anywhere text-text-primary',
         // Editable, or being edited: raised above a card's play-anywhere button, so a
         // click on the text (or in its field) is the text's, not the card's.
         (open || editing) && 'relative z-10',
         // Editable: above a cell's play-anywhere overlay, and marked as text to click
-        // into. An outline drawn outside it, not padding or a margin: hovering (or
-        // focusing) moves nothing.
-        open &&
-          `
-            z-10 cursor-text rounded-lg outline-offset-[5px] hover:outline
-            hover:outline-text-primary/15 focus-visible:outline-2 focus-visible:outline-accent
-          `,
-        // Shown as written until the server renders it: dimmed, gently pulsing.
-        pending && 'animate-pulse opacity-60 motion-reduce:animate-none',
+        // into, all of it (the outline is the text's, below).
+        open && 'z-10 cursor-text outline-none',
         className
       )}
       aria-busy={pending || undefined}
@@ -560,7 +553,26 @@ export function Prose({
       })}
     >
       {children}
-      {editing ?? <GuideProse blocks={blocks ?? []} renderSeek={renderSeek} />}
+      {editing ?? (
+        <GuideProse
+          blocks={blocks ?? []}
+          renderSeek={renderSeek}
+          className={cn(
+            // Editable: outlined around the text, where its field will open (the
+            // block can be wider: a box's row). Drawn outside it, not padding or a
+            // margin: hovering (or focusing) moves nothing.
+            open &&
+              `
+                rounded-lg outline-offset-[5px] group-hover/prose:outline
+                group-hover/prose:outline-text-primary/15
+                group-focus-visible/prose:outline-2 group-focus-visible/prose:outline-accent
+              `,
+            // Shown as written until the server renders it: the text dimmed, gently
+            // pulsing (its blocks, not this: the outline would all but vanish with it).
+            pending && '*:animate-pulse *:opacity-60 motion-reduce:*:animate-none'
+          )}
+        />
+      )}
     </div>
   );
 }
