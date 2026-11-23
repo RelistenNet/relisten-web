@@ -318,6 +318,13 @@ function appliedChips(interp: Interpretation): string[] {
   );
 }
 
+/** The catalog answered, but said search is unavailable (its index is down or rebuilding). */
+class SearchUnavailableError extends Error {
+  constructor() {
+    super('Catalog search reported itself unavailable');
+  }
+}
+
 const RESULT_SCOPES = SEARCH_SCOPES.filter((s): s is ResultScope => s !== 'all');
 
 const results = defineResource({
@@ -332,7 +339,9 @@ const results = defineResource({
     ),
   slim: async (raw): Promise<SearchResults> => {
     const r = responseSchema.parse(raw);
-    if (r.availability === 'unavailable') return UNAVAILABLE_SEARCH;
+    // Thrown, not returned: a returned value would be cached, and the outage
+    // would outlive the API's recovery. search() turns it into UNAVAILABLE_SEARCH.
+    if (r.availability === 'unavailable') throw new SearchUnavailableError();
     const top = docs(r.top);
     const recordings = docs(r.sections?.sources);
     const reviews = docs(r.sections?.reviews);
