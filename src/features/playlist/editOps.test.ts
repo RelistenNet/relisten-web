@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { applyOp } from '@/domain/playlistOps';
 import type { PlaylistContent, PlaylistOp } from '@/domain/playlists';
-import { insertText, moveEntry, moveToOwnGroup, removeText, saveProse } from './editOps';
+import {
+  insertText,
+  insertTracks,
+  moveEntry,
+  moveToOwnGroup,
+  removeText,
+  saveProse,
+} from './editOps';
 
 // s1 (described: e1, e2) | s2 (prose alone) | s3 (e3, t1 a text entry, e4)
 const content: PlaylistContent = {
@@ -149,5 +156,26 @@ describe('insertText into a group (its Add Text)', () => {
     expect(after(insertText(content, { above: { id: 'e4', segmentId: 's3' } }, 'More', id))).toBe(
       's1:e1,e2 | s2: | s3:e3,t1,e4 | new:'
     );
+  });
+});
+
+describe('insertTracks', () => {
+  let n = 0;
+  const id = (prefix: string) => `${prefix}_${++n}`;
+  const added = (afterId: string | null) => after(insertTracks(content, afterId, ['z'], id));
+
+  it('joins a group between two of its entries', () => {
+    expect(added('e3')).toBe('s1:e1,e2 | s2: | s3:e3,playlist_entry_1,t1,e4');
+  });
+  it('is a group of its own after a group’s last entry, prose alone, or at the end', () => {
+    expect(added('e2')).toMatch(/^s1:e1,e2 \| playlist_segment_\d+:playlist_entry_\d+ \| s2:/);
+    expect(added('s2')).toMatch(/s2: \| playlist_segment_\d+:playlist_entry_\d+ \| s3:/);
+    expect(added(null)).toMatch(/s3:e3,t1,e4 \| playlist_segment_\d+:playlist_entry_\d+$/);
+  });
+  it('goes at the end when what it followed is gone', () => {
+    expect(added('gone')).toMatch(/s3:e3,t1,e4 \| playlist_segment_\d+:playlist_entry_\d+$/);
+  });
+  it('adds nothing for no tracks', () => {
+    expect(insertTracks(content, null, [])).toBeNull();
   });
 });

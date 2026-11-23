@@ -55,6 +55,11 @@ export type ArticleSlots = {
   prose?: (owner: ProseOwner) => ReactNode | undefined;
   /** Whether a prose block's text is waiting on the server's render of it. */
   prosePending?: (owner: ProseOwner) => boolean;
+  /**
+   * False while saving has failed: a track just added (a pending row) isn't on its
+   * way, so it doesn't say it is (the toolbar says why, with Retry).
+   */
+  saving?: boolean;
   /** Opens a prose block for editing: a click on it (not on a link in it), or Enter. */
   editProse?: (owner: ProseOwner) => void;
   /**
@@ -72,10 +77,10 @@ export type ArticleSlots = {
    */
   drag?: (target: FlowRow | FlowGroup) => DragSpec | undefined;
   /**
-   * At each gap between blocks (and before the first, and past the last): its
-   * control (Add Text), or the text being written there in its place.
+   * At each gap between blocks (and before the first, and past the last): what the
+   * editor puts there (the Add rows at the end, or what's being added in place).
    */
-  gap?: (at: GapAt) => { control?: ReactNode; content?: ReactNode };
+  gap?: (at: GapAt) => ReactNode;
   /** Beside the play actions (save status, undo, Done). */
   toolbar?: ReactNode;
   /** The editor's state the flow lays out: where the composer is, a new intro. */
@@ -143,7 +148,7 @@ export default function PlaylistArticle({
 }) {
   // A track's play button queues the playlist's tracks, in order.
   const items = view.rows.flatMap((r) => (isTrackRow(r) ? (songRowItem(r) ?? []) : []));
-  const unavailable = view.rows.filter((r) => r.kind === 'unavailable').length;
+  const unavailable = view.rows.filter((r) => r.kind === 'unavailable' && !r.pending).length;
   // The same blocks for readers and the editor (which outlines its groups over
   // them), so opening the editor moves nothing.
   const blocks = playlistBlocks(view.rows, { keepEmpty: !!slots });
@@ -485,21 +490,21 @@ function Rail({ rail }: { rail: RailCell }) {
   );
 }
 
-/**
- * The editor's composer (text or tracks being added there), or its Add zone at
- * the end of the playlist.
- */
+/** The editor's composer (text or tracks being added there), or its Add rows at the end. */
 function Gap({ at, slots }: { at: GapAt; slots?: ArticleSlots }) {
-  const gap = slots?.gap?.(at);
-  if (!gap) return null;
+  return slots?.gap?.(at) ?? null;
+}
+
+/** A dashed frame for text being written in the flow: its text starts where the flow's writing does. */
+export function ComposerFrame({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-xl border border-dashed border-text-primary/15">
-      {/* Its text starts where the flow's writing does, inside the box's 1px border. */}
-      {gap.content ? (
-        <div className="py-2 pr-3 pl-[calc(var(--spacing-flow-indent)-1px)]">{gap.content}</div>
-      ) : (
-        gap.control
-      )}
+    <div
+      className="
+        rounded-xl border border-dashed border-text-primary/15 py-2 pr-3
+        pl-[calc(var(--spacing-flow-indent)-1px)]
+      "
+    >
+      {children}
     </div>
   );
 }
@@ -726,6 +731,7 @@ function UnavailableCell({
   box: Box | null;
   slots?: ArticleSlots;
 }) {
+  const lookingUp = !!row.pending && slots?.saving !== false;
   return (
     <Card
       row={row}
@@ -734,9 +740,26 @@ function UnavailableCell({
     >
       {/* The play button's width, so titles line up. */}
       <span aria-hidden className="w-play-button shrink-0" />
-      <div className="flex min-w-0 flex-1 flex-col pt-0.5">
-        <span className="text-[15px] leading-snug">Unavailable track</span>
-        <span className="text-[13px]">This recording isn&rsquo;t on Relisten anymore.</span>
+      <div className="flex min-w-0 flex-1 flex-col pt-0.5" aria-busy={lookingUp || undefined}>
+        {row.pending ? (
+          // Just added: the server's render, with its details, is on its way.
+          <>
+            <span
+              className={cn(
+                'text-[15px] leading-snug',
+                lookingUp && 'animate-pulse motion-reduce:animate-none'
+              )}
+            >
+              Adding track…
+            </span>
+            <span className="text-[13px]">{lookingUp ? 'Looking it up.' : 'Not saved yet.'}</span>
+          </>
+        ) : (
+          <>
+            <span className="text-[15px] leading-snug">Unavailable track</span>
+            <span className="text-[13px]">This recording isn&rsquo;t on Relisten anymore.</span>
+          </>
+        )}
         <Note id={row.id} blocks={row.prose} slots={slots} />
       </div>
       {/* The editor's menu, at the right (readers have none here). */}

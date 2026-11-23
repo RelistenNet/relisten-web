@@ -40,6 +40,10 @@ export type SearchHit = {
   /** Where the query matched in a recording's notes or a review. */
   excerpt?: ExcerptRun[];
   soundboard?: boolean;
+  /** A track result's length in seconds (shown after `detail`). */
+  duration?: number;
+  /** A track result's track (the recording its preview plays): what a playlist entry holds. */
+  trackId?: string;
   href: string;
 };
 

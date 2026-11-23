@@ -86,6 +86,8 @@ function proseFor(resolved: PlaylistResolved, id: string, text: string | undefin
 
 export function playlistView(content: PlaylistContent, resolved: PlaylistResolved): PlaylistView {
   const rows: PlaylistRow[] = [];
+  const pending = unresolved(content, resolved);
+  const lookingUp = new Set(pending.tracks);
 
   let duration = 0;
   for (const segment of content.segments) {
@@ -120,7 +122,12 @@ export function playlistView(content: PlaylistContent, resolved: PlaylistResolve
       };
       const track = entry.trackId ? resolved.tracks[entry.trackId] : undefined;
       if (!entry.trackId) rows.push({ ...fields, kind: 'text' });
-      else if (!track) rows.push({ ...fields, kind: 'unavailable' });
+      else if (!track)
+        rows.push({
+          ...fields,
+          kind: 'unavailable',
+          ...(lookingUp.has(entry.trackId) && { pending: true }),
+        });
       else {
         duration += track.songDuration ?? 0;
         rows.push({ ...track, ...fields, kind: 'track', queueKey: entry.id });
@@ -133,6 +140,6 @@ export function playlistView(content: PlaylistContent, resolved: PlaylistResolve
     rows,
     trackCount: rows.filter((r) => r.kind === 'track').length,
     duration,
-    unresolved: unresolved(content, resolved),
+    unresolved: pending,
   };
 }

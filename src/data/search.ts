@@ -17,7 +17,7 @@ import {
 } from '@/lib/search';
 import type { TourSummary, VenueListItem } from '@/domain/types';
 import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
-import { durationToHHMMSS, splitShowDate } from '@/lib/utils';
+import { splitShowDate } from '@/lib/utils';
 import { formatShowDate } from '@/ui/shows/stats';
 import { getArtistDirectory, tours } from './artists';
 import { defineResource, MINUTES } from './resource';
@@ -48,7 +48,9 @@ const docSchema = z.object({
   source_id: text,
   song_id: text,
   soundboard: z.boolean().nullish(),
-  preview: z.object({ source_id: text, set: text, duration: z.number().nullish() }).nullish(),
+  preview: z
+    .object({ track_id: text, source_id: text, set: text, duration: z.number().nullish() })
+    .nullish(),
   highlights: z.record(z.string(), z.string()).nullish(),
 });
 type Doc = z.infer<typeof docSchema>;
@@ -244,8 +246,9 @@ function toHit(d: Doc, look: Lookups): SearchHit | undefined {
           d.venue_label,
           // "Set" alone is a show with no set breaks.
           set && set !== 'Set' && set,
-          duration ? durationToHHMMSS(duration) : undefined,
         ]),
+        duration: duration || undefined,
+        trackId: d.preview?.track_id || undefined,
         // The show on the recording the preview comes from.
         href: showHref(artistSlug, date, d.preview?.source_id),
       };

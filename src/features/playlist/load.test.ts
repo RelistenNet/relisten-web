@@ -167,6 +167,14 @@ describe('tracks the server hasn’t looked up', () => {
     expect(viewOf(later, resolved).rows.at(-1)?.kind).toBe('unavailable');
     expect(unresolved(later, resolved).tracks).toEqual(['track_new']);
   });
+
+  it('marks only the one on its way pending, and counts it nowhere yet', () => {
+    const resolved = resolvePlaylist(content(['track_a', 'track_gone']), catalog, artists);
+    const view = viewOf(content(['track_a', 'track_gone', 'track_new']), resolved);
+    const pending = view.rows.map((r) => (r.kind === 'unavailable' ? !!r.pending : null));
+    expect(pending).toEqual([null, false, true]);
+    expect(view.trackCount).toBe(1);
+  });
 });
 
 describe('timestamp links and audio', () => {

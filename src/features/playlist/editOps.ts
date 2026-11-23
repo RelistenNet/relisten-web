@@ -240,6 +240,42 @@ export function sourceOf(content: PlaylistContent, owner: ProseOwner): string {
   }
 }
 
+/**
+ * Tracks after `after` (an entry, or a segment of prose alone; null for the end),
+ * like insertText: between two of a group's entries they join it there; anywhere
+ * else they're a group of their own, after the segment `after` is in, so a lone
+ * track added stays lone. Tracks added together are one segment (a run stays
+ * together under shuffle). If `after` is gone, they go at the end.
+ */
+export function insertTracks(
+  content: PlaylistContent,
+  after: string | null,
+  trackIds: readonly string[],
+  newId: NewId = newTypeId
+): PlaylistOp | null {
+  if (!trackIds.length) return null;
+  const entries = trackIds.map((track_id) => ({ entry_id: newId('playlist_entry'), track_id }));
+  const segment =
+    after === null
+      ? undefined
+      : content.segments.find((s) => s.id === after || s.entries.some((e) => e.id === after));
+  const at = segment?.entries.findIndex((e) => e.id === after) ?? -1;
+  if (segment && after !== null && at >= 0 && at < segment.entries.length - 1)
+    return {
+      operation_type: 'insert_entries',
+      payload: { segment_id: segment.id, entries, after_entry_id: after },
+    };
+  const last = (segment ?? content.segments.at(-1))?.id;
+  return {
+    operation_type: 'insert_segment',
+    payload: {
+      segment_id: newId('playlist_segment'),
+      entries,
+      ...(last && { after_segment_id: last }),
+    },
+  };
+}
+
 /** A whole segment (a section or group) one place up or down among segments; null at an end. */
 export function moveSegmentBy(
   content: PlaylistContent,

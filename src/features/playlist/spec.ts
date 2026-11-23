@@ -36,7 +36,14 @@ export type PlaylistTrackRow = ShowRow &
   };
 
 /** A text block, or a track the catalog doesn't have (anymore). Shown, never dropped. */
-export type PlaylistOtherRow = EntryFields & { kind: 'text' | 'unavailable' };
+export type PlaylistOtherRow = EntryFields & {
+  kind: 'text' | 'unavailable';
+  /**
+   * An unavailable row whose track the server hasn't looked up yet (just added,
+   * or added in another tab): its details are on the way (`unresolved` in rows.ts).
+   */
+  pending?: boolean;
+};
 
 export type PlaylistRow = PlaylistTrackRow | PlaylistOtherRow;
 
