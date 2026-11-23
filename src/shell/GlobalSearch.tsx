@@ -1,9 +1,16 @@
 'use client';
 
-import { href } from '@timber-js/app/routes';
-import { searchSearchParams } from '@/lib/searchParams/apiSearchParams';
-import { use, useCallback, useEffect, useDeferredValue, useState, Suspense } from 'react';
+import {
+  use,
+  useDeferredValue,
+  useEffect,
+  useRef,
+  useState,
+  Suspense,
+  type ReactNode,
+} from 'react';
 import { useRouter } from '@timber-js/app/client';
+import { ArrowRightIcon, SearchIcon } from 'lucide-react';
 import {
   Command,
   CommandInput,
@@ -11,167 +18,126 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandItem,
-  CommandSeparator,
 } from '@/ui/base/shadcn/command';
 import { Popover, PopoverTrigger, PopoverContent } from '@/ui/base/shadcn/popover';
-import { SearchIcon, MicIcon, MapPinIcon, RouteIcon } from 'lucide-react';
-import { EMPTY_SEARCH, type SearchResults } from '@/lib/search';
+import { HitText, KindIcon } from '@/ui/search/SearchHitParts';
+import {
+  EMPTY_SEARCH,
+  MIN_QUERY_LENGTH,
+  UNAVAILABLE_SEARCH,
+  type SearchResults,
+} from '@/lib/search';
+import { searchSearchParams } from '@/lib/searchParams/apiSearchParams';
+import { searchPageSearchParams } from '@/lib/searchParams/searchPageSearchParams';
 import cn from '@/lib/cn';
 
+// The nav bar's search (⌘K): typeahead over /api/search, the top matches
+// across kinds, and a way through to the full /search page. The typed text is
+// ephemeral UI; the full page keeps its query in the URL.
+
+const DEBOUNCE_MS = 150;
+const FETCH_TIMEOUT_MS = 6_000;
+const MAX_HITS = 8;
+
 const resolvedEmpty = Promise.resolve(EMPTY_SEARCH);
+// Recent queries, so backspacing doesn't refetch. Failures aren't kept.
 const searchCache = new Map<string, Promise<SearchResults>>();
 
 function fetchSearchResults(query: string): Promise<SearchResults> {
-  if (query.length < 2) return resolvedEmpty;
+  const key = query.trim().toLowerCase();
+  if (key.length < MIN_QUERY_LENGTH) return resolvedEmpty;
 
-  let cached = searchCache.get(query);
+  let cached = searchCache.get(key);
   if (!cached) {
-    if (searchCache.size > 50) {
+    if (searchCache.size >= 50) {
       const oldest = searchCache.keys().next().value;
       if (oldest !== undefined) searchCache.delete(oldest);
     }
-    cached = fetch(searchSearchParams.href('/api/search', { q: query }))
-      .then((res) => (res.ok ? (res.json() as Promise<SearchResults>) : EMPTY_SEARCH))
+    cached = fetch(searchSearchParams.href('/api/search', { q: key }), {
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(`Search responded ${res.status}`);
+        return res.json() as Promise<SearchResults>;
+      })
+      .then((results) => {
+        if (results.availability !== 'full') searchCache.delete(key);
+        return results;
+      })
       .catch(() => {
-        searchCache.delete(query);
-        return EMPTY_SEARCH;
+        searchCache.delete(key);
+        return UNAVAILABLE_SEARCH;
       });
-    searchCache.set(query, cached);
+    searchCache.set(key, cached);
   }
   return cached;
 }
 
 function SearchResultsList({
   query,
+  allResults,
   onNavigate,
 }: {
   query: string;
+  allResults: ReactNode;
   onNavigate: (href: string) => void;
 }) {
   const results = use(fetchSearchResults(query));
-
-  const hasResults =
-    results.artists.length > 0 ||
-    results.songs.length > 0 ||
-    results.venues.length > 0 ||
-    results.tours.length > 0;
-
-  if (!hasResults) {
-    return <CommandEmpty>No results found.</CommandEmpty>;
-  }
+  const hits = results.top.slice(0, MAX_HITS);
 
   return (
     <>
-      {results.artists.length > 0 && (
-        <CommandGroup heading="Artists">
-          {results.artists.slice(0, 8).map((artist) => (
+      {results.availability === 'unavailable' ? (
+        <CommandEmpty>Search isn’t available right now.</CommandEmpty>
+      ) : (
+        hits.length === 0 && <p className="py-6 text-center text-sm text-text-muted">No matches.</p>
+      )}
+      {hits.length > 0 && (
+        <CommandGroup heading={results.chips.length ? results.chips.join(' · ') : undefined}>
+          {hits.map((hit) => (
             <CommandItem
-              key={`artist-${artist.slug}`}
-              value={`artist-${artist.slug}`}
-              onSelect={() => onNavigate(href('/[artistSlug]', { artistSlug: artist.slug }))}
+              key={hit.id}
+              value={hit.id}
+              onSelect={() => onNavigate(hit.href)}
+              className="min-h-11"
             >
-              <MicIcon className="size-4 text-text-muted" />
-              <span>{artist.name}</span>
+              <KindIcon kind={hit.kind} />
+              <HitText hit={hit} compact />
             </CommandItem>
           ))}
         </CommandGroup>
       )}
-
-      {results.artists.length > 0 &&
-        (results.songs.length > 0 || results.venues.length > 0 || results.tours.length > 0) && (
-          <CommandSeparator />
-        )}
-
-      {results.songs.length > 0 && (
-        <CommandGroup heading="Songs">
-          {results.songs.slice(0, 8).map((song) => (
-            <CommandItem
-              key={`song-${song.artist.slug}-${song.slug}`}
-              value={`song-${song.artist.slug}-${song.slug}`}
-              onSelect={() =>
-                onNavigate(
-                  href('/artists/[artistSlug]/songs/[songSlug]', {
-                    artistSlug: song.artist.slug,
-                    songSlug: song.slug,
-                  })
-                )
-              }
-            >
-              <SearchIcon className="size-4 text-text-muted" />
-              <div className="flex flex-col">
-                <span>{song.name}</span>
-                <span className="text-xs text-text-muted">
-                  {song.artist.name} · {song.show_count} shows
-                </span>
-              </div>
-            </CommandItem>
-          ))}
-        </CommandGroup>
-      )}
-
-      {results.songs.length > 0 && (results.venues.length > 0 || results.tours.length > 0) && (
-        <CommandSeparator />
-      )}
-
-      {results.venues.length > 0 && (
-        <CommandGroup heading="Venues">
-          {results.venues.slice(0, 8).map((venue) => (
-            <CommandItem
-              key={`venue-${venue.artist.slug}-${venue.slug}`}
-              value={`venue-${venue.artist.slug}-${venue.slug}`}
-              onSelect={() =>
-                onNavigate(
-                  href('/artists/[artistSlug]/venues/[venueSlug]', {
-                    artistSlug: venue.artist.slug,
-                    venueSlug: venue.slug,
-                  })
-                )
-              }
-            >
-              <MapPinIcon className="size-4 text-text-muted" />
-              <div className="flex flex-col">
-                <span>{venue.name}</span>
-                <span className="text-xs text-text-muted">
-                  {venue.artist.name}
-                  {venue.location ? ` · ${venue.location}` : ''}
-                  {venue.show_count ? ` · ${venue.show_count} shows` : ''}
-                </span>
-              </div>
-            </CommandItem>
-          ))}
-        </CommandGroup>
-      )}
-
-      {results.venues.length > 0 && results.tours.length > 0 && <CommandSeparator />}
-
-      {results.tours.length > 0 && (
-        <CommandGroup heading="Tours">
-          {results.tours.slice(0, 6).map((tour) => (
-            <CommandItem
-              key={`tour-${tour.artist.slug}-${tour.slug}`}
-              value={`tour-${tour.artist.slug}-${tour.slug}`}
-              onSelect={() =>
-                onNavigate(
-                  href('/artists/[artistSlug]/tours/[tourSlug]', {
-                    artistSlug: tour.artist.slug,
-                    tourSlug: tour.slug,
-                  })
-                )
-              }
-            >
-              <RouteIcon className="size-4 text-text-muted" />
-              <div className="flex flex-col">
-                <span>{tour.name}</span>
-                <span className="text-xs text-text-muted">
-                  {tour.artist.name}
-                  {tour.show_count ? ` · ${tour.show_count} shows` : ''}
-                </span>
-              </div>
-            </CommandItem>
-          ))}
-        </CommandGroup>
-      )}
+      {allResults}
     </>
+  );
+}
+
+/** Through to the /search page for the typed query. */
+function AllResultsItem({
+  query,
+  pending = false,
+  onNavigate,
+}: {
+  query: string;
+  /**
+   * The row shown while results load. It needs its own value: if it shared
+   * the loaded row's, cmdk would keep that value selected when results land
+   * and scroll down to the last row instead of selecting the top hit.
+   */
+  pending?: boolean;
+  onNavigate: (href: string) => void;
+}) {
+  return (
+    <CommandGroup>
+      <CommandItem
+        value={pending ? '__all-results-pending' : '__all-results'}
+        onSelect={() => onNavigate(searchPageSearchParams.href('/search', { q: query }))}
+        className="min-h-11 text-text-secondary"
+      >
+        <ArrowRightIcon aria-hidden className="size-4 text-text-muted" />
+        <span className="truncate">All results for “{query}”</span>
+      </CommandItem>
+    </CommandGroup>
   );
 }
 
@@ -180,9 +146,10 @@ export default function GlobalSearch() {
   const [inputValue, setInputValue] = useState('');
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query);
-  const isStale = inputValue.length >= 2 && inputValue !== deferredQuery;
+  const debounce = useRef<ReturnType<typeof setTimeout>>(undefined);
   const router = useRouter();
 
+  // ⌘K / Ctrl+K anywhere opens and closes it.
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
@@ -194,85 +161,106 @@ export default function GlobalSearch() {
     return () => document.removeEventListener('keydown', down);
   }, []);
 
-  useEffect(() => {
-    if (inputValue.length < 2) return;
-    const timer = setTimeout(() => setQuery(inputValue), 200);
-    return () => clearTimeout(timer);
-  }, [inputValue]);
+  const reset = () => {
+    clearTimeout(debounce.current);
+    setInputValue('');
+    setQuery('');
+  };
 
-  const navigate = useCallback(
-    (href: string) => {
-      setOpen(false);
-      setInputValue('');
-      setQuery('');
-      router.push(href);
-    },
-    [router]
-  );
+  const navigate = (to: string) => {
+    setOpen(false);
+    reset();
+    router.push(to);
+  };
 
-  const handleOpenChange = useCallback((nextOpen: boolean) => {
-    setOpen(nextOpen);
-    if (!nextOpen) {
-      setInputValue('');
-      setQuery('');
-    }
-  }, []);
+  const onValueChange = (value: string) => {
+    setInputValue(value);
+    clearTimeout(debounce.current);
+    if (value.trim().length < MIN_QUERY_LENGTH) setQuery('');
+    else debounce.current = setTimeout(() => setQuery(value), DEBOUNCE_MS);
+  };
 
-  const showHint = inputValue.length < 2;
-  const showResults = !showHint && deferredQuery.length >= 2;
+  const typed = inputValue.trim();
+  const searchable = typed.length >= MIN_QUERY_LENGTH;
+  const showResults = searchable && deferredQuery.trim().length >= MIN_QUERY_LENGTH;
+  // The list on screen is for an older query than the box: fade it until the new one lands.
+  const isStale = searchable && inputValue !== deferredQuery;
 
   return (
-    <Popover open={open} onOpenChange={handleOpenChange} align="end" sideOffset={8}>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) reset();
+      }}
+      align="end"
+      sideOffset={8}
+    >
       <PopoverTrigger
+        aria-label="Search"
         className="
-          hidden h-8 cursor-pointer items-center gap-2 rounded-md border border-hairline
-          bg-surface-elevated px-3 text-xs text-text-muted transition-colors
-          hover:bg-surface-hover lg:flex
+          nav-btn cursor-pointer
+          lg:mr-1 lg:h-8 lg:gap-2 lg:rounded-md lg:border lg:border-hairline lg:bg-surface-elevated
+          lg:px-3 lg:text-xs lg:text-text-muted lg:hover:bg-surface-hover
         "
       >
-        <SearchIcon className="size-3.5" />
-        <span className="hidden sm:inline">Search</span>
+        <SearchIcon aria-hidden className="size-4 lg:size-3.5" />
+        <span className="hidden lg:inline">Search</span>
         <kbd
           className="
             pointer-events-none ml-1 hidden rounded border border-hairline bg-surface-raised
             px-1.5 py-0.5 font-mono text-[10px] text-text-muted
-            sm:inline-block
+            lg:inline-block
           "
         >
           ⌘K
         </kbd>
       </PopoverTrigger>
 
-      <PopoverContent className="w-[min(420px,calc(100vw-1rem))] p-0">
-        <Command shouldFilter={false}>
+      <PopoverContent
+        // Below lg the trigger is an icon in from the edge, so an end-aligned panel
+        // would run off the left of a phone: pin it to the viewport's right gutter.
+        className="w-[min(420px,calc(100vw-1rem))] p-0 max-lg:right-2! max-lg:left-auto!"
+        arrowClassName="hidden"
+      >
+        <Command shouldFilter={false} loop>
           <CommandInput
-            placeholder="Search artists, songs, venues..."
+            placeholder="Artists, songs, venues, dates…"
             value={inputValue}
-            onValueChange={(value) => {
-              setInputValue(value);
-              if (value.length < 2) setQuery(value);
-            }}
+            onValueChange={onValueChange}
             autoFocus
           />
-          <CommandList className="max-h-80">
-            {showHint && (
-              <CommandEmpty className="text-text-muted">
-                Type to search across all of Relisten...
-              </CommandEmpty>
-            )}
-
-            {!showHint && !showResults && (
-              <CommandEmpty className="text-text-muted">Searching...</CommandEmpty>
-            )}
-
-            {showResults && (
-              <div className={cn('transition-opacity duration-150', isStale && 'opacity-50')}>
-                <Suspense
-                  fallback={<CommandEmpty className="text-text-muted">Searching...</CommandEmpty>}
-                >
-                  <SearchResultsList query={deferredQuery} onNavigate={navigate} />
-                </Suspense>
-              </div>
+          <CommandList className="max-h-[min(24rem,60dvh)]">
+            {!searchable ? (
+              <CommandEmpty className="text-text-muted">Search all of Relisten.</CommandEmpty>
+            ) : (
+              // While the first results load, "All results" is the only item. It
+              // lives in the fallback, so when hits arrive it unmounts and cmdk
+              // moves the selection to the top hit (Enter opens it, and the list
+              // doesn't scroll down to a selected last row).
+              <Suspense
+                fallback={
+                  <>
+                    <p className="py-6 text-center text-sm text-text-muted">Searching…</p>
+                    <AllResultsItem query={typed} pending onNavigate={navigate} />
+                  </>
+                }
+              >
+                {showResults ? (
+                  <div className={cn('transition-opacity duration-150', isStale && 'opacity-50')}>
+                    <SearchResultsList
+                      query={deferredQuery}
+                      allResults={<AllResultsItem query={typed} onNavigate={navigate} />}
+                      onNavigate={navigate}
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <p className="py-6 text-center text-sm text-text-muted">Searching…</p>
+                    <AllResultsItem query={typed} pending onNavigate={navigate} />
+                  </>
+                )}
+              </Suspense>
             )}
           </CommandList>
         </Command>

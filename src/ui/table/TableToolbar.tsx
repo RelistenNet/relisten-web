@@ -24,7 +24,7 @@ const plural = (word: string) => (/[^aeiou]y$/.test(word) ? `${word.slice(0, -1)
  * the debounce (a muted ring), searching (an accent arc, spinning), idle. Going
  * from searching to idle closes the arc, draws a check, and fades (CSS only).
  */
-type SearchStatus = 'idle' | 'waiting' | 'searching';
+export type SearchStatus = 'idle' | 'waiting' | 'searching';
 
 // Focus: a faint accent border and ring instead of the browser outline.
 const FIELD = `
@@ -207,7 +207,7 @@ const RING_STYLE: Record<
   },
 };
 
-function SearchRing({ status }: { status: SearchStatus }) {
+export function SearchRing({ status }: { status: SearchStatus }) {
   const style = RING_STYLE[status];
   return (
     <span

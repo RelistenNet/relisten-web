@@ -5,7 +5,7 @@ import { Toaster } from 'sonner';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/base/shadcn/popover';
 import MainNavHeader from './MainNavHeader';
 import AndroidUpgradeNotification from './AndroidUpgradeNotification';
-// import GlobalSearch from './GlobalSearch';
+import GlobalSearch from './GlobalSearch';
 import { CircleUserRoundIcon, SettingsIcon } from 'lucide-react';
 import SettingsPanel from './SettingsPanel';
 import ArtistTabs from './ArtistTabs';
@@ -51,7 +51,7 @@ export default function NavBar() {
             flex h-full items-center gap-0.5 justify-self-end text-sm font-medium
           "
         >
-          {/* <GlobalSearch /> */}
+          <GlobalSearch />
 
           <nav aria-label="Site" className="hidden h-full items-center xl:flex">
             <ExploreMenu className="nav-btn cursor-pointer gap-1 whitespace-nowrap" />
