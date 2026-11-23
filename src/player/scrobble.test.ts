@@ -1,10 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { scrobblePlay } from './scrobble';
 
-const sent = () => {
-  const [, init] = vi.mocked(fetch).mock.calls[0]!;
-  return JSON.parse(init!.body as string);
-};
+const sent = () => JSON.parse(String(vi.mocked(fetch).mock.calls[0]?.[1]?.body));
 
 describe('scrobblePlay', () => {
   afterEach(() => vi.unstubAllGlobals());

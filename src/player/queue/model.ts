@@ -63,13 +63,16 @@ export const emptyQueue: QueueState = {
 };
 
 /**
- * The public playlist a play of `key` counts for: only while it's the entry
- * playing from that playlist's context. Not a Next up entry (even of the same
- * track), and not once another context replaced the playlist's.
+ * The public playlist a play of `key` counts for: only while it's one of that
+ * playlist's own entries playing from its context. Not a Next up entry (even of
+ * the same track), not one added to the end with Add to Queue (it joins the
+ * context, but keeps its Next up key), and not once another context replaced
+ * the playlist's.
  */
 export function playlistCredit(state: QueueState, key: string): string | undefined {
   const { current, context } = state;
-  return current?.key === key && current.from === 'context' ? context?.playlistId : undefined;
+  if (current?.key !== key || current.from !== 'context' || isNextUpKey(key)) return undefined;
+  return context?.playlistId;
 }
 
 /**
@@ -306,6 +309,9 @@ export function remove(state: QueueState, key: string): QueueState {
 
 /** A Next up entry's key: unique, and never a context entry's (which is its trackId). */
 export const nextUpKey = (trackId: string, id: string) => `next:${trackId}:${id}`;
+
+/** Whether an entry was added by the listener (Play Next, Add to Queue) rather than a context's own. */
+export const isNextUpKey = (key: string) => key.startsWith('next:');
 
 function unqueued(state: QueueState, items: QueueItem[]): QueueItem[] {
   const taken = new Set(compose(state).map((i) => i.key));

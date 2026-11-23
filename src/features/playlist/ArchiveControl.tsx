@@ -1,12 +1,12 @@
 'use client';
 
-import { useRouter } from '@timber-js/app/client';
 import { ArchiveIcon, ArchiveRestoreIcon } from 'lucide-react';
 import { useTransition } from 'react';
 import { toast } from 'sonner';
 import { TOASTER_ID } from '@/player/toasts';
 import { PlaylistWriteError, playlistTransport } from '@/playlists/transport';
 import { refreshPublicPlaylist } from './publishActions';
+import { useOwnPlaylistRefresh } from './useOwnPlaylistRefresh';
 
 /**
  * Archive a playlist, or bring an archived one back. Archived, it's hidden from
@@ -20,7 +20,7 @@ export default function ArchiveControl({
   playlistId: string;
   archived: boolean;
 }) {
-  const router = useRouter();
+  const showChange = useOwnPlaylistRefresh(playlistId);
   const [pending, startTransition] = useTransition();
 
   const toggle = () =>
@@ -29,7 +29,7 @@ export default function ArchiveControl({
         await playlistTransport.setArchived(playlistId, !archived);
         // A published one's public page caches for a minute: have it read the change now.
         await refreshPublicPlaylist(playlistId);
-        router.refresh();
+        showChange();
         toast.success(archived ? 'Unarchived.' : 'Archived. Unarchive it to edit it again.', {
           toasterId: TOASTER_ID,
         });

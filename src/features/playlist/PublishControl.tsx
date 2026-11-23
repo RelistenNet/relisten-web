@@ -1,6 +1,6 @@
 'use client';
 
-import { Link, useRouter } from '@timber-js/app/client';
+import { Link } from '@timber-js/app/client';
 import { href } from '@timber-js/app/routes';
 import {
   BanIcon,
@@ -26,6 +26,7 @@ import {
   DialogTitle,
 } from '@/ui/base/shadcn/dialog';
 import { refreshPublicPlaylist } from './publishActions';
+import { useOwnPlaylistRefresh } from './useOwnPlaylistRefresh';
 import {
   MenuContent,
   MenuItem,
@@ -65,7 +66,7 @@ export default function PublishControl({
    */
   beforePublish?: () => Promise<string | null>;
 }) {
-  const router = useRouter();
+  const showChange = useOwnPlaylistRefresh(playlistId);
   const [confirming, setConfirming] = useState(false);
   const [pending, startTransition] = useTransition();
   const previewHref = href('/playlists/[playlist]/preview', { playlist: playlistId });
@@ -92,7 +93,7 @@ export default function PublishControl({
         const code = result.public_code ?? publicCode;
         // The public page caches for a minute: have it read the change now.
         await refreshPublicPlaylist(playlistId);
-        router.refresh();
+        showChange();
         if (published && code) {
           await copy(code, 'Published. Link copied.');
         } else if (!published) notify.ok('Unpublished. Only you can see it now.');

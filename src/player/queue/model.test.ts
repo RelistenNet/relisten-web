@@ -297,6 +297,14 @@ describe('playlistCredit', () => {
     expect(playlistCredit(fromPlaylist(), 'c2')).toBeUndefined();
   });
 
+  it("doesn't credit a track added to the end with Add to Queue", () => {
+    // Add to Queue appends to the context, but the entry keeps its Next up key.
+    const added = { ...item('x'), key: nextUpKey('x', '1') };
+    const s = advanceTo(addToQueue(fromPlaylist(), [added]), added.key);
+    expect(s.current).toMatchObject({ key: added.key, from: 'context' });
+    expect(playlistCredit(s, added.key)).toBeUndefined();
+  });
+
   it('stops crediting once another context replaces the playlist', () => {
     const s = playContext(fromPlaylist(), ctx(2, 'd'), 'd1');
     expect(playlistCredit(s, 'd1')).toBeUndefined();

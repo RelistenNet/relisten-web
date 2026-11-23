@@ -49,16 +49,5 @@ export default defineSchema({
       },
       serialize: (playlist: string) => playlist.replace(PLAYLIST_PREFIX, ''),
     },
-    // A playlist id without its `playlist_` prefix (as `?source=` drops `source_`):
-    // the old /account/playlists/01m7tyqs5cep4vgwpf7m05ket2, which redirects.
-    '[playlistId]': {
-      parse: (value: string | string[] | undefined): string => {
-        if (typeof value !== 'string' || !PLAYLIST_ID_BODY.test(value)) {
-          throw new Error('Not a playlist id');
-        }
-        return PLAYLIST_PREFIX + value;
-      },
-      serialize: (id: string) => id.replace(PLAYLIST_PREFIX, ''),
-    },
   },
 });
