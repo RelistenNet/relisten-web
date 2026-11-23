@@ -127,6 +127,17 @@ describe('createDraftStore', () => {
     expect(shape(server.server)).toBe(shape(store.getState().content));
   });
 
+  it('keeps its content the same object while a save goes out and comes back', async () => {
+    const server = fakeServer();
+    const store = createDraftStore(content, { transport: server.transport, newId: ids() });
+    store.edit(op('update_entry', { entry_id: 'e1', description: 'Wow' }));
+    const edited = store.getState().content;
+    await settle();
+    expect(store.getState().status).toBe('saved');
+    // The editor lays out (and animates) only when what it shows changes.
+    expect(store.getState().content).toBe(edited);
+  });
+
   it('sends a text edit at once, as its own undo step', async () => {
     const server = fakeServer();
     const store = createDraftStore(content, { transport: server.transport, newId: ids() });

@@ -365,6 +365,27 @@ function stateOf(snapshot: DraftSnapshot): DraftState {
   };
 }
 
+/** Whether two versions of a playlist say the same thing (whatever their revisions). */
+function sameContent(a: PlaylistContent, b: PlaylistContent): boolean {
+  return (
+    a.name === b.name &&
+    a.description === b.description &&
+    a.segments.length === b.segments.length &&
+    a.segments.every((sa, i) => {
+      const sb = b.segments[i];
+      return (
+        sa.id === sb.id &&
+        sa.description === sb.description &&
+        sa.entries.length === sb.entries.length &&
+        sa.entries.every((ea, j) => {
+          const eb = sb.entries[j];
+          return ea.id === eb.id && ea.trackId === eb.trackId && ea.description === eb.description;
+        })
+      );
+    })
+  );
+}
+
 /**
  * Resolves once the actor is idle or has failed. A refusal that arrives meanwhile
  * is its own outcome: nothing's left unsaved, but what the listener last wrote
@@ -398,11 +419,21 @@ export function createDraftStore(
   { transport, newId = newTypeId }: { transport: PlaylistTransport; newId?: NewId }
 ): DraftStore {
   const actor = createActor(draftMachine(transport), { input: initial }).start();
-  // One DraftState per snapshot, so useSyncExternalStore sees a stable value.
+  // One DraftState per snapshot, so useSyncExternalStore sees a stable value. Its
+  // content is the same object for as long as what it says is the same: a save
+  // going out or coming back changes only the revision (sends read the base's), and
+  // a new object would lay the editor out again, animating every row for nothing.
   let cached: { snapshot: DraftSnapshot; state: DraftState } | undefined;
   const getState = () => {
     const snapshot = actor.getSnapshot();
-    if (cached?.snapshot !== snapshot) cached = { snapshot, state: stateOf(snapshot) };
+    if (cached?.snapshot !== snapshot) {
+      const state = stateOf(snapshot);
+      const before = cached?.state.content;
+      cached = {
+        snapshot,
+        state: before && sameContent(before, state.content) ? { ...state, content: before } : state,
+      };
+    }
     return cached.state;
   };
   // Each edit (or undo) numbered, so its operations are sent together.
