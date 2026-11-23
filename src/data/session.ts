@@ -8,6 +8,7 @@ import {
   USER_SERVICE_URL,
   WEB_ORIGIN_HEADER,
   localSession,
+  userServiceRoutingHeaders,
   webOrigin,
 } from '@/lib/session/config';
 import { sessionReturnSearchParams } from '@/lib/searchParams/sessionSearchParams';
@@ -56,6 +57,7 @@ export async function userServiceFetch(
 
   const origin = webOrigin();
   const headers = new Headers(init.headers);
+  for (const [name, value] of Object.entries(userServiceRoutingHeaders())) headers.set(name, value);
   headers.set('accept', 'application/json');
   // Only the local accounts host needs telling which web origin this is. The
   // preview gateway sets it itself, and relisten.net uses its own host.

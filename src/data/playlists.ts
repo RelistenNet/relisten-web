@@ -2,6 +2,7 @@ import 'server-only';
 
 import { cache as timberCache } from '@timber-js/app/cache';
 import { cache as requestCache } from 'react';
+import { deny } from '@timber-js/app/server';
 import { unwrap } from '@/api/fetcher';
 import { postApiV4CatalogResolve } from '@/api/generated/client';
 import type { PlayableTrack, ShowSummary } from '@/domain/types';
@@ -15,7 +16,11 @@ import {
   type PublicPlaylistSnapshotWire,
   toPlaylistContent,
 } from '@/domain/playlists';
-import { USER_SERVICE_TIMEOUT_MS, USER_SERVICE_URL } from '@/lib/session/config';
+import {
+  USER_SERVICE_TIMEOUT_MS,
+  USER_SERVICE_URL,
+  userServiceRoutingHeaders,
+} from '@/lib/session/config';
 import { sessionCookie } from '@/lib/session/sessionCookie';
 import { toTrack } from './adapters';
 import { MINUTES } from './resource';
@@ -109,6 +114,29 @@ export const getOwnPlaylist = requestCache(async (playlistId: string): Promise<O
   }
 });
 
+/**
+ * The User Service couldn't answer: unreachable or timed out (fetch rejects) or
+ * failing (5xx). Not a refusal (4xx), which means something about the request.
+ */
+function isOutage(err: unknown): boolean {
+  if (err instanceof UserServiceError) return err.status >= 500;
+  return (
+    err instanceof TypeError ||
+    (err instanceof DOMException && (err.name === 'TimeoutError' || err.name === 'AbortError'))
+  );
+}
+
+/**
+ * For a page's read's `.catch`: a User Service outage is a 503, with the page's
+ * shell and a way to try again (`(content)/503.tsx`), not a 500. Anything else
+ * is rethrown as it was.
+ */
+export function denyIfUnavailable(err: unknown): never {
+  if (isOutage(err))
+    deny(503, { dangerouslyPassData: { title: 'Playlists aren’t available right now' } });
+  throw err;
+}
+
 // --- Published ---------------------------------------------------------------
 
 /** `creator`: the username of the listener who made it. */
@@ -123,7 +151,7 @@ const publicPlaylistCached = timberCache.data(
   async (code: string): Promise<PublicPlaylist | null> => {
     const path = `/v1/public-playlists/${encodeURIComponent(code)}`;
     const res = await fetch(`${USER_SERVICE_URL}${path}`, {
-      headers: { accept: 'application/json' },
+      headers: { accept: 'application/json', ...userServiceRoutingHeaders() },
       cache: 'no-store',
       signal: AbortSignal.timeout(USER_SERVICE_TIMEOUT_MS),
     });
@@ -220,7 +248,7 @@ const publicPlaylistPageCached = timberCache.data(
     if (artist) query.set('artist', artist);
     if (cursor) query.set('cursor', cursor);
     const res = await fetch(`${USER_SERVICE_URL}/v1/public-playlists?${query}`, {
-      headers: { accept: 'application/json' },
+      headers: { accept: 'application/json', ...userServiceRoutingHeaders() },
       cache: 'no-store',
       signal: AbortSignal.timeout(USER_SERVICE_TIMEOUT_MS),
     });

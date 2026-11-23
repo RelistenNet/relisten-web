@@ -20,11 +20,12 @@ export function webOrigin(): string {
 }
 
 /**
- * Where server-side session calls go: the local accounts host under
+ * Where server-side User Service calls go: the local accounts host under
  * `dev:session`, staging's own host on staging (the User Service binds sessions
- * to the origin they were made on), otherwise relisten.net. Previews set
- * RELISTEN_USER_SERVICE_URL to their in-cluster gateway route, which supplies
- * the preview's origin itself.
+ * to the origin they were made on), otherwise relisten.net. In the cluster,
+ * RELISTEN_USER_SERVICE_URL points at the service itself (production, staging)
+ * or at the preview gateway (previews), so calls don't leave the cluster; see
+ * `userServiceRoutingHeaders`.
  */
 const deployment = getDeploymentEnvironment();
 export const USER_SERVICE_URL =
@@ -39,6 +40,19 @@ if (deployment.kind === 'preview' && !process.env.RELISTEN_USER_SERVICE_URL) {
   console.warn(
     '[session] RELISTEN_USER_SERVICE_URL is unset on a preview; session lookups go to relisten.net and will read as signed out.'
   );
+}
+
+/**
+ * Headers every server-side User Service call carries. Over the internet (an
+ * `https:` URL) the ingress sets them, so there are none. In the cluster (`http:`)
+ * they say which site the call is for, as the ingress would: the User Service
+ * trusts X-Forwarded-Host and -Proto from the pod network, and takes a
+ * registered web origin (relisten.net, soundcheck) as the site the session
+ * belongs to. The preview gateway replaces them with its own.
+ */
+export function userServiceRoutingHeaders(): Record<string, string> {
+  if (new URL(USER_SERVICE_URL).protocol !== 'http:') return {};
+  return { 'x-forwarded-host': new URL(webOrigin()).host, 'x-forwarded-proto': 'https' };
 }
 
 /** The OIDC issuer / SSO-cookie host. Logout bounces through it to clear the SSO cookie. */

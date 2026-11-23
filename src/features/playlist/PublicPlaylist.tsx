@@ -2,7 +2,7 @@ import { href } from '@timber-js/app/routes';
 import { deny } from '@timber-js/app/server';
 import { METADATA_BASE } from '@/lib/constants';
 import { ogImageSearchParams } from '@/lib/searchParams/ogImageSearchParams';
-import { getPublicPlaylist } from '@/data/playlists';
+import { denyIfUnavailable, getPublicPlaylist } from '@/data/playlists';
 import { PLAYLIST_CARD_SIZE } from './PlaylistCard';
 import { PUBLIC_PLAYLISTS_CRUMB } from './PlaylistArticle';
 import PlaylistDetail from './PlaylistDetail';
@@ -10,7 +10,7 @@ import ReportPlaylist from './ReportPlaylist';
 
 /** A published playlist, open to anyone with the link. Private, archived and taken-down ones are 404s. */
 export default async function PublicPlaylist({ publicCode }: { publicCode: string }) {
-  const playlist = await getPublicPlaylist(publicCode);
+  const playlist = await getPublicPlaylist(publicCode).catch(denyIfUnavailable);
   if (!playlist) deny(404);
   return (
     <PlaylistDetail

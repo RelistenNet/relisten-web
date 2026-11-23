@@ -4,6 +4,7 @@ import { deny, redirect } from '@timber-js/app/server';
 import { ArchiveIcon, BanIcon, GlobeIcon, LockIcon, type LucideIcon, PlusIcon } from 'lucide-react';
 import { findArtistBySlug } from '@/data/artists';
 import {
+  denyIfUnavailable,
   getPlaylistLibrary,
   getPublicPlaylistPage,
   ownPlaylistRows,
@@ -204,7 +205,9 @@ export default async function PublicPlaylistsIndex({ artistSlug }: { artistSlug?
   } else {
     const sortId = params.sort?.replace(/^-/, '') ?? '';
     const sort = Object.hasOwn(API_SORTS, sortId) ? sortId : spec.defaultSort.id;
-    const page = await getPublicPlaylistPage(API_SORTS[sort], artist?.id, params.cursor);
+    const page = await getPublicPlaylistPage(API_SORTS[sort], artist?.id, params.cursor).catch(
+      denyIfUnavailable
+    );
     // A cursor the User Service refused (from another sort, or made up).
     if (!page) deny(404);
     view = { rows: page.rows, sort, columns: PUBLISHED_COLUMNS, nextCursor: page.nextCursor };

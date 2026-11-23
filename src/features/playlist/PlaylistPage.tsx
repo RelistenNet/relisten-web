@@ -1,4 +1,4 @@
-import { getPublicPlaylist } from '@/data/playlists';
+import { denyIfUnavailable, getPublicPlaylist } from '@/data/playlists';
 import { getCurrentUser } from '@/data/session';
 import { isPlaylistId } from '@/domain/playlists';
 import { sessionCookie } from '@/lib/session/sessionCookie';
@@ -22,7 +22,7 @@ async function viewerCreated(creator: string): Promise<boolean> {
 
 export default async function PlaylistPage({ playlist }: { playlist: string }) {
   if (isPlaylistId(playlist)) return <OwnPlaylist playlistId={playlist} />;
-  const published = await getPublicPlaylist(playlist);
+  const published = await getPublicPlaylist(playlist).catch(denyIfUnavailable);
   if (published && (await viewerCreated(published.creator))) {
     return <OwnPlaylist playlistId={published.playlistId} atPublicUrl />;
   }
