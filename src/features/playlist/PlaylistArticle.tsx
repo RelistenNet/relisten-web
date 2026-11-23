@@ -248,6 +248,9 @@ export default function PlaylistArticle({
 
 // --- Rows --------------------------------------------------------------------
 
+/** The transition type of a move in the editor: its rows slide (Row). */
+export const MOVE = 'playlist-move';
+
 /** One row of the flow: its rail cell, then its content. */
 /** Above this many rows, rows don't animate (measured: 308 rows cost 90–250ms a transition). */
 export const MAX_ANIMATED_ROWS = 150;
@@ -277,13 +280,20 @@ function Row({ row, slots, animate }: { row: FlowRow; slots?: ArticleSlots; anim
       </div>
     </div>
   );
-  // Rows glide to their new places whenever their layout changes in a transition:
-  // an edit (the editor commits them as transitions), drop zones closing, and the
-  // move between the playlist's page and its editor (a navigation), where each row
-  // is named, so it morphs from where it was on one page to where it is on the
-  // other. globals.css has the timing.
+  // Rows glide to their new places on a move (the editor's, typed MOVE: a drop, a
+  // menu's move, a removal, an undo) and between the playlist's page and its editor
+  // (a navigation), where each row is named, so it morphs from where it was on one
+  // page to where it is on the other. Nothing else animates: text written, a save
+  // coming back, the server's render all land at once (cross-faded, a row lost its
+  // hover outline while it ran). globals.css has the timing.
   return animate && (row.kind === 'track' || row.kind === 'prose') ? (
-    <ViewTransition name={transitionName(row.key)} share="playlist-move" default="playlist-move">
+    <ViewTransition
+      name={transitionName(row.key)}
+      share="playlist-move"
+      update={{ [MOVE]: 'playlist-move', default: 'none' }}
+      exit={{ [MOVE]: 'playlist-exit', default: 'none' }}
+      default="none"
+    >
       {body}
     </ViewTransition>
   ) : (

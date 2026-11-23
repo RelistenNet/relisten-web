@@ -610,10 +610,21 @@
   animation-duration: 240ms;
   animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
 }
+/* What React captured that turned out unchanged keeps only its old image (React
+   unnames it before the new one is taken) while it shows live under it, so fading
+   out over it flashed it on each save: a row (drawn twice), and the page around
+   them (its old image has holes where every row was, washing them out). A row
+   removed (playlist-exit) has nothing live under it, and fades out. */
+::view-transition-old(.playlist-move):only-child,
+::view-transition-old(root):only-child {
+  display: none;
+}
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(.playlist-move),
   ::view-transition-old(.playlist-move),
-  ::view-transition-new(.playlist-move) {
+  ::view-transition-new(.playlist-move),
+  ::view-transition-group(.playlist-exit),
+  ::view-transition-old(.playlist-exit) {
     animation: none;
   }
 }

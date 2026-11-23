@@ -13,13 +13,16 @@ import {
   UndoIcon,
 } from 'lucide-react';
 import {
+  addTransitionType,
   type ReactNode,
   type RefObject,
+  startTransition,
   useDeferredValue,
   useEffect,
   useEffectEvent,
   useRef,
   useState,
+  useTransition,
 } from 'react';
 import { toast } from 'sonner';
 import { applyOp, PlaylistOpError } from '@/domain/playlistOps';
@@ -52,6 +55,7 @@ import { type DragSource, dropOps } from './dragOps';
 import MarkdownField, { type FieldAction } from './MarkdownField';
 import PlaylistArticle, {
   MAX_ANIMATED_ROWS,
+  MOVE,
   type ArticleSlots,
   type PlaylistCrumb,
   type ProseOwner,
@@ -228,8 +232,33 @@ export default function PlaylistEditor({
   // The server's render of saved edits on its way back (router.refresh()).
   const refreshing = usePendingNavigation((to, from) => to.href === from.href);
 
-  /** Applies edits (as one undo step); an edit the server would refuse says why instead. */
-  const edit = (...ops: (PlaylistOp | null)[]): PlaylistOp[] => {
+  // The playlist as laid out. A move (anything that rearranges it: a drop, a menu's
+  // move, a removal, an undo) is made in a transition typed MOVE: until that renders,
+  // the rows stay where they were (the deferred copy), and its render slides them to
+  // their new places (ViewTransition in PlaylistArticle). Anything else is laid out at
+  // once, with nothing animating: text written, a save coming back, the server's
+  // render. A long playlist doesn't animate at all (its rows aren't named).
+  const [moving, startMove] = useTransition();
+  const deferred = useDeferredValue(state.content);
+  const rows = state.content.segments.reduce((n, s) => n + Math.max(1, s.entries.length), 0);
+  const laidOut = moving && rows <= MAX_ANIMATED_ROWS ? deferred : state.content;
+  /** Makes a change to the draft as a move: its rows slide. */
+  const asMove = <T,>(change: () => T): T => {
+    let result!: T;
+    startMove(() => {
+      result = change();
+    });
+    // Typed after, not in it: React keeps a type only for a transition already on its
+    // way (the move's), and the draft's own update isn't one (a store's renders at once).
+    startTransition(() => addTransitionType(MOVE));
+    return result;
+  };
+
+  /**
+   * Applies edits (as one undo step); an edit the server would refuse says why
+   * instead. `editText` for a field's text, which lands where it was written.
+   */
+  const apply = (ops: (PlaylistOp | null)[]): PlaylistOp[] => {
     // A removal's toast undoes the top step: once anything else is, it's gone.
     toast.dismiss(REMOVED_TOAST);
     try {
@@ -240,6 +269,8 @@ export default function PlaylistEditor({
       return [];
     }
   };
+  const edit = (...ops: (PlaylistOp | null)[]) => asMove(() => apply(ops));
+  const editText = (op: PlaylistOp) => apply([op]);
   const content = state.content;
   const root = useRef<HTMLDivElement>(null);
   useWarnBeforeLeaving(store, root, unsentCount);
@@ -281,15 +312,7 @@ export default function PlaylistEditor({
       edit(...ops);
     },
   });
-  // Laid out from a deferred copy, so each edit commits as a transition and the
-  // rows slide to their new places (ViewTransition in PlaylistArticle). Not a long
-  // playlist: its rows don't animate, and its background render (slow, and
-  // restarted by every urgent update, like playback's) could keep an edit off
-  // screen, a closed field's text nowhere, for as long as it took.
-  const deferred = useDeferredValue(content);
-  const entries = content.segments.reduce((n, s) => n + Math.max(1, s.entries.length), 0);
-  const shown = entries > MAX_ANIMATED_ROWS ? content : deferred;
-  const view = playlistView(shown, resolved);
+  const view = playlistView(laidOut, resolved);
   const timestampTargets = view.rows.flatMap((r) =>
     r.kind === 'track'
       ? [{ entryId: r.id, title: r.trackTitle ?? 'Track', duration: r.songDuration ?? undefined }]
@@ -342,7 +365,9 @@ export default function PlaylistEditor({
     if (text === null) return;
     const op = toOp(store.getState().content, text);
     if (op === null) return;
-    if (op !== 'gone' && edit(op).includes(op)) {
+    // Laid out at once (editText), in the render that closes the field: its text
+    // takes the field's place.
+    if (op !== 'gone' && editText(op).includes(op)) {
       sent.current.set(op, { from, text });
       return;
     }
@@ -360,12 +385,12 @@ export default function PlaylistEditor({
     toast(`Removed ${what}`, {
       id: REMOVED_TOAST,
       toasterId: TOASTER_ID,
-      action: { label: 'Undo', onClick: () => store.undo() },
+      action: { label: 'Undo', onClick: () => asMove(() => store.undo()) },
     });
   };
   const undo = () => {
     toast.dismiss(REMOVED_TOAST);
-    store.undo();
+    asMove(() => store.undo());
   };
   // Nor does it outlive the editor.
   useEffect(() => () => void toast.dismiss(REMOVED_TOAST), []);
@@ -422,7 +447,7 @@ export default function PlaylistEditor({
           const parsed = PlaylistName.safeParse(name);
           if (!parsed.success) return notify(parsed.error.issues[0]?.message ?? 'Check the name.');
           if (parsed.data !== content.name)
-            edit({ operation_type: 'update_metadata', payload: { name: parsed.data } });
+            editText({ operation_type: 'update_metadata', payload: { name: parsed.data } });
         }}
       />
     ),
