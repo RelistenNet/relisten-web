@@ -176,11 +176,12 @@ export default function DataTable<Row>({
                     const Arrow = result.sort.dir === 'asc' ? ArrowUp : ArrowDown;
                     const sortLink = (x: (typeof sorts)[number]) => {
                       const active = x.id === result.sort.id;
-                      const nextDir = active
-                        ? result.sort.dir === 'asc'
-                          ? 'desc'
-                          : 'asc'
-                        : (x.firstDir ?? 'asc');
+                      const nextDir =
+                        active && !col.oneWay
+                          ? result.sort.dir === 'asc'
+                            ? 'desc'
+                            : 'asc'
+                          : (x.firstDir ?? 'asc');
                       return (
                         <Link
                           key={x.id}
