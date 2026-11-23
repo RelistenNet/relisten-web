@@ -622,6 +622,8 @@ function TrackCell({
   slots?: ArticleSlots;
 }) {
   const name = `${row.trackTitle ?? 'Track'}, ${row.date}`;
+  // The venue and its town, as one link to the venue's page.
+  const venue = row.location ? `${row.venueName}, ${row.location}` : row.venueName;
   return (
     <Card
       row={row}
@@ -676,14 +678,14 @@ function TrackCell({
                     })}
                     className="text-text-muted hover:text-accent"
                   >
-                    {row.venueName}
+                    {venue}
                   </Link>
                 ) : (
-                  row.venueName
+                  venue
                 )}
               </>
             )}
-            {row.location && <>, {row.location}</>}
+            {!row.venueName && row.location && <> · {row.location}</>}
           </span>
           <Note id={row.id} blocks={row.prose} slots={slots} />
         </div>
