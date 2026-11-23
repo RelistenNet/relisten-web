@@ -24,6 +24,7 @@ export interface TrackResource {
   title: string | null;
   /** @nullable */
   slug: string | null;
+  playable: boolean;
   /** @nullable */
   mp3_url: string | null;
   /** @nullable */
