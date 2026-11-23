@@ -4,7 +4,7 @@ import {
   CassetteTapeIcon,
   MapPinIcon,
   MessageSquareQuoteIcon,
-  MicIcon,
+  UsersRoundIcon,
   MusicIcon,
   RouteIcon,
   type LucideIcon,
@@ -18,7 +18,7 @@ import cn from '@/lib/cn';
 // No hooks: rendered on the server by the page and on the client by the combobox.
 
 const KIND_ICON: Record<SearchKind, LucideIcon> = {
-  artist: MicIcon,
+  artist: UsersRoundIcon,
   song: MusicIcon,
   venue: MapPinIcon,
   tour: RouteIcon,
