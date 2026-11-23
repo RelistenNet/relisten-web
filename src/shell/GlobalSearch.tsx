@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, use, useEffect, useState, useTransition } from 'react';
+import { Suspense, use, useEffect, useState } from 'react';
 import { useRouter } from '@timber-js/app/client';
 import { ArrowRightIcon, SearchIcon } from 'lucide-react';
 import {
@@ -13,36 +13,22 @@ import {
 } from '@/ui/base/shadcn/command';
 import { Popover, PopoverTrigger, PopoverContent } from '@/ui/base/shadcn/popover';
 import { HitText, KindIcon } from '@/ui/search/SearchHitParts';
-import { MIN_QUERY_LENGTH, UNAVAILABLE_SEARCH, type SearchResults } from '@/lib/search';
-import { searchSearchParams } from '@/lib/searchParams/apiSearchParams';
+import { MIN_QUERY_LENGTH, type SearchResults } from '@/lib/search';
 import { searchPageSearchParams } from '@/lib/searchParams/searchPageSearchParams';
 import cn from '@/lib/cn';
+import { normalizeQuery as normalize, useSearchRequest } from '@/lib/useSearchRequest';
 
 // The nav bar's search (⌘K): typeahead over /api/search, the top matches
 // across kinds, and a way through to the full /search page.
 //
-// The box updates on every keystroke. Once typing pauses
-// (REQUEST_DEBOUNCE_MS), a transition starts that query's
-// request and puts its promise in state; the results read it with `use`.
+// The box updates on every keystroke. Once typing pauses, a transition starts
+// that query's request and puts its promise in state (useSearchRequest); the
+// results read it with `use`.
 // While it loads, the transition keeps the previous results on screen; they
 // stay faded from the keystroke until the new ones render. A backspace to an earlier query refetches, which
 // the browser answers from its HTTP cache (/api/search is cacheable).
 
-const REQUEST_DEBOUNCE_MS = 180;
-const FETCH_TIMEOUT_MS = 6_000;
 const MAX_HITS = 8;
-
-type SearchRequest = { query: string; results: Promise<SearchResults> };
-
-function fetchSearch(query: string): Promise<SearchResults> {
-  return fetch(searchSearchParams.href('/api/search', { q: query }), {
-    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-  })
-    .then((res) => (res.ok ? (res.json() as Promise<SearchResults>) : UNAVAILABLE_SEARCH))
-    .catch(() => UNAVAILABLE_SEARCH);
-}
-
-const normalize = (query: string) => query.trim().toLowerCase();
 
 export default function GlobalSearch() {
   const [open, setOpen] = useState(false);
@@ -93,35 +79,6 @@ export default function GlobalSearch() {
       </PopoverContent>
     </Popover>
   );
-}
-
-/**
- * The latest search request for `query`, started once typing pauses: every
- * change, a space too, restarts the wait. The request is made in a transition
- * and kept in state, so its promise is stable for `use()`, the previous
- * results stay on screen while it loads, and `isPending` says it's loading.
- * A newer request replaces an older one; one still in flight resolves into
- * nothing. Emptying the box drops the request. Unmounting cancels a request
- * that hasn't started.
- */
-function useSearchRequest(query: string): { request: SearchRequest | null; isPending: boolean } {
-  const [request, setRequest] = useState<SearchRequest | null>(null);
-  const [isPending, startTransition] = useTransition();
-
-  // A query too short to search has no request, so the next query starts
-  // fresh ("Searching…") instead of showing whatever was searched before.
-  if (request && normalize(query).length < MIN_QUERY_LENGTH) setRequest(null);
-
-  useEffect(() => {
-    const q = normalize(query);
-    if (q.length < MIN_QUERY_LENGTH) return;
-    const timer = setTimeout(() => {
-      startTransition(() => setRequest({ query: q, results: fetchSearch(q) }));
-    }, REQUEST_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [query]);
-
-  return { request, isPending };
 }
 
 function SearchPanel({ onNavigate }: { onNavigate: () => void }) {

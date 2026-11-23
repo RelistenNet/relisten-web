@@ -12,6 +12,7 @@ import {
 import type { ExcerptRun, SearchHit, SearchKind } from '@/lib/search';
 import { KIND_LABEL } from '@/lib/search';
 import cn from '@/lib/cn';
+import { durationToHHMMSS } from '@/lib/utils';
 
 // The parts of a search result the /search page and the nav bar's combobox
 // share: the kind's icon, the title with its context line, and an excerpt.
@@ -51,7 +52,11 @@ export function Excerpt({ runs, className }: { runs: ExcerptRun[]; className?: s
 
 /** Title, the kind and context line, then the excerpt. */
 export function HitText({ hit, compact = false }: { hit: SearchHit; compact?: boolean }) {
-  const detail = [KIND_LABEL[hit.kind], ...hit.detail].join(' · ');
+  const detail = [
+    KIND_LABEL[hit.kind],
+    ...hit.detail,
+    ...(hit.duration ? [durationToHHMMSS(hit.duration)] : []),
+  ].join(' · ');
   return (
     <span className="flex min-w-0 flex-col">
       <span className="flex min-w-0 items-center gap-1.5">

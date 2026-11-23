@@ -6,11 +6,13 @@ import {
   ArrowUpIcon,
   EllipsisVerticalIcon,
   GroupIcon,
+  ListMusicIcon,
   PencilIcon,
   PlusIcon,
   TextIcon,
   Trash2Icon,
   UndoIcon,
+  type LucideIcon,
 } from 'lucide-react';
 import {
   addTransitionType,
@@ -42,6 +44,7 @@ import type { PlaylistTrackGroupRow } from './blocks';
 import {
   hasProseOwner,
   insertText,
+  insertTracks,
   moveEntry,
   moveSegmentBy,
   moveToOwnGroup,
@@ -50,10 +53,12 @@ import {
   saveProse,
   sourceOf,
 } from './editOps';
+import AddTracks from './AddTracks';
 import PublishControl from './PublishControl';
 import { type DragSource, dropOps } from './dragOps';
 import MarkdownField, { type FieldAction } from './MarkdownField';
 import PlaylistArticle, {
+  ComposerFrame,
   MAX_ANIMATED_ROWS,
   MOVE,
   type ArticleSlots,
@@ -92,15 +97,20 @@ type Reopened = {
   waiting?: number;
 };
 
-/** The open text field, if any. */
-type Editing =
+/** A text field: a block's prose, or new text in the composer. */
+type TextField =
   | ({ kind: 'prose'; owner: ProseOwner } & Reopened)
   /** New text, in the composer after a row (by key), or at the end ('end'). */
-  | ({ kind: 'composer'; after: string; into?: string } & Reopened)
-  | null;
+  | ({ kind: 'composer'; after: string; into?: string } & Reopened);
+
+/** Add Tracks, in the composer after a row (by key), or at the end ('end'). */
+type AddingTracks = { kind: 'tracks'; after: string };
+
+/** What's open: a text field, Add Tracks, or nothing. */
+type Editing = TextField | AddingTracks | null;
 
 /** Text sent from a field: where it was written, to reopen there if it's refused. */
-type Sent = { from: NonNullable<Editing>; text: string };
+type Sent = { from: TextField; text: string };
 
 /**
  * Text that didn't make it, waiting in its field, and why: refused as written (sent
@@ -115,7 +125,7 @@ const sameOwner = (a: ProseOwner, b: ProseOwner) =>
  * Whether a field still has somewhere to open: its block, or the row its composer
  * follows (and the group it was writing into, if it was).
  */
-const stillThere = (content: PlaylistContent, from: NonNullable<Editing>) =>
+const stillThere = (content: PlaylistContent, from: TextField) =>
   from.kind === 'prose'
     ? hasProseOwner(content, from.owner)
     : (from.into === undefined || content.segments.some((s) => s.id === from.into)) &&
@@ -125,11 +135,18 @@ const stillThere = (content: PlaylistContent, from: NonNullable<Editing>) =>
           (s) => s.id === from.after || s.entries.some((e) => e.id === from.after)
         ));
 
-const sameField = (a: Editing, b: NonNullable<Editing>) =>
+const sameField = (a: Editing, b: TextField) =>
   !!a &&
   (a.kind === 'prose'
     ? b.kind === 'prose' && sameOwner(a.owner, b.owner)
-    : b.kind === 'composer' && a.after === b.after && a.into === b.into);
+    : a.kind === 'composer' && b.kind === 'composer' && a.after === b.after && a.into === b.into);
+
+const hasRow = (content: PlaylistContent, id: string) =>
+  content.segments.some((s) => s.id === id || s.entries.some((e) => e.id === id));
+
+/** Where Add Tracks is: the row it was opened after, or the end once that row's gone. */
+const tracksAt = (content: PlaylistContent, open: AddingTracks) =>
+  open.after === 'end' || hasRow(content, open.after) ? open.after : 'end';
 
 /**
  * The one removal toast. Its Undo undoes the top step, so it's dismissed as soon
@@ -167,13 +184,16 @@ export default function PlaylistEditor({
   // and shows in its field when no other is open: a refusal never takes the place
   // of a field that's open (which would close it unfinished and send its text
   // again), so refusals can't chase each other.
-  const [opened, setEditing] = useState<Editing>(null);
+  // A playlist with nothing in it yet (just created) opens on Add Tracks.
+  const [opened, setEditing] = useState<Editing>(() =>
+    initial.segments.length ? null : { kind: 'tracks', after: 'end' }
+  );
   const [unsent, setUnsent] = useState<Unsent[]>([]);
   const waiting = unsent[0];
   // Where it reopens is worked out now, not kept: its own field while that's still
   // there, else the composer at the end. (Kept, it went stale: a block deleted while
   // its draft waited left the draft nowhere to open, and nothing could close it.)
-  const reopenAt: NonNullable<Editing> | null = waiting
+  const reopenAt: TextField | null = waiting
     ? stillThere(state.content, waiting.from)
       ? waiting.from
       : { kind: 'composer', after: 'end' }
@@ -284,7 +304,12 @@ export default function PlaylistEditor({
   // What's being dragged: the flow lays out its drop zones while it is.
   const [dragging, setDragging] = useState<DragSource | null>(null);
   // Where the composer is: after a row's key ('end' for the Add zone at the end).
-  const composerAt = editing?.kind === 'composer' ? editing.after : null;
+  const composerAt =
+    editing?.kind === 'composer'
+      ? editing.after
+      : editing?.kind === 'tracks'
+        ? tracksAt(content, editing)
+        : null;
   usePlaylistDrag({
     root,
     dragging,
@@ -327,7 +352,7 @@ export default function PlaylistEditor({
     const { kind } = draft.from;
     // Where it reopens (and, for new text, the group it was going into), without
     // what it carried when it was last open.
-    const from: NonNullable<Editing> =
+    const from: TextField =
       kind === 'prose'
         ? { kind, owner: draft.from.owner }
         : { kind, after: draft.from.after, into: draft.from.into };
@@ -346,7 +371,7 @@ export default function PlaylistEditor({
    * saved, waiting, or discarded on purpose.
    */
   const commitText = (
-    from: NonNullable<Editing>,
+    from: TextField,
     text: string | null,
     how: 'finished' | 'interrupted',
     /** The edit for `text`, against `now`: null for no change, 'gone' for nowhere to go. */
@@ -378,6 +403,42 @@ export default function PlaylistEditor({
         error: 'What you were editing was removed. Your text is here.',
         refused: false,
       });
+  };
+
+  /**
+   * A track chosen in Add Tracks, where it's open. It stays open, cleared, for the
+   * next: after a row, it moves down under the track just added, so the next goes
+   * after that one, in the order they're chosen. Laid out at once, like text (it
+   * isn't a move); undo takes it out. Whether it went in (the picker clears if so).
+   */
+  const addTrack = (open: AddingTracks, trackId: string): boolean => {
+    const now = store.getState().content;
+    const at = tracksAt(now, open);
+    const op = insertTracks(now, at === 'end' ? null : at, [trackId]);
+    if (!op || !apply([op]).includes(op)) return false;
+    const [added] = 'entries' in op.payload ? op.payload.entries : [];
+    if (at !== 'end' && added) setEditing({ kind: 'tracks', after: added.entry_id });
+    return true;
+  };
+
+  /**
+   * Closes Add Tracks (Escape, Done), and puts focus where it opens again, so the
+   * keyboard carries on from there: the Add Tracks row at the end, or else the menu
+   * (with Add Tracks Below) of the row it was after. Once that's rendered.
+   */
+  const closeTracks = (focusOn: 'end' | string | undefined) => {
+    setEditing((current) => (current?.kind === 'tracks' ? null : current));
+    requestAnimationFrame(() => {
+      const target =
+        focusOn === 'end'
+          ? root.current?.querySelector<HTMLElement>('[data-add-tracks]')
+          : focusOn
+            ? root.current?.querySelector<HTMLElement>(
+                `[data-row-id="${CSS.escape(focusOn)}"] [data-edit-menu]`
+              )
+            : null;
+      target?.focus();
+    });
   };
 
   const removed = (what: string, op: PlaylistOp) => {
@@ -482,6 +543,8 @@ export default function PlaylistEditor({
 
     editProse: (owner) => setEditing({ kind: 'prose', owner }),
 
+    saving: state.status !== 'error',
+
     // Waiting on the server's render, unless saving it failed (the toolbar says so).
     prosePending: (owner) =>
       state.status !== 'error' &&
@@ -496,6 +559,7 @@ export default function PlaylistEditor({
         onNote={() => setEditing({ kind: 'prose', owner: { kind: 'note', id: row.id } })}
         onIntro={() => setEditing({ kind: 'prose', owner: { kind: 'segment', id: row.segmentId } })}
         onAddBelow={() => setEditing({ kind: 'composer', after: row.id })}
+        onAddTracksBelow={() => setEditing({ kind: 'tracks', after: row.id })}
         onEdit={(op) => edit(op)}
         // Worked out when the menu opens, not for every row on every render.
         moves={() => ({
@@ -546,7 +610,11 @@ export default function PlaylistEditor({
         return {
           source: { kind: 'entry', id: target.row.id },
           label:
-            target.row.kind === 'track' ? (target.row.trackTitle ?? 'Track') : 'Unavailable track',
+            target.row.kind === 'track'
+              ? (target.row.trackTitle ?? 'Track')
+              : target.row.pending
+                ? 'Track'
+                : 'Unavailable track',
         };
       if (target.kind === 'prose' && target.owner.kind !== 'playlist')
         return { source: target.drag, label: firstLine(sourceOf(content, target.owner)) || 'Text' };
@@ -577,12 +645,19 @@ export default function PlaylistEditor({
           how,
           (now, t) => insertText(now, at, t)
         );
-      return {
-        control:
-          at.key === 'end' ? (
-            <GapControl onAddText={() => setEditing({ kind: 'composer', after: 'end' })} />
-          ) : undefined,
-        content: open ? (
+      const tracks =
+        editing?.kind === 'tracks' && !at.into && composerAt === at.key ? editing : null;
+      const tracksField = tracks && (
+        <AddTracks
+          inPlaylist={(trackId) =>
+            content.segments.some((s) => s.entries.some((e) => e.trackId === trackId))
+          }
+          onAdd={(trackId) => addTrack(tracks, trackId)}
+          onClose={() => closeTracks(composerAt ?? undefined)}
+        />
+      );
+      const textField = open && (
+        <ComposerFrame>
           <MarkdownField
             // A fresh field per draft: the next one waiting doesn't inherit this one's text.
             key={open.waiting ?? 'open'}
@@ -595,8 +670,29 @@ export default function PlaylistEditor({
             onDone={(text) => done(text, 'finished')}
             onInterrupted={(text) => done(text, 'interrupted')}
           />
-        ) : undefined,
-      };
+        </ComposerFrame>
+      );
+      // After a row: what's being added there. At the end: a row each to add tracks and
+      // to write, each giving way to its field while it's open.
+      if (at.key !== 'end') return tracksField || textField || null;
+      return (
+        <div className="flex flex-col gap-2">
+          {tracksField || (
+            <AddRow
+              icon={ListMusicIcon}
+              onClick={() => setEditing({ kind: 'tracks', after: 'end' })}
+              data-add-tracks=""
+            >
+              Add Tracks
+            </AddRow>
+          )}
+          {textField || (
+            <AddRow icon={PlusIcon} onClick={() => setEditing({ kind: 'composer', after: 'end' })}>
+              Add Text
+            </AddRow>
+          )}
+        </div>
+      );
     },
 
     toolbar: (
@@ -871,6 +967,8 @@ function EditMenu({
     <MenuRoot>
       <MenuTrigger
         aria-label={label}
+        // Where focus goes back to after adding below its row (Add Tracks).
+        data-edit-menu=""
         className={cn(
           `
             inline-flex size-8 items-center justify-center rounded-md text-text-muted opacity-0
@@ -978,6 +1076,7 @@ function CellMenu({
   onNote,
   onIntro,
   onAddBelow,
+  onAddTracksBelow,
   onEdit,
   moves,
   moveToGroup,
@@ -990,6 +1089,7 @@ function CellMenu({
   onNote: () => void;
   onIntro: () => void;
   onAddBelow: () => void;
+  onAddTracksBelow: () => void;
   onEdit: (op: PlaylistOp | null) => void;
   moves: () => Moves;
   moveToGroup: (segmentId: string) => PlaylistOp;
@@ -1008,6 +1108,9 @@ function CellMenu({
       )}
       <MenuItem icon={PlusIcon} onClick={onAddBelow}>
         Add Text Below
+      </MenuItem>
+      <MenuItem icon={ListMusicIcon} onClick={onAddTracksBelow}>
+        Add Tracks Below
       </MenuItem>
       <MenuSeparator />
       <MoveItems moves={moves} onEdit={onEdit} />
@@ -1035,21 +1138,41 @@ function CellMenu({
   );
 }
 
-/** The Add zone at the end: click anywhere in it to write there. */
-function GapControl({ onAddText }: { onAddText: () => void }) {
+/**
+ * One of the Add rows at the end: laid out as a card's line, its icon where a play
+ * button is, and as tall as Add Tracks' search field, so opening it moves nothing.
+ * Focus shows as the field's does, on any focus, not just the keyboard's: focus comes
+ * back here after a track is added with a click, and a click on the row itself
+ * replaces it with its field, so the ring never lingers.
+ */
+function AddRow({
+  icon: Icon,
+  onClick,
+  children,
+  ...data
+}: {
+  icon: LucideIcon;
+  onClick: () => void;
+  children: ReactNode;
+  [data: `data-${string}`]: string;
+}) {
   return (
     <button
       type="button"
-      onClick={onAddText}
+      onClick={onClick}
+      {...data}
       className="
-        flex w-full items-center gap-2 rounded-[inherit] py-2
-        pl-[calc(var(--spacing-flow-indent)-1px)] text-sm text-text-muted
-        transition-colors hover:bg-text-primary/[0.03] hover:text-text-primary
-        focus-visible:outline-2 focus-visible:outline-accent
+        flex w-full items-center gap-card-gap rounded-xl border border-dashed
+        border-text-primary/15 py-card-y pr-1.5 pl-card-x text-[15px] text-text-muted
+        transition-colors hover:border-text-primary/30 hover:bg-text-primary/[0.03]
+        hover:text-text-primary focus:border-solid focus:border-accent/60 focus:text-text-primary
+        focus:outline-none
       "
     >
-      <PlusIcon className="-ml-6 size-4" aria-hidden />
-      Add Text
+      <span className="flex h-7 w-play-button shrink-0 items-center justify-center">
+        <Icon className="size-4" aria-hidden />
+      </span>
+      {children}
     </button>
   );
 }

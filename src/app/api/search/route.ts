@@ -6,8 +6,8 @@ import { searchSearchParams } from '@/lib/searchParams/apiSearchParams';
 const searchParams = searchSearchParams;
 
 export async function GET() {
-  const { q } = searchParams.get();
-  const results = await search(q, { typing: true });
+  const { q, scope } = searchParams.get();
+  const results = await search(q, { scope, typing: true });
   return Response.json(results, {
     headers: {
       // An outage isn't cached: the next keystroke tries again.
