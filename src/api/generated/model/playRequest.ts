@@ -12,4 +12,6 @@ export interface PlayRequest {
   app_type: PlayAppType;
   /** @nullable */
   client_uuid?: string | null;
+  /** @nullable */
+  playlist_id?: string | null;
 }

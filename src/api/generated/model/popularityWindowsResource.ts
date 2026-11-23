@@ -10,4 +10,5 @@ export interface PopularityWindowsResource {
   '48h': PopularityWindowResource;
   '7d': PopularityWindowResource;
   '30d': PopularityWindowResource;
+  '1y'?: PopularityWindowResource;
 }
