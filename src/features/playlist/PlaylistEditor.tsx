@@ -615,9 +615,10 @@ export default function PlaylistEditor({
                 onNavigate={(e) => {
                   if (store.getState().status === 'saved' && !unsent.length) return;
                   e.preventDefault();
-                  void unsavedNow().then((reason) =>
-                    reason ? notify(reason) : router.push(viewHref)
-                  );
+                  void unsavedNow().then((reason) => {
+                    if (reason) notify(reason);
+                    else void router.push(viewHref);
+                  });
                 }}
                 className="header-action-primary"
               >
