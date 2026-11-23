@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  use,
-  useDeferredValue,
-  useEffect,
-  useRef,
-  useState,
-  Suspense,
-  type ReactNode,
-} from 'react';
+import { Suspense, use, useDeferredValue, useEffect, useState } from 'react';
 import { useRouter } from '@timber-js/app/client';
 import { ArrowRightIcon, SearchIcon } from 'lucide-react';
 import {
@@ -21,133 +13,47 @@ import {
 } from '@/ui/base/shadcn/command';
 import { Popover, PopoverTrigger, PopoverContent } from '@/ui/base/shadcn/popover';
 import { HitText, KindIcon } from '@/ui/search/SearchHitParts';
-import {
-  EMPTY_SEARCH,
-  MIN_QUERY_LENGTH,
-  UNAVAILABLE_SEARCH,
-  type SearchResults,
-} from '@/lib/search';
+import { MIN_QUERY_LENGTH, UNAVAILABLE_SEARCH, type SearchResults } from '@/lib/search';
 import { searchSearchParams } from '@/lib/searchParams/apiSearchParams';
 import { searchPageSearchParams } from '@/lib/searchParams/searchPageSearchParams';
 import cn from '@/lib/cn';
 
 // The nav bar's search (⌘K): typeahead over /api/search, the top matches
-// across kinds, and a way through to the full /search page. The typed text is
-// ephemeral UI; the full page keeps its query in the URL.
+// across kinds, and a way through to the full /search page.
+//
+// React does the scheduling. The box updates on every keystroke; the results
+// render from `useDeferredValue(query)`, which suspends on that query's
+// request (`use`), keeps the previous results on screen meanwhile, and drops
+// renders the user has typed past. Each query's request is cached, so a
+// re-render or a backspace reuses it.
 
-const DEBOUNCE_MS = 150;
 const FETCH_TIMEOUT_MS = 6_000;
 const MAX_HITS = 8;
 
-const resolvedEmpty = Promise.resolve(EMPTY_SEARCH);
-// Recent queries, so backspacing doesn't refetch. Failures aren't kept.
-const searchCache = new Map<string, Promise<SearchResults>>();
+const requests = new Map<string, Promise<SearchResults>>();
 
-function fetchSearchResults(query: string): Promise<SearchResults> {
-  const key = query.trim().toLowerCase();
-  if (key.length < MIN_QUERY_LENGTH) return resolvedEmpty;
-
-  let cached = searchCache.get(key);
-  if (!cached) {
-    if (searchCache.size >= 50) {
-      const oldest = searchCache.keys().next().value;
-      if (oldest !== undefined) searchCache.delete(oldest);
-    }
-    cached = fetch(searchSearchParams.href('/api/search', { q: key }), {
+/** One request per query, shared by every render that asks for it. Failures aren't kept. */
+function searchRequest(query: string): Promise<SearchResults> {
+  let request = requests.get(query);
+  if (!request) {
+    request = fetch(searchSearchParams.href('/api/search', { q: query }), {
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     })
-      .then((res) => {
-        if (!res.ok) throw new Error(`Search responded ${res.status}`);
-        return res.json() as Promise<SearchResults>;
-      })
+      .then((res) => (res.ok ? (res.json() as Promise<SearchResults>) : UNAVAILABLE_SEARCH))
+      .catch(() => UNAVAILABLE_SEARCH)
       .then((results) => {
-        if (results.availability !== 'full') searchCache.delete(key);
+        if (results.availability !== 'full') requests.delete(query);
         return results;
-      })
-      .catch(() => {
-        searchCache.delete(key);
-        return UNAVAILABLE_SEARCH;
       });
-    searchCache.set(key, cached);
+    requests.set(query, request);
   }
-  return cached;
+  return request;
 }
 
-function SearchResultsList({
-  query,
-  allResults,
-  onNavigate,
-}: {
-  query: string;
-  allResults: ReactNode;
-  onNavigate: (href: string) => void;
-}) {
-  const results = use(fetchSearchResults(query));
-  const hits = results.top.slice(0, MAX_HITS);
-
-  return (
-    <>
-      {results.availability === 'unavailable' ? (
-        <CommandEmpty>Search isn’t available right now.</CommandEmpty>
-      ) : (
-        hits.length === 0 && <p className="py-6 text-center text-sm text-text-muted">No matches.</p>
-      )}
-      {hits.length > 0 && (
-        <CommandGroup heading={results.chips.length ? results.chips.join(' · ') : undefined}>
-          {hits.map((hit) => (
-            <CommandItem
-              key={hit.id}
-              value={hit.id}
-              onSelect={() => onNavigate(hit.href)}
-              className="min-h-11"
-            >
-              <KindIcon kind={hit.kind} />
-              <HitText hit={hit} compact />
-            </CommandItem>
-          ))}
-        </CommandGroup>
-      )}
-      {allResults}
-    </>
-  );
-}
-
-/** Through to the /search page for the typed query. */
-function AllResultsItem({
-  query,
-  pending = false,
-  onNavigate,
-}: {
-  query: string;
-  /**
-   * The row shown while results load. It needs its own value: if it shared
-   * the loaded row's, cmdk would keep that value selected when results land
-   * and scroll down to the last row instead of selecting the top hit.
-   */
-  pending?: boolean;
-  onNavigate: (href: string) => void;
-}) {
-  return (
-    <CommandGroup>
-      <CommandItem
-        value={pending ? '__all-results-pending' : '__all-results'}
-        onSelect={() => onNavigate(searchPageSearchParams.href('/search', { q: query }))}
-        className="min-h-11 text-text-secondary"
-      >
-        <ArrowRightIcon aria-hidden className="size-4 text-text-muted" />
-        <span className="truncate">All results for “{query}”</span>
-      </CommandItem>
-    </CommandGroup>
-  );
-}
+const normalize = (query: string) => query.trim().toLowerCase();
 
 export default function GlobalSearch() {
   const [open, setOpen] = useState(false);
-  const [inputValue, setInputValue] = useState('');
-  const [query, setQuery] = useState('');
-  const deferredQuery = useDeferredValue(query);
-  const debounce = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const router = useRouter();
 
   // ⌘K / Ctrl+K anywhere opens and closes it.
   useEffect(() => {
@@ -161,41 +67,8 @@ export default function GlobalSearch() {
     return () => document.removeEventListener('keydown', down);
   }, []);
 
-  const reset = () => {
-    clearTimeout(debounce.current);
-    setInputValue('');
-    setQuery('');
-  };
-
-  const navigate = (to: string) => {
-    setOpen(false);
-    reset();
-    router.push(to);
-  };
-
-  const onValueChange = (value: string) => {
-    setInputValue(value);
-    clearTimeout(debounce.current);
-    if (value.trim().length < MIN_QUERY_LENGTH) setQuery('');
-    else debounce.current = setTimeout(() => setQuery(value), DEBOUNCE_MS);
-  };
-
-  const typed = inputValue.trim();
-  const searchable = typed.length >= MIN_QUERY_LENGTH;
-  const showResults = searchable && deferredQuery.trim().length >= MIN_QUERY_LENGTH;
-  // The list on screen is for an older query than the box: fade it until the new one lands.
-  const isStale = searchable && inputValue !== deferredQuery;
-
   return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) reset();
-      }}
-      align="end"
-      sideOffset={8}
-    >
+    <Popover open={open} onOpenChange={setOpen} align="end" sideOffset={8}>
       <PopoverTrigger
         aria-label="Search"
         className="
@@ -223,48 +96,122 @@ export default function GlobalSearch() {
         className="w-[min(420px,calc(100vw-1rem))] p-0 max-lg:right-2! max-lg:left-auto!"
         arrowClassName="hidden"
       >
-        <Command shouldFilter={false} loop>
-          <CommandInput
-            placeholder="Artists, songs, venues, dates…"
-            value={inputValue}
-            onValueChange={onValueChange}
-            autoFocus
-          />
-          <CommandList className="max-h-[min(24rem,60dvh)]">
-            {!searchable ? (
-              <CommandEmpty className="text-text-muted">Search all of Relisten.</CommandEmpty>
-            ) : (
-              // While the first results load, "All results" is the only item. It
-              // lives in the fallback, so when hits arrive it unmounts and cmdk
-              // moves the selection to the top hit (Enter opens it, and the list
-              // doesn't scroll down to a selected last row).
-              <Suspense
-                fallback={
-                  <>
-                    <p className="py-6 text-center text-sm text-text-muted">Searching…</p>
-                    <AllResultsItem query={typed} pending onNavigate={navigate} />
-                  </>
-                }
-              >
-                {showResults ? (
-                  <div className={cn('transition-opacity duration-150', isStale && 'opacity-50')}>
-                    <SearchResultsList
-                      query={deferredQuery}
-                      allResults={<AllResultsItem query={typed} onNavigate={navigate} />}
-                      onNavigate={navigate}
-                    />
-                  </div>
-                ) : (
-                  <>
-                    <p className="py-6 text-center text-sm text-text-muted">Searching…</p>
-                    <AllResultsItem query={typed} pending onNavigate={navigate} />
-                  </>
-                )}
-              </Suspense>
-            )}
-          </CommandList>
-        </Command>
+        {/* Mounted only while open, so closing clears the query. */}
+        <SearchPanel onNavigate={() => setOpen(false)} />
       </PopoverContent>
     </Popover>
   );
+}
+
+function SearchPanel({ onNavigate }: { onNavigate: () => void }) {
+  const [query, setQuery] = useState('');
+  const deferredQuery = useDeferredValue(query);
+  // The highlighted row belongs to the results it was chosen in. New results
+  // start with none, and cmdk highlights their first row.
+  const [selection, setSelection] = useState({ query: '', value: '' });
+  const router = useRouter();
+
+  const navigate = (to: string) => {
+    onNavigate();
+    router.push(to);
+  };
+
+  const typed = query.trim();
+  const deferred = normalize(deferredQuery);
+  const allResults = searchPageSearchParams.href('/search', { q: typed });
+  const selected = selection.query === deferred ? selection.value : '';
+
+  return (
+    <Command
+      shouldFilter={false}
+      loop
+      value={selected}
+      onValueChange={(value) => setSelection({ query: deferred, value })}
+      onKeyDown={(e) => {
+        // Enter before any results: the full results page.
+        if (e.key === 'Enter' && !selected && typed.length >= MIN_QUERY_LENGTH)
+          navigate(allResults);
+      }}
+    >
+      <CommandInput
+        placeholder="Artists, songs, venues, dates…"
+        value={query}
+        onValueChange={setQuery}
+        autoFocus
+      />
+      <CommandList className="max-h-[min(24rem,60dvh)]">
+        {typed.length < MIN_QUERY_LENGTH ? (
+          <CommandEmpty className="text-text-muted">Search all of Relisten.</CommandEmpty>
+        ) : deferred.length < MIN_QUERY_LENGTH ? (
+          <Message>Searching…</Message>
+        ) : (
+          <Suspense fallback={<Message>Searching…</Message>}>
+            {/* Older results than the box: faded until the new ones render. */}
+            <div
+              className={cn(
+                'transition-opacity duration-150',
+                query !== deferredQuery && 'opacity-50'
+              )}
+            >
+              {/* A new result set is new rows, so cmdk highlights its first. */}
+              <Results key={deferred} query={deferred} onSelect={navigate} />
+              <AllResultsItem query={typed} href={allResults} onSelect={navigate} />
+            </div>
+          </Suspense>
+        )}
+      </CommandList>
+    </Command>
+  );
+}
+
+function Results({ query, onSelect }: { query: string; onSelect: (href: string) => void }) {
+  const results = use(searchRequest(query));
+  const hits = results.top.slice(0, MAX_HITS);
+
+  if (results.availability === 'unavailable') {
+    return <Message>Search isn’t available right now.</Message>;
+  }
+  if (!hits.length) return <Message>No matches.</Message>;
+  return (
+    <CommandGroup heading={results.chips.length ? results.chips.join(' · ') : undefined}>
+      {hits.map((hit) => (
+        <CommandItem
+          key={hit.id}
+          value={hit.id}
+          onSelect={() => onSelect(hit.href)}
+          className="min-h-11"
+        >
+          <KindIcon kind={hit.kind} />
+          <HitText hit={hit} compact />
+        </CommandItem>
+      ))}
+    </CommandGroup>
+  );
+}
+
+function AllResultsItem({
+  query,
+  href,
+  onSelect,
+}: {
+  query: string;
+  href: string;
+  onSelect: (href: string) => void;
+}) {
+  return (
+    <CommandGroup>
+      <CommandItem
+        value="__all-results"
+        onSelect={() => onSelect(href)}
+        className="min-h-11 text-text-secondary"
+      >
+        <ArrowRightIcon aria-hidden className="size-4 text-text-muted" />
+        <span className="truncate">All results for “{query}”</span>
+      </CommandItem>
+    </CommandGroup>
+  );
+}
+
+function Message({ children }: { children: React.ReactNode }) {
+  return <p className="py-6 text-center text-sm text-text-muted">{children}</p>;
 }

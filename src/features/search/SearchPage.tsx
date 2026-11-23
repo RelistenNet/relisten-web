@@ -130,7 +130,14 @@ function Results({
         {chips}
         <HitList hits={results.results} />
         {/* Page sizes vary by kind and the counts are estimates, so: previous and next. */}
-        <Pager q={q} scope={scope} page={page} hasNext={page < 100} />
+        <Pager
+          q={q}
+          scope={scope}
+          page={page}
+          hasNext={
+            page < 100 && page * results.results.length < (results.counts[scope] ?? Infinity)
+          }
+        />
       </>
     );
   }
@@ -237,7 +244,7 @@ function Pager({
     <nav aria-label="Pages" className="flex items-center justify-between gap-4">
       {/* Both always rendered, so the bar never shifts. */}
       <Link
-        href={searchHref(q, scope, page - 1)}
+        href={searchHref(q, scope, Math.max(1, page - 1))}
         aria-disabled={page <= 1 || undefined}
         tabIndex={page <= 1 ? -1 : undefined}
         className={cn(button, 'hover:text-text-primary', page <= 1 && off)}
