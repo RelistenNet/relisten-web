@@ -8,6 +8,7 @@ import {
   nextUpKey,
   playContext,
   playNext,
+  playlistCredit,
   remove,
   queueView,
   type QueueContext,
@@ -277,5 +278,52 @@ describe('queueView', () => {
     s = advanceTo(s, 'a'); // a Next up entry is current: the cursor (c2) has been played
     expect(queueView(s).played.map((i) => i.key)).toEqual(['c1', 'c2']);
     expect(queueView(addToQueue(emptyQueue, [item('a')])).played).toEqual([]);
+  });
+});
+
+describe('playlistCredit', () => {
+  const PLAYLIST = 'playlist_2xxbrj4z66fx0a0mk8paz6em6v';
+  const fromPlaylist = () => playContext(emptyQueue, { ...ctx(3), playlistId: PLAYLIST }, 'c1');
+
+  it('credits the playlist for the context entry playing', () => {
+    const s = fromPlaylist();
+    expect(playlistCredit(s, 'c1')).toBe(PLAYLIST);
+    expect(playlistCredit(advanceTo(s, 'c2'), 'c2')).toBe(PLAYLIST);
+  });
+
+  it("doesn't credit a Next up entry, or an entry that isn't current", () => {
+    const s = advanceTo(playNext(fromPlaylist(), [item('a')]), 'a');
+    expect(playlistCredit(s, 'a')).toBeUndefined();
+    expect(playlistCredit(fromPlaylist(), 'c2')).toBeUndefined();
+  });
+
+  it("doesn't credit a track queued from elsewhere, even once Add to Queue appends it", () => {
+    // Add to Queue appends to the context, but the entry keeps its Next up key.
+    const added = { ...item('x'), key: nextUpKey('x', '1') };
+    const s = advanceTo(addToQueue(fromPlaylist(), [added]), added.key);
+    expect(s.current).toMatchObject({ key: added.key, from: 'context' });
+    expect(playlistCredit(s, added.key)).toBeUndefined();
+  });
+
+  it('credits a track queued from the playlist page to that playlist', () => {
+    const tagged = (id: string) => ({
+      ...item('x'),
+      key: nextUpKey('x', id),
+      playlistId: PLAYLIST,
+    });
+    // Add to Queue: appended to the context.
+    const end = tagged('1');
+    expect(playlistCredit(advanceTo(addToQueue(fromPlaylist(), [end]), end.key), end.key)).toBe(
+      PLAYLIST
+    );
+    // Play Next, even while something else is the context.
+    const next = tagged('2');
+    const other = playContext(emptyQueue, ctx(2, 'd'), 'd1');
+    expect(playlistCredit(advanceTo(playNext(other, [next]), next.key), next.key)).toBe(PLAYLIST);
+  });
+
+  it('stops crediting once another context replaces the playlist', () => {
+    const s = playContext(fromPlaylist(), ctx(2, 'd'), 'd1');
+    expect(playlistCredit(s, 'd1')).toBeUndefined();
   });
 });

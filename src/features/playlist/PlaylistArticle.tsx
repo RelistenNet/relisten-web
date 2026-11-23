@@ -1,4 +1,8 @@
 import { Link } from '@timber-js/app/client';
+import { myPlaylistsHref } from '@/lib/searchParams/publicPlaylistsSearchParams';
+import PageHeader, { type StatItem } from '@/ui/base/PageHeader';
+import { href } from '@timber-js/app/routes';
+import { ChevronRightIcon } from 'lucide-react';
 import {
   Fragment,
   type KeyboardEvent,
@@ -29,6 +33,7 @@ import {
 import type { PlaylistView } from './rows';
 import SeekLink from './SeekLink';
 import TrackCardPlayer from './TrackCardPlayer';
+import TrackLoadDot from '@/player/TrackLoadDot';
 import { isTrackRow, type PlaylistOtherRow, type PlaylistTrackRow } from './spec';
 
 // A playlist, read like a post: a byline and lede, then the author's writing
@@ -88,11 +93,26 @@ export function readableDuration(seconds: number) {
   return `${hours} hr${minutes % 60 ? ` ${minutes % 60} min` : ''}`;
 }
 
+export type PlaylistCrumb = { label: string; href: string };
+
+/** The public list every published playlist is in. */
+export const PUBLIC_PLAYLISTS_CRUMB: PlaylistCrumb = {
+  label: 'Playlists',
+  href: href('/playlists'),
+};
+/** The creator's own list: the playlists listing, filtered to them. */
+export const OWN_PLAYLISTS_CRUMB: PlaylistCrumb = {
+  label: 'My Playlists',
+  href: myPlaylistsHref(),
+};
+
 export default function PlaylistArticle({
   view,
   byline = [],
   actions,
   slots,
+  publicPlaylistId,
+  crumb,
 }: {
   view: PlaylistView;
   /** The byline's leading items ("By alice", a link back, "Published"). */
@@ -100,6 +120,10 @@ export default function PlaylistArticle({
   /** At the top right, beside the title (Edit, Done). */
   actions?: ReactNode;
   slots?: ArticleSlots;
+  /** Set on the public page only: plays started here are credited to the playlist. */
+  publicPlaylistId?: string;
+  /** Above the title: the list the playlist is in ("Playlists ›", "Your Playlists ›"). */
+  crumb?: PlaylistCrumb;
 }) {
   // A track's play button queues the playlist's tracks, in order.
   const items = view.rows.flatMap((r) => (isTrackRow(r) ? (songRowItem(r) ?? []) : []));
@@ -112,42 +136,57 @@ export default function PlaylistArticle({
   // the page ↔ editor morph cost more than a frame, so long playlists don't animate.
   const animate = view.rows.length <= MAX_ANIMATED_ROWS;
 
-  const meta = [
-    ...byline,
-    `${numberFormat.format(view.trackCount)} ${view.trackCount === 1 ? 'track' : 'tracks'}`,
-    view.duration > 0 && readableDuration(view.duration),
-    unavailable > 0 && `${numberFormat.format(unavailable)} unavailable`,
-  ].filter(Boolean);
+  const stats: StatItem[] = [{ label: 'Tracks', value: numberFormat.format(view.trackCount) }];
+  if (view.duration > 0) stats.push({ label: 'Length', value: readableDuration(view.duration) });
+  if (unavailable > 0) {
+    stats.push({ label: 'Unavailable', value: numberFormat.format(unavailable) });
+  }
 
   return (
     // The whole article shares the queue: a timestamp in any prose plays from it.
-    <SongQueueProvider label={view.name} items={items}>
-      <article className="flex flex-col gap-6">
-        <header className="flex flex-col gap-3">
-          {/* The actions sit beside the title, and wrap below it where they'd squeeze it. */}
-          <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
-            <h1 className="mb-0 min-w-[min(100%,16rem)] flex-1 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-              {slots?.title ?? view.name}
-            </h1>
-            {actions && (
-              <div className="ml-auto flex shrink-0 items-center gap-2 pt-1">{actions}</div>
-            )}
-          </div>
-          <div className="text-sm text-text-muted [&_a]:text-text-muted [&_a:hover]:text-accent">
-            {meta.map((item, i) => (
-              <span key={i}>
-                {i > 0 && <span aria-hidden> · </span>}
-                {item}
-              </span>
-            ))}
-          </div>
+    <SongQueueProvider label={view.name} items={items} playlistId={publicPlaylistId}>
+      <article className="detail-page flex flex-col gap-6">
+        {/* The detail pages' header, as the playlists table has: the same width and layout. */}
+        <PageHeader
+          crumb={
+            crumb && (
+              <Link
+                href={crumb.href}
+                className="
+                  -mx-1 inline-flex items-center gap-0.5 rounded px-1 py-1 text-text-muted
+                  transition-colors hover:text-accent
+                "
+              >
+                {crumb.label}
+                <ChevronRightIcon className="size-3.5" aria-hidden />
+              </Link>
+            )
+          }
+          title={slots?.title ?? view.name}
+          meta={
+            byline.some(Boolean)
+              ? [
+                  <span key="byline" className="[&_a]:text-text-muted [&_a:hover]:text-accent">
+                    {byline.filter(Boolean).map((item, i) => (
+                      <span key={i}>
+                        {i > 0 && <span aria-hidden> · </span>}
+                        {item}
+                      </span>
+                    ))}
+                  </span>,
+                ]
+              : undefined
+          }
+          stats={stats}
+          actions={actions}
+        >
           <Prose
             owner={{ kind: 'playlist' }}
             blocks={view.description}
             slots={slots}
-            className="mt-2 text-text-secondary"
+            className="-mt-1 max-w-measure text-text-secondary"
           />
-        </header>
+        </PageHeader>
 
         {blocks.length === 0 && !slots ? (
           <p className="text-text-muted">Nothing here yet.</p>
@@ -603,18 +642,43 @@ function TrackCell({
           venueName: row.venueName,
         }}
         name={name}
-        duration={row.songDuration ? durationToHHMMSS(Math.round(row.songDuration)) : '—'}
         menu={slots?.cellMenu?.(row)}
       >
         <div className="flex min-w-0 flex-1 flex-col pt-0.5">
-          <span className="truncate text-[15px] leading-snug font-medium">
-            {row.trackTitle ?? 'Untitled'}
+          {/* The length beside the title, where the eye already is: the card's
+          right edge is far off on a wide page. */}
+          <span className="flex min-w-0 items-baseline gap-2">
+            <span className="truncate text-[15px] leading-snug font-medium">
+              {row.trackTitle ?? 'Untitled'}
+            </span>
+            <span className="flex shrink-0 items-center gap-1.5 text-[13px] text-text-muted tabular-nums">
+              {row.songDuration ? durationToHHMMSS(Math.round(row.songDuration)) : '—'}
+              <TrackLoadDot entryKey={row.queueKey} />
+            </span>
           </span>
           <span className="truncate text-[13px] text-text-muted">
             <Link href={row.href} className="text-text-muted hover:text-accent">
               {row.artistName} · {formatShowDate(row.date)}
             </Link>
-            {row.venueName && <> · {row.venueName}</>}
+            {row.venueName && (
+              <>
+                {' · '}
+                {row.venueSlug ? (
+                  <Link
+                    href={href('/artists/[artistSlug]/venues/[venueSlug]', {
+                      artistSlug: row.artistSlug,
+                      venueSlug: row.venueSlug,
+                    })}
+                    className="text-text-muted hover:text-accent"
+                  >
+                    {row.venueName}
+                  </Link>
+                ) : (
+                  row.venueName
+                )}
+              </>
+            )}
+            {row.location && <>, {row.location}</>}
           </span>
           <Note id={row.id} blocks={row.prose} slots={slots} />
         </div>

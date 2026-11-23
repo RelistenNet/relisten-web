@@ -7,6 +7,7 @@ import cn from '@/lib/cn';
 import { toast } from 'sonner';
 import { AddToPlaylistSubmenu, NewPlaylistDialog, type PlaylistTracks } from './AddToPlaylist';
 import { addToQueue, playNext, queueShow, showTrackIds } from './commands';
+import { useSongQueue } from './SongQueue';
 import { TOASTER_ID } from './toasts';
 import type { QueueTarget } from './QueueButtons';
 import {
@@ -37,6 +38,8 @@ export default function QueueMenu({
   className?: string;
 }) {
   const item = 'item' in target ? target.item : null;
+  // On a public playlist's page, what's queued counts for that playlist.
+  const playlistId = useSongQueue()?.playlistId;
   const showId = 'showId' in target ? target.showId : null;
   // The New Playlist dialog outlives the menu, which closes when it's chosen.
   const [naming, setNaming] = useState(false);
@@ -45,7 +48,7 @@ export default function QueueMenu({
   const tracks: PlaylistTracks = async () =>
     item ? { trackIds: [item.trackId] } : showId ? await showTrackIds(showId) : null;
   const run = (where: 'next' | 'end') => () => {
-    if (item) (where === 'next' ? playNext : addToQueue)([item]);
+    if (item) (where === 'next' ? playNext : addToQueue)([item], playlistId);
     else if (showId)
       void queueShow(showId, where).then(
         (ok) => ok || toast.error("Couldn't load that show", { toasterId: TOASTER_ID })

@@ -38,10 +38,12 @@ function usePlayTrack(row: SongRowSource, track: PlayableTrack) {
     }
     // Outside a table's provider, queue just this row.
     const own = songRowItem({ ...row, track });
-    const items = queue?.items.length ? queue.items : own ? [own] : [];
+    const fromQueue = !!queue?.items.length;
+    const items = fromQueue ? queue.items : own ? [own] : [];
     playSongRows({
       items,
       label: queue?.label ?? track.title ?? '',
+      playlistId: fromQueue ? queue.playlistId : undefined,
       startKey: queueKey ?? track.id,
     });
   };

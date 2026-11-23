@@ -87,7 +87,7 @@ function useLibraryOnOpen() {
 }
 
 const playlistHref = (playlistId: string) =>
-  href('/account/playlists/[playlistId]', { playlistId });
+  href('/playlists/[playlist]', { playlist: playlistId });
 
 function failed(err: unknown, what: string) {
   const kind = err instanceof PlaylistWriteError ? err.kind : 'unavailable';

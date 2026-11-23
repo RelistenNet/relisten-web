@@ -140,8 +140,11 @@ describe('playlistBlocks', () => {
         ? `section(${b.items.map(shape)})`
         : b.kind;
 
-  it('boxes a described segment with its entries; loose tracks run together', () => {
-    expect(blocks.map(shape)).toEqual(['section(tracks:entry_1,text)', 'tracks:entry_3,entry_4']);
+  it('boxes a described segment with its entries, and an undescribed one of two', () => {
+    expect(blocks.map(shape)).toEqual([
+      'section(tracks:entry_1,text)',
+      'section(tracks:entry_3,entry_4)',
+    ]);
   });
 });
 

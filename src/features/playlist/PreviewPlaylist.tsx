@@ -4,6 +4,7 @@ import { deny, redirect } from '@timber-js/app/server';
 import { getOwnPlaylist } from '@/data/playlists';
 import { getCurrentUser } from '@/data/session';
 import { signInHref } from '@/lib/searchParams/sessionSearchParams';
+import { PUBLIC_PLAYLISTS_CRUMB } from './PlaylistArticle';
 import PlaylistDetail from './PlaylistDetail';
 
 /**
@@ -11,17 +12,19 @@ import PlaylistDetail from './PlaylistDetail';
  * published (a public snapshot is the playlist as written), from the owner's own.
  */
 export default async function PreviewPlaylist({ playlistId }: { playlistId: string }) {
-  const pathname = href('/account/playlists/[playlistId]/preview', { playlistId });
+  const pathname = href('/playlists/[playlist]/preview', { playlist: playlistId });
   const [result, me] = await Promise.all([getOwnPlaylist(playlistId), getCurrentUser()]);
   if (result.kind === 'signed-out') redirect(signInHref(pathname));
   if (result.kind === 'missing') deny(404);
   return (
     <PlaylistDetail
       playlist={result.playlist}
+      // As the public page will read.
+      crumb={PUBLIC_PLAYLISTS_CRUMB}
       byline={[`By ${me?.username ?? 'you'}`, 'Preview of the public page']}
       actions={
         <Link
-          href={href('/account/playlists/[playlistId]/edit', { playlistId })}
+          href={href('/playlists/[playlist]/edit', { playlist: playlistId })}
           className="header-action"
         >
           Back to Editing

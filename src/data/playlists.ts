@@ -11,6 +11,7 @@ import {
   type PlaylistContent,
   type PlaylistSnapshotWire,
   type PlaylistSummaryWire,
+  type PublicPlaylistListWire,
   type PublicPlaylistSnapshotWire,
   toPlaylistContent,
 } from '@/domain/playlists';
@@ -110,7 +111,8 @@ export const getOwnPlaylist = requestCache(async (playlistId: string): Promise<O
 
 // --- Published ---------------------------------------------------------------
 
-export type PublicPlaylist = PlaylistContent & { publicCode: string; owner: string };
+/** `creator`: the username of the listener who made it. */
+export type PublicPlaylist = PlaylistContent & { publicCode: string; creator: string };
 
 /**
  * No stale-while-revalidate: a takedown has to reach readers within a minute,
@@ -132,7 +134,7 @@ const publicPlaylistCached = timberCache.data(
     return {
       ...toPlaylistContent(snapshot),
       publicCode: snapshot.public_code,
-      owner: snapshot.owner.username,
+      creator: snapshot.owner.username,
     };
   },
   {
@@ -148,6 +150,119 @@ export const publicPlaylistTag = (code: string) => `playlist-public:${code}`;
 
 /** A published playlist by its share code, or null when it isn't (or is no longer) public. */
 export const getPublicPlaylist = requestCache((code: string) => publicPlaylistCached(code));
+
+// --- Public listing ----------------------------------------------------------
+
+/** Where one of the creator's own playlists stands, as its page shows it. */
+export type OwnPlaylistStatus = 'published' | 'private' | 'archived' | 'taken-down';
+
+/**
+ * A row of the playlists listing, every published one or the listener's own.
+ * Fields a source doesn't give are absent: the library has no creator (it's
+ * them), length, plays or followers. Plain data: the value is cached.
+ */
+export type PlaylistListRow = {
+  playlistId: string;
+  /** The `/playlists/[playlist]` param: the share code (published) or the id (their own). */
+  playlist: string;
+  name: string;
+  /** The username of the listener who made it. */
+  creator?: string;
+  trackCount: number;
+  /** Seconds. */
+  duration?: number;
+  updatedAt: string;
+  followerCount?: number;
+  /** Plays started from it over the last 30 days. */
+  recentPlayCount?: number;
+  /** The listener's own only. */
+  status?: OwnPlaylistStatus;
+};
+
+/** The listener's own playlists as listing rows, by id (their page shows their controls). */
+export const ownPlaylistRows = (owned: PlaylistSummaryWire[]): PlaylistListRow[] =>
+  owned.map((p) => ({
+    playlistId: p.playlist_id,
+    playlist: p.playlist_id,
+    name: p.name,
+    trackCount: p.track_count ?? p.entry_count,
+    updatedAt: p.updated_at,
+    status: p.taken_down
+      ? 'taken-down'
+      : p.archived
+        ? 'archived'
+        : p.published
+          ? 'published'
+          : 'private',
+  }));
+
+/** The sorts the listing offers: last update, plays over the last 30 days, followers. */
+export type PublicPlaylistSort = 'recent' | 'plays' | 'followers';
+
+export type PublicPlaylistPage = {
+  rows: PlaylistListRow[];
+  /** The next page's cursor (valid only with the same sort), or null on the last page. */
+  nextCursor: string | null;
+};
+
+type PageQuery = { sort: PublicPlaylistSort; artist: string; cursor: string };
+
+const LISTING_PAGE_SIZE = 50;
+
+/**
+ * One page of the listing, sorted and paged by the User Service. Cookieless, so
+ * the same for everyone, and cached for the minute a takedown may take to show,
+ * like the snapshot. A refused query (422) throws, so nothing is cached for it.
+ */
+const publicPlaylistPageCached = timberCache.data(
+  async ({ sort, artist, cursor }: PageQuery): Promise<PublicPlaylistPage> => {
+    const query = new URLSearchParams({ sort, limit: String(LISTING_PAGE_SIZE) });
+    if (artist) query.set('artist', artist);
+    if (cursor) query.set('cursor', cursor);
+    const res = await fetch(`${USER_SERVICE_URL}/v1/public-playlists?${query}`, {
+      headers: { accept: 'application/json' },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(USER_SERVICE_TIMEOUT_MS),
+    });
+    if (!res.ok) throw new UserServiceError(res.status, '/v1/public-playlists');
+    const body = (await res.json()) as PublicPlaylistListWire;
+    return {
+      rows: body.playlists.map((p) => ({
+        playlistId: p.playlist_id,
+        playlist: p.public_code,
+        name: p.name,
+        creator: p.owner.username,
+        trackCount: p.track_count,
+        duration: p.duration_seconds,
+        updatedAt: p.updated_at,
+        followerCount: p.follower_count,
+        recentPlayCount: p.recent_play_count,
+      })),
+      nextCursor: body.next_cursor,
+    };
+  },
+  {
+    ttl: 60,
+    key: ({ sort, artist, cursor }: PageQuery) => `playlist-listing:${sort}:${artist}:${cursor}`,
+  }
+);
+
+/**
+ * A page of published playlists: every one, or (`artist`, an `artist_…` id)
+ * those with at least one of the artist's tracks. Null when the User Service
+ * refused the query (a cursor from another sort, or a made-up one); throws when
+ * it's down.
+ */
+export const getPublicPlaylistPage = requestCache(
+  async (sort: PublicPlaylistSort, artist?: string, cursor?: string) => {
+    try {
+      return await publicPlaylistPageCached({ sort, artist: artist ?? '', cursor: cursor ?? '' });
+    } catch (err) {
+      if (err instanceof UserServiceError && err.status === 422) return null;
+      throw err;
+    }
+  }
+);
 
 // --- Catalog -----------------------------------------------------------------
 

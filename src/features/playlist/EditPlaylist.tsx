@@ -1,9 +1,9 @@
-import { Link } from '@timber-js/app/client';
 import { href } from '@timber-js/app/routes';
 import { deny, redirect } from '@timber-js/app/server';
 import { getOwnPlaylist } from '@/data/playlists';
 import { signInHref } from '@/lib/searchParams/sessionSearchParams';
 import { loadPlaylistResolved } from './load';
+import { OWN_PLAYLISTS_CRUMB } from './PlaylistArticle';
 import PlaylistEditor from './PlaylistEditor';
 
 /**
@@ -12,8 +12,8 @@ import PlaylistEditor from './PlaylistEditor';
  * from them. An archived playlist can't be edited, so it goes back to its page.
  */
 export default async function EditPlaylist({ playlistId }: { playlistId: string }) {
-  const pathname = href('/account/playlists/[playlistId]/edit', { playlistId });
-  const viewHref = href('/account/playlists/[playlistId]', { playlistId });
+  const pathname = href('/playlists/[playlist]/edit', { playlist: playlistId });
+  const viewHref = href('/playlists/[playlist]', { playlist: playlistId });
   const result = await getOwnPlaylist(playlistId);
   if (result.kind === 'signed-out') redirect(signInHref(pathname));
   if (result.kind === 'missing') deny(404);
@@ -29,12 +29,9 @@ export default async function EditPlaylist({ playlistId }: { playlistId: string 
       viewHref={viewHref}
       publicCode={result.publicCode}
       takenDown={result.takenDown}
-      byline={[
-        <Link key="account" href={href('/account')}>
-          Your playlists
-        </Link>,
-        'Editing',
-      ]}
+      // The page's, so opening the editor moves nothing.
+      crumb={OWN_PLAYLISTS_CRUMB}
+      byline={['Editing']}
     />
   );
 }

@@ -53,6 +53,7 @@ import MarkdownField, { type FieldAction } from './MarkdownField';
 import PlaylistArticle, {
   MAX_ANIMATED_ROWS,
   type ArticleSlots,
+  type PlaylistCrumb,
   type ProseOwner,
 } from './PlaylistArticle';
 import {
@@ -142,6 +143,7 @@ export default function PlaylistEditor({
   publicCode,
   takenDown,
   byline,
+  crumb,
 }: {
   initial: PlaylistContent;
   resolved: PlaylistResolved;
@@ -151,6 +153,7 @@ export default function PlaylistEditor({
   publicCode?: string;
   takenDown: boolean;
   byline: ReactNode[];
+  crumb?: PlaylistCrumb;
 }) {
   const router = useRouter();
   // One draft per playlist for as long as the page is open; the route keys this by id.
@@ -595,6 +598,7 @@ export default function PlaylistEditor({
         <PlaylistArticle
           view={view}
           byline={byline}
+          crumb={crumb}
           slots={slots}
           actions={
             <>

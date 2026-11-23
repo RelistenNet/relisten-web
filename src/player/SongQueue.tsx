@@ -4,7 +4,12 @@ import { createContext, use, type ReactNode } from 'react';
 import type { QueueItem } from '@/player/queue/model';
 
 /** A track table's visible rows (a song's performances, a show's tracks), in table order: what a row's play button queues. */
-type SongQueue = { label: string; items: QueueItem[] };
+type SongQueue = {
+  label: string;
+  items: QueueItem[];
+  /** A public playlist's id: plays of these rows are credited to it (QueueContext.playlistId). */
+  playlistId?: string;
+};
 
 const SongQueueContext = createContext<SongQueue | null>(null);
 

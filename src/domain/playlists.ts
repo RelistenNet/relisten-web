@@ -86,6 +86,31 @@ export interface PublicPlaylistSnapshotWire {
   segments: PlaylistSegmentWire[];
 }
 
+/** One row of `GET /v1/public-playlists`: published, not archived or taken down, from an active owner. */
+export interface PublicPlaylistListItemWire {
+  playlist_id: string;
+  public_code: string;
+  name: string;
+  owner: PublicPlaylistOwnerWire;
+  track_count: number;
+  duration_seconds: number;
+  updated_at: string;
+  follower_count: number;
+  /** Plays started from the playlist over the last 30 days, today included. */
+  recent_play_count: number;
+}
+
+/** `GET /v1/public-playlists`. A null cursor is the last page. */
+export interface PublicPlaylistListWire {
+  contract_version: number;
+  playlists: PublicPlaylistListItemWire[];
+  next_cursor: string | null;
+}
+
+/** A canonical playlist TypeID (`playlist_` and 26 base32 characters): what the play endpoint accepts. */
+const PlaylistIdSchema = z.string().regex(/^playlist_[0-9a-z]{26}$/);
+export const isPlaylistId = (id: unknown): id is string => PlaylistIdSchema.safeParse(id).success;
+
 // ---- Authored content, as pages and the editor read it -------------------------
 
 /**
@@ -220,6 +245,15 @@ export type PlaylistOp = {
 export type PlaylistOperationWire = PlaylistOp & { operation_id: string; base_revision: number };
 
 /** `PUT /v1/playlists/{id}/publication`: converges on the state asked for. */
+/** `PUT /v1/playlists/{id}/archive-state`: converges on the state asked for. */
+export interface PlaylistArchivedWire {
+  contract_version: 1;
+  history_generation: string;
+  playlist_id: string;
+  archived: boolean;
+  changed: boolean;
+}
+
 export interface PlaylistPublicationWire {
   contract_version: 1;
   history_generation: string;

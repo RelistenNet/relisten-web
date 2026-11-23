@@ -7,30 +7,26 @@ import PlayTrackButton, { PlayTrackRow } from '@/player/PlayTrackButton';
 import QueueButtons from '@/player/QueueButtons';
 import QueueMenu from '@/player/QueueMenu';
 import { songRowItem, type SongRowSource } from '@/player/queue/items';
-import TrackLoadDot from '@/player/TrackLoadDot';
 
 /** What a card's player reads of its entry: the track, its show, the entry's queue key. */
 export type CardEntry = SongRowSource & { queueKey: string; track: PlayableTrack };
 
 /**
  * A track card's player parts, around what the server rendered (`children`: the
- * title, show line and note): the click-anywhere area and play button, the queue
- * buttons, length and menu, and the progress bar. One client component per card,
+ * title, length, show line and note): the click-anywhere area and play button, the
+ * queue buttons and menu, and the progress bar. One client component per card,
  * so the entry crosses to the browser once, not once per part (a long playlist's
  * page would otherwise outgrow its payload).
  */
 export default function TrackCardPlayer({
   entry,
   name,
-  duration,
   menu,
   children,
 }: {
   entry: CardEntry;
   /** "Scarlet Begonias, 1977-05-08": what its buttons are labeled for. */
   name: string;
-  /** Its length, as shown. */
-  duration: string;
   /** The editor's menu in the queue menu's place. */
   menu?: ReactNode;
   children: ReactNode;
@@ -52,10 +48,6 @@ export default function TrackCardPlayer({
             `}
           />
         )}
-        <span className="flex items-center gap-2 px-1 text-[13px] text-text-muted tabular-nums">
-          <TrackLoadDot entryKey={entry.queueKey} />
-          {duration}
-        </span>
         {/* Faded until the row is hovered or focused (or its menu is open); always
         shown on touch screens, which can't hover. The editor's menu takes its place. */}
         {menu ?? (

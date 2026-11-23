@@ -1,16 +1,15 @@
 import { Link } from '@timber-js/app/client';
-import Menu from './Menu';
+import { AccountMenu, ExploreMenu, SiteMenu } from './NavMenus';
 import Player from '@/player/PlayerBar';
 import { Toaster } from 'sonner';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/base/shadcn/popover';
 import MainNavHeader from './MainNavHeader';
 import AndroidUpgradeNotification from './AndroidUpgradeNotification';
-import BlogNewPostDot from '@/features/blog/BlogNewPostDot';
 // import GlobalSearch from './GlobalSearch';
-import { ChevronDownIcon, CircleUserRoundIcon, MenuIcon, SettingsIcon } from 'lucide-react';
+import { CircleUserRoundIcon, SettingsIcon } from 'lucide-react';
 import SettingsPanel from './SettingsPanel';
 import ArtistTabs from './ArtistTabs';
-import { accountSection, siteSections } from './siteSections';
+import { accountSection } from './siteSections';
 import { hasRecentPost } from '@/lib/blog/getPosts';
 import { sessionCookie } from '@/lib/session/sessionCookie';
 import { TOASTER_ID } from '@/player/toasts';
@@ -54,51 +53,38 @@ export default function NavBar() {
         >
           {/* <GlobalSearch /> */}
 
-          <nav aria-label="Site" className="hidden h-full items-center gap-0.5 xl:flex">
-            {siteSections
-              .filter((section) => section.group === 'primary')
-              .map((section) => (
-                <Link
-                  key={section.href}
-                  className="nav-btn whitespace-nowrap"
-                  href={section.href}
-                  prefetch={false}
-                >
-                  {section.label}
-                </Link>
-              ))}
+          <nav aria-label="Site" className="hidden h-full items-center xl:flex">
+            <ExploreMenu className="nav-btn cursor-pointer gap-1 whitespace-nowrap" />
           </nav>
 
-          <Popover align="end" sideOffset={4}>
-            <PopoverTrigger className="nav-btn ml-2 cursor-pointer gap-1 xl:ml-0">
-              <MenuIcon className="xl:hidden" aria-hidden="true" />
-              <span className="sr-only xl:hidden">Menu</span>
-              <span className="max-xl:hidden">Site</span>
-              <BlogNewPostDot hasNewPost={blogHasNew} className="absolute top-1 right-1" />
-              <ChevronDownIcon className="size-3.5 max-xl:hidden" aria-hidden="true" />
-            </PopoverTrigger>
-            <PopoverContent
-              className="w-44 gap-0 rounded-lg border border-hairline bg-surface p-1 shadow-lg max-xl:w-80"
-              arrowClassName="hidden"
-            >
-              <Menu signedIn={signedIn} blogHasNew={blogHasNew} />
-            </PopoverContent>
-          </Popover>
+          <SiteMenu
+            signedIn={signedIn}
+            blogHasNew={blogHasNew}
+            className="nav-btn ml-2 cursor-pointer gap-1 xl:ml-0"
+          />
 
           <span aria-hidden="true" className="mx-1.5 h-4 w-px bg-hairline max-xl:hidden" />
-          <Link
-            className="nav-btn gap-1.5 whitespace-nowrap max-xl:hidden"
-            href={account.href}
-            prefetch={false}
-          >
-            {signedIn && <CircleUserRoundIcon className="size-4" aria-hidden="true" />}
-            {account.label}
-          </Link>
+          {signedIn ? (
+            <AccountMenu className="nav-btn cursor-pointer gap-1.5 whitespace-nowrap max-xl:hidden" />
+          ) : (
+            <Link
+              className="nav-btn gap-1.5 whitespace-nowrap max-xl:hidden"
+              href={account.href}
+              prefetch={false}
+            >
+              <CircleUserRoundIcon className="size-4" aria-hidden="true" />
+              {account.label}
+            </Link>
+          )}
+          {/* At every width: the Site menu holds links only. */}
           <Popover align="end" sideOffset={4}>
-            <PopoverTrigger aria-label="Settings" className="nav-btn cursor-pointer max-xl:hidden">
+            <PopoverTrigger aria-label="Settings" className="nav-btn cursor-pointer">
               <SettingsIcon className="size-4" aria-hidden="true" />
             </PopoverTrigger>
-            <PopoverContent className="w-96 gap-0 p-3" arrowClassName="hidden">
+            <PopoverContent
+              className="w-[min(24rem,calc(100vw-1rem))] gap-0 p-3"
+              arrowClassName="hidden"
+            >
               <SettingsPanel />
             </PopoverContent>
           </Popover>

@@ -45,6 +45,8 @@ export default function QueueButtons({
   name: string;
   className?: string;
 }) {
+  // On a public playlist's page, what's queued counts for that playlist.
+  const playlistId = useSongQueue()?.playlistId;
   if ('item' in target && !target.item) return null;
   const run = (where: 'next' | 'end') => async () => {
     if ('showId' in target) {
@@ -52,7 +54,7 @@ export default function QueueButtons({
       if (!ok) toast.error(SHOW_FAILED, { toasterId: TOASTER_ID });
       return ok;
     }
-    if (target.item) (where === 'next' ? playNext : addToQueue)([target.item]);
+    if (target.item) (where === 'next' ? playNext : addToQueue)([target.item], playlistId);
     return true;
   };
   return (
@@ -194,7 +196,7 @@ const PILL = `
  * A show's also has Add to Playlist: the tape on screen, as one segment.
  */
 export function ShowQueueActions({ playlist = false }: { playlist?: boolean }) {
-  const { label: queueLabel = '', items = [] } = useSongQueue() ?? {};
+  const { label: queueLabel = '', items = [], playlistId } = useSongQueue() ?? {};
   // The player's store reads the same on the server and in the first client
   // render (nothing restored yet), so this hydrates as the idle button; when the
   // saved queue restores, the label changes in place.
@@ -216,7 +218,7 @@ export function ShowQueueActions({ playlist = false }: { playlist?: boolean }) {
       onClick={() =>
         isCurrent
           ? togglePlayPause()
-          : playSongRows({ items, label: queueLabel, startKey: start.key })
+          : playSongRows({ items, label: queueLabel, playlistId, startKey: start.key })
       }
       className={cn(PILL, 'border-transparent bg-accent/15 hover:bg-accent/25')}
     >
@@ -249,13 +251,13 @@ export function ShowQueueActions({ playlist = false }: { playlist?: boolean }) {
         icon={ListStartIcon}
         text="Play Next"
         iconOnly={playlist}
-        onClick={() => playNext(items)}
+        onClick={() => playNext(items, playlistId)}
       />
       <ShowQueuePill
         icon={ListEndIcon}
         text="Add to Queue"
         iconOnly={playlist}
-        onClick={() => addToQueue(items)}
+        onClick={() => addToQueue(items, playlistId)}
       />
       {!playlist && (
         <AddToPlaylistButton

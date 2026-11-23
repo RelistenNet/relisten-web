@@ -14,6 +14,8 @@ export type StatItem = {
 };
 
 type Props = {
+  /** Above the title: the list the page is in, as a link back ("Playlists ›"). */
+  crumb?: ReactNode;
   /** A square image beside the title (ArtistCover). */
   cover?: ReactNode;
   title: ReactNode;
@@ -28,11 +30,27 @@ type Props = {
   children?: ReactNode;
 };
 
-export default function PageHeader({ cover, title, meta, aside, stats, actions, children }: Props) {
+export default function PageHeader({
+  crumb,
+  cover,
+  title,
+  meta,
+  aside,
+  stats,
+  actions,
+  children,
+}: Props) {
   const metaItems = meta?.filter(Boolean) ?? [];
+  const hasStats = !!stats && stats.length > 0;
+  const actionList = <div className="flex flex-wrap items-center gap-2">{actions}</div>;
 
   return (
     <header className="flex flex-col gap-5">
+      {crumb && (
+        <nav aria-label="Breadcrumb" className="-mb-4 text-sm">
+          {crumb}
+        </nav>
+      )}
       {/* Title on the left, stats on the right, centered on each other; the stats wrap under the title when the row is too narrow. */}
       <div className="flex flex-wrap items-center justify-between gap-x-10 gap-y-5">
         <div className="flex max-w-full min-w-0 items-center gap-5">
@@ -55,8 +73,18 @@ export default function PageHeader({ cover, title, meta, aside, stats, actions, 
             {aside && <div className="mt-2 flex">{aside}</div>}
           </div>
         </div>
-        {stats && stats.length > 0 && <StatList items={stats} />}
-        {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+        {hasStats && actions ? (
+          // Both on the right, together: the row's space goes before them, not between.
+          <div className="flex flex-wrap items-center gap-x-10 gap-y-4 max-sm:w-full">
+            <StatList items={stats ?? []} />
+            {actionList}
+          </div>
+        ) : (
+          <>
+            {hasStats && <StatList items={stats ?? []} />}
+            {actions && actionList}
+          </>
+        )}
       </div>
       {children}
     </header>
