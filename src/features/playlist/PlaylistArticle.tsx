@@ -191,7 +191,9 @@ export default function PlaylistArticle({
         {blocks.length === 0 && !slots ? (
           <p className="text-text-muted">Nothing here yet.</p>
         ) : (
-          <>
+          // The header takes the detail pages' width; the tracks and writing keep the
+          // narrower column they were written for, at its left.
+          <div className="flex max-w-2xl flex-col gap-6">
             <div className="flex flex-wrap items-center justify-between gap-2">
               {items.length > 0 && <ShowQueueActions playlist />}
               {slots?.toolbar}
@@ -234,7 +236,7 @@ export default function PlaylistArticle({
                 )
               )}
             </div>
-          </>
+          </div>
         )}
       </article>
     </SongQueueProvider>

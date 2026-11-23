@@ -1,7 +1,7 @@
 import { href } from '@timber-js/app/routes';
 import { deny, redirect } from '@timber-js/app/server';
 import { getOwnPlaylist } from '@/data/playlists';
-import { signInHref } from '@/lib/searchParams/sessionSearchParams';
+import { signInPageHref } from '@/lib/searchParams/sessionSearchParams';
 import { loadPlaylistResolved } from './load';
 import { OWN_PLAYLISTS_CRUMB } from './PlaylistArticle';
 import PlaylistEditor from './PlaylistEditor';
@@ -15,7 +15,7 @@ export default async function EditPlaylist({ playlistId }: { playlistId: string 
   const pathname = href('/playlists/[playlist]/edit', { playlist: playlistId });
   const viewHref = href('/playlists/[playlist]', { playlist: playlistId });
   const result = await getOwnPlaylist(playlistId);
-  if (result.kind === 'signed-out') redirect(signInHref(pathname));
+  if (result.kind === 'signed-out') redirect(signInPageHref(pathname));
   if (result.kind === 'missing') deny(404);
   if (result.archived) redirect(viewHref);
   const resolved = await loadPlaylistResolved(result.playlist);

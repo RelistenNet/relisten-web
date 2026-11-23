@@ -1,7 +1,7 @@
 import { href } from '@timber-js/app/routes';
 import { getPlaylistLibrary, type PlaylistLibrary } from '@/data/playlists';
 import { getCurrentUser } from '@/data/session';
-import { signInHref } from '@/lib/searchParams/sessionSearchParams';
+import { accountSearchParams, signInHref } from '@/lib/searchParams/sessionSearchParams';
 import PlaylistsSection from './PlaylistsSection';
 import SessionForms from './SessionForms';
 
@@ -13,19 +13,25 @@ const loadLibrary = (): Promise<PlaylistLibrary | null> =>
   });
 
 /**
- * Signed-out: a plain sign-in link (no client JS). Signed-in: the username, the
- * sign-out / switch-account forms, and the listener's playlists.
+ * Signed-out: Relisten's sign-in page, a plain link (no client JS) that comes back
+ * to `return_to` (a page that sent the visitor here) or here. Signed-in: the
+ * username, the sign-out / switch-account forms, and the listener's playlists.
  */
 export default async function AccountPage() {
   // Both read the session cookie: fetched together, not one after the other.
   const [user, library] = await Promise.all([getCurrentUser(), loadLibrary()]);
 
   if (!user) {
+    const { return_to: returnTo } = accountSearchParams.get();
     return (
       <div className="content">
         <h1>Account</h1>
-        <p>Sign in with your Relisten account.</p>
-        <a href={signInHref(href('/account'))} className="underline">
+        <p>
+          {returnTo
+            ? 'Sign in with your Relisten account to see that page.'
+            : 'Sign in with your Relisten account.'}
+        </p>
+        <a href={signInHref(returnTo ?? href('/account'))} className="underline">
           Sign in with Relisten
         </a>
       </div>

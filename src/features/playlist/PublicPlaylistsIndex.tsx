@@ -15,7 +15,7 @@ import {
   myPlaylistsHref,
   publicPlaylistsSearchParams,
 } from '@/lib/searchParams/publicPlaylistsSearchParams';
-import { signInHref } from '@/lib/searchParams/sessionSearchParams';
+import { signInPageHref } from '@/lib/searchParams/sessionSearchParams';
 import { sessionCookie } from '@/lib/session/sessionCookie';
 import { numberFormat } from '@/lib/utils';
 import ArtistCover from '@/ui/base/ArtistCover';
@@ -194,7 +194,7 @@ export default async function PublicPlaylistsIndex({ artistSlug }: { artistSlug?
   if (mine) {
     // Most recently updated first, as the library comes; it has nothing else to sort by.
     const library = await getPlaylistLibrary();
-    if (!library) redirect(signInHref(myPlaylistsHref()));
+    if (!library) redirect(signInPageHref(myPlaylistsHref()));
     view = {
       rows: ownPlaylistRows(library.owned),
       sort: 'updated',

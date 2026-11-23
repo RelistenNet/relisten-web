@@ -7,7 +7,8 @@ import PublicPlaylist, { publicPlaylistMetadata } from './PublicPlaylist';
 
 // /playlists/{playlist}: one route for every playlist. A share code is the
 // published playlist, which its creator sees with their controls (Edit,
-// Publish); a playlist id is its creator's own, published or not.
+// Publish); a playlist id is its creator's own, which goes to its share code
+// while it's published.
 
 /**
  * Whether the signed-in listener made it. Signed out costs no request; a User
@@ -23,7 +24,7 @@ export default async function PlaylistPage({ playlist }: { playlist: string }) {
   if (isPlaylistId(playlist)) return <OwnPlaylist playlistId={playlist} />;
   const published = await getPublicPlaylist(playlist);
   if (published && (await viewerCreated(published.creator))) {
-    return <OwnPlaylist playlistId={published.playlistId} />;
+    return <OwnPlaylist playlistId={published.playlistId} atPublicUrl />;
   }
   return <PublicPlaylist publicCode={playlist} />;
 }
