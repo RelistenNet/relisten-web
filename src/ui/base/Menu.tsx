@@ -13,6 +13,9 @@ import cn from '@/lib/cn';
 export const MenuRoot = Menu.Root;
 export const MenuTrigger = Menu.Trigger;
 export const MenuSubmenuRoot = Menu.SubmenuRoot;
+/** Makes the Root or SubmenuRoot it wraps filterable: add a <MenuInput> and put the items in a <MenuList>. */
+export const MenuFilterProvider = Menu.FilterProvider;
+export const useMenuFilter = Menu.useFilter;
 
 /**
  * A menu's popup, in its portal beside the trigger. Capped (never wider than the
@@ -100,6 +103,38 @@ export function MenuSubmenuTrigger({ icon, children }: { icon?: LucideIcon; chil
       <ChevronRightIcon size={14} className="shrink-0 text-text-muted" aria-hidden />
     </Menu.SubmenuTrigger>
   );
+}
+
+/**
+ * A filterable menu's search field, at the top of the popup. Arrow keys move the
+ * highlight through the list while it keeps focus.
+ */
+export function MenuInput({
+  className,
+  ...props
+}: Omit<ComponentProps<typeof Menu.Input>, 'className'> & { className?: string }) {
+  return (
+    <div className="mb-1 border-b border-hairline px-1 pb-1">
+      <Menu.Input
+        className={cn(
+          `
+            w-full rounded-md bg-transparent px-1.5 py-1.5 text-base outline-none
+            placeholder:text-text-muted data-highlighted:bg-surface-hover sm:text-sm
+          `,
+          className
+        )}
+        {...props}
+      />
+    </div>
+  );
+}
+
+/** A filterable menu's items, under its <MenuInput>. */
+export function MenuList({
+  className,
+  ...props
+}: Omit<ComponentProps<typeof Menu.List>, 'className'> & { className?: string }) {
+  return <Menu.List className={cn('outline-none', className)} {...props} />;
 }
 
 export function MenuSeparator({ className }: { className?: string }) {

@@ -1,7 +1,7 @@
 import { Link } from '@timber-js/app/client';
 import { href } from '@timber-js/app/routes';
 import { deny, redirect } from '@timber-js/app/server';
-import { ArchiveIcon, BanIcon, GlobeIcon, LockIcon, type LucideIcon } from 'lucide-react';
+import { ArchiveIcon, BanIcon, GlobeIcon, LockIcon, type LucideIcon, PlusIcon } from 'lucide-react';
 import { findArtistBySlug } from '@/data/artists';
 import {
   getPlaylistLibrary,
@@ -234,6 +234,14 @@ export default async function PublicPlaylistsIndex({ artistSlug }: { artistSlug?
         meta={[artist ? `With ${artist.name}` : mine ? 'Your Playlists' : 'Shared by listeners']}
         aside={
           !artistSlug && signedIn ? <PlaylistScopeTabs scope={mine ? 'mine' : 'all'} /> : undefined
+        }
+        actions={
+          !artistSlug && signedIn ? (
+            <Link href={href('/playlists/new')} className="header-action-primary">
+              <PlusIcon className="size-4" aria-hidden />
+              New Playlist
+            </Link>
+          ) : undefined
         }
       />
       <div className="flex flex-col gap-4">

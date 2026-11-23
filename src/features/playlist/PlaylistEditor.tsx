@@ -816,7 +816,9 @@ function TitleInput({
   }, [openFieldsRef]);
   return (
     // A one-row textarea that grows, so a long name wraps like the heading does.
-    // Enter saves (a name is one line); Escape reverts.
+    // Enter saves (a name is one line); Escape reverts. It's wider than its box by
+    // the -mx-1 it hangs out: the header sizes to the text, and at w-full the last
+    // letter wrapped.
     <textarea
       ref={field}
       defaultValue={name}
@@ -835,8 +837,8 @@ function TitleInput({
         }
       }}
       className="
-        -mx-1 block [field-sizing:content] w-full resize-none overflow-hidden rounded-md
-        bg-transparent px-1 text-balance outline-none hover:bg-text-primary/[0.04]
+        -mx-1 block [field-sizing:content] w-[calc(100%+0.5rem)] resize-none overflow-hidden
+        rounded-md bg-transparent px-1 text-balance outline-none hover:bg-text-primary/[0.04]
         focus:bg-text-primary/[0.04] focus:ring-1 focus:ring-accent
       "
     />

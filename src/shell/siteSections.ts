@@ -6,10 +6,10 @@ import { href } from '@timber-js/app/routes';
  * menu. Below xl the Site menu holds them all.
  */
 export const siteSections = [
+  { label: 'Playlists', href: href('/playlists'), group: 'explore' },
   { label: 'Today', href: href('/today'), group: 'explore' },
   { label: 'Live', href: href('/recently-played'), group: 'explore' },
   { label: 'Venues', href: href('/venues'), group: 'explore' },
-  { label: 'Playlists', href: href('/playlists'), group: 'explore' },
   { label: 'Blog', href: href('/blog'), group: 'more' },
   { label: 'Chat', href: href('/chat'), group: 'more' },
   { label: 'Apps', href: href('/app'), group: 'more' },

@@ -106,6 +106,22 @@ export const OWN_PLAYLISTS_CRUMB: PlaylistCrumb = {
   href: myPlaylistsHref(),
 };
 
+/** A PageHeader crumb: the list a playlist page is in, as a link back. */
+export function PlaylistCrumbLink({ crumb }: { crumb: PlaylistCrumb }) {
+  return (
+    <Link
+      href={crumb.href}
+      className="
+        -mx-1 inline-flex items-center gap-0.5 rounded px-1 py-1 text-text-muted transition-colors
+        hover:text-accent
+      "
+    >
+      {crumb.label}
+      <ChevronRightIcon className="size-3.5" aria-hidden />
+    </Link>
+  );
+}
+
 export default function PlaylistArticle({
   view,
   byline = [],
@@ -148,20 +164,7 @@ export default function PlaylistArticle({
       <article className="detail-page flex flex-col gap-6">
         {/* The detail pages' header, as the playlists table has: the same width and layout. */}
         <PageHeader
-          crumb={
-            crumb && (
-              <Link
-                href={crumb.href}
-                className="
-                  -mx-1 inline-flex items-center gap-0.5 rounded px-1 py-1 text-text-muted
-                  transition-colors hover:text-accent
-                "
-              >
-                {crumb.label}
-                <ChevronRightIcon className="size-3.5" aria-hidden />
-              </Link>
-            )
-          }
+          crumb={crumb && <PlaylistCrumbLink crumb={crumb} />}
           title={slots?.title ?? view.name}
           meta={
             byline.some(Boolean)

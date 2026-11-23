@@ -2,10 +2,9 @@
 
 import { usePathname, useRouter } from '@timber-js/app/client';
 import { href } from '@timber-js/app/routes';
-import { ListPlusIcon, LogInIcon, PlusIcon } from 'lucide-react';
-import { Suspense, use, useActionState, useState } from 'react';
+import { ListPlusIcon, LoaderCircleIcon, LogInIcon, PlusIcon } from 'lucide-react';
+import { type ReactNode, Suspense, use, useState } from 'react';
 import { toast } from 'sonner';
-import { z } from 'zod/v4';
 import { PlaylistName } from '@/domain/playlists';
 import { readStorage, writeStorage } from '@/lib/browserStorage';
 import { signInHref } from '@/lib/searchParams/sessionSearchParams';
@@ -17,33 +16,30 @@ import {
   removeSegment,
 } from '@/playlists/commands';
 import { PlaylistWriteError } from '@/playlists/transport';
-import { Button } from '@/ui/base/shadcn/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/ui/base/shadcn/dialog';
-import { Input } from '@/ui/base/shadcn/input';
 import { TOASTER_ID } from './toasts';
 import {
   MenuContent,
+  MenuFilterProvider,
+  MenuInput,
   MenuItem,
   MenuLinkItem,
+  MenuList,
   MenuRoot,
   MenuSeparator,
   MenuSubmenuRoot,
   MenuSubmenuTrigger,
   MenuTrigger,
+  useMenuFilter,
 } from '@/ui/base/Menu';
 
-// Add to Playlist (docs/playlist-editing.md): your playlists, the one you last
-// added to first, then New Playlist…. What's added goes in as one segment, so a
-// show's tape (or a run like Twist → Jam) stays together under shuffle. The list
-// loads each time the menu opens; signed out, the server says so (401), and the
-// menu offers Sign In instead.
+// Add to Playlist (docs/playlist-editing.md): a picker over your playlists, the
+// one you last added to first. Typing filters them; the row at the top, New
+// Playlist, takes what's typed (or the track's or show's name) as its name, and
+// it stays put while the list loads or filters under it. Nothing is created
+// until that row is chosen. What's added goes in as one segment, so a show's
+// tape (or a run like Twist → Jam) stays together under shuffle. The list loads
+// each time the menu opens; signed out, the server says so (401), and the menu
+// offers Sign In instead.
 
 /** What to add, looked up when it's chosen (a show's tracks are fetched then); null if that failed. */
 export type PlaylistTracks = () => Promise<{ trackIds: string[] } | null>;
@@ -133,19 +129,45 @@ function usePlaylistActions(tracks: PlaylistTracks) {
     }
   }
 
-  return { add, open };
+  async function create(name: string) {
+    const parsed = PlaylistName.safeParse(name);
+    if (!parsed.success)
+      return toast.error(parsed.error.issues[0]?.message ?? 'Check the name.', {
+        toasterId: TOASTER_ID,
+      });
+    try {
+      const found = await tracks();
+      if (!found)
+        return toast.error('Couldn’t load the tracks to add. Try again in a moment.', {
+          toasterId: TOASTER_ID,
+        });
+      const { playlistId } = await createPlaylist({ name: parsed.data, trackIds: found.trackIds });
+      writeStorage(LAST_KEY, playlistId);
+      toast.success(`Created ${parsed.data}`, {
+        toasterId: TOASTER_ID,
+        action: { label: 'Open', onClick: open(playlistId) },
+      });
+    } catch (err) {
+      failed(err, 'create the playlist');
+    }
+  }
+
+  return { add, create };
 }
 
-/** The list inside a menu: Sign In, or your playlists. Suspends while they load. */
+/** The list under New Playlist: Sign In, or your playlists matching the query. Suspends while they load. */
 function PlaylistItems({
   library,
+  query,
   onAdd,
 }: {
   library: Promise<Library>;
+  query: string;
   onAdd: (p: OwnPlaylist) => void;
 }) {
   const result = use(library);
   const pathname = usePathname();
+  const { contains } = useMenuFilter();
   if (result.kind === 'signed-out') {
     return (
       <MenuLinkItem render={<a href={signInHref(pathname)} />} icon={LogInIcon}>
@@ -153,64 +175,124 @@ function PlaylistItems({
       </MenuLinkItem>
     );
   }
-  if (result.kind === 'error') {
-    return <MenuItem disabled>Couldn’t load your playlists</MenuItem>;
-  }
+  if (result.kind === 'error') return <Note>Couldn’t load your playlists</Note>;
+  if (!result.playlists.length) return <Note>No playlists yet</Note>;
+  const matches = result.playlists.filter((p) => contains(p.name, query.trim()));
+  if (!matches.length) return <Note>No playlists match</Note>;
+  return matches.map((p) => (
+    <MenuItem key={p.id} label={p.name} onClick={() => onAdd(p)}>
+      <span className="min-w-0 flex-1 truncate">{p.name}</span>
+      <span className="text-xs text-text-muted tabular-nums">{p.trackCount}</span>
+    </MenuItem>
+  ));
+}
+
+/** A line in the list that isn't an item: nothing to highlight or choose. */
+function Note({ children }: { children: ReactNode }) {
   return (
-    <>
-      {result.playlists.map((p) => (
-        <MenuItem key={p.id} onClick={() => onAdd(p)}>
-          <span className="min-w-0 flex-1 truncate">{p.name}</span>
-          <span className="text-xs text-text-muted tabular-nums">{p.trackCount}</span>
-        </MenuItem>
-      ))}
-      {result.playlists.length > 0 && <MenuSeparator />}
-    </>
+    <div className="py-2.5 pr-3 pl-2.5 text-base text-text-muted sm:py-1.5 sm:pr-2.5 sm:pl-2 sm:text-sm">
+      {children}
+    </div>
   );
 }
 
-function MenuContents({
+/**
+ * While your playlists load: a slow, muted spinner in the middle of the list's space.
+ */
+function Loading() {
+  return (
+    <div
+      role="status"
+      aria-label="Loading your playlists"
+      className="flex flex-1 animate-fade-in items-center justify-center py-4"
+    >
+      <LoaderCircleIcon
+        className="size-4 animate-[spin_1.2s_linear_infinite] text-text-muted motion-reduce:animate-none"
+        aria-hidden
+      />
+    </div>
+  );
+}
+
+/**
+ * The picker inside either menu. The list is one fixed height (New Playlist and
+ * about five rows; more scroll), so the popup never changes size or moves as the
+ * list loads or filters.
+ */
+function PickerContents({
   library,
   tracks,
-  onNew,
+  defaultName,
+  query,
 }: {
   library: Promise<Library> | null;
   tracks: PlaylistTracks;
-  onNew: () => void;
+  defaultName: string;
+  query: string;
 }) {
-  const { add } = usePlaylistActions(tracks);
-  const loading = <MenuItem disabled>Loading…</MenuItem>;
+  const { add, create } = usePlaylistActions(tracks);
+  const name = query.trim() || defaultName || 'New Playlist';
+  const loading = <Loading />;
   return (
     <>
-      <Suspense fallback={loading}>
-        {library ? <PlaylistItems library={library} onAdd={(p) => void add(p)} /> : loading}
-      </Suspense>
-      <MenuItem onClick={onNew} icon={PlusIcon}>
-        New Playlist…
-      </MenuItem>
+      <MenuInput aria-label="Find or name a playlist" placeholder="Find or name a playlist…" />
+      <MenuList className="flex h-48 flex-col overflow-y-auto">
+        <MenuItem label={name} onClick={() => void create(name)} icon={PlusIcon}>
+          <span className="min-w-0 flex-1 truncate">New Playlist “{name}”</span>
+        </MenuItem>
+        {/* The list is a flex column: without shrink-0 an overflowing list squeezes it to nothing. */}
+        <MenuSeparator className="shrink-0" />
+        <Suspense fallback={loading}>
+          {library ? (
+            <PlaylistItems library={library} query={query} onAdd={(p) => void add(p)} />
+          ) : (
+            loading
+          )}
+        </Suspense>
+      </MenuList>
     </>
   );
 }
 
 /**
- * Add to Playlist, as a submenu of a row's ⋯ menu. The New Playlist dialog lives
- * outside the menu (which closes on a click): the parent renders <NewPlaylistDialog>.
+ * A request for your playlists per opening of a menu, and its filter's query
+ * (Base UI empties it when the menu closes).
  */
+function usePicker() {
+  const { library, onOpenChange } = useLibraryOnOpen();
+  const [query, setQuery] = useState('');
+  return {
+    library,
+    onOpenChange,
+    filter: { filter: null, value: query, onValueChange: setQuery },
+    query,
+  };
+}
+
+/** Add to Playlist, as a submenu of a row's ⋯ menu. */
 export function AddToPlaylistSubmenu({
   tracks,
-  onNew,
+  defaultName,
 }: {
   tracks: PlaylistTracks;
-  onNew: () => void;
+  /** New Playlist's name until one is typed: the track's or show's. */
+  defaultName: string;
 }) {
-  const { library, onOpenChange } = useLibraryOnOpen();
+  const { library, onOpenChange, filter, query } = usePicker();
   return (
-    <MenuSubmenuRoot onOpenChange={onOpenChange}>
-      <MenuSubmenuTrigger icon={ListPlusIcon}>Add to Playlist</MenuSubmenuTrigger>
-      <MenuContent className="max-h-80 overflow-y-auto">
-        <MenuContents library={library} tracks={tracks} onNew={onNew} />
-      </MenuContent>
-    </MenuSubmenuRoot>
+    <MenuFilterProvider {...filter}>
+      <MenuSubmenuRoot onOpenChange={onOpenChange}>
+        <MenuSubmenuTrigger icon={ListPlusIcon}>Add to Playlist</MenuSubmenuTrigger>
+        <MenuContent>
+          <PickerContents
+            library={library}
+            tracks={tracks}
+            defaultName={defaultName}
+            query={query}
+          />
+        </MenuContent>
+      </MenuSubmenuRoot>
+    </MenuFilterProvider>
   );
 }
 
@@ -224,113 +306,23 @@ export function AddToPlaylistButton({
   defaultName: string;
   className?: string;
 }) {
-  const [naming, setNaming] = useState(false);
-  const { library, onOpenChange } = useLibraryOnOpen();
+  const { library, onOpenChange, filter, query } = usePicker();
   return (
-    <>
+    <MenuFilterProvider {...filter}>
       <MenuRoot onOpenChange={onOpenChange}>
         <MenuTrigger className={className}>
           <ListPlusIcon className="size-4 text-text-muted" aria-hidden />
           Add to Playlist
         </MenuTrigger>
-        <MenuContent align="start" className="max-h-80 overflow-y-auto">
-          <MenuContents library={library} tracks={tracks} onNew={() => setNaming(true)} />
+        <MenuContent align="start">
+          <PickerContents
+            library={library}
+            tracks={tracks}
+            defaultName={defaultName}
+            query={query}
+          />
         </MenuContent>
       </MenuRoot>
-      <NewPlaylistDialog
-        open={naming}
-        onOpenChange={setNaming}
-        tracks={tracks}
-        defaultName={defaultName}
-      />
-    </>
-  );
-}
-
-/**
- * A failed create: why, and the name as typed (React resets the form after its
- * action, so the field takes it back as its default rather than losing it).
- */
-type CreateState = { error: string; name: string } | null;
-
-/** The dialog's form. */
-const NewPlaylistForm = z.object({ name: PlaylistName });
-
-/** Names a new playlist and creates it with the tracks, in one request. */
-export function NewPlaylistDialog({
-  open,
-  onOpenChange,
-  tracks,
-  defaultName = '',
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  tracks: PlaylistTracks;
-  defaultName?: string;
-}) {
-  const { open: openPlaylist } = usePlaylistActions(tracks);
-  const [state, create, pending] = useActionState(
-    async (_prev: CreateState, form: FormData): Promise<CreateState> => {
-      const typed = String(form.get('name') ?? '');
-      const parsed = NewPlaylistForm.safeParse(Object.fromEntries(form));
-      if (!parsed.success)
-        return { error: parsed.error.issues[0]?.message ?? 'Check the name.', name: typed };
-      const { name } = parsed.data;
-      try {
-        // A lookup that failed (a show's tracks didn't load) creates nothing: the
-        // dialog stays open to try again.
-        const found = await tracks();
-        if (!found)
-          return { error: 'Couldn’t load the tracks to add. Try again in a moment.', name: typed };
-        const { playlistId } = await createPlaylist({ name, trackIds: found.trackIds });
-        writeStorage(LAST_KEY, playlistId);
-        onOpenChange(false);
-        toast.success(`Created ${name}`, {
-          toasterId: TOASTER_ID,
-          action: { label: 'Open', onClick: openPlaylist(playlistId) },
-        });
-        return null;
-      } catch (err) {
-        if (err instanceof PlaylistWriteError && err.kind === 'signed-out')
-          return { error: 'Sign in to create playlists.', name: typed };
-        if (err instanceof PlaylistWriteError && err.kind === 'invalid' && err.detail)
-          return { error: err.detail, name: typed };
-        return { error: "Couldn't create it. Try again in a moment.", name: typed };
-      }
-    },
-    null
-  );
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <form action={create} className="flex flex-col gap-4">
-          <DialogHeader>
-            <DialogTitle>New Playlist</DialogTitle>
-            <DialogDescription>It starts private. Publish it when it’s ready.</DialogDescription>
-          </DialogHeader>
-          <Input
-            name="name"
-            aria-label="Name"
-            placeholder="Name"
-            defaultValue={state?.name ?? defaultName}
-            maxLength={100}
-            required
-            autoFocus
-            aria-invalid={!!state?.error}
-          />
-          {state?.error && (
-            <p role="alert" className="m-0 text-sm text-red-500">
-              {state.error}
-            </p>
-          )}
-          <DialogFooter>
-            <Button type="submit" disabled={pending}>
-              {pending ? 'Creating…' : 'Create'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+    </MenuFilterProvider>
   );
 }
