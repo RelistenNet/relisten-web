@@ -40,24 +40,56 @@ jobs:
           echo "image=${REGISTRY}/${IMAGE_NAME}" >> "$GITHUB_OUTPUT"
           echo "package=${IMAGE_NAME#relistennet/}" >> "$GITHUB_OUTPUT"
 
-      # Without it, timber picks random server action IDs and every deploy
-      # breaks actions in tabs that were already open. Refuse instead.
-      - name: Require the server action key
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c # v4.4.0
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          audience: ${{ secrets.TS_AUDIENCE }}
+          ping: 100.99.27.11
+          use-cache: 'true'
+          tags: tag:ci
+          version: '1.104.1'
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@bda439f5f36b99b262ebdcd3613869bddb064c8e # v5.2.0
+        with:
+          version: v1.36.2
+
+      - name: Configure relisten3 kubeconfig
         env:
-          KEY: ${{ secrets.TIMBER_ACTIONS_ENCRYPTION_KEY }}
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         run: |
-          if [ -z "$KEY" ]; then
-            echo "::error::TIMBER_ACTIONS_ENCRYPTION_KEY is not set in the relisten3 environment"
+          set -euo pipefail
+          mkdir -p "$HOME/.kube"
+          printf '%s' "$KUBE_CONFIG" > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
+          kubectl config use-context relisten3-k3s
+
+      # Server action IDs are salted with this key, and the deployment reads
+      # the same Secret at runtime (relisten-flux). Without it, timber picks
+      # random IDs and every deploy breaks actions in tabs that were already
+      # open, so a missing or empty key fails the build. It's written to a
+      # temp file for the BuildKit secret, never to an output or the log.
+      - name: Read the server action key
+        run: |
+          set -euo pipefail
+          key="$(kubectl -n default get secret relisten-web-timber-actions \
+            -o jsonpath='{.data.TIMBER_ACTIONS_ENCRYPTION_KEY}' | base64 -d)"
+          if [ -z "$key" ]; then
+            echo "::error::default/relisten-web-timber-actions has no TIMBER_ACTIONS_ENCRYPTION_KEY"
             exit 1
           fi
+          echo "::add-mask::$key"
+          umask 077
+          printf '%s' "$key" > "$RUNNER_TEMP/timber_actions_key"
 
       - name: Build and push image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           platforms: linux/amd64
-          secrets: |
-            timber_actions_key=${{ secrets.TIMBER_ACTIONS_ENCRYPTION_KEY }}
+          secret-files: |
+            timber_actions_key=${{ runner.temp }}/timber_actions_key
           tags: |
             ${{ steps.meta.outputs.image }}:latest
             ${{ steps.meta.outputs.image }}:sha-${{ steps.meta.outputs.short_sha }}
@@ -110,31 +142,6 @@ jobs:
             echo "Deleting old GHCR package version $id for $ORG/$PACKAGE"
             gh api -X DELETE "/orgs/$ORG/packages/container/$PACKAGE/versions/$id"
           done <<< "$ids"
-
-      - name: Connect to Tailscale
-        uses: tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c # v4.4.0
-        with:
-          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          audience: ${{ secrets.TS_AUDIENCE }}
-          ping: 100.99.27.11
-          use-cache: 'true'
-          tags: tag:ci
-          version: '1.104.1'
-
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@bda439f5f36b99b262ebdcd3613869bddb064c8e # v5.2.0
-        with:
-          version: v1.36.2
-
-      - name: Configure relisten3 kubeconfig
-        env:
-          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
-        run: |
-          set -euo pipefail
-          mkdir -p "$HOME/.kube"
-          printf '%s' "$KUBE_CONFIG" > "$HOME/.kube/config"
-          chmod 600 "$HOME/.kube/config"
-          kubectl config use-context relisten3-k3s
 
       - name: Restart relisten3 deployment
         run: |
