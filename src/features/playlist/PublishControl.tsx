@@ -14,7 +14,7 @@ import {
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import cn from '@/lib/cn';
-import { TOASTER_ID } from '@/player/toasts';
+import { reportStaleAction, TOASTER_ID } from '@/player/toasts';
 import { PlaylistWriteError, playlistTransport } from '@/playlists/transport';
 import { Button } from '@/ui/base/shadcn/button';
 import {
@@ -98,6 +98,7 @@ export default function PublishControl({
           await copy(code, 'Published. Link copied.');
         } else if (!published) notify.ok('Unpublished. Only you can see it now.');
       } catch (err) {
+        if (reportStaleAction(err)) return;
         notify.error(
           err instanceof PlaylistWriteError && err.kind === 'signed-out'
             ? 'Sign in to publish.'

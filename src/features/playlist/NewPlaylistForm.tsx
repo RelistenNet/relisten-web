@@ -1,6 +1,6 @@
 'use client';
 
-import { usePendingNavigation, useRouter } from '@timber-js/app/client';
+import { useRouter } from '@timber-js/app/client';
 import { href } from '@timber-js/app/routes';
 import { useActionState } from 'react';
 import { z } from 'zod/v4';
@@ -42,7 +42,12 @@ export default function NewPlaylistForm() {
         return { error: parsed.error.issues[0]?.message ?? 'Check the name.', ...typed };
       try {
         const { playlistId } = await createPlaylist(parsed.data);
-        router.push(href('/playlists/[playlist]/edit', { playlist: playlistId }));
+        // Created straight in the User Service: drop pages Back/Forward would
+        // replay (the playlists listing without this one).
+        router.invalidate();
+        // Awaited, so the form stays pending until the editor is on screen and
+        // a second press can't make a second playlist.
+        await router.push(href('/playlists/[playlist]/edit', { playlist: playlistId }));
         // The fields keep what was typed while the editor loads.
         return { error: null, ...typed };
       } catch (err) {
@@ -57,9 +62,6 @@ export default function NewPlaylistForm() {
     },
     null
   );
-  // Still on its way to the editor: a second press would make a second playlist.
-  const navigating = usePendingNavigation();
-  const busy = pending || navigating;
 
   return (
     <form action={create} className="flex max-w-xl flex-col gap-4">
@@ -86,8 +88,8 @@ export default function NewPlaylistForm() {
         </p>
       )}
       <div>
-        <Button type="submit" disabled={busy}>
-          {busy ? 'Creating…' : 'Create Playlist'}
+        <Button type="submit" disabled={pending}>
+          {pending ? 'Creating…' : 'Create Playlist'}
         </Button>
       </div>
     </form>
