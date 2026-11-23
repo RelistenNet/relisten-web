@@ -9,6 +9,8 @@ const MONTH_OR_DAY = /^[\dx]{1,2}$/i;
 const PLAYLIST_PREFIX = 'playlist_';
 /** A TypeID's 26-character body: Crockford base32, first character 0–7. */
 const PLAYLIST_ID_BODY = /^[0-7][0-9a-hjkmnp-tv-z]{25}$/;
+/** A published playlist's share code. */
+const PUBLIC_CODE = /^[0-9a-f]{32}$/;
 
 export default defineSchema({
   segmentParams: {
@@ -33,10 +35,22 @@ export default defineSchema({
     // A show page's date: YYYY-MM-DD.
     '[showDate]': z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     '[slug]': codec.string,
-    // A published playlist's share code: 32 lowercase hex characters.
-    '[publicCode]': z.string().regex(/^[0-9a-f]{32}$/),
+    // A playlist: its share code (32 lowercase hex characters; anyone, while it's
+    // published) or its id without the `playlist_` prefix (its creator's own:
+    // /playlists/01m7tyqs5cep4vgwpf7m05ket2). The two never collide (32 vs 26
+    // characters). Pages get the code, or the full id.
+    '[playlist]': {
+      parse: (value: string | string[] | undefined): string => {
+        if (typeof value === 'string' && PUBLIC_CODE.test(value)) return value;
+        if (typeof value === 'string' && PLAYLIST_ID_BODY.test(value)) {
+          return PLAYLIST_PREFIX + value;
+        }
+        throw new Error('Not a playlist');
+      },
+      serialize: (playlist: string) => playlist.replace(PLAYLIST_PREFIX, ''),
+    },
     // A playlist id without its `playlist_` prefix (as `?source=` drops `source_`):
-    // /account/playlists/01m7tyqs5cep4vgwpf7m05ket2. Pages get the full id.
+    // the old /account/playlists/01m7tyqs5cep4vgwpf7m05ket2, which redirects.
     '[playlistId]': {
       parse: (value: string | string[] | undefined): string => {
         if (typeof value !== 'string' || !PLAYLIST_ID_BODY.test(value)) {

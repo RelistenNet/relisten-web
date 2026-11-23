@@ -32,7 +32,7 @@ export async function publicPlaylistMetadata({ publicCode }: { publicCode: strin
   // (timber.js#1330: href() can't name segment files yet.)
   const image = new URL(
     ogImageSearchParams.href(
-      `${href('/playlists/[publicCode]', { publicCode })}/opengraph-image.png`,
+      `${href('/playlists/[playlist]', { playlist: publicCode })}/opengraph-image.png`,
       {
         v: playlist.revision,
       }

@@ -245,6 +245,15 @@ export type PlaylistOp = {
 export type PlaylistOperationWire = PlaylistOp & { operation_id: string; base_revision: number };
 
 /** `PUT /v1/playlists/{id}/publication`: converges on the state asked for. */
+/** `PUT /v1/playlists/{id}/archive-state`: converges on the state asked for. */
+export interface PlaylistArchivedWire {
+  contract_version: 1;
+  history_generation: string;
+  playlist_id: string;
+  archived: boolean;
+  changed: boolean;
+}
+
 export interface PlaylistPublicationWire {
   contract_version: 1;
   history_generation: string;

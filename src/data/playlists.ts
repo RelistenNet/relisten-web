@@ -153,27 +153,54 @@ export const getPublicPlaylist = requestCache((code: string) => publicPlaylistCa
 
 // --- Public listing ----------------------------------------------------------
 
-/** A public playlist as the listing table shows it. Plain data: the value is cached. */
-export type PublicPlaylistRow = {
+/** Where one of the creator's own playlists stands, as its page shows it. */
+export type OwnPlaylistStatus = 'published' | 'private' | 'archived' | 'taken-down';
+
+/**
+ * A row of the playlists listing, every published one or the listener's own.
+ * Fields a source doesn't give are absent: the library has no creator (it's
+ * them), length, plays or followers. Plain data: the value is cached.
+ */
+export type PlaylistListRow = {
   playlistId: string;
-  publicCode: string;
+  /** The `/playlists/[playlist]` param: the share code (published) or the id (their own). */
+  playlist: string;
   name: string;
   /** The username of the listener who made it. */
-  creator: string;
+  creator?: string;
   trackCount: number;
   /** Seconds. */
-  duration: number;
+  duration?: number;
   updatedAt: string;
-  followerCount: number;
+  followerCount?: number;
   /** Plays started from it over the last 30 days. */
-  recentPlayCount: number;
+  recentPlayCount?: number;
+  /** The listener's own only. */
+  status?: OwnPlaylistStatus;
 };
+
+/** The listener's own playlists as listing rows, by id (their page shows their controls). */
+export const ownPlaylistRows = (owned: PlaylistSummaryWire[]): PlaylistListRow[] =>
+  owned.map((p) => ({
+    playlistId: p.playlist_id,
+    playlist: p.playlist_id,
+    name: p.name,
+    trackCount: p.track_count ?? p.entry_count,
+    updatedAt: p.updated_at,
+    status: p.taken_down
+      ? 'taken-down'
+      : p.archived
+        ? 'archived'
+        : p.published
+          ? 'published'
+          : 'private',
+  }));
 
 /** The sorts the listing offers: last update, plays over the last 30 days, followers. */
 export type PublicPlaylistSort = 'recent' | 'plays' | 'followers';
 
 export type PublicPlaylistPage = {
-  rows: PublicPlaylistRow[];
+  rows: PlaylistListRow[];
   /** The next page's cursor (valid only with the same sort), or null on the last page. */
   nextCursor: string | null;
 };
@@ -202,7 +229,7 @@ const publicPlaylistPageCached = timberCache.data(
     return {
       rows: body.playlists.map((p) => ({
         playlistId: p.playlist_id,
-        publicCode: p.public_code,
+        playlist: p.public_code,
         name: p.name,
         creator: p.owner.username,
         trackCount: p.track_count,

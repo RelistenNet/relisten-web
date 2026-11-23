@@ -1,14 +1,21 @@
 import { Link } from '@timber-js/app/client';
-import { ListMusicIcon } from 'lucide-react';
 import { href } from '@timber-js/app/routes';
-import { deny } from '@timber-js/app/server';
+import { deny, redirect } from '@timber-js/app/server';
+import { ArchiveIcon, BanIcon, GlobeIcon, LockIcon, type LucideIcon } from 'lucide-react';
 import { findArtistBySlug } from '@/data/artists';
 import {
+  getPlaylistLibrary,
   getPublicPlaylistPage,
-  type PublicPlaylistRow,
+  ownPlaylistRows,
+  type OwnPlaylistStatus,
+  type PlaylistListRow,
   type PublicPlaylistSort,
 } from '@/data/playlists';
-import { publicPlaylistsSearchParams } from '@/lib/searchParams/publicPlaylistsSearchParams';
+import {
+  myPlaylistsHref,
+  publicPlaylistsSearchParams,
+} from '@/lib/searchParams/publicPlaylistsSearchParams';
+import { signInHref } from '@/lib/searchParams/sessionSearchParams';
 import { sessionCookie } from '@/lib/session/sessionCookie';
 import { numberFormat } from '@/lib/utils';
 import ArtistCover from '@/ui/base/ArtistCover';
@@ -17,13 +24,16 @@ import DataTable from '@/ui/table/DataTable';
 import type { TableResult, TableSpec } from '@/ui/table/query';
 import type { Column } from '@/ui/table/types';
 import { readableDuration } from './PlaylistArticle';
+import PlaylistScopeTabs from './PlaylistScopeTabs';
 
-// Published playlists as a table: every one (/playlists), or those with at
-// least one of an artist's tracks (/artists/phish/playlists). The User Service
-// sorts and pages them: one request per page, and the table shows that page as
-// it came. A page links to the next by the service's cursor.
+// The playlists listing, one table for every view: every published playlist
+// (/playlists), those with an artist's tracks (/artists/phish/playlists), or
+// the signed-in listener's own (?scope=mine). Published ones come a page at a
+// time from the User Service, sorted and paged there; the listener's own come
+// from their library, whole. A column shows only where its source has the
+// field: the library has no creator (it's them), length, plays or followers.
 
-/** The table's sortable columns, by the User Service sort each one is. */
+/** The sortable columns, by the User Service sort each one is. */
 const API_SORTS: Record<string, PublicPlaylistSort> = {
   updated: 'recent',
   plays: 'plays',
@@ -32,7 +42,7 @@ const API_SORTS: Record<string, PublicPlaylistSort> = {
 
 // The DataTable reads which columns sort from the spec's keys; the rows arrive
 // sorted, so its accessors are never called.
-const spec: TableSpec<PublicPlaylistRow> = {
+const spec: TableSpec<PlaylistListRow> = {
   sorts: {
     updated: (p) => p.updatedAt,
     plays: (p) => p.recentPlayCount,
@@ -51,10 +61,18 @@ const dateFormat = new Intl.DateTimeFormat('en-US', {
   timeZone: 'UTC',
 });
 
-const playlistHref = (p: PublicPlaylistRow) =>
-  href('/playlists/[publicCode]', { publicCode: p.publicCode });
+const STATUS: Record<OwnPlaylistStatus, { label: string; icon: LucideIcon }> = {
+  'published': { label: 'Published', icon: GlobeIcon },
+  'private': { label: 'Private', icon: LockIcon },
+  'archived': { label: 'Archived', icon: ArchiveIcon },
+  'taken-down': { label: 'Taken Down', icon: BanIcon },
+};
 
-const columns: Column<PublicPlaylistRow>[] = [
+const playlistHref = (p: PlaylistListRow) =>
+  href('/playlists/[playlist]', { playlist: p.playlist });
+const count = (n: number | undefined) => (n === undefined ? '—' : numberFormat.format(n));
+
+const columns: Column<PlaylistListRow>[] = [
   {
     id: 'name',
     label: 'Playlist',
@@ -64,7 +82,9 @@ const columns: Column<PublicPlaylistRow>[] = [
           {p.name}
         </Link>
         {/* The creator's column is hidden on phones: say it here instead. */}
-        <span className="truncate text-xs text-text-muted sm:hidden">By {p.creator}</span>
+        {p.creator && (
+          <span className="truncate text-xs text-text-muted sm:hidden">By {p.creator}</span>
+        )}
       </span>
     ),
   },
@@ -74,6 +94,21 @@ const columns: Column<PublicPlaylistRow>[] = [
     width: 'w-36',
     hideBelow: 'sm',
     cell: (p) => <span className="truncate text-text-secondary">{p.creator}</span>,
+  },
+  {
+    id: 'status',
+    label: 'Status',
+    width: 'w-32',
+    cell: (p) => {
+      if (!p.status) return null;
+      const { label, icon: Icon } = STATUS[p.status];
+      return (
+        <span className="inline-flex items-center gap-1.5 text-text-muted">
+          <Icon className="size-3.5 shrink-0" aria-hidden />
+          {label}
+        </span>
+      );
+    },
   },
   {
     id: 'tracks',
@@ -88,7 +123,7 @@ const columns: Column<PublicPlaylistRow>[] = [
     align: 'right',
     width: 'w-28',
     hideBelow: 'md',
-    cell: (p) => (p.duration > 0 ? readableDuration(p.duration) : '—'),
+    cell: (p) => (p.duration ? readableDuration(p.duration) : '—'),
   },
   {
     id: 'plays',
@@ -99,7 +134,7 @@ const columns: Column<PublicPlaylistRow>[] = [
     align: 'right',
     width: 'w-28',
     hideBelow: 'md',
-    cell: (p) => numberFormat.format(p.recentPlayCount),
+    cell: (p) => count(p.recentPlayCount),
   },
   {
     id: 'followers',
@@ -110,7 +145,7 @@ const columns: Column<PublicPlaylistRow>[] = [
     align: 'right',
     width: 'w-24',
     hideBelow: 'md',
-    cell: (p) => numberFormat.format(p.followerCount),
+    cell: (p) => count(p.followerCount),
   },
   {
     id: 'updated',
@@ -125,32 +160,69 @@ const columns: Column<PublicPlaylistRow>[] = [
   },
 ];
 
+/** The columns each source fills. */
+const PUBLISHED_COLUMNS = [
+  'name',
+  'creator',
+  'tracks',
+  'duration',
+  'plays',
+  'followers',
+  'updated',
+];
+const OWN_COLUMNS = ['name', 'status', 'tracks', 'updated'];
+
+type View = {
+  rows: PlaylistListRow[];
+  /** The sorted column. */
+  sort: string;
+  columns: string[];
+  /** The next page's cursor (published only), or null on the last page. */
+  nextCursor: string | null;
+};
+
 export default async function PublicPlaylistsIndex({ artistSlug }: { artistSlug?: string }) {
   const [artist, params] = await Promise.all([
     artistSlug ? findArtistBySlug(artistSlug) : undefined,
     publicPlaylistsSearchParams.get(),
   ]);
   if (artistSlug && !artist) deny(404);
+  const mine = !artistSlug && params.scope === 'mine';
+  const signedIn = sessionCookie.get() !== null;
 
-  const sortId = params.sort?.replace(/^-/, '') ?? '';
-  const sort = Object.hasOwn(API_SORTS, sortId) ? sortId : spec.defaultSort.id;
-  const page = await getPublicPlaylistPage(API_SORTS[sort], artist?.id, params.cursor);
-  // A cursor the User Service refused (from another sort, or made up).
-  if (!page) deny(404);
+  let view: View;
+  if (mine) {
+    // Most recently updated first, as the library comes; it has nothing else to sort by.
+    const library = await getPlaylistLibrary();
+    if (!library) redirect(signInHref(myPlaylistsHref()));
+    view = {
+      rows: ownPlaylistRows(library.owned),
+      sort: 'updated',
+      columns: OWN_COLUMNS,
+      nextCursor: null,
+    };
+  } else {
+    const sortId = params.sort?.replace(/^-/, '') ?? '';
+    const sort = Object.hasOwn(API_SORTS, sortId) ? sortId : spec.defaultSort.id;
+    const page = await getPublicPlaylistPage(API_SORTS[sort], artist?.id, params.cursor);
+    // A cursor the User Service refused (from another sort, or made up).
+    if (!page) deny(404);
+    view = { rows: page.rows, sort, columns: PUBLISHED_COLUMNS, nextCursor: page.nextCursor };
+  }
 
   const pathname = artistSlug
     ? href('/artists/[artistSlug]/playlists', { artistSlug })
     : href('/playlists');
   const pageHref = (cursor?: string) =>
     publicPlaylistsSearchParams.href(pathname, { sort: params.sort, cursor });
-  const result: TableResult<PublicPlaylistRow> = {
-    rows: page.rows,
-    total: page.rows.length,
-    totalAll: page.rows.length,
+  const result: TableResult<PlaylistListRow> = {
+    rows: view.rows,
+    total: view.rows.length,
+    totalAll: view.rows.length,
     page: 1,
     pageCount: 1,
     start: 1,
-    sort: { id: sort, dir: 'desc' },
+    sort: { id: view.sort, dir: 'desc' },
     facets: {},
   };
 
@@ -159,32 +231,26 @@ export default async function PublicPlaylistsIndex({ artistSlug }: { artistSlug?
       <PageHeader
         cover={artist && <ArtistCover artist={artist} />}
         title="Playlists"
-        meta={[artist ? `With ${artist.name}` : 'Shared by listeners']}
-        actions={
-          // The listener's own (published or not) are on the account page.
-          !artistSlug && sessionCookie.get() !== null ? (
-            <Link href={href('/account')} className="header-action">
-              <ListMusicIcon className="size-4" aria-hidden />
-              Your Playlists
-            </Link>
-          ) : undefined
+        meta={[artist ? `With ${artist.name}` : mine ? 'Your Playlists' : 'Shared by listeners']}
+        aside={
+          !artistSlug && signedIn ? <PlaylistScopeTabs scope={mine ? 'mine' : 'all'} /> : undefined
         }
       />
       <div className="flex flex-col gap-4">
         <DataTable
           pathname={pathname}
-          // Only the sort: a header link starts the new order from its first page.
-          params={{ sort: params.sort }}
-          spec={spec}
+          // Only the sort (and whose): a header link starts its order from the first page.
+          params={mine ? { scope: 'mine' } : { sort: params.sort }}
+          spec={mine ? { ...spec, sorts: { updated: spec.sorts.updated } } : spec}
           result={result}
-          columns={columns}
+          columns={columns.filter((c) => view.columns.includes(c.id))}
           rowKey={(p) => p.playlistId}
           rowHref={playlistHref}
           minWidth="min-w-0"
           noun="playlist"
           controls={false}
         />
-        {(params.cursor || page.nextCursor) && (
+        {(params.cursor || view.nextCursor) && (
           <nav aria-label="Pages" className="flex items-center justify-between gap-3">
             {params.cursor ? (
               <Link href={pageHref()} className="header-action">
@@ -193,8 +259,8 @@ export default async function PublicPlaylistsIndex({ artistSlug }: { artistSlug?
             ) : (
               <span />
             )}
-            {page.nextCursor && (
-              <Link href={pageHref(page.nextCursor)} className="header-action">
+            {view.nextCursor && (
+              <Link href={pageHref(view.nextCursor)} className="header-action">
                 More Playlists
               </Link>
             )}

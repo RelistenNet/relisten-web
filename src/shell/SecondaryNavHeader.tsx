@@ -23,11 +23,8 @@ const pages: Record<string, Page> = {
   'playlists': playlists,
 };
 
-/** The page's title: by first segment, with the account's own playlists under Playlists too. */
-const pageFor = (pathname: string): Page | undefined =>
-  pathname.startsWith(`${href('/account')}/playlists/`)
-    ? playlists
-    : pages[pathname.split('/')[1] ?? ''];
+/** The page's title, by first path segment. */
+const pageFor = (pathname: string): Page | undefined => pages[pathname.split('/')[1] ?? ''];
 
 /**
  * The header title after RELISTEN, on the site's pages only: the

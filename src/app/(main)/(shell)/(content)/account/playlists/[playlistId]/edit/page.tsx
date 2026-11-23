@@ -1,11 +1,9 @@
-import { getSegmentParams } from '@timber-js/app/server';
-import EditPlaylist, { editPlaylistMetadata } from '@/features/playlist/EditPlaylist';
+import { href } from '@timber-js/app/routes';
+import { getSegmentParams, redirect } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 
-/** Editing one of the signed-in listener's playlists. */
+/** Moved to /playlists/{id}/edit: keep old links working. */
 export default function Page() {
   const { playlistId } = getSegmentParams(SEGMENT_PATH);
-  return <EditPlaylist playlistId={playlistId} />;
+  redirect(href('/playlists/[playlist]/edit', { playlist: playlistId }), { permanent: true });
 }
-
-export const metadata = () => editPlaylistMetadata(getSegmentParams(SEGMENT_PATH));

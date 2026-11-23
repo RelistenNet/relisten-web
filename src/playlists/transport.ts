@@ -12,6 +12,7 @@
 // life (a sign-out or a switch of account can't leave a stale one). That's a
 // request more per save; if it shows up as slow, caching it is the fix.
 
+import { newTypeId } from '@/domain/typeid';
 import type {
   CreatePlaylistRequestWire,
   LibrarySnapshotWire,
@@ -19,6 +20,7 @@ import type {
   PlaylistBatchResponseWire,
   PlaylistCreatedWire,
   PlaylistOperationWire,
+  PlaylistArchivedWire,
   PlaylistPublicationWire,
   PlaylistSnapshotWire,
 } from '@/domain/playlists';
@@ -63,6 +65,11 @@ export type PlaylistTransport = {
   ): Promise<PlaylistBatchResponseWire>;
   /** Publishes (or unpublishes) a playlist; asking twice changes nothing more. */
   publish(playlistId: string, published: boolean): Promise<PlaylistPublicationWire>;
+  /**
+   * Archives a playlist (hidden from its readers, and from editing) or brings it
+   * back; asking twice changes nothing more.
+   */
+  setArchived(playlistId: string, archived: boolean): Promise<PlaylistArchivedWire>;
   /** Reports a public playlist (signed in; a reason of 1–300 characters). */
   report(publicCode: string, reason: string): Promise<void>;
 };
@@ -176,6 +183,13 @@ export function createPlaylistTransport({
       write(
         `/v1/playlists/${encodeURIComponent(id)}/publication`,
         { contract_version: 1, published },
+        { method: 'PUT' }
+      ),
+    setArchived: (id, archived) =>
+      write(
+        `/v1/playlists/${encodeURIComponent(id)}/archive-state`,
+        // One command id for every retry, so a retry can't apply it twice.
+        { contract_version: 1, command_id: newTypeId('command'), archived },
         { method: 'PUT' }
       ),
     report: (code, reason) =>

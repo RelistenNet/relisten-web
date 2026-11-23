@@ -1,11 +1,9 @@
-import { getSegmentParams } from '@timber-js/app/server';
-import OwnPlaylist, { ownPlaylistMetadata } from '@/features/playlist/OwnPlaylist';
+import { href } from '@timber-js/app/routes';
+import { getSegmentParams, redirect } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 
-/** One of the signed-in listener's playlists. */
+/** A listener's own playlist moved to /playlists/{id}: keep old links working. */
 export default function Page() {
   const { playlistId } = getSegmentParams(SEGMENT_PATH);
-  return <OwnPlaylist playlistId={playlistId} />;
+  redirect(href('/playlists/[playlist]', { playlist: playlistId }), { permanent: true });
 }
-
-export const metadata = () => ownPlaylistMetadata(getSegmentParams(SEGMENT_PATH));

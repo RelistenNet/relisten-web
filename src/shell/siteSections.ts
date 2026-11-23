@@ -1,15 +1,15 @@
 import { href } from '@timber-js/app/routes';
 
 /**
- * The site's own pages, about no artist. `primary` are the listening pages, inline
- * in the nav bar at xl; `more` are about the project, in the More menu. Below xl
- * the menu holds both.
+ * The site's own pages, about no artist. `explore` are the listening pages, in
+ * the nav bar's Explore menu at xl; `more` are about the project, in the Site
+ * menu. Below xl the Site menu holds them all.
  */
 export const siteSections = [
-  { label: 'Today', href: href('/today'), group: 'primary' },
-  { label: 'Live', href: href('/recently-played'), group: 'primary' },
-  { label: 'Venues', href: href('/venues'), group: 'primary' },
-  { label: 'Playlists', href: href('/playlists'), group: 'primary' },
+  { label: 'Today', href: href('/today'), group: 'explore' },
+  { label: 'Live', href: href('/recently-played'), group: 'explore' },
+  { label: 'Venues', href: href('/venues'), group: 'explore' },
+  { label: 'Playlists', href: href('/playlists'), group: 'explore' },
   { label: 'Blog', href: href('/blog'), group: 'more' },
   { label: 'Chat', href: href('/chat'), group: 'more' },
   { label: 'Apps', href: href('/app'), group: 'more' },

@@ -74,7 +74,7 @@ function OwnedRow({ playlist: p }: { playlist: PlaylistSummaryWire }) {
   return (
     <li className={ROW}>
       <Link
-        href={href('/account/playlists/[playlistId]', { playlistId: p.playlist_id })}
+        href={href('/playlists/[playlist]', { playlist: p.playlist_id })}
         className="min-w-0 truncate font-medium hover:text-accent"
       >
         {p.name}
@@ -101,7 +101,7 @@ function FollowedRow({ playlist: p }: { playlist: FollowedPlaylistHeadWire }) {
   return (
     <li className={ROW}>
       <Link
-        href={href('/playlists/[publicCode]', { publicCode: p.public_code })}
+        href={href('/playlists/[playlist]', { playlist: p.public_code })}
         className="min-w-0 truncate font-medium hover:text-accent"
       >
         {p.name}

@@ -1,11 +1,9 @@
-import { getSegmentParams } from '@timber-js/app/server';
-import PreviewPlaylist, { previewPlaylistMetadata } from '@/features/playlist/PreviewPlaylist';
+import { href } from '@timber-js/app/routes';
+import { getSegmentParams, redirect } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 
-/** One of the signed-in listener's playlists, as readers would see it published. */
+/** Moved to /playlists/{id}/preview: keep old links working. */
 export default function Page() {
   const { playlistId } = getSegmentParams(SEGMENT_PATH);
-  return <PreviewPlaylist playlistId={playlistId} />;
+  redirect(href('/playlists/[playlist]/preview', { playlist: playlistId }), { permanent: true });
 }
-
-export const metadata = () => previewPlaylistMetadata(getSegmentParams(SEGMENT_PATH));

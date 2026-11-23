@@ -12,8 +12,8 @@ import PlaylistEditor from './PlaylistEditor';
  * from them. An archived playlist can't be edited, so it goes back to its page.
  */
 export default async function EditPlaylist({ playlistId }: { playlistId: string }) {
-  const pathname = href('/account/playlists/[playlistId]/edit', { playlistId });
-  const viewHref = href('/account/playlists/[playlistId]', { playlistId });
+  const pathname = href('/playlists/[playlist]/edit', { playlist: playlistId });
+  const viewHref = href('/playlists/[playlist]', { playlist: playlistId });
   const result = await getOwnPlaylist(playlistId);
   if (result.kind === 'signed-out') redirect(signInHref(pathname));
   if (result.kind === 'missing') deny(404);

@@ -38,6 +38,7 @@ function fakeServer(start = content) {
     library: vi.fn(),
     create: vi.fn(),
     publish: vi.fn(),
+    setArchived: vi.fn(),
     report: vi.fn(),
     snapshot: vi.fn(
       async () =>

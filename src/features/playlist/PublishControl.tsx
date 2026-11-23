@@ -47,7 +47,7 @@ const notify = {
 };
 
 const publicUrl = (publicCode: string) =>
-  new URL(href('/playlists/[publicCode]', { publicCode }), window.location.origin).href;
+  new URL(href('/playlists/[playlist]', { playlist: publicCode }), window.location.origin).href;
 
 export default function PublishControl({
   playlistId,
@@ -68,7 +68,7 @@ export default function PublishControl({
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [pending, startTransition] = useTransition();
-  const previewHref = href('/account/playlists/[playlistId]/preview', { playlistId });
+  const previewHref = href('/playlists/[playlist]/preview', { playlist: playlistId });
 
   const copy = async (code: string, done = 'Link copied.') => {
     try {
@@ -138,7 +138,7 @@ export default function PublishControl({
                 Copy Link
               </MenuItem>
               <MenuLinkItem
-                render={<Link href={href('/playlists/[publicCode]', { publicCode })} />}
+                render={<Link href={href('/playlists/[playlist]', { playlist: publicCode })} />}
                 icon={GlobeIcon}
               >
                 Open Public Page

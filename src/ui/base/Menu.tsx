@@ -36,7 +36,7 @@ export function MenuContent({
             `
               max-w-[min(18rem,calc(100vw-2rem))] min-w-44 origin-(--transform-origin) rounded-lg
               bg-surface-raised p-1 text-text-primary shadow-lg ring-1 ring-hairline
-              transition-[transform,opacity] outline-none data-ending-style:scale-95
+              transition-[scale,opacity] outline-none data-ending-style:scale-95
               data-ending-style:opacity-0 data-starting-style:scale-95
               data-starting-style:opacity-0 dark:shadow-none
             `,
@@ -102,6 +102,6 @@ export function MenuSubmenuTrigger({ icon, children }: { icon?: LucideIcon; chil
   );
 }
 
-export function MenuSeparator() {
-  return <Menu.Separator className="mx-2 my-1 h-px bg-hairline" />;
+export function MenuSeparator({ className }: { className?: string }) {
+  return <Menu.Separator className={cn('mx-2 my-1 h-px bg-hairline', className)} />;
 }

@@ -1,4 +1,5 @@
 import { Link } from '@timber-js/app/client';
+import { myPlaylistsHref } from '@/lib/searchParams/publicPlaylistsSearchParams';
 import PageHeader, { type StatItem } from '@/ui/base/PageHeader';
 import { href } from '@timber-js/app/routes';
 import { ChevronRightIcon } from 'lucide-react';
@@ -99,10 +100,10 @@ export const PUBLIC_PLAYLISTS_CRUMB: PlaylistCrumb = {
   label: 'Playlists',
   href: href('/playlists'),
 };
-/** The owner's own list, on the account page. */
+/** The creator's own list: the playlists listing, filtered to them. */
 export const OWN_PLAYLISTS_CRUMB: PlaylistCrumb = {
-  label: 'Your Playlists',
-  href: href('/account'),
+  label: 'My Playlists',
+  href: myPlaylistsHref(),
 };
 
 export default function PlaylistArticle({
