@@ -111,6 +111,8 @@ function usePlaylistActions(tracks: PlaylistTracks) {
         });
       if (!found.trackIds.length) return toast.error('Nothing to add', { toasterId: TOASTER_ID });
       const added = await addToPlaylist(playlist, found.trackIds);
+      // Written straight to the User Service: drop pages Back/Forward would replay.
+      router.invalidate();
       writeStorage(LAST_KEY, playlist.id);
       toast.success(`Added to ${playlist.name}`, {
         toasterId: TOASTER_ID,
@@ -119,7 +121,10 @@ function usePlaylistActions(tracks: PlaylistTracks) {
           label: 'Undo',
           onClick: () =>
             void removeSegment(playlist.id, added).then(
-              () => toast(`Removed from ${playlist.name}`, { toasterId: TOASTER_ID }),
+              () => {
+                router.invalidate();
+                toast(`Removed from ${playlist.name}`, { toasterId: TOASTER_ID });
+              },
               (err: unknown) => failed(err, 'undo that')
             ),
         },
@@ -142,6 +147,7 @@ function usePlaylistActions(tracks: PlaylistTracks) {
           toasterId: TOASTER_ID,
         });
       const { playlistId } = await createPlaylist({ name: parsed.data, trackIds: found.trackIds });
+      router.invalidate();
       writeStorage(LAST_KEY, playlistId);
       toast.success(`Created ${parsed.data}`, {
         toasterId: TOASTER_ID,

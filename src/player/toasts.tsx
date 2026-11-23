@@ -1,3 +1,4 @@
+import { isStaleActionError } from '@timber-js/app/client';
 import { toast } from 'sonner';
 
 // The player's toasts. gapless calls back synchronously from inside player
@@ -11,6 +12,24 @@ const defer = (fn: () => void) => queueMicrotask(fn);
  * sonner only shows a toast that names it, so every toast passes this.
  */
 export const TOASTER_ID = 'site';
+
+/**
+ * A server action from an earlier build: Relisten was deployed since this tab
+ * loaded, and the action is gone or changed. Says so and offers a reload,
+ * rather than reloading on its own (timber's default for an unhandled one) and
+ * losing what the listener was doing. True if `err` was one.
+ */
+export function reportStaleAction(err: unknown): boolean {
+  if (!isStaleActionError(err)) return false;
+  toast.error('Relisten has been updated', {
+    id: 'stale-action',
+    description: 'Reload the page to keep going.',
+    action: { label: 'Reload', onClick: () => location.reload() },
+    duration: Infinity,
+    toasterId: TOASTER_ID,
+  });
+  return true;
+}
 
 let autoplayToastVisible = false;
 let failureToastVisible = false;

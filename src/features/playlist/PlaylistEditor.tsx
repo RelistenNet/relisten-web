@@ -203,7 +203,12 @@ export default function PlaylistEditor({
     // The server renders the page again only when something waits on it (see
     // `unresolved`), checked in the store's content as it is now: a conflict's
     // refetch lands in the same update as the save, before React renders it.
-    onSaved: () => needsServer(unresolved(store.getState().content, resolved)) && router.refresh(),
+    onSaved: () => {
+      // Saved straight to the User Service, not through a server action: drop
+      // the pages Back/Forward would replay from before the save.
+      router.invalidate();
+      if (needsServer(unresolved(store.getState().content, resolved))) router.refresh();
+    },
     // Text that didn't make it (refused, or skipped because its block went elsewhere)
     // waits to reopen; where is worked out when it does (`reopenAt`).
     onRefused: (refused) => {
@@ -615,9 +620,10 @@ export default function PlaylistEditor({
                 onNavigate={(e) => {
                   if (store.getState().status === 'saved' && !unsent.length) return;
                   e.preventDefault();
-                  void unsavedNow().then((reason) =>
-                    reason ? notify(reason) : router.push(viewHref)
-                  );
+                  void unsavedNow().then((reason) => {
+                    if (reason) notify(reason);
+                    else void router.push(viewHref);
+                  });
                 }}
                 className="header-action-primary"
               >

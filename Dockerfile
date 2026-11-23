@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 # Stage 1: Install dependencies
 FROM node:26-alpine AS deps
 WORKDIR /app
@@ -15,7 +17,14 @@ COPY . .
 RUN npm install -g corepack && corepack enable && corepack install
 
 ENV NODE_ENV=production
-RUN pnpm run build
+# The server action key (timber salts action IDs with it), mounted for the
+# build only, never stored in a layer. The production build passes it (the
+# runtime reads the same value from the deployment's Secret); previews build
+# without it, so their action IDs are random per build. A secret isn't part
+# of the layer cache: with a warm cache, adding or changing it doesn't rebuild
+# this step (CI builds on a fresh runner, so it always does).
+RUN --mount=type=secret,id=timber_actions_key,env=TIMBER_ACTIONS_ENCRYPTION_KEY \
+  pnpm run build
 
 # Stage 3: Production runner
 FROM node:26-alpine AS runner

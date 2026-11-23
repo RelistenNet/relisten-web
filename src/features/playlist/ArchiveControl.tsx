@@ -3,7 +3,7 @@
 import { ArchiveIcon, ArchiveRestoreIcon } from 'lucide-react';
 import { useTransition } from 'react';
 import { toast } from 'sonner';
-import { TOASTER_ID } from '@/player/toasts';
+import { reportStaleAction, TOASTER_ID } from '@/player/toasts';
 import { PlaylistWriteError, playlistTransport } from '@/playlists/transport';
 import { refreshPublicPlaylist } from './publishActions';
 import { useOwnPlaylistRefresh } from './useOwnPlaylistRefresh';
@@ -34,6 +34,7 @@ export default function ArchiveControl({
           toasterId: TOASTER_ID,
         });
       } catch (err) {
+        if (reportStaleAction(err)) return;
         toast.error(
           err instanceof PlaylistWriteError && err.kind === 'signed-out'
             ? 'Sign in to change it.'
