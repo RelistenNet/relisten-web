@@ -69,8 +69,8 @@ describe('flowRows', () => {
   it('lays out the editor with the read page’s rows: opening it moves nothing', () => {
     const read = keys(flowRows(blocks));
     const edit = keys(flowRows(blocks, { editing: true }));
-    // Only a zero-height drop place at the start and the Add zone at the end are new.
-    expect(edit).toEqual(['space:start', ...read, 'gap:end']);
+    // Only drop places at the start (zero-height) and end, and the Add zone, are new.
+    expect(edit).toEqual(['space:start', ...read, 'space:end', 'gap:end']);
     expect(row(flowRows(blocks, { editing: true }), 'space:start')).toMatchObject({ height: 0 });
   });
 
@@ -118,6 +118,16 @@ describe('flowRows', () => {
     });
     // Readers get none.
     expect(rowsOf(flowRows(blocks)).some((r) => r.drop)).toBe(false);
+  });
+
+  it('drops after a last group on its own, in the space below it', () => {
+    // A group's last entry's bottom edge is into the group: the space is below that.
+    const groups = flowRows(
+      [{ kind: 'tracks', key: 'c', rows: [track('c', 's2'), track('d', 's2')] }],
+      { editing: true }
+    );
+    expect(row(groups, 'd').drop?.bottom).toMatchObject({ kind: 'row', segmentId: 's2' });
+    expect(row(groups, 'space:end').drop).toEqual({ center: { kind: 'gap', above: 's2' } });
   });
 
   it('puts the composer after the row it was opened from, in its section', () => {

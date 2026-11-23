@@ -265,6 +265,9 @@ function editorRows(
   // Before everything: a place to drop with no height (its target reaches up into
   // the space above the flow), so something can go first, even before a section.
   out.unshift({ row: { kind: 'space', key: 'space:start', height: 0 } });
+  // After everything: space, as between blocks, so something can go last, on its
+  // own (a last group's bottom edge is into the group). Then the Add zone.
+  out.push({ row: { kind: 'space', key: 'space:end', height: SPACE } });
   out.push({ row: { kind: 'gap', key: 'gap:end', at: { key: 'end' } } });
   return out;
 }
