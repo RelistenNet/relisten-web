@@ -2,13 +2,13 @@ import { z } from 'zod/v4';
 import { readStorage, writeStorage } from '@/lib/browserStorage';
 
 /**
- * How the player plays. `auto`: gapless, preloading 2 tracks ahead. `preload-1`:
- * the same, preloading 1. `no-gapless`: HTML5 only, nothing preloaded. Phones use
+ * How the player plays. `auto`: gapless, preloading the next track. `preload-2`:
+ * the same, preloading 2. `no-gapless`: HTML5 only, nothing preloaded. Phones use
  * HTML5 either way (their browsers suspend Web Audio in the background) unless
  * `forceGaplessOnMobile`.
  */
 const PlaybackSettingsSchema = z.object({
-  mode: z.enum(['auto', 'preload-1', 'no-gapless']).catch('auto'),
+  mode: z.enum(['auto', 'preload-2', 'no-gapless']).catch('auto'),
   forceGaplessOnMobile: z.boolean().catch(false),
 });
 
@@ -63,5 +63,5 @@ export function html5OnlyFor(settings: PlaybackSettings, mobile: boolean): boole
 
 /** Tracks to preload ahead once playing. */
 export function preloadTracksFor(settings: PlaybackSettings): number {
-  return settings.mode === 'no-gapless' ? 0 : settings.mode === 'preload-1' ? 1 : 2;
+  return settings.mode === 'no-gapless' ? 0 : settings.mode === 'preload-2' ? 2 : 1;
 }

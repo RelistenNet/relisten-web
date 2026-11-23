@@ -69,7 +69,7 @@ export type SyncInput = {
 const STATUS_INTERVAL_MS = 250;
 
 /** Tracks to preload ahead once audio is playing (gapless starts with none). */
-export const PRELOAD_TRACKS_WHILE_PLAYING = 2;
+export const PRELOAD_TRACKS_WHILE_PLAYING = 1;
 
 export function createEngine(
   createQueue: QueueFactory,
