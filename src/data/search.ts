@@ -182,7 +182,7 @@ function toHit(d: Doc, look: Lookups): SearchHit | undefined {
         kind: 'artist',
         title: d.label,
         detail: [],
-        href: href('/[artistSlug]', { artistSlug }),
+        href: href('/artists/[artistSlug]', { artistSlug }),
       };
     case 'song': {
       // Song pages take a song id (canonical or imported) and redirect to the slug.
