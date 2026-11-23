@@ -19,6 +19,7 @@ import type { TourSummary, VenueListItem } from '@/domain/types';
 import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
 import { splitShowDate } from '@/lib/utils';
 import { formatShowDate } from '@/ui/shows/stats';
+import { trackHref } from '@/ui/shows/trackHref';
 import { getArtistDirectory, tours } from './artists';
 import { defineResource, MINUTES } from './resource';
 import { allVenues } from './venues';
@@ -49,7 +50,13 @@ const docSchema = z.object({
   song_id: text,
   soundboard: z.boolean().nullish(),
   preview: z
-    .object({ track_id: text, source_id: text, set: text, duration: z.number().nullish() })
+    .object({
+      track_id: text,
+      source_id: text,
+      slug: text,
+      set: text,
+      duration: z.number().nullish(),
+    })
     .nullish(),
   highlights: z.record(z.string(), z.string()).nullish(),
 });
@@ -129,6 +136,20 @@ function showHref(artistSlug: string, date: string, sourceId?: string | null) {
     '/[artistSlug]/[year]/[month]/[day]',
     { artistSlug, year, month, day },
     sourceId ? sourceQuery(sourceId) : undefined
+  );
+}
+
+/**
+ * A performance's track on the recording it previews. Documents indexed before
+ * the API returned the track's slug have none; those link to the show instead.
+ */
+export function performanceHref(artistSlug: string, date: string, preview: Doc['preview']) {
+  if (!preview?.slug) return showHref(artistSlug, date, preview?.source_id);
+  const { year, month, day } = splitShowDate(date);
+  return trackHref(
+    'site',
+    { artistSlug, year, month, day, songSlug: preview.slug },
+    preview.source_id ? sourceQuery(preview.source_id) : undefined
   );
 }
 
@@ -249,8 +270,7 @@ function toHit(d: Doc, look: Lookups): SearchHit | undefined {
         ]),
         duration: duration || undefined,
         trackId: d.preview?.track_id || undefined,
-        // The show on the recording the preview comes from.
-        href: showHref(artistSlug, date, d.preview?.source_id),
+        href: performanceHref(artistSlug, date, d.preview),
       };
     }
     case 'recording':
