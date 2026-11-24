@@ -154,6 +154,7 @@ export function PlayShowButton({ showId, name }: { showId: string; name: string 
   const [pending, startTransition] = useTransition();
 
   const play = () => {
+    if (pending) return;
     if (isCurrent) return togglePlayPause();
     startTransition(async () => {
       if (!(await playShowById(showId))) toast.error(SHOW_FAILED, { toasterId: TOASTER_ID });
@@ -165,7 +166,8 @@ export function PlayShowButton({ showId, name }: { showId: string; name: string 
     <button
       type="button"
       onClick={play}
-      disabled={pending}
+      // aria-disabled, not disabled: disabling the focused button would drop keyboard focus.
+      aria-disabled={pending}
       aria-label={`${isPlaying ? 'Pause' : 'Play'} ${name}`}
       aria-pressed={isCurrent}
       className={cn(BUTTON, 'text-accent')}
@@ -173,9 +175,9 @@ export function PlayShowButton({ showId, name }: { showId: string; name: string 
       <Icon className={cn('size-4 shrink-0', pending && 'animate-spin')} aria-hidden />
     </button>
   );
-  if (isCurrent) return button;
+  // Always the same wrapper, so the button keeps its identity (and focus) as it becomes current.
   return (
-    <Tooltip content="Play (replaces queue)" align="top">
+    <Tooltip content={isCurrent ? null : 'Play (replaces queue)'} align="top">
       {button}
     </Tooltip>
   );
@@ -204,6 +206,7 @@ export function PlayPlaylistButton({
   const [pending, startTransition] = useTransition();
 
   const play = () => {
+    if (pending) return;
     if (isCurrent) return togglePlayPause();
     startTransition(async () => {
       // A superseded load (another Play, or something else played meanwhile) says nothing.
@@ -218,7 +221,8 @@ export function PlayPlaylistButton({
     <button
       type="button"
       onClick={play}
-      disabled={pending}
+      // aria-disabled, not disabled: disabling the focused button would drop keyboard focus.
+      aria-disabled={pending}
       aria-label={`${isPlaying ? 'Pause' : 'Play'} ${name}`}
       aria-pressed={isCurrent}
       className={cn(BUTTON, 'text-accent')}
@@ -226,9 +230,9 @@ export function PlayPlaylistButton({
       <Icon className={cn('size-4 shrink-0', pending && 'animate-spin')} aria-hidden />
     </button>
   );
-  if (isCurrent) return button;
+  // Always the same wrapper, so the button keeps its identity (and focus) as it becomes current.
   return (
-    <Tooltip content="Play (replaces queue)" align="top">
+    <Tooltip content={isCurrent ? null : 'Play (replaces queue)'} align="top">
       {button}
     </Tooltip>
   );
