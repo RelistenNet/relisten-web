@@ -94,7 +94,8 @@ export default async function ShowDetail({
               View show in &lsquo;Browse&rsquo;
             </Link>
           </div>
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+          {/* minmax(0,…) at every width: an auto column would grow to the tapes' untruncated text. */}
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
             <DataTable<ShowTrackRow>
               pathname={pathname}
               params={params}

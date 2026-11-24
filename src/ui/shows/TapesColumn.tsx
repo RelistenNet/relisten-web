@@ -142,7 +142,7 @@ const TaperNotes = ({ notes }: { notes?: string }) => {
   };
 
   return (
-    <details onClick={(e) => onClick(e)} style={{ whiteSpace: 'pre-wrap' }}>
+    <details onClick={(e) => onClick(e)} className="min-w-0 wrap-anywhere whitespace-pre-wrap">
       <summary>View Notes</summary>
       {notes}
     </details>
