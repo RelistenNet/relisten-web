@@ -264,7 +264,7 @@ export default async function PublicPlaylistsIndex({ artistSlug }: { artistSlug?
   let view: View;
   if (mine) {
     // Most recently updated first, as the library comes; it has nothing else to sort by.
-    const library = await getPlaylistLibrary();
+    const library = await getPlaylistLibrary().catch(denyIfUnavailable);
     if (!library) redirect(signInPageHref(myPlaylistsHref()));
     view = {
       rows: ownPlaylistRows(library.owned),

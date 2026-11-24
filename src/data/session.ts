@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { cache } from 'react';
+import { deny } from '@timber-js/app/server';
 import type { AccountProfile, SessionNavigation, SessionNavigationResult } from '@/domain/account';
 import {
   CSRF_HEADER,
@@ -36,6 +37,18 @@ export class SessionUnavailableError extends Error {
     super('The account service is temporarily unavailable.', { cause });
     this.name = 'SessionUnavailableError';
   }
+}
+
+/**
+ * For a page's getCurrentUser().catch: an account service outage is a 503, shown
+ * in the page's own layout ((content)/503.tsx, with Try Again), not the root
+ * error page outside the shell. Anything else is rethrown as it was.
+ */
+export function denyIfSessionUnavailable(err: unknown): never {
+  if (err instanceof SessionUnavailableError) {
+    deny(503, { dangerouslyPassData: { title: 'Your account isn’t available right now' } });
+  }
+  throw err;
 }
 
 /**
@@ -94,7 +107,7 @@ const userForSession = cache(async (_token: string): Promise<AccountProfile | nu
 /**
  * The signed-in user for this request, or null when there is no (valid) session.
  * Throws SessionUnavailableError on outages rather than pretending the user is
- * signed out, so the error boundary renders that state.
+ * signed out: pages catch it with denyIfSessionUnavailable.
  */
 export async function getCurrentUser(): Promise<AccountProfile | null> {
   const token = sessionCookie.get();
