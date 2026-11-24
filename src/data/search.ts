@@ -16,6 +16,7 @@ import {
   type SearchScope,
 } from '@/lib/search';
 import type { TourSummary, VenueListItem } from '@/domain/types';
+import { decodeEntities } from '@/lib/htmlEntities';
 import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
 import { splitShowDate } from '@/lib/utils';
 import { formatShowDate } from '@/ui/shows/stats';
@@ -153,16 +154,7 @@ export function performanceHref(artistSlug: string, date: string, preview: Doc['
   );
 }
 
-const ENTITIES: Record<string, string> = {
-  'amp': '&',
-  'lt': '<',
-  'gt': '>',
-  'quot': '"',
-  '#39': "'",
-  'apos': "'",
-};
-const plain = (html: string) =>
-  html.replace(/<[^>]*>/g, '').replace(/&(amp|lt|gt|quot|#39|apos);/g, (_, e) => ENTITIES[e]);
+const plain = (html: string) => decodeEntities(html.replace(/<[^>]*>/g, ''));
 
 /**
  * A Typesense highlight ("…<mark>Dark</mark> <mark>Star</mark>…") as runs of

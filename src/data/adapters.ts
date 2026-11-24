@@ -5,6 +5,7 @@
 // instead, so nulls become `undefined` here.
 
 import { ArtistFeature, type ArtistFeatureName } from '@/api/generated/artistFeatures';
+import { decodeEntities } from '@/lib/htmlEntities';
 import type {
   ArtistResource,
   LinkResource,
@@ -210,12 +211,9 @@ export const toSource = (s: SourceResource): Source => ({
   sets: (s.sets ?? []).map(toSet),
 });
 
-/** Upstream reviews can carry HTML (links, line breaks); the page shows plain text. */
+/** Upstream reviews can carry HTML (links, line breaks, entities); the page shows plain text. */
 const stripTags = (html: string) =>
-  html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<[^>]+>/g, '')
-    .trim();
+  decodeEntities(html.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '')).trim();
 
 /** Reviews with no text are dropped. A rating of 0 is upstream's "no rating". */
 export const toSourceReviews = (reviews: SourceReviewResource[]): SourceReview[] =>
@@ -226,9 +224,9 @@ export const toSourceReviews = (reviews: SourceReviewResource[]): SourceReview[]
       {
         id: r.id,
         rating: r.rating || undefined,
-        title: r.title?.trim() || undefined,
+        title: (r.title && stripTags(r.title)) || undefined,
         body,
-        author: r.author?.trim() || undefined,
+        author: (r.author && stripTags(r.author)) || undefined,
       },
     ];
   });
