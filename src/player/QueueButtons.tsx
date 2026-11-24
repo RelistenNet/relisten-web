@@ -206,7 +206,10 @@ export function PlayPlaylistButton({
   const play = () => {
     if (isCurrent) return togglePlayPause();
     startTransition(async () => {
-      if (!(await playPlaylist(playlist))) toast.error(PLAYLIST_FAILED, { toasterId: TOASTER_ID });
+      // A superseded load (another Play, or something else played meanwhile) says nothing.
+      if ((await playPlaylist(playlist)) === 'failed') {
+        toast.error(PLAYLIST_FAILED, { toasterId: TOASTER_ID });
+      }
     });
   };
 

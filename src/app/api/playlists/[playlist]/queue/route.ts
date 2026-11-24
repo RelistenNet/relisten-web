@@ -34,8 +34,9 @@ export async function GET() {
     const published = await getPublicPlaylist(playlist);
     if (!published) return new Response('Not found', { status: 404, headers: NO_STORE });
     return Response.json(await queueFor(published, published.playlistId), {
-      // The public page's cache is a minute too (publicPlaylistCached).
-      headers: { 'Cache-Control': 'public, max-age=60' },
+      // Revalidated every time: the server's snapshot cache (publicPlaylistCached)
+      // is the one-minute bound on a takedown, and browser freshness would add to it.
+      headers: { 'Cache-Control': 'public, no-cache' },
     });
   } catch {
     // deny() surfaces as a 500 in route handlers; an outage reads as unavailable.

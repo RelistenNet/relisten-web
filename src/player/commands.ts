@@ -172,20 +172,45 @@ export function setVolume(volume: number): void {
 
 // ---- whole playlists (a playlists table's rows) ------------------------------------
 
+/** The playlist load in flight; a newer Play aborts it. */
+let playlistLoad: AbortController | null = null;
+
+/** What the queue is playing from, ignoring what changes on its own (the current entry, Add to Queue). */
+const contextIdentity = () => {
+  const ctx = playerActor.getSnapshot().context.queue.context;
+  return ctx ? `${ctx.playlistId ?? ''}|${ctx.label}|${ctx.items[0]?.key ?? ''}` : '';
+};
+
 /**
  * Play a playlist from its first track, replacing the context (Next up stays).
- * Its queue comes from the playlist's GET route (HTTP-cached for public ones).
- * False if it couldn't load or has nothing playable.
+ * Its queue comes from the playlist's GET route. A load is dropped, not
+ * played, when it's superseded while loading: by another playlist's Play
+ * (which aborts it) or by the listener playing something else.
  */
-export async function playPlaylist(playlist: string): Promise<boolean> {
-  const res = await fetch(href('/api/playlists/[playlist]/queue', { playlist })).catch(() => null);
-  if (!res?.ok) return false;
-  const ctx = (await res.json()) as QueueContext;
-  const start = ctx.items[0];
-  if (!start) return false;
-  playerActor.send({ type: 'PLAY_CONTEXT', ctx, startKey: start.key });
-  startPlayback();
-  return true;
+export async function playPlaylist(playlist: string): Promise<'played' | 'failed' | 'superseded'> {
+  playlistLoad?.abort();
+  const load = new AbortController();
+  playlistLoad = load;
+  const playing = contextIdentity();
+  const superseded = () => load.signal.aborted || contextIdentity() !== playing;
+  try {
+    const res = await fetch(href('/api/playlists/[playlist]/queue', { playlist }), {
+      signal: load.signal,
+    });
+    if (superseded()) return 'superseded';
+    if (!res.ok) return 'failed';
+    const ctx = (await res.json()) as QueueContext;
+    if (superseded()) return 'superseded';
+    const start = ctx.items[0];
+    if (!start) return 'failed';
+    playerActor.send({ type: 'PLAY_CONTEXT', ctx, startKey: start.key });
+    startPlayback();
+    return 'played';
+  } catch {
+    return superseded() ? 'superseded' : 'failed';
+  } finally {
+    if (playlistLoad === load) playlistLoad = null;
+  }
 }
 
 // ---- whole shows (a shows table's rows) -----------------------------------------
