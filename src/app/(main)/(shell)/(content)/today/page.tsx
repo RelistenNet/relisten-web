@@ -1,88 +1,147 @@
-import { loadArtists } from '@/features/browse/load';
-import { loadTodayShows, type TodayShow } from '@/features/today/load';
-import TodayDateNav from '@/ui/base/TodayDateNav';
+import { href } from '@timber-js/app/routes';
+import { loadTodayRows } from '@/features/today/load';
 import TodayIndex from '@/features/today/TodayIndex';
-import TodayTrack from '@/features/today/TodayTrack';
+import { playShowColumn, queueShowColumn } from '@/player/showColumns';
 import { getCurrentMonthDay } from '@/lib/timezone';
-import slugify from 'slugify';
 import { dateSearchParams } from '@/lib/searchParams/dateSearchParam';
+import { todayIndexSearchParams } from '@/lib/searchParams/todayIndexSearchParams';
+import { numberFormat } from '@/lib/utils';
+import PageHeader from '@/ui/base/PageHeader';
+import YearChart from '@/ui/base/YearChart';
+import { showStats } from '@/ui/shows/stats';
+import TodayDateNav from '@/ui/base/TodayDateNav';
+import { ALL_ARTISTS_CRUMB } from '@/ui/base/crumbs';
+import { showColumns, showFilters, showSearchText } from '@/ui/shows/columns';
+import type { ShowRow } from '@/ui/shows/rows';
+import DataTable from '@/ui/table/DataTable';
+import { tableHref, tableSearchParams, toTableState, type TableParams } from '@/ui/table/params';
+import { queryTable, type TableSpec } from '@/ui/table/query';
+import type { Column } from '@/ui/table/types';
+
+// Every artist's shows on a calendar date: the show table every listing page
+// uses, 25 shows a page like the rest, grouped by artist, with an index of the
+// artists beside it that links to the page each one starts on.
+
+const PAGE_SIZE = 25;
+const FILTER_IDS = ['year', 'sbd'] as const;
+const searchParams = tableSearchParams(FILTER_IDS);
+
+/** Rows stay grouped by artist, so no column sorts. */
+const fixed = (col: Column<ShowRow>): Column<ShowRow> => ({
+  ...col,
+  sorts: undefined,
+  sortable: false,
+});
+
+const columns = [
+  playShowColumn,
+  fixed(showColumns.show),
+  fixed(showColumns.tapes),
+  fixed(showColumns.rating),
+  fixed(showColumns.plays),
+  queueShowColumn,
+];
 
 export default async function Page() {
-  const [currentMonthDay, parsed] = await Promise.all([
+  const [currentMonthDay, parsed, table, index] = await Promise.all([
     getCurrentMonthDay(),
     dateSearchParams.get(),
+    searchParams.get(),
+    todayIndexSearchParams.get(),
   ]);
 
   const month = String(parsed.month ?? currentMonthDay.month);
   const day = String(parsed.day ?? currentMonthDay.day);
+  const rows = await loadTodayRows(Number(month), Number(day));
+  // What the table's links keep: the date and the index's order, as given.
+  const params: TableParams = {
+    ...(table as TableParams),
+    month: parsed.month,
+    day: parsed.day,
+    ...(index.sort !== 'default' && { sort: index.sort, dir: index.dir }),
+  };
 
-  const [data, allArtists] = await Promise.all([
-    loadTodayShows(Number(month), Number(day)),
-    loadArtists(),
-  ]);
+  // The rows' order: grouped by artist (loadTodayRows sorts them).
+  const order = new Map(rows.map((r, i) => [r.id, i]));
+  const spec: TableSpec<ShowRow> = {
+    sorts: { order: (r) => order.get(r.id) },
+    defaultSort: { id: 'order', dir: 'asc' },
+    searchText: showSearchText,
+    filters: [showFilters.year, showFilters.sbd],
+    pageSize: PAGE_SIZE,
+  };
+  const state = toTableState(params, FILTER_IDS);
+  const result = queryTable(rows, spec, state);
+  // Every row the search and filters keep, in order: where each artist starts.
+  const kept = queryTable(
+    rows,
+    { ...spec, pageSize: rows.length || 1 },
+    { ...state, page: 1 }
+  ).rows;
 
-  const artistMeta = new Map(
-    allArtists.map((a) => [a.name, { featured: a.featured, showCount: a.showCount }])
-  );
-
-  const groupedBy = data.reduce(
-    (acc, show) => {
-      const artistName = show.artist?.name || 'Unknown Artist';
-      if (!acc[artistName]) {
-        acc[artistName] = { slug: show.artist?.slug, days: [] };
-      }
-      acc[artistName].days.push(show);
-      return acc;
-    },
-    {} as Record<string, { slug?: string; days: TodayShow[] }>
-  );
-
-  const sortedArtists = Object.entries(groupedBy)
-    .map(([name, { slug, days }]) => {
-      const sorted = [...days].sort((a, b) => a.date.localeCompare(b.date));
-      return [name, slug, sorted] as [string, string | undefined, TodayShow[]];
-    })
-    .sort(([aName], [bName]) => {
-      const aMeta = artistMeta.get(aName) ?? { featured: 999, showCount: 0 };
-      const bMeta = artistMeta.get(bName) ?? { featured: 999, showCount: 0 };
-      const rank = (f: number) => (f === 1 ? 0 : f === 0 ? 1 : 2);
-      const aRank = rank(aMeta.featured);
-      const bRank = rank(bMeta.featured);
-      if (aRank !== bRank) return aRank - bRank;
-      if (aMeta.showCount !== bMeta.showCount) return bMeta.showCount - aMeta.showCount;
-      return aName.localeCompare(bName);
-    });
-
-  const artistAnchors = sortedArtists.map(([artistName, slug, days]) => ({
-    name: artistName,
-    anchor: slug || slugify(artistName, { lower: true, strict: true }),
-    count: days.length,
+  // Each artist's show count and the page their shows start on.
+  const counts = new Map<string, { name: string; count: number; first: number }>();
+  kept.forEach((r, i) => {
+    const entry = counts.get(r.artistSlug) ?? { name: r.artistName, count: 0, first: i };
+    entry.count++;
+    counts.set(r.artistSlug, entry);
+  });
+  const artists = [...counts].map(([anchor, { name, count, first }]) => ({
+    name,
+    anchor,
+    count,
+    href: tableHref(href('/today'), params, {
+      page: Math.floor(first / PAGE_SIZE) + 1,
+      anchor,
+    }),
   }));
 
   return (
-    <div className="mx-auto w-full max-w-6xl flex-1">
-      <div className="mb-10 md:hidden">
-        <h1 className="mb-2 text-3xl font-semibold text-text-primary">Today in History</h1>
-        <TodayDateNav month={month} day={day} pathname="/today" />
-      </div>
+    <div className="detail-page flex flex-col gap-6">
+      <PageHeader
+        crumbs={[ALL_ARTISTS_CRUMB]}
+        title="Today in History"
+        aside={<TodayDateNav month={month} day={day} pathname={href('/today')} />}
+        stats={[
+          { label: 'Shows', value: numberFormat.format(rows.length) },
+          {
+            label: 'Artists',
+            value: numberFormat.format(new Set(rows.map((r) => r.artistSlug)).size),
+          },
+        ]}
+      >
+        <YearChart
+          counts={showStats(rows).byYear}
+          noun="show"
+          selectedYear={params.year as string | undefined}
+          hrefFor={(year) => tableHref(href('/today'), params, { year })}
+        />
+      </PageHeader>
 
-      <div className="flex items-start gap-10 md:mt-2">
-        <TodayIndex items={artistAnchors} month={month} day={day} pathname="/today" />
-
-        <div className="min-w-0 flex-1 space-y-10 pt-2">
-          {sortedArtists.map(([artistName, , days], i) => (
-            <div key={artistName} id={artistAnchors[i].anchor} className="scroll-mt-4">
-              <h2 className="mb-1 text-lg font-semibold text-text-primary">{artistName}</h2>
-              <p className="mb-4 text-sm text-text-muted">
-                {days.length} {days.length === 1 ? 'show' : 'shows'}
-              </p>
-              <div className="divide-y divide-hairline overflow-hidden rounded-lg border border-hairline bg-surface">
-                {days.map((show) => (
-                  <TodayTrack show={show} key={show.id} />
-                ))}
-              </div>
-            </div>
-          ))}
+      <div className="flex items-start gap-8">
+        <TodayIndex items={artists} />
+        <div className="min-w-0 flex-1">
+          <DataTable
+            pathname={href('/today')}
+            params={params}
+            spec={spec}
+            result={result}
+            columns={columns}
+            rowKey={(r) => r.id}
+            rowHref={(r) => r.href}
+            groupBy={(r) => {
+              const n = counts.get(r.artistSlug)?.count ?? 0;
+              return {
+                key: r.artistSlug,
+                anchor: r.artistSlug,
+                label: r.artistName,
+                detail: `${numberFormat.format(n)} ${n === 1 ? 'show' : 'shows'}`,
+              };
+            }}
+            noun="show"
+            searchPlaceholder="Search artists, venues, cities"
+            chipFilters={['year']}
+          />
         </div>
       </div>
     </div>
