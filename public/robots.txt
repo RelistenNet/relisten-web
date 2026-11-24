@@ -1,38 +1,34 @@
-User-agent: SiteAuditBot
+# Allowlist: Google search, archivers and link-preview fetchers may crawl.
+# Everyone else is disallowed (see the User-agent: * group at the end).
+
+# Google search (Googlebot-Image and -Video fall back to this group)
+User-agent: Googlebot
+Allow: /
+
+# Internet Archive / Wayback Machine / Archive-It
+User-agent: archive.org_bot
+User-agent: ia_archiver
+Allow: /
+
+# Uptime monitoring
+User-agent: Better Uptime Bot
+Allow: /
+
+# Link previews
+User-agent: facebookexternalhit
+User-agent: Facebot
+User-agent: Twitterbot
+User-agent: Slackbot
+User-agent: Slackbot-LinkExpanding
+User-agent: Discordbot
+User-agent: LinkedInBot
+User-agent: TelegramBot
+User-agent: WhatsApp
+User-agent: redditbot
+User-agent: Mastodon
+User-agent: Cardyb
+User-agent: Snap URL Preview Service
+Allow: /
+
+User-agent: *
 Disallow: /
-User-agent: SemrushBot-BA
-Disallow: /
-User-agent: SemrushBot-SI
-Disallow: /
-User-agent: SemrushBot-SWA
-Disallow: /
-User-agent: SemrushBot-CT
-Disallow: /
-User-agent: SemrushBot-BM
-Disallow: /
-User-agent: SemrushBot
-Disallow: /
-User-agent: Dotbot
-Disallow: /
-User-agent: SplitSignalBot
-Disallow: /
-User-agent: BLEXBot
-Disallow: /
-User-agent: AhrefsBot
-Disallow: /
-User-agent: Yandex
-Disallow: /
-User-agent: MJ12bot
-Disallow: /
-User-agent: Petalbot
-Disallow: /
-User-agent: PetalBot
-Disallow: /
-User-agent: MJ12bot
-Disallow: /
-User-agent: DataForSeoBot
-Disallow: /
-User-agent: Brightbot
-Disallow: /
-User-agent: bingbot
-Crawl-delay: 10
