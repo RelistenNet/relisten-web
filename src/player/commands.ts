@@ -172,6 +172,9 @@ export function setVolume(volume: number): void {
 
 // ---- whole playlists (a playlists table's rows) ------------------------------------
 
+/** How long a playlist's queue may take before its Play fails. */
+const PLAYLIST_LOAD_TIMEOUT_MS = 10_000;
+
 /** The playlist load in flight; a newer Play aborts it. */
 let playlistLoad: AbortController | null = null;
 
@@ -183,9 +186,9 @@ const contextIdentity = () => {
 
 /**
  * Play a playlist from its first track, replacing the context (Next up stays).
- * Its queue comes from the playlist's GET route. A load is dropped, not
- * played, when it's superseded while loading: by another playlist's Play
- * (which aborts it) or by the listener playing something else.
+ * Its queue comes from the playlist's GET route, within a timeout. A load is
+ * dropped, not played, when it's superseded while loading: by another
+ * playlist's Play (which aborts it) or by the listener playing something else.
  */
 export async function playPlaylist(playlist: string): Promise<'played' | 'failed' | 'superseded'> {
   playlistLoad?.abort();
@@ -194,8 +197,9 @@ export async function playPlaylist(playlist: string): Promise<'played' | 'failed
   const playing = contextIdentity();
   const superseded = () => load.signal.aborted || contextIdentity() !== playing;
   try {
+    // Superseded or slow: a stalled request fails after a while instead of spinning forever.
     const res = await fetch(href('/api/playlists/[playlist]/queue', { playlist }), {
-      signal: load.signal,
+      signal: AbortSignal.any([load.signal, AbortSignal.timeout(PLAYLIST_LOAD_TIMEOUT_MS)]),
     });
     if (superseded()) return 'superseded';
     if (!res.ok) return 'failed';
