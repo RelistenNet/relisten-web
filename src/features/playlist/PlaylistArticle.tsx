@@ -1,8 +1,8 @@
 import { Link } from '@timber-js/app/client';
 import { myPlaylistsHref } from '@/lib/searchParams/publicPlaylistsSearchParams';
 import PageHeader, { type StatItem } from '@/ui/base/PageHeader';
+import { ALL_ARTISTS_CRUMB, type Crumb } from '@/ui/base/crumbs';
 import { href } from '@timber-js/app/routes';
-import { ChevronRightIcon } from 'lucide-react';
 import {
   Fragment,
   type KeyboardEvent,
@@ -98,7 +98,7 @@ export function readableDuration(seconds: number) {
   return `${hours} hr${minutes % 60 ? ` ${minutes % 60} min` : ''}`;
 }
 
-export type PlaylistCrumb = { label: string; href: string };
+export type PlaylistCrumb = Crumb;
 
 /** The public list every published playlist is in. */
 export const PUBLIC_PLAYLISTS_CRUMB: PlaylistCrumb = {
@@ -110,22 +110,6 @@ export const OWN_PLAYLISTS_CRUMB: PlaylistCrumb = {
   label: 'My Playlists',
   href: myPlaylistsHref(),
 };
-
-/** A PageHeader crumb: the list a playlist page is in, as a link back. */
-export function PlaylistCrumbLink({ crumb }: { crumb: PlaylistCrumb }) {
-  return (
-    <Link
-      href={crumb.href}
-      className="
-        -mx-1 inline-flex items-center gap-0.5 rounded px-1 py-1 text-text-muted transition-colors
-        hover:text-accent
-      "
-    >
-      {crumb.label}
-      <ChevronRightIcon className="size-3.5" aria-hidden />
-    </Link>
-  );
-}
 
 export default function PlaylistArticle({
   view,
@@ -169,7 +153,7 @@ export default function PlaylistArticle({
       <article className="detail-page flex flex-col gap-6">
         {/* The detail pages' header, as the playlists table has: the same width and layout. */}
         <PageHeader
-          crumb={crumb && <PlaylistCrumbLink crumb={crumb} />}
+          crumbs={crumb && [ALL_ARTISTS_CRUMB, crumb]}
           title={slots?.title ?? view.name}
           meta={
             byline.some(Boolean)

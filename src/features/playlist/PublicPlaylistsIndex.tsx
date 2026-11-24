@@ -28,6 +28,7 @@ import {
 } from '@/lib/searchParams/publicPlaylistsSearchParams';
 import { signInPageHref } from '@/lib/searchParams/sessionSearchParams';
 import { sessionCookie } from '@/lib/session/sessionCookie';
+import { ALL_ARTISTS_CRUMB, artistCrumb } from '@/ui/base/crumbs';
 import { numberFormat } from '@/lib/utils';
 import ArtistCover from '@/ui/base/ArtistCover';
 import PageHeader from '@/ui/base/PageHeader';
@@ -291,7 +292,8 @@ export default async function PublicPlaylistsIndex({ artistSlug }: { artistSlug?
       <PageHeader
         cover={artist && <ArtistCover artist={artist} />}
         title="Playlists"
-        meta={[artist ? `With ${artist.name}` : mine ? 'Your Playlists' : 'Shared by listeners']}
+        crumbs={[artist ? artistCrumb(artist) : ALL_ARTISTS_CRUMB]}
+        meta={[artist ? undefined : mine ? 'Your Playlists' : 'Shared by listeners']}
         aside={
           !artistSlug && signedIn ? <PlaylistScopeTabs scope={mine ? 'mine' : 'all'} /> : undefined
         }

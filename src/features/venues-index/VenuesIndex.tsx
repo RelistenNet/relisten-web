@@ -10,6 +10,7 @@ import type { VenueListItem } from '@/domain/types';
 import { Link } from '@timber-js/app/client';
 import ArtistCover from '@/ui/base/ArtistCover';
 import PageHeader, { type StatItem } from '@/ui/base/PageHeader';
+import { ALL_ARTISTS_CRUMB, artistCrumb } from '@/ui/base/crumbs';
 import { deny } from '@timber-js/app/server';
 
 // Venues as a table: every venue an artist played (/artists/phish/venues), or
@@ -113,9 +114,9 @@ export default async function VenuesIndex({ artistSlug }: { artistSlug?: string 
   return (
     <div className="detail-page flex flex-col gap-6">
       <PageHeader
+        crumbs={[artist ? artistCrumb(artist) : ALL_ARTISTS_CRUMB]}
         cover={artist && <ArtistCover artist={artist} />}
         title="Venues"
-        meta={artistSlug ? undefined : ['Across all artists']}
         stats={stats}
       />
       <DataTable

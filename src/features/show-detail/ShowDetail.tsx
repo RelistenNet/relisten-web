@@ -13,6 +13,7 @@ import { splitShowDate } from '@/lib/utils';
 import { showLabel, songRowItem } from '@/player/queue/items';
 import ArtistCover from '@/ui/base/ArtistCover';
 import PageHeader from '@/ui/base/PageHeader';
+import { artistListCrumbs } from '@/ui/base/crumbs';
 import { formatShowDate } from '@/ui/shows/stats';
 import DataTable from '@/ui/table/DataTable';
 import { durationToHHMMSS } from '@/lib/utils';
@@ -26,7 +27,7 @@ import Reviews from './Reviews';
 import SourcesColumn from './SourcesColumn';
 import { SHOW_FILTER_IDS, showSearchParams, showTrackSpec, type ShowTrackRow } from './spec';
 
-// A show: the artist, date, and venue, then one tape's tracks in play order and its reviews.
+// A show: its date and venue under the artist, then one tape's tracks in play order and its reviews.
 
 export default async function ShowDetail({
   artistSlug,
@@ -61,13 +62,9 @@ export default async function ShowDetail({
   return (
     <div className="detail-page flex flex-col gap-6">
       <PageHeader
+        crumbs={artistListCrumbs(artist, 'shows')}
         cover={<ArtistCover artist={artist} />}
-        title={
-          <>
-            {artist.name}{' '}
-            <span className="font-normal text-text-muted">{formatShowDate(show.date)}</span>
-          </>
-        }
+        title={formatShowDate(show.date)}
         meta={[venue?.name && <VenuePill key="venue" artistSlug={artistSlug} venue={venue} />]}
         actions={source && <ExternalLinks links={source.links} />}
       />

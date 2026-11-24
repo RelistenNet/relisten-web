@@ -1,10 +1,15 @@
 import { Fragment, type ReactNode } from 'react';
+import { Link } from '@timber-js/app/client';
+import { ChevronRightIcon } from 'lucide-react';
 import cn from '@/lib/cn';
+import type { Crumb } from './crumbs';
 
-// The header every detail page shares: an optional cover, the title, and a
-// muted meta line; then key numbers inline and, optionally, a chart. No
-// breadcrumb: the artist tabs above already say where the page is. One layout
-// everywhere, so pages differ only in what they fill in.
+// The header every detail page shares: the trail of pages it sits under, an
+// optional cover, the title, and a muted meta line; then key numbers inline
+// and, optionally, a chart. One layout everywhere, so pages differ only in
+// what they fill in. Titles name the page's own thing ("Drums"); the trail
+// names what it belongs to ("Grateful Dead › Songs"). Every artist page has
+// one, its own tab's included, so switching tabs never moves the header.
 
 export type StatItem = {
   label: string;
@@ -14,8 +19,8 @@ export type StatItem = {
 };
 
 type Props = {
-  /** Above the title: the list the page is in, as a link back ("Playlists ›"). */
-  crumb?: ReactNode;
+  /** Above the title: the pages this one sits under, as links back ("Grateful Dead › Songs ›"). */
+  crumbs?: Crumb[];
   /** A square image beside the title (ArtistCover). */
   cover?: ReactNode;
   title: ReactNode;
@@ -31,7 +36,7 @@ type Props = {
 };
 
 export default function PageHeader({
-  crumb,
+  crumbs,
   cover,
   title,
   meta,
@@ -46,14 +51,38 @@ export default function PageHeader({
 
   return (
     <header className="flex flex-col gap-5">
-      {crumb && (
+      {crumbs && crumbs.length > 0 && (
         <nav aria-label="Breadcrumb" className="-mb-4 text-sm">
-          {crumb}
+          <ol role="list" className="m-0 flex list-none flex-wrap items-center p-0">
+            {crumbs.map((c, i) => (
+              <li key={i} className="m-0 flex">
+                {c.href ? (
+                  <Link
+                    href={c.href}
+                    className="
+                      -mx-1 inline-flex items-center gap-0.5 rounded px-1 py-1 text-text-muted
+                      transition-colors hover:text-accent
+                    "
+                  >
+                    {c.label}
+                    <ChevronRightIcon className="size-3.5" aria-hidden />
+                  </Link>
+                ) : (
+                  <span className="inline-flex items-center gap-0.5 py-1 text-text-muted">
+                    {c.label}
+                    <ChevronRightIcon className="size-3.5" aria-hidden />
+                  </span>
+                )}
+              </li>
+            ))}
+          </ol>
         </nav>
       )}
-      {/* Title on the left, stats on the right, centered on each other; the stats wrap under the title when the row is too narrow. */}
-      <div className="flex flex-wrap items-center justify-between gap-x-10 gap-y-5">
-        <div className="flex max-w-full min-w-0 items-center gap-5">
+      {/* Title on the left, stats on the right; the stats wrap under the title when the row is
+          too narrow. Everything is top-aligned, at least the cover's height: the title sits in the
+          same place on every page, with or without a cover, meta lines or stats. */}
+      <div className="flex min-h-16 flex-wrap items-start justify-between gap-x-10 gap-y-5">
+        <div className="flex max-w-full min-w-0 items-start gap-5">
           {cover && <div className="shrink-0">{cover}</div>}
           <div className="flex min-w-0 flex-col gap-0.5">
             <h1 className="mb-0 text-2xl font-semibold tracking-tight text-balance text-text-primary sm:text-3xl">
