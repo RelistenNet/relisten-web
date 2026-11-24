@@ -119,7 +119,8 @@ export default async function ShowDetail({
             <div className="lg:[contain:size]">
               <div
                 className="
-              flex flex-col overflow-hidden rounded-lg border border-hairline
+              flex flex-col overflow-hidden rounded-xl border border-hairline
+              bg-text-primary/[0.015] shadow-sm
               lg:sticky lg:top-6 lg:max-h-[min(100%,calc(100dvh-50px-3rem))]
               [&_.relisten-column]:min-h-0
             "

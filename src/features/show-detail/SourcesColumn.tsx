@@ -23,6 +23,7 @@ export default function SourcesColumn({
 
   return (
     <TapesColumn
+      variant="panel"
       artistSlug={artistSlug}
       year={year}
       month={month}
