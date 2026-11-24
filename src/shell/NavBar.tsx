@@ -1,5 +1,5 @@
 import { Link } from '@timber-js/app/client';
-import { AccountMenu, ExploreMenu, SiteMenu } from './NavMenus';
+import { AccountMenu, SiteMenu } from './NavMenus';
 import Player from '@/player/PlayerBar';
 import { Toaster } from 'sonner';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/base/shadcn/popover';
@@ -52,10 +52,6 @@ export default function NavBar() {
           "
         >
           <GlobalSearch />
-
-          <nav aria-label="Site" className="hidden h-full items-center xl:flex">
-            <ExploreMenu className="nav-btn cursor-pointer gap-1 whitespace-nowrap" />
-          </nav>
 
           <SiteMenu
             signedIn={signedIn}
