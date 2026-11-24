@@ -8,39 +8,56 @@ import { browser } from 'react-dom';
 
 import { FastForwardIcon, PauseIcon, PlayIcon, RewindIcon } from 'lucide-react';
 import { next, previous, seek, setVolume as setPlayerVolume, togglePlayPause } from './commands';
-import { useCurrentItem, useIsPlaying, usePlayback } from './hooks';
+import {
+  useCurrentItem,
+  useIsPlaying,
+  usePlayback,
+  usePlaybackFrame,
+  usePlaybackTransition,
+} from './hooks';
+import type { PlaybackState } from './playback';
 import QueueButton from './QueuePanel';
 import { durationToHHMMSS, removeLeadingZero, splitShowDate } from '@/lib/utils';
 import Flex from '@/ui/base/Flex';
 
-/** Seconds into the playing track, or 0. */
-const useCurrentTime = () => usePlayback((p) => p.currentTime);
 /** The playing track's length: the file's once known, else the item's. */
-function useDuration(fallback: number | undefined) {
-  const duration = usePlayback((p) => p.duration);
-  return Number.isFinite(duration) && duration > 0 ? duration : (fallback ?? 0);
-}
+const lengthOf = (p: PlaybackState, fallback: number | undefined) =>
+  Number.isFinite(p.duration) && p.duration > 0 ? p.duration : (fallback ?? 0);
+
+// The times select the text they show, so they render once a second, not per
+// frame, and as transitions, so a tick never interrupts a navigation.
 
 function Elapsed() {
-  return <div>{durationToHHMMSS(useCurrentTime())}</div>;
+  return <div>{usePlaybackTransition((p) => durationToHHMMSS(p.currentTime))}</div>;
 }
 
 function Remaining({ fallback }: { fallback?: number }) {
   const [showRemaining, setShowRemaining] = useState(false);
-  const currentTime = usePlayback((p) => (showRemaining ? p.currentTime : 0));
-  const duration = useDuration(fallback);
+  // Both texts, whichever shows: the toggle picks one, never changes what's read.
+  const remaining = usePlaybackTransition((p) =>
+    durationToHHMMSS(p.currentTime - lengthOf(p, fallback))
+  );
+  const total = usePlayback((p) => durationToHHMMSS(lengthOf(p, fallback)));
   return (
     <div onClick={() => setShowRemaining((r) => !r)} className="cursor-pointer">
-      {durationToHHMMSS(showRemaining ? currentTime - duration : duration)}
+      {showRemaining ? remaining : total}
     </div>
   );
 }
 
 function Progress({ fallback }: { fallback?: number }) {
-  const currentTime = useCurrentTime();
-  const duration = useDuration(fallback);
-  const percent = duration ? currentTime / duration : 0;
+  const duration = usePlayback((p) => lengthOf(p, fallback));
+  const barRef = useRef<HTMLDivElement>(null);
+  const fillRef = useRef<HTMLDivElement>(null);
+  const handleRef = useRef<HTMLDivElement>(null);
   const hoverTextRef = useRef<HTMLSpanElement>(null);
+
+  usePlaybackFrame((p) => {
+    const percent = `${(duration ? p.currentTime / duration : 0) * 100}%`;
+    if (barRef.current) barRef.current.style.opacity = p.currentTime < 0.1 ? '0.8' : '1';
+    if (fillRef.current) fillRef.current.style.width = percent;
+    if (handleRef.current) handleRef.current.style.left = percent;
+  });
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -57,7 +74,9 @@ function Progress({ fallback }: { fallback?: number }) {
   };
 
   return (
+    // Opacity, width and left are painted per frame (usePlaybackFrame), not rendered.
     <div
+      ref={barRef}
       className="
         group absolute bottom-0 left-0 z-1 h-1 w-full cursor-pointer touch-none bg-hairline
         before:absolute before:-top-2 before:left-0 before:h-3 before:w-full
@@ -65,16 +84,9 @@ function Progress({ fallback }: { fallback?: number }) {
       "
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
-      style={{ opacity: currentTime < 0.1 ? 0.8 : 1 }}
     >
-      <div
-        className="absolute bottom-0 left-0 h-1 bg-accent"
-        style={{ width: `${percent * 100}%` }}
-      />
-      <div
-        className="absolute bottom-0 left-0 z-1 h-2 w-[3px] bg-text-primary"
-        style={{ left: `${percent * 100}%` }}
-      />
+      <div ref={fillRef} className="absolute bottom-0 left-0 h-1 bg-accent" />
+      <div ref={handleRef} className="absolute bottom-0 left-0 z-1 h-2 w-[3px] bg-text-primary" />
       <div
         className="
           pointer-events-none absolute bottom-full z-2 mb-2 hidden -translate-x-1/2 rounded-md
