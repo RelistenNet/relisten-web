@@ -2,6 +2,7 @@
 
 import { href } from '@timber-js/app/routes';
 import React from 'react';
+import cn from '@/lib/cn';
 
 import { durationToHHMMSS } from '@/lib/utils';
 
@@ -39,11 +40,14 @@ const author = (sourceObj: TapesSource) => {
 
 const TapesColumn = ({
   hrefFor,
+  variant = 'column',
   ...props
 }: ShowDateProps & {
   show?: TapesShow;
   /** Where a source's row links; the browse view's show by default. */
   hrefFor?: (source: TapesSource) => string;
+  /** 'panel' on the show page: styled like the page's tables (see Column). */
+  variant?: 'column' | 'panel';
 }) => {
   const [{ source: sourceId }] = sourceSearchParamsLoader.useQueryStates();
 
@@ -52,10 +56,12 @@ const TapesColumn = ({
   const { sourcesData, activeSourceId } = useSourceData({ ...props, source: String(sourceId) });
 
   return (
-    <Column heading="Sources" className="tapes-column">
+    <Column heading="Sources" className="tapes-column" variant={variant}>
       {sourcesData?.map((sourceObj, idx) => (
         <div key={sourceObj.id}>
-          <RowHeader>{author(sourceObj) || `Source ${idx + 1} of ${sourcesData.length}`}</RowHeader>
+          <RowHeader variant={variant}>
+            {author(sourceObj) || `Source ${idx + 1} of ${sourcesData.length}`}
+          </RowHeader>
           <Row
             href={
               hrefFor
@@ -66,7 +72,7 @@ const TapesColumn = ({
             }
             active={activeSourceId === sourceObj?.id}
           >
-            <div className="w-full">
+            <div className={cn('w-full', variant === 'panel' && 'px-2 py-1')}>
               <Flex className="mb-1">
                 <div className="min-w-[53px]">{durationToHHMMSS(sourceObj.duration)}</div>
                 {sourceObj.isSoundboard && <Tag>SBD</Tag>}
@@ -142,7 +148,7 @@ const TaperNotes = ({ notes }: { notes?: string }) => {
   };
 
   return (
-    <details onClick={(e) => onClick(e)} style={{ whiteSpace: 'pre-wrap' }}>
+    <details onClick={(e) => onClick(e)} className="min-w-0 wrap-anywhere whitespace-pre-wrap">
       <summary>View Notes</summary>
       {notes}
     </details>

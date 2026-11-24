@@ -1,7 +1,7 @@
 import { Link } from '@timber-js/app/client';
 import { href } from '@timber-js/app/routes';
 import { deny, redirect } from '@timber-js/app/server';
-import { getOwnPlaylist } from '@/data/playlists';
+import { denyIfUnavailable, getOwnPlaylist } from '@/data/playlists';
 import { signInPageHref } from '@/lib/searchParams/sessionSearchParams';
 import { PencilIcon } from 'lucide-react';
 import ArchiveControl from './ArchiveControl';
@@ -23,7 +23,7 @@ export default async function OwnPlaylist({
   atPublicUrl?: boolean;
 }) {
   const pathname = href('/playlists/[playlist]', { playlist: playlistId });
-  const result = await getOwnPlaylist(playlistId);
+  const result = await getOwnPlaylist(playlistId).catch(denyIfUnavailable);
   if (result.kind === 'signed-out') redirect(signInPageHref(pathname));
   if (result.kind === 'missing') deny(404);
   const { playlist, archived, publicCode, takenDown } = result;

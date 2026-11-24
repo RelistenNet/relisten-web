@@ -4,7 +4,8 @@ import { signInPageHref } from '@/lib/searchParams/sessionSearchParams';
 import { sessionCookie } from '@/lib/session/sessionCookie';
 import PageHeader from '@/ui/base/PageHeader';
 import NewPlaylistForm from './NewPlaylistForm';
-import { OWN_PLAYLISTS_CRUMB, PlaylistCrumbLink } from './PlaylistArticle';
+import { OWN_PLAYLISTS_CRUMB } from './PlaylistArticle';
+import { ALL_ARTISTS_CRUMB } from '@/ui/base/crumbs';
 
 /**
  * The New Playlist page: a name and an optional description, then the editor.
@@ -15,7 +16,7 @@ export default function NewPlaylist() {
   return (
     <div className="detail-page flex flex-col gap-6">
       <PageHeader
-        crumb={<PlaylistCrumbLink crumb={OWN_PLAYLISTS_CRUMB} />}
+        crumbs={[ALL_ARTISTS_CRUMB, OWN_PLAYLISTS_CRUMB]}
         title="New Playlist"
         meta={['Playlists are private until you publish them publicly']}
       />

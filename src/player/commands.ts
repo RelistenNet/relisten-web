@@ -4,12 +4,20 @@
 // engine directly. Components don't touch gapless or the actors.
 // ---------------------------------------------------------------------------
 
+import { href } from '@timber-js/app/routes';
 import { showContext, type PlayableTape, type ShowInfo } from './queue/items';
 import { nextUpKey, type QueueContext, type QueueItem } from './queue/model';
 import { loadShowQueue } from './showQueueAction';
 import { browserRefusesAutoplay, canAutoplay } from './autoplay';
 import { followCurrent, getEngine, playbackActor, playerActor, startPlayback } from './runtime';
 import { showPlayPrompt } from './toasts';
+
+/**
+ * Bumped by every command that starts something playing (a context, an entry).
+ * A load that sees it change while awaiting was superseded by the listener; a
+ * saved queue restoring (or a track ending) doesn't bump it.
+ */
+let playIntent = 0;
 
 /**
  * Play a tape from one of its tracks (a show page, or an embed). Next up is
@@ -58,6 +66,7 @@ export function playShow({
   if (alreadyCurrent) return;
   // The entry isn't loaded yet: start it at `startTime` when the engine makes it current.
   if (startTime && startTime > 0) getEngine()?.startAt(start.key, startTime);
+  playIntent++;
   playerActor.send({ type: 'PLAY_CONTEXT', ctx, startKey: start.key });
   if (!play) return;
   if (!canAutoplay()) showPlayPrompt({ blockedByBrowser: false, playNow: startPlayback });
@@ -91,6 +100,7 @@ export function playSongRows({
   // The entry isn't loaded yet: start it at `startTime` when the engine makes it current.
   if (startTime && startTime > 0) getEngine()?.startAt(start.key, startTime);
   const ctx = playlistId ? { label, items, playlistId } : { label, items };
+  playIntent++;
   playerActor.send({ type: 'PLAY_CONTEXT', ctx, startKey: start.key });
   startPlayback();
 }
@@ -136,6 +146,7 @@ export const removeFromQueue = (key: string) => playerActor.send({ type: 'REMOVE
 
 /** Play an entry of the queue. */
 export function jumpTo(key: string, play = true): void {
+  playIntent++;
   playerActor.send({ type: 'GOTO', key });
   if (play) startPlayback();
 }
@@ -169,6 +180,47 @@ export function setVolume(volume: number): void {
   }
 }
 
+// ---- whole playlists (a playlists table's rows) ------------------------------------
+
+/** How long a playlist's queue may take before its Play fails. */
+const PLAYLIST_LOAD_TIMEOUT_MS = 10_000;
+
+/** The playlist load in flight; a newer Play aborts it. */
+let playlistLoad: AbortController | null = null;
+
+/**
+ * Play a playlist from its first track, replacing the context (Next up stays).
+ * Its queue comes from the playlist's GET route, within a timeout. A load is
+ * dropped, not played, when it's superseded while loading: by another
+ * playlist's Play (which aborts it) or by the listener playing something else.
+ */
+export async function playPlaylist(playlist: string): Promise<'played' | 'failed' | 'superseded'> {
+  playlistLoad?.abort();
+  const load = new AbortController();
+  playlistLoad = load;
+  const intent = ++playIntent;
+  const superseded = () => load.signal.aborted || playIntent !== intent;
+  try {
+    // Superseded or slow: a stalled request fails after a while instead of spinning forever.
+    const res = await fetch(href('/api/playlists/[playlist]/queue', { playlist }), {
+      signal: AbortSignal.any([load.signal, AbortSignal.timeout(PLAYLIST_LOAD_TIMEOUT_MS)]),
+    });
+    if (superseded()) return 'superseded';
+    if (!res.ok) return 'failed';
+    const ctx = (await res.json()) as QueueContext;
+    if (superseded()) return 'superseded';
+    const start = ctx.items[0];
+    if (!start) return 'failed';
+    playerActor.send({ type: 'PLAY_CONTEXT', ctx, startKey: start.key });
+    startPlayback();
+    return 'played';
+  } catch {
+    return superseded() ? 'superseded' : 'failed';
+  } finally {
+    if (playlistLoad === load) playlistLoad = null;
+  }
+}
+
 // ---- whole shows (a shows table's rows) -----------------------------------------
 
 /** The last few shows loaded, so a row's Play then Add to queue fetch once. */
@@ -193,6 +245,7 @@ export async function playShowById(showId: string): Promise<boolean> {
   const ctx = await showQueue(showId);
   const start = ctx?.items[0];
   if (!ctx || !start) return false;
+  playIntent++;
   playerActor.send({ type: 'PLAY_CONTEXT', ctx, startKey: start.key });
   startPlayback();
   return true;

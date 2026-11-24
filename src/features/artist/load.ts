@@ -1,9 +1,8 @@
 import 'server-only';
 
 import { cache } from 'react';
-import { artistIdForSlug, getArtistDirectory, tours } from '@/data/artists';
+import { artistIdForSlug, getArtistDirectory } from '@/data/artists';
 import { artistOnDate, artistShows, recentlyAdded } from '@/data/shows';
-import { tourDetail } from '@/data/tours';
 import type { ShowSummary } from '@/domain/types';
 import { showRows } from '@/ui/shows/rows';
 
@@ -28,15 +27,3 @@ export const loadRecentlyAdded = cache(async (artistSlug: string) =>
 export const loadOnDate = cache(async (artistSlug: string, month: number, day: number) =>
   rows(artistOnDate.orDeny(await artistIdForSlug(artistSlug), month, day))
 );
-
-export const loadTours = cache(async (artistSlug: string) =>
-  tours.orDeny(await artistIdForSlug(artistSlug))
-);
-
-export const loadTour = cache(async (artistSlug: string, tourSlug: string) => {
-  const [tour, directory] = await Promise.all([
-    tourDetail(artistSlug, tourSlug),
-    getArtistDirectory(),
-  ]);
-  return { ...tour, rows: showRows(tour.shows, directory.byId) };
-});

@@ -1,10 +1,9 @@
-import Tour, { tourMetadata } from '@/features/artist/Tour';
-import { getSegmentParams } from '@timber-js/app/server';
+import { href } from '@timber-js/app/routes';
+import { getSegmentParams, redirect } from '@timber-js/app/server';
 import { SEGMENT_PATH } from './$segment';
 
-export default function Page() {
-  const { artistSlug, tourSlug } = getSegmentParams(SEGMENT_PATH);
-  return <Tour artistSlug={artistSlug} tourSlug={tourSlug} />;
+// There are no tour pages; an artist's shows are on their Shows tab. Keeps old links working.
+export default function TourRedirect() {
+  const { artistSlug } = getSegmentParams(SEGMENT_PATH);
+  redirect(href('/artists/[artistSlug]', { artistSlug }), { permanent: true });
 }
-
-export const metadata = () => tourMetadata(getSegmentParams(SEGMENT_PATH));

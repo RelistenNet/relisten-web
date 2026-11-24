@@ -13,6 +13,7 @@ import { splitShowDate } from '@/lib/utils';
 import { showLabel, songRowItem } from '@/player/queue/items';
 import ArtistCover from '@/ui/base/ArtistCover';
 import PageHeader from '@/ui/base/PageHeader';
+import { artistListCrumbs } from '@/ui/base/crumbs';
 import { formatShowDate } from '@/ui/shows/stats';
 import DataTable from '@/ui/table/DataTable';
 import { durationToHHMMSS } from '@/lib/utils';
@@ -26,7 +27,7 @@ import Reviews from './Reviews';
 import SourcesColumn from './SourcesColumn';
 import { SHOW_FILTER_IDS, showSearchParams, showTrackSpec, type ShowTrackRow } from './spec';
 
-// A show: the artist, date, and venue, then one tape's tracks in play order and its reviews.
+// A show: its date and venue under the artist, then one tape's tracks in play order and its reviews.
 
 export default async function ShowDetail({
   artistSlug,
@@ -61,13 +62,9 @@ export default async function ShowDetail({
   return (
     <div className="detail-page flex flex-col gap-6">
       <PageHeader
+        crumbs={artistListCrumbs(artist, 'shows')}
         cover={<ArtistCover artist={artist} />}
-        title={
-          <>
-            {artist.name}{' '}
-            <span className="font-normal text-text-muted">{formatShowDate(show.date)}</span>
-          </>
-        }
+        title={formatShowDate(show.date)}
         meta={[venue?.name && <VenuePill key="venue" artistSlug={artistSlug} venue={venue} />]}
         actions={source && <ExternalLinks links={source.links} />}
       />
@@ -94,7 +91,8 @@ export default async function ShowDetail({
               View show in &lsquo;Browse&rsquo;
             </Link>
           </div>
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+          {/* minmax(0,…) at every width: an auto column would grow to the tapes' untruncated text. */}
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
             <DataTable<ShowTrackRow>
               pathname={pathname}
               params={params}
@@ -121,7 +119,8 @@ export default async function ShowDetail({
             <div className="lg:[contain:size]">
               <div
                 className="
-              flex flex-col overflow-hidden rounded-lg border border-hairline
+              flex flex-col overflow-hidden rounded-xl border border-hairline
+              bg-text-primary/[0.015] shadow-sm
               lg:sticky lg:top-6 lg:max-h-[min(100%,calc(100dvh-50px-3rem))]
               [&_.relisten-column]:min-h-0
             "

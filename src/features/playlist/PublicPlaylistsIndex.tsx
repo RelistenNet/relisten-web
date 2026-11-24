@@ -29,8 +29,10 @@ import {
 import { signInPageHref } from '@/lib/searchParams/sessionSearchParams';
 import { sessionCookie } from '@/lib/session/sessionCookie';
 import { numberFormat } from '@/lib/utils';
+import { PlayPlaylistButton } from '@/player/QueueButtons';
 import ArtistCover from '@/ui/base/ArtistCover';
 import PageHeader from '@/ui/base/PageHeader';
+import { ALL_ARTISTS_CRUMB, artistCrumb } from '@/ui/base/crumbs';
 import DataTable from '@/ui/table/DataTable';
 import type { TableResult, TableSpec } from '@/ui/table/query';
 import type { Column } from '@/ui/table/types';
@@ -117,6 +119,16 @@ function ArtistList({ artists, linked }: { artists: PlaylistListArtist[]; linked
 }
 
 const columns: Column<PlaylistListRow>[] = [
+  // Play the whole playlist from the top, as a show table's rows play their show.
+  {
+    id: 'play',
+    width: 'w-14',
+    label: 'Play',
+    srOnlyLabel: true,
+    cell: (p) => (
+      <PlayPlaylistButton playlist={p.playlist} playlistId={p.playlistId} name={p.name} />
+    ),
+  },
   {
     id: 'name',
     label: 'Playlist',
@@ -220,6 +232,7 @@ const columns: Column<PlaylistListRow>[] = [
 
 /** The columns each source fills. */
 const PUBLISHED_COLUMNS = [
+  'play',
   'name',
   'artists',
   'tracks',
@@ -228,7 +241,7 @@ const PUBLISHED_COLUMNS = [
   'followers',
   'updated',
 ];
-const OWN_COLUMNS = ['name', 'status', 'tracks', 'updated'];
+const OWN_COLUMNS = ['play', 'name', 'status', 'tracks', 'updated'];
 
 type View = {
   rows: PlaylistListRow[];
@@ -251,7 +264,7 @@ export default async function PublicPlaylistsIndex({ artistSlug }: { artistSlug?
   let view: View;
   if (mine) {
     // Most recently updated first, as the library comes; it has nothing else to sort by.
-    const library = await getPlaylistLibrary();
+    const library = await getPlaylistLibrary().catch(denyIfUnavailable);
     if (!library) redirect(signInPageHref(myPlaylistsHref()));
     view = {
       rows: ownPlaylistRows(library.owned),
@@ -289,9 +302,10 @@ export default async function PublicPlaylistsIndex({ artistSlug }: { artistSlug?
   return (
     <div className="detail-page flex flex-col gap-6">
       <PageHeader
+        crumbs={[artist ? artistCrumb(artist) : ALL_ARTISTS_CRUMB]}
         cover={artist && <ArtistCover artist={artist} />}
         title="Playlists"
-        meta={[artist ? `With ${artist.name}` : mine ? 'Your Playlists' : 'Shared by listeners']}
+        meta={[artist ? undefined : mine ? 'Your Playlists' : 'Shared by listeners']}
         aside={
           !artistSlug && signedIn ? <PlaylistScopeTabs scope={mine ? 'mine' : 'all'} /> : undefined
         }

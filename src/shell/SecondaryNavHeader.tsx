@@ -8,19 +8,20 @@ type Page = { prefix: string; title: string; href?: string };
 
 const playlists: Page = { prefix: 'TO', title: 'PLAYLISTS', href: href('/playlists') };
 
-// The site's pages' titles, by first path segment: "RELISTEN TO TODAY IN HISTORY".
+// The site's pages' titles, by first path segment: "RELISTEN TO TODAY IN HISTORY",
+// "RELISTEN LIVE" (no prefix).
 // A title with an href links to its section's index (a playlist goes back to
 // every playlist); otherwise to the page itself.
 const pages: Record<string, Page> = {
-  'sonos': { prefix: 'ON', title: 'SONOS' },
-  'app': { prefix: 'ON THE', title: 'GO' },
-  'today': { prefix: 'TO', title: 'TODAY IN HISTORY' },
-  'recently-played': { prefix: 'WITH', title: 'OTHERS' },
-  'venues': { prefix: 'AT', title: 'EVERY VENUE' },
-  'chat': { prefix: 'WITH', title: 'US' },
-  'about': { prefix: 'TO', title: 'OUR LIFE STORY' },
-  'blog': { prefix: 'TO', title: 'OUR BLOG' },
-  'playlists': playlists,
+  sonos: { prefix: 'ON', title: 'SONOS' },
+  app: { prefix: 'ON THE', title: 'GO' },
+  today: { prefix: 'TO', title: 'TODAY IN HISTORY' },
+  live: { prefix: '', title: 'LIVE' },
+  venues: { prefix: 'AT', title: 'EVERY VENUE' },
+  chat: { prefix: 'WITH', title: 'US' },
+  about: { prefix: 'TO', title: 'OUR LIFE STORY' },
+  blog: { prefix: 'TO', title: 'OUR BLOG' },
+  playlists: playlists,
 };
 
 /** The page's title, by first path segment. */
@@ -41,7 +42,7 @@ export default function SecondaryNavBar() {
   if (!page) return null;
   return (
     <>
-      <span className="to">{page.prefix}</span>
+      {page.prefix && <span className="to">{page.prefix}</span>}
       <Link href={page.href ?? pathname}>{page.title}</Link>
     </>
   );

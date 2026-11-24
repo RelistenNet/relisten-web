@@ -5,15 +5,14 @@ import { unwrap } from '@/api/fetcher';
 import {
   getApiV4Artists,
   getApiV4ArtistsArtistIdSongs,
-  getApiV4ArtistsArtistIdTours,
   getApiV4ArtistsArtistIdVenues,
   getApiV4ArtistsArtistIdYears,
 } from '@/api/generated/client';
-import type { Artist, SongListItem, TourSummary, VenueListItem, YearSummary } from '@/domain/types';
-import { toArtist, toTourSummary, toYearSummary, venueLocation } from './adapters';
+import type { Artist, SongListItem, VenueListItem, YearSummary } from '@/domain/types';
+import { toArtist, toYearSummary, venueLocation } from './adapters';
 import { defineResource, MINUTES } from './resource';
 
-// Artists and their per-artist lists (years, songs, venues, tours).
+// Artists and their per-artist lists (years, songs, venues).
 
 export type ArtistDirectory = {
   artists: Artist[];
@@ -62,13 +61,6 @@ export const years = defineResource({
   ttl: 5 * MINUTES,
   load: (artistId: string) => unwrap(getApiV4ArtistsArtistIdYears(artistId)),
   slim: (list): YearSummary[] => list.flatMap((y) => toYearSummary(y) ?? []),
-});
-
-export const tours = defineResource({
-  name: 'tours',
-  ttl: 5 * MINUTES,
-  load: (artistId: string) => unwrap(getApiV4ArtistsArtistIdTours(artistId)),
-  slim: (list): TourSummary[] => list.flatMap((t) => toTourSummary(t) ?? []),
 });
 
 /** Songs: v4 mixes matched songs with songs only known from imported setlists. Slugless songs can't be linked, so they're dropped. */

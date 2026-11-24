@@ -1,6 +1,6 @@
 import { href } from '@timber-js/app/routes';
 import { deny, redirect } from '@timber-js/app/server';
-import { getOwnPlaylist } from '@/data/playlists';
+import { denyIfUnavailable, getOwnPlaylist } from '@/data/playlists';
 import { signInPageHref } from '@/lib/searchParams/sessionSearchParams';
 import { PencilIcon } from 'lucide-react';
 import { loadPlaylistResolved } from './load';
@@ -15,7 +15,7 @@ import PlaylistEditor from './PlaylistEditor';
 export default async function EditPlaylist({ playlistId }: { playlistId: string }) {
   const pathname = href('/playlists/[playlist]/edit', { playlist: playlistId });
   const viewHref = href('/playlists/[playlist]', { playlist: playlistId });
-  const result = await getOwnPlaylist(playlistId);
+  const result = await getOwnPlaylist(playlistId).catch(denyIfUnavailable);
   if (result.kind === 'signed-out') redirect(signInPageHref(pathname));
   if (result.kind === 'missing') deny(404);
   if (result.archived) redirect(viewHref);

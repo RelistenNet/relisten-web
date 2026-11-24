@@ -36,11 +36,15 @@ type Props<Row> = {
   /**
    * Rows in groups (a show's sets): a full-width heading row goes above each
    * group's first row. Null: no heading. Rows of a group must be adjacent.
+   * `anchor` gives the heading an id to link to (an index of the groups).
    */
-  groupBy?: (row: Row) => { key: string; label: ReactNode; detail?: ReactNode } | null;
+  groupBy?: (
+    row: Row
+  ) => { key: string; label: ReactNode; detail?: ReactNode; anchor?: string } | null;
   /**
    * The table's minimum width (a class); narrower screens scroll it sideways.
-   * Tables with few columns can fit a phone with a smaller one.
+   * The default applies from sm up: below it, the columns marked to hide on
+   * phones are gone and the rest fit. Tables with few columns can pass less.
    */
   minWidth?: string;
   /** "show" → "1–25 of 332 shows". */
@@ -67,6 +71,26 @@ const visibilityClass = <Row,>(col: Column<Row>) =>
 const sortIdsOf = <Row,>(col: Column<Row>) =>
   col.sorts ? col.sorts.map((x) => x.id) : col.sortable ? [col.id] : [];
 const plural = (n: number, noun: string) => `${noun}${n === 1 ? '' : 's'}`;
+
+/**
+ * A full-width cell (a group's heading) as one cell per screen-width band,
+ * each spanning the columns visible in that band. Spanning a hidden column
+ * would add a column to the fixed layout, which takes the leftover width and
+ * cuts every row short.
+ */
+const BANDS = [
+  { className: 'sm:hidden', hidden: (c: Column<unknown>) => !!c.hideBelow },
+  {
+    className: 'max-sm:hidden md:hidden',
+    hidden: (c: Column<unknown>) => c.hideBelow === 'md' || c.showBelow === 'sm',
+  },
+  { className: 'max-md:hidden', hidden: (c: Column<unknown>) => !!c.showBelow },
+];
+const spanBandsOf = <Row,>(columns: Column<Row>[]) =>
+  BANDS.map((b) => ({
+    className: b.className,
+    span: columns.filter((c) => !b.hidden(c as Column<unknown>)).length,
+  }));
 const RESULTS_ID = 'results';
 
 export default function DataTable<Row>({
@@ -79,7 +103,7 @@ export default function DataTable<Row>({
   rowHref,
   rowAction,
   groupBy,
-  minWidth = 'min-w-[36rem]',
+  minWidth = 'sm:min-w-[36rem]',
   noun,
   searchPlaceholder,
   chipFilters = [],
@@ -103,6 +127,7 @@ export default function DataTable<Row>({
     ['q', undefined],
     ...spec.filters.map((f) => [f.id, undefined]),
   ]);
+  const spanBands = spanBandsOf(columns);
   const query = typeof params.q === 'string' ? params.q.trim() : '';
   const href = (patch: TableParams) => tableHref(pathname, params, patch);
   const end = result.start + result.rows.length - 1;
@@ -237,30 +262,6 @@ export default function DataTable<Row>({
                 </tr>
               </thead>
               <tbody>
-                {result.rows.length === 0 && (
-                  <tr>
-                    <td colSpan={columns.length} className="py-10 text-center text-text-muted">
-                      {result.totalAll === 0 ? (
-                        <p className="mb-0">No {plural(0, noun)} yet.</p>
-                      ) : (
-                        <>
-                          <p className="mb-2">
-                            {query
-                              ? `No ${plural(0, noun)} match “${query}”.`
-                              : `No ${plural(0, noun)} match these filters.`}
-                          </p>
-                          <Link
-                            href={href(clearAll)}
-                            scroll={false}
-                            className="text-accent hover:underline"
-                          >
-                            Clear search and filters
-                          </Link>
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                )}
                 {result.rows.map((row, r) => {
                   const rowLink = rowHref?.(row);
                   const rowTarget = rowAction?.(row);
@@ -269,23 +270,29 @@ export default function DataTable<Row>({
                   return (
                     <Fragment key={rowKey(row)}>
                       {group && group.key !== prev?.key && (
-                        <tr>
-                          <th
-                            scope="colgroup"
-                            colSpan={columns.length}
-                            className={`
-                            h-9 border-b border-hairline bg-text-primary/[0.04] px-3 text-left
-                            text-[11px] font-semibold tracking-wide text-column-subheader-text
-                            uppercase
-                          `}
-                          >
-                            <span className="flex items-center justify-between gap-3">
-                              <span>{group.label}</span>
-                              {group.detail && (
-                                <span className="normal-case tabular-nums">{group.detail}</span>
+                        <tr id={group.anchor} className="scroll-mt-4">
+                          {spanBands.map((band) => (
+                            <th
+                              key={band.className}
+                              scope="colgroup"
+                              colSpan={band.span}
+                              className={cn(
+                                `
+                                  h-9 border-b border-hairline bg-text-primary/[0.04] px-3
+                                  text-left text-[11px] font-semibold tracking-wide
+                                  text-column-subheader-text uppercase
+                                `,
+                                band.className
                               )}
-                            </span>
-                          </th>
+                            >
+                              <span className="flex items-center justify-between gap-3">
+                                <span>{group.label}</span>
+                                {group.detail && (
+                                  <span className="normal-case tabular-nums">{group.detail}</span>
+                                )}
+                              </span>
+                            </th>
+                          ))}
                         </tr>
                       )}
                       <tr
@@ -349,6 +356,31 @@ export default function DataTable<Row>({
                 })}
               </tbody>
             </table>
+            {/* Outside the table: a cell spanning every column would also span the
+                columns hidden at this width, and the fixed layout would hand them the
+                leftover width, so the header would stop short. */}
+            {result.rows.length === 0 && (
+              <div className="py-10 text-center text-text-muted">
+                {result.totalAll === 0 ? (
+                  <p className="mb-0">No {plural(0, noun)} yet.</p>
+                ) : (
+                  <>
+                    <p className="mb-2">
+                      {query
+                        ? `No ${plural(0, noun)} match “${query}”.`
+                        : `No ${plural(0, noun)} match these filters.`}
+                    </p>
+                    <Link
+                      href={href(clearAll)}
+                      scroll={false}
+                      className="text-accent hover:underline"
+                    >
+                      Clear search and filters
+                    </Link>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

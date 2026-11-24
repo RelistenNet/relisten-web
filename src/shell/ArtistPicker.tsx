@@ -40,9 +40,6 @@ function sectionHref(pathname: string, fromSlug: string, to: ArtistListItem): st
     case 'venues':
       if (!has.venues) break;
       return href('/artists/[artistSlug]/venues', { artistSlug });
-    case 'tours':
-      if (!has.tours) break;
-      return href('/artists/[artistSlug]/tours', { artistSlug });
     case 'playlists':
       return href('/artists/[artistSlug]/playlists', { artistSlug });
     case 'recently-added':

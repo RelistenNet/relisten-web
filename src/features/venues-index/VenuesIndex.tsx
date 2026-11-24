@@ -10,6 +10,7 @@ import type { VenueListItem } from '@/domain/types';
 import { Link } from '@timber-js/app/client';
 import ArtistCover from '@/ui/base/ArtistCover';
 import PageHeader, { type StatItem } from '@/ui/base/PageHeader';
+import { ALL_ARTISTS_CRUMB, artistCrumb } from '@/ui/base/crumbs';
 import { deny } from '@timber-js/app/server';
 
 // Venues as a table: every venue an artist played (/artists/phish/venues), or
@@ -68,23 +69,22 @@ export default async function VenuesIndex({ artistSlug }: { artistSlug?: string 
       ? href('/artists/[artistSlug]/venues/[venueSlug]', { artistSlug, venueSlug: v.slug })
       : href('/venues/[venueSlug]', { venueSlug: v.slug });
   const columns: Column<VenueListItem>[] = [
+    // The venue and where it is in one cell, as show lists have date and venue.
     {
-      id: 'name',
+      id: 'venue',
       label: 'Venue',
-      sortable: true,
+      sorts: [
+        { id: 'name', label: 'Venue' },
+        { id: 'location', label: 'Location' },
+      ],
       cell: (v) => (
-        <Link href={venueHref(v)} className="font-medium hover:underline">
-          {v.name}
-        </Link>
+        <div className="flex min-w-0 flex-col">
+          <Link href={venueHref(v)} className="truncate font-medium hover:underline">
+            {v.name}
+          </Link>
+          {v.location && <span className="truncate text-text-muted">{v.location}</span>}
+        </div>
       ),
-    },
-    {
-      id: 'location',
-      label: 'Location',
-      sortable: true,
-      width: 'w-56',
-      hideBelow: 'sm',
-      cell: (v) => v.location ?? '—',
     },
     {
       id: 'shows',
@@ -113,9 +113,9 @@ export default async function VenuesIndex({ artistSlug }: { artistSlug?: string 
   return (
     <div className="detail-page flex flex-col gap-6">
       <PageHeader
+        crumbs={[artist ? artistCrumb(artist) : ALL_ARTISTS_CRUMB]}
         cover={artist && <ArtistCover artist={artist} />}
         title="Venues"
-        meta={artistSlug ? undefined : ['Across all artists']}
         stats={stats}
       />
       <DataTable

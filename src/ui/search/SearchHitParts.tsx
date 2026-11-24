@@ -6,7 +6,6 @@ import {
   MessageSquareQuoteIcon,
   UsersRoundIcon,
   MusicIcon,
-  RouteIcon,
   type LucideIcon,
 } from 'lucide-react';
 import type { ExcerptRun, SearchHit, SearchKind } from '@/lib/search';
@@ -22,7 +21,6 @@ const KIND_ICON: Record<SearchKind, LucideIcon> = {
   artist: UsersRoundIcon,
   song: MusicIcon,
   venue: MapPinIcon,
-  tour: RouteIcon,
   show: CalendarIcon,
   performance: AudioLinesIcon,
   recording: CassetteTapeIcon,

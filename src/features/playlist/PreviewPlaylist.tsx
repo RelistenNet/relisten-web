@@ -1,8 +1,8 @@
 import { Link } from '@timber-js/app/client';
 import { href } from '@timber-js/app/routes';
 import { deny, redirect } from '@timber-js/app/server';
-import { getOwnPlaylist } from '@/data/playlists';
-import { getCurrentUser } from '@/data/session';
+import { denyIfUnavailable, getOwnPlaylist } from '@/data/playlists';
+import { denyIfSessionUnavailable, getCurrentUser } from '@/data/session';
 import { signInPageHref } from '@/lib/searchParams/sessionSearchParams';
 import { PUBLIC_PLAYLISTS_CRUMB } from './PlaylistArticle';
 import PlaylistDetail from './PlaylistDetail';
@@ -13,7 +13,10 @@ import PlaylistDetail from './PlaylistDetail';
  */
 export default async function PreviewPlaylist({ playlistId }: { playlistId: string }) {
   const pathname = href('/playlists/[playlist]/preview', { playlist: playlistId });
-  const [result, me] = await Promise.all([getOwnPlaylist(playlistId), getCurrentUser()]);
+  const [result, me] = await Promise.all([
+    getOwnPlaylist(playlistId).catch(denyIfUnavailable),
+    getCurrentUser().catch(denyIfSessionUnavailable),
+  ]);
   if (result.kind === 'signed-out') redirect(signInPageHref(pathname));
   if (result.kind === 'missing') deny(404);
   return (

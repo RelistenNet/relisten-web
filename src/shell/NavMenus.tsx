@@ -27,9 +27,9 @@ import {
 } from '@/ui/base/Menu';
 import { accountSection, siteSections } from './siteSections';
 
-// The nav bar's dropdowns, on the site's menus (src/ui/base/Menu.tsx): Explore
-// (the listening pages), Site (about the project; below xl, every link) and My
-// Account. Settings are the cog's, at every width.
+// The nav bar's dropdowns, on the site's menus (src/ui/base/Menu.tsx): Site
+// (about the project; below xl, the listening pages too, which at xl are at the
+// artist bar's right end) and My Account. Settings are the cog's, at every width.
 
 const sections = (...groups: string[]) => siteSections.filter((s) => groups.includes(s.group));
 
@@ -56,25 +56,6 @@ function useSignOut() {
       </MenuItem>
     ),
   };
-}
-
-/** The listening pages (Today, Live, Venues, Playlists), at xl. */
-export function ExploreMenu({ className }: { className?: string }) {
-  return (
-    <MenuRoot>
-      <MenuTrigger className={className}>
-        Explore
-        <ChevronDownIcon className="size-3.5" aria-hidden="true" />
-      </MenuTrigger>
-      <MenuContent align="end">
-        {sections('explore').map((s) => (
-          <MenuLinkItem key={s.href} render={<Link href={s.href} prefetch={false} />}>
-            {s.label}
-          </MenuLinkItem>
-        ))}
-      </MenuContent>
-    </MenuRoot>
-  );
 }
 
 /** The signed-in listener's menu, at xl (below, its items are in the Site menu). */
