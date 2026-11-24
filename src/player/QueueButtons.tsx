@@ -9,7 +9,7 @@ import {
   Pause,
   Play,
 } from 'lucide-react';
-import { type ReactNode, useDeferredValue, useState, useTransition, ViewTransition } from 'react';
+import { type ReactNode, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import cn from '@/lib/cn';
 import Tooltip from '@/ui/base/Tooltip';
@@ -207,7 +207,11 @@ export function ShowQueueActions({ playlist = false }: { playlist?: boolean }) {
     (playlist ? items.some((i) => i.key === current.key) : current.sourceId === items[0].sourceId);
   const isPlaying = useIsPlaying() && isCurrent;
   const idle = playlist ? 'Play Playlist' : 'Play Show';
-  const label = useDeferredValue(isPlaying ? 'Pause' : isCurrent ? 'Resume' : idle);
+  const label = isPlaying ? 'Pause' : isCurrent ? 'Resume' : idle;
+  // The label it rolls away from (null until the first change, so nothing rolls
+  // on mount), updated in render as the label changes.
+  const [roll, setRoll] = useState({ label, prev: null as string | null });
+  if (roll.label !== label) setRoll({ label, prev: roll.label });
   if (!items[0]) return null;
   const start = items[0];
 
@@ -223,20 +227,19 @@ export function ShowQueueActions({ playlist = false }: { playlist?: boolean }) {
       className={cn(PILL, 'border-transparent bg-accent/15 hover:bg-accent/25')}
     >
       <PlayIcon className="size-4 text-accent" aria-hidden />
-      {/* Every label in one grid cell, hidden, to size the button to the widest:
-      its width never changes. The shown label sits on top of them. */}
-      <span className="inline-grid *:col-start-1 *:row-start-1">
+      {/* Every label in one grid cell, to size the button to the widest: its width
+      never changes. label-roll (globals.css): the old label rotates up and away as
+      the new one rolls in from below. */}
+      <span className="label-roll" data-rolled={roll.prev === null ? undefined : ''}>
         {[idle, 'Resume', 'Pause'].map((text) => (
-          <span key={text} aria-hidden className="invisible">
+          <span
+            key={text}
+            aria-hidden={text !== label || undefined}
+            data-state={text === label ? 'on' : text === roll.prev ? 'out' : 'in'}
+          >
             {text}
           </span>
         ))}
-        {/* Deferred, so the swap commits as a transition and ViewTransition animates it
-        (the player's store updates synchronously, which wouldn't animate). */}
-        {/* label-roll (globals.css): the old label rotates away as the new one rolls in. */}
-        <ViewTransition default="none" update="label-roll">
-          <span>{label}</span>
-        </ViewTransition>
       </span>
     </button>
   );

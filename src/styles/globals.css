@@ -629,26 +629,35 @@
   }
 }
 
-/* ── A label rolling to its next value (ShowQueueActions' Play → Resume → Pause) ──
-   React's <ViewTransition update="label-roll">: the old text rotates up and
-   away while the new one rolls in from below, cross-fading, like a drum turning.
-   Clipped to the label, so nothing spills past the button. */
-::view-transition-group(.label-roll) {
+/* The Play button's label (ShowQueueActions): every label in one grid cell, the
+   current one shown. When it changes, the old one rotates up and away while the
+   new one rolls in from below, cross-fading, like a drum turning. Clipped to the
+   label, so nothing spills past the button. data-rolled is set from the first
+   change, so nothing rolls on mount. */
+.label-roll {
+  display: inline-grid;
   overflow: clip;
-  animation-duration: 280ms;
-}
-::view-transition-image-pair(.label-roll) {
   perspective: 120px;
 }
-::view-transition-old(.label-roll) {
-  animation: label-roll-out 280ms cubic-bezier(0.4, 0, 0.2, 1) both;
-  transform-origin: 50% 0%;
+.label-roll > * {
+  grid-area: 1 / 1;
 }
-::view-transition-new(.label-roll) {
+.label-roll > :not([data-state='on']) {
+  opacity: 0;
+}
+.label-roll[data-rolled] > [data-state='on'] {
   animation: label-roll-in 280ms cubic-bezier(0.4, 0, 0.2, 1) both;
   transform-origin: 50% 100%;
 }
+.label-roll[data-rolled] > [data-state='out'] {
+  animation: label-roll-out 280ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  transform-origin: 50% 0%;
+}
 @keyframes label-roll-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
   to {
     opacity: 0;
     transform: translateY(-70%) rotateX(70deg);
@@ -662,30 +671,12 @@
     filter: blur(1px);
   }
 }
-/* The nav bar, captured in every view transition. A transition draws its snapshots
-   above the whole page, so a label rolling under the sticky nav would show over
-   it. Named, the nav gets a snapshot of its own, stacked above the content's as
-   on the page, and held still: only its live (new) image shows. */
-.navigation {
-  view-transition-name: nav;
-}
-::view-transition-group(nav) {
-  animation: none;
-}
-::view-transition-old(nav) {
-  display: none;
-}
-::view-transition-new(nav) {
-  animation: none;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(.label-roll),
-  ::view-transition-new(.label-roll) {
-    animation: swap-out 1ms both;
+  .label-roll[data-rolled] > [data-state='on'] {
+    animation: swap-in 1ms both;
   }
-  ::view-transition-new(.label-roll) {
-    animation-name: swap-in;
+  .label-roll[data-rolled] > [data-state='out'] {
+    animation: swap-out 1ms both;
   }
 }
 
