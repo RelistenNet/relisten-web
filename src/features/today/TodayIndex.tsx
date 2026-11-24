@@ -28,17 +28,19 @@ type TodayIndexProps = {
 };
 
 const TodayIndex = ({ items }: TodayIndexProps) => {
-  const [{ sort: sortMode, dir: sortDir, anchor: rawAnchor }, setParams] =
+  const [{ order: sortMode, dir: sortDir, anchor: rawAnchor }, setParams] =
     todayIndexSearchParams.useQueryStates({ shallow: true, scroll: false });
+  // The order goes through the server: the page's links (artists, pager, year
+  // chart) are built there and keep it. The anchor stays shallow: just a scroll.
   const activeAnchor = rawAnchor ?? items[0]?.anchor;
 
   const toggleSort = (mode: SortMode) => {
     if (mode === 'default') {
-      setParams({ sort: 'default' });
+      setParams({ order: 'default' }, { shallow: false });
     } else if (sortMode === mode) {
-      setParams({ dir: sortDir === 'asc' ? 'desc' : 'asc' });
+      setParams({ dir: sortDir === 'asc' ? 'desc' : 'asc' }, { shallow: false });
     } else {
-      setParams({ sort: mode, dir: 'asc' });
+      setParams({ order: mode, dir: 'asc' }, { shallow: false });
     }
   };
 
@@ -110,9 +112,13 @@ const TodayIndex = ({ items }: TodayIndexProps) => {
                 href={href}
                 scroll={false}
                 onClick={(e) => {
-                  // On this page: just scroll there, keeping the page as it is.
-                  if (!document.getElementById(anchor)) return;
+                  // A new tab or window: the link as it is.
+                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                  // On this page: scroll there (even to the one already active), keeping the page.
+                  const target = document.getElementById(anchor);
+                  if (!target) return;
                   e.preventDefault();
+                  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   setParams({ anchor });
                 }}
                 className={`flex items-center justify-between gap-2 rounded px-2 py-1 transition-colors ${

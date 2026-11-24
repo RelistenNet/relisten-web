@@ -58,7 +58,7 @@ export default async function Page() {
     ...(table as TableParams),
     month: parsed.month,
     day: parsed.day,
-    ...(index.sort !== 'default' && { sort: index.sort, dir: index.dir }),
+    ...(index.order !== 'default' && { order: index.order, dir: index.dir }),
   };
 
   // The rows' order: grouped by artist (loadTodayRows sorts them).
@@ -86,13 +86,15 @@ export default async function Page() {
     entry.count++;
     counts.set(r.artistSlug, entry);
   });
-  const artists = [...counts].map(([anchor, { name, count, first }]) => ({
+  // Group headings' ids: prefixed, so an artist's slug can't collide with another id on the page.
+  const anchorOf = (slug: string) => `artist-${slug}`;
+  const artists = [...counts].map(([slug, { name, count, first }]) => ({
     name,
-    anchor,
+    anchor: anchorOf(slug),
     count,
     href: tableHref(href('/today'), params, {
       page: Math.floor(first / PAGE_SIZE) + 1,
-      anchor,
+      anchor: anchorOf(slug),
     }),
   }));
 
@@ -133,7 +135,7 @@ export default async function Page() {
               const n = counts.get(r.artistSlug)?.count ?? 0;
               return {
                 key: r.artistSlug,
-                anchor: r.artistSlug,
+                anchor: anchorOf(r.artistSlug),
                 label: r.artistName,
                 detail: `${numberFormat.format(n)} ${n === 1 ? 'show' : 'shows'}`,
               };
