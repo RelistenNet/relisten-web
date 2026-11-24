@@ -4,6 +4,7 @@
 // engine directly. Components don't touch gapless or the actors.
 // ---------------------------------------------------------------------------
 
+import { href } from '@timber-js/app/routes';
 import { showContext, type PlayableTape, type ShowInfo } from './queue/items';
 import { nextUpKey, type QueueContext, type QueueItem } from './queue/model';
 import { loadShowQueue } from './showQueueAction';
@@ -167,6 +168,24 @@ export function setVolume(volume: number): void {
   } catch {
     // Saving the volume is best-effort.
   }
+}
+
+// ---- whole playlists (a playlists table's rows) ------------------------------------
+
+/**
+ * Play a playlist from its first track, replacing the context (Next up stays).
+ * Its queue comes from the playlist's GET route (HTTP-cached for public ones).
+ * False if it couldn't load or has nothing playable.
+ */
+export async function playPlaylist(playlist: string): Promise<boolean> {
+  const res = await fetch(href('/api/playlists/[playlist]/queue', { playlist })).catch(() => null);
+  if (!res?.ok) return false;
+  const ctx = (await res.json()) as QueueContext;
+  const start = ctx.items[0];
+  if (!start) return false;
+  playerActor.send({ type: 'PLAY_CONTEXT', ctx, startKey: start.key });
+  startPlayback();
+  return true;
 }
 
 // ---- whole shows (a shows table's rows) -----------------------------------------

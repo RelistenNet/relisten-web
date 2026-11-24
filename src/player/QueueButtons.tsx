@@ -17,12 +17,13 @@ import { AddToPlaylistButton } from './AddToPlaylist';
 import {
   addToQueue,
   playNext,
+  playPlaylist,
   playShowById,
   playSongRows,
   queueShow,
   togglePlayPause,
 } from './commands';
-import { useCurrentItem, useIsPlaying } from './hooks';
+import { useCurrentItem, useIsPlaying, useQueue } from './hooks';
 import type { QueueItem } from './queue/model';
 import { useSongQueue } from './SongQueue';
 import { TOASTER_ID } from './toasts';
@@ -31,6 +32,7 @@ import { TOASTER_ID } from './toasts';
 export type QueueTarget = { item: QueueItem | null } | { showId: string };
 
 const SHOW_FAILED = "Couldn't load that show";
+const PLAYLIST_FAILED = "Couldn't load that playlist";
 
 /**
  * Play next / Add to queue as inline buttons, beside a row's play button (the
@@ -155,6 +157,56 @@ export function PlayShowButton({ showId, name }: { showId: string; name: string 
     if (isCurrent) return togglePlayPause();
     startTransition(async () => {
       if (!(await playShowById(showId))) toast.error(SHOW_FAILED, { toasterId: TOASTER_ID });
+    });
+  };
+
+  const Icon = pending ? LoaderCircleIcon : isPlaying ? Pause : Play;
+  const button = (
+    <button
+      type="button"
+      onClick={play}
+      disabled={pending}
+      aria-label={`${isPlaying ? 'Pause' : 'Play'} ${name}`}
+      aria-pressed={isCurrent}
+      className={cn(BUTTON, 'text-accent')}
+    >
+      <Icon className={cn('size-4 shrink-0', pending && 'animate-spin')} aria-hidden />
+    </button>
+  );
+  if (isCurrent) return button;
+  return (
+    <Tooltip content="Play (replaces queue)" align="top">
+      {button}
+    </Tooltip>
+  );
+}
+
+/**
+ * Plays a whole playlist from a playlists table (from the top), replacing the
+ * queue. While a public playlist's own entries are playing, it pauses and
+ * resumes: the queue knows which public playlist it came from. A listener's own
+ * playlist isn't credited, so its button always starts it over.
+ */
+export function PlayPlaylistButton({
+  playlist,
+  playlistId,
+  name,
+}: {
+  /** The playlists route's param: a share code, or the listener's own id. */
+  playlist: string;
+  playlistId: string;
+  name: string;
+}) {
+  const isCurrent = useQueue(
+    (q) => q.current?.from === 'context' && q.context?.playlistId === playlistId
+  );
+  const isPlaying = useIsPlaying() && isCurrent;
+  const [pending, startTransition] = useTransition();
+
+  const play = () => {
+    if (isCurrent) return togglePlayPause();
+    startTransition(async () => {
+      if (!(await playPlaylist(playlist))) toast.error(PLAYLIST_FAILED, { toasterId: TOASTER_ID });
     });
   };
 
