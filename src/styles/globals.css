@@ -662,6 +662,23 @@
     filter: blur(1px);
   }
 }
+/* The nav bar, captured in every view transition. A transition draws its snapshots
+   above the whole page, so a label rolling under the sticky nav would show over
+   it. Named, the nav gets a snapshot of its own, stacked above the content's as
+   on the page, and held still: only its live (new) image shows. */
+.navigation {
+  view-transition-name: nav;
+}
+::view-transition-group(nav) {
+  animation: none;
+}
+::view-transition-old(nav) {
+  display: none;
+}
+::view-transition-new(nav) {
+  animation: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(.label-roll),
   ::view-transition-new(.label-roll) {
