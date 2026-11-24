@@ -11,22 +11,10 @@ import type { Column } from '@/ui/table/types';
 // Columns, sorts, and filters shared by every table of shows (venue pages, song
 // pages). Each page picks the columns it needs.
 
+/** A show cell's second line ("Venue · Location", "Artist · Venue"): muted, its own color set as links default to the text color. */
+const SECOND_LINE_LINK = 'text-text-muted hover:text-text-primary hover:underline';
+
 export const showColumns = {
-  date: {
-    id: 'date',
-    width: 'w-40',
-    label: 'Date',
-    sortable: true,
-    firstDir: 'desc',
-    cell: (r) => (
-      <span className="inline-flex items-center gap-1">
-        <Link href={r.href} className="font-medium hover:underline">
-          {r.date}
-        </Link>
-        {r.sbd && <Tag>SBD</Tag>}
-      </span>
-    ),
-  },
   /** Date, venue, and location in one cell, sortable by date or venue. */
   show: {
     id: 'show',
@@ -43,6 +31,7 @@ export const showColumns = {
           </Link>
           {r.sbd && <Tag>SBD</Tag>}
         </span>
+        {/* Venue and location as one muted line, all of it the venue's link. */}
         <span
           className="truncate text-text-muted"
           title={[r.venueName, r.location].filter(Boolean).join(' · ')}
@@ -53,14 +42,13 @@ export const showColumns = {
                 artistSlug: r.artistSlug,
                 venueSlug: r.venueSlug,
               })}
-              className="hover:text-text-primary hover:underline"
+              className={SECOND_LINE_LINK}
             >
-              {r.venueName}
+              {[r.venueName, r.location].filter(Boolean).join(' · ')}
             </Link>
           ) : (
-            (r.venueName ?? '—')
+            [r.venueName ?? '—', r.location].filter(Boolean).join(' · ')
           )}
-          {r.location && ` · ${r.location}`}
         </span>
       </div>
     ),
@@ -91,14 +79,45 @@ export const showColumns = {
       );
     },
   },
-  artist: {
-    id: 'artist',
-    label: 'Artist',
-    sortable: true,
+  /**
+   * A venue's shows: the date, then "Artist · Venue" as one link to that
+   * artist's page for the venue, as the show column has the date, then the
+   * venue. Sortable by date or artist.
+   */
+  dateArtist: {
+    id: 'dateArtist',
+    label: 'Show',
+    sorts: [
+      { id: 'date', label: 'Date', firstDir: 'desc' },
+      { id: 'artist', label: 'Artist' },
+    ],
     cell: (r) => (
-      <Link href={href('/[artistSlug]', { artistSlug: r.artistSlug })} className="hover:underline">
-        {r.artistName}
-      </Link>
+      <div className="flex min-w-0 flex-col">
+        <span className="flex min-w-0 items-center gap-1">
+          <Link href={r.href} className="font-medium hover:underline">
+            {r.date}
+          </Link>
+          {r.sbd && <Tag>SBD</Tag>}
+        </span>
+        <span
+          className="truncate text-text-muted"
+          title={[r.artistName, r.venueName].filter(Boolean).join(' · ')}
+        >
+          <Link
+            href={
+              r.venueSlug
+                ? href('/artists/[artistSlug]/venues/[venueSlug]', {
+                    artistSlug: r.artistSlug,
+                    venueSlug: r.venueSlug,
+                  })
+                : href('/artists/[artistSlug]', { artistSlug: r.artistSlug })
+            }
+            className={SECOND_LINE_LINK}
+          >
+            {[r.artistName, r.venueName].filter(Boolean).join(' · ')}
+          </Link>
+        </span>
+      </div>
     ),
   },
   added: {

@@ -120,8 +120,10 @@ export default async function VenueDetail({
           playShowColumn,
           // One column without a width takes the rest of the row (the artist's, or
           // else the date's); with every width fixed the slack spreads to all of them.
-          artistSlug ? { ...showColumns.date, width: undefined } : showColumns.date,
-          ...(artistSlug ? [] : [showColumns.artist]),
+          // The date, then "Artist · Venue"; one artist's rows sort by date only.
+          artistSlug
+            ? { ...showColumns.dateArtist, sorts: showColumns.dateArtist.sorts?.slice(0, 1) }
+            : showColumns.dateArtist,
           showColumns.tapes,
           showColumns.rating,
           showColumns.plays,

@@ -69,23 +69,22 @@ export default async function VenuesIndex({ artistSlug }: { artistSlug?: string 
       ? href('/artists/[artistSlug]/venues/[venueSlug]', { artistSlug, venueSlug: v.slug })
       : href('/venues/[venueSlug]', { venueSlug: v.slug });
   const columns: Column<VenueListItem>[] = [
+    // The venue and where it is in one cell, as show lists have date and venue.
     {
-      id: 'name',
+      id: 'venue',
       label: 'Venue',
-      sortable: true,
+      sorts: [
+        { id: 'name', label: 'Venue' },
+        { id: 'location', label: 'Location' },
+      ],
       cell: (v) => (
-        <Link href={venueHref(v)} className="font-medium hover:underline">
-          {v.name}
-        </Link>
+        <div className="flex min-w-0 flex-col">
+          <Link href={venueHref(v)} className="truncate font-medium hover:underline">
+            {v.name}
+          </Link>
+          {v.location && <span className="truncate text-text-muted">{v.location}</span>}
+        </div>
       ),
-    },
-    {
-      id: 'location',
-      label: 'Location',
-      sortable: true,
-      width: 'w-56',
-      hideBelow: 'sm',
-      cell: (v) => v.location ?? '—',
     },
     {
       id: 'shows',
