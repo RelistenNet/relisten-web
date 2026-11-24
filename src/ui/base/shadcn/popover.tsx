@@ -95,12 +95,15 @@ function PopoverContent({
         onClickCapture?.(e);
         closeOnLinkClick(e);
       }}
+      // Flex only while open: a closed [popover] is hidden by the browser's
+      // display: none, which any display class would override, leaving the closed
+      // panel laid out (invisible) over the page, taking clicks.
       className={cn(
         `
-          z-50 flex w-72 flex-col gap-2.5 overflow-visible rounded-lg bg-surface-raised p-2.5
+          z-50 w-72 flex-col gap-2.5 overflow-visible rounded-lg bg-surface-raised p-2.5
           text-sm text-text-primary shadow-lg ring-1 ring-hairline outline-hidden
           transition-[opacity,display,overlay] transition-discrete duration-100
-          not-open:opacity-0 starting:open:opacity-0
+          not-open:opacity-0 open:flex starting:open:opacity-0
         `,
         className
       )}
