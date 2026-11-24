@@ -23,7 +23,6 @@ export default async function ArtistSeedLayout({ children }: { children: ReactNo
       normalization: artist.features?.normalization,
       perShowVenues: artist.features?.perShowVenues,
       perSourceVenues: artist.features?.perSourceVenues,
-      tours: artist.features?.tours,
     },
   };
   return <BrowsingArtistProvider seed={seed ?? null}>{children}</BrowsingArtistProvider>;

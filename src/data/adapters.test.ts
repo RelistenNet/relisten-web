@@ -5,7 +5,6 @@ import {
   toArtist,
   toFeatures,
   toPopularity,
-  toTourSummary,
   toTrack,
   toYearSummary,
   venueLocation,
@@ -302,7 +301,7 @@ describe('toArtist', () => {
 });
 
 describe('list conversions', () => {
-  it('drops years without a year, and tours without a slug', () => {
+  it('drops years without a year', () => {
     const year = { id: 'y', year: '1977', show_count: 60, source_count: 900, popularity: null };
     expect(toYearSummary(year as never)).toEqual({
       id: 'y',
@@ -312,13 +311,5 @@ describe('list conversions', () => {
       popularity: null,
     });
     expect(toYearSummary({ ...year, year: null } as never)).toBeNull();
-
-    const tour = must(show.tour);
-    expect(toTourSummary(tour as never)).toMatchObject({
-      slug: 'spring-1977',
-      name: 'Spring 1977',
-      showCount: 30,
-    });
-    expect(toTourSummary({ ...tour, slug: null } as never)).toBeNull();
   });
 });

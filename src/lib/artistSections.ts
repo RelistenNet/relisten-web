@@ -9,6 +9,5 @@ export function artistSections(features?: Partial<ArtistFeatures>) {
   return {
     songs: !!features?.normalization,
     venues: !!(features?.perShowVenues || features?.perSourceVenues),
-    tours: !!features?.tours,
   };
 }

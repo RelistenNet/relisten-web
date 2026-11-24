@@ -14,7 +14,6 @@ import type {
   SourceResource,
   SourceReviewResource,
   SourceSetResource,
-  TourResource,
   TrackResource,
   VenueResource,
   YearResource,
@@ -27,7 +26,6 @@ import type {
   SourceLink,
   SourceReview,
   SourceSet,
-  TourSummary,
   Track,
   TrackSong,
   YearSummary,
@@ -134,19 +132,6 @@ export const showVenue = (s: Pick<ShowSummaryResource, 'artist_venue' | 'importe
     slug: normalized?.slug ?? imported?.id,
   };
 };
-
-/** Null for a tour without a slug: tour pages are addressed by slug. */
-export const toTourSummary = (t: Omit<TourResource, 'shows'>): TourSummary | null =>
-  t.slug
-    ? {
-        id: t.id,
-        slug: t.slug,
-        name: opt(t.name),
-        startDate: opt(t.start_date),
-        endDate: opt(t.end_date),
-        showCount: t.show_count,
-      }
-    : null;
 
 /**
  * The songs a file plays (a segue file holds several), from its normalization.

@@ -196,18 +196,6 @@ export type VenueListItem = {
   otherNames?: string[];
 };
 
-/** A row of an artist's tour list. */
-export type TourSummary = {
-  id: string;
-  slug: string;
-  name?: string;
-  /** ISO */
-  startDate?: string;
-  /** ISO */
-  endDate?: string;
-  showCount: number;
-};
-
 /** One time a song was played: a row on its page. */
 export type SongPerformance = {
   show: ShowSummary;
@@ -238,13 +226,5 @@ export type VenueDetail = {
   location?: string;
   /** Other names the venue has gone by. */
   otherNames: string[];
-  shows: ShowSummary[];
-};
-
-export type TourDetail = {
-  id: string;
-  name: string;
-  startDate?: string;
-  endDate?: string;
   shows: ShowSummary[];
 };

@@ -15,13 +15,12 @@ import {
   type SearchResults,
   type SearchScope,
 } from '@/lib/search';
-import type { TourSummary, VenueListItem } from '@/domain/types';
+import type { VenueListItem } from '@/domain/types';
 import { decodeEntities } from '@/lib/htmlEntities';
 import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
 import { splitShowDate } from '@/lib/utils';
 import { formatShowDate } from '@/ui/shows/stats';
 import { trackHref } from '@/ui/shows/trackHref';
-import { getArtistDirectory, tours } from './artists';
 import { defineResource, MINUTES } from './resource';
 import { allVenues } from './venues';
 
@@ -91,37 +90,17 @@ const docs = (list: unknown[] | null | undefined): Doc[] =>
     return parsed.success ? [parsed.data] : [];
   });
 
-/** Slugs for what search returns by id: canonical venues, and tours. Loaded only when needed. */
+/** Slugs for what search returns by id: canonical venues. Loaded only when needed. */
 type Lookups = {
   venueSlug: (venueId: string) => string | undefined;
-  tourSlug: (artistId: string, tourId: string) => string | undefined;
-  artistName: (artistId: string) => string | undefined;
 };
 
 async function lookupsFor(list: Doc[]): Promise<Lookups> {
   const needsVenues = list.some((d) => d.kind === 'venue' && d.id?.startsWith('venue_'));
-  const tourArtists = [
-    ...new Set(list.flatMap((d) => (d.kind === 'tour' && d.artist_id ? [d.artist_id] : []))),
-  ];
   // A failed lookup drops those hits, not the search.
-  const none = <T>(): T[] => [];
-  const [venues, directory, tourLists] = await Promise.all([
-    needsVenues ? allVenues.get().catch(none<VenueListItem>) : none<VenueListItem>(),
-    tourArtists.length ? getArtistDirectory().catch(() => undefined) : undefined,
-    Promise.all(tourArtists.map((id) => tours.get(id).catch(none<TourSummary>))),
-  ]);
+  const venues = needsVenues ? await allVenues.get().catch((): VenueListItem[] => []) : [];
   const venueSlugs = new Map(venues.map((v): [string, string] => [v.id, v.slug]));
-  const tourSlugs = new Map(
-    tourArtists.map((artistId, i): [string, Map<string, string>] => [
-      artistId,
-      new Map(tourLists[i].map((t): [string, string] => [t.id, t.slug])),
-    ])
-  );
-  return {
-    venueSlug: (id) => venueSlugs.get(id),
-    tourSlug: (artistId, tourId) => tourSlugs.get(artistId)?.get(tourId),
-    artistName: (id) => directory?.byId.get(id)?.name,
-  };
+  return { venueSlug: (id) => venueSlugs.get(id) };
 }
 
 /** yyyymmdd → "YYYY-MM-DD"; undefined for no date. */
@@ -223,17 +202,6 @@ function toHit(d: Doc, look: Lookups): SearchHit | undefined {
         title: d.label,
         detail: compact([d.city_label, artists > 1 ? `${artists} artists` : d.artist_label]),
         href: href('/venues/[venueSlug]', { venueSlug }),
-      };
-    }
-    case 'tour': {
-      const tourSlug = d.artist_id ? look.tourSlug(d.artist_id, id) : undefined;
-      if (!artistSlug || !tourSlug || !d.label) return undefined;
-      return {
-        ...base,
-        kind: 'tour',
-        title: d.label,
-        detail: compact([d.artist_label || (d.artist_id && look.artistName(d.artist_id))]),
-        href: href('/artists/[artistSlug]/tours/[tourSlug]', { artistSlug, tourSlug }),
       };
     }
     case 'show':
