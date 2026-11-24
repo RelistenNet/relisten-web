@@ -13,8 +13,10 @@ import {
   type MonthDay,
 } from '@/lib/live';
 import Tag from '@/ui/base/Tag';
+import PageHeader from '@/ui/base/PageHeader';
+import { ALL_ARTISTS_CRUMB } from '@/ui/base/crumbs';
 import { usePollingState } from '@/lib/usePolling';
-import { simplePluralize, splitShowDate } from '@/lib/utils';
+import { numberFormat, simplePluralize, splitShowDate } from '@/lib/utils';
 
 /** The API's summary window only advances once a minute. */
 const POLL_MS = 60_000;
@@ -52,13 +54,16 @@ export default function LiveListeners({ initialSummary, today, feed }: Props) {
   const more = summary.artists.slice(COLLAPSED_ROWS);
 
   return (
-    <div className="live-page">
-      <h1 className="mb-1 text-3xl font-semibold text-text-primary tabular-nums">
-        {formatListeners(summary.listeners)} listening now
-      </h1>
-      <p className="mb-5 text-sm text-text-muted">
-        Estimated from recently played tracks and their durations
-      </p>
+    <div className="detail-page flex flex-col gap-6">
+      <PageHeader
+        crumbs={[ALL_ARTISTS_CRUMB]}
+        title="Live"
+        meta={['Estimated from recently played tracks and their durations']}
+        stats={[
+          { label: 'Listening now', value: formatListeners(summary.listeners) },
+          { label: 'Artists', value: numberFormat.format(summary.artists.length) },
+        ]}
+      />
 
       {/* Collapsed, the feed stretches to the list's height so the bottoms line up. With
           "more artists" open the list gets long, so the feed keeps its own height and
