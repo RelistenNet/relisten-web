@@ -64,7 +64,12 @@ export function usePlaybackFrame(paint: (playback: PlaybackState) => void): void
  * (useSyncExternalStore): once a second still restarts any navigation render
  * in progress, and one longer than that would never finish. As a transition,
  * the tick waits its turn instead. It renders only when `select`'s result
- * changes, and a new `select` (a toggle) applies on the render that brings it.
+ * changes.
+ *
+ * Like useSyncExternalStore, it checks the store after every render as well as
+ * on each emission: a new `select` (another track's fallback length, an entry
+ * becoming current) must read the position now, and a paused player emits
+ * nothing to catch it up.
  */
 export function usePlaybackTransition<T>(select: (playback: PlaybackState) => T): T {
   // The snapshot the shown value comes from: the last one whose value changed.
@@ -75,8 +80,8 @@ export function usePlaybackTransition<T>(select: (playback: PlaybackState) => T)
     scheduled.current = playback;
     startTransition(() => setShown(playback));
   });
+  useEffect(() => onFrame(readPlayback()));
   useEffect(() => {
-    onFrame(readPlayback());
     const sub = playbackActor.subscribe((s) => onFrame(s.context));
     return () => sub.unsubscribe();
   }, []);

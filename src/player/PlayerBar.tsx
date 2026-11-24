@@ -33,13 +33,14 @@ function Elapsed() {
 
 function Remaining({ fallback }: { fallback?: number }) {
   const [showRemaining, setShowRemaining] = useState(false);
-  const text = usePlaybackTransition((p) => {
-    const duration = lengthOf(p, fallback);
-    return durationToHHMMSS(showRemaining ? p.currentTime - duration : duration);
-  });
+  // Both texts, whichever shows: the toggle picks one, never changes what's read.
+  const remaining = usePlaybackTransition((p) =>
+    durationToHHMMSS(p.currentTime - lengthOf(p, fallback))
+  );
+  const total = usePlayback((p) => durationToHHMMSS(lengthOf(p, fallback)));
   return (
     <div onClick={() => setShowRemaining((r) => !r)} className="cursor-pointer">
-      {text}
+      {showRemaining ? remaining : total}
     </div>
   );
 }
