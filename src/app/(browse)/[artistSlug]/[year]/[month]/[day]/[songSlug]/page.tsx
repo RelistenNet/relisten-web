@@ -47,16 +47,13 @@ export const metadata = async () => {
     .flat();
 
   const song = songs?.find((song) => song?.slug === songSlug);
+  const audioUrl = proxyStreamUrl(song?.mp3_url);
 
   return {
     title: [song?.title, createShowDate(year, month, day), name].filter((x) => x).join(' | '),
     description: [show?.venue?.name, show?.venue?.location].filter((x) => x).join(' '),
     openGraph: {
-      audio: [
-        {
-          url: proxyStreamUrl(song?.mp3_url),
-        },
-      ],
+      audio: audioUrl ? [{ url: audioUrl }] : [],
       images: show?.uuid
         ? [
             {

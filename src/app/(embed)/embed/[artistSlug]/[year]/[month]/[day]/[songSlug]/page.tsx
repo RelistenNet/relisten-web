@@ -67,6 +67,7 @@ export async function metadata() {
     .flat();
 
   const song = songs?.find((song) => song?.slug === songSlug);
+  const audioUrl = proxyStreamUrl(song?.mp3_url);
 
   return {
     title: [song?.title, createShowDate(year, month, day), name].filter((x) => x).join(' | '),
@@ -75,11 +76,7 @@ export async function metadata() {
       canonical: `/${artistSlug}/${year}/${month}/${day}/${songSlug}`,
     },
     openGraph: {
-      audio: [
-        {
-          url: proxyStreamUrl(song?.mp3_url),
-        },
-      ],
+      audio: audioUrl ? [{ url: audioUrl }] : [],
     },
   };
 }
