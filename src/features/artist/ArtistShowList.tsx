@@ -34,8 +34,6 @@ type Props = {
   pathname: string;
   /** Page params the table's links must keep (today-in-history's ?month=&day=). */
   extraParams?: TableParams;
-  /** Shows per year as bars that filter the table to a year. */
-  yearChart?: boolean;
 };
 
 export default async function ArtistShowList({
@@ -50,7 +48,6 @@ export default async function ArtistShowList({
   defaultSort,
   pathname,
   extraParams,
-  yearChart,
 }: Props) {
   const params: TableParams = { ...(await searchParams.get()), ...extraParams };
   const spec: TableSpec<ShowRow> = {
@@ -72,14 +69,13 @@ export default async function ArtistShowList({
         stats={stats}
         aside={aside}
       >
-        {yearChart && (
-          <YearChart
-            counts={showStats(rows).byYear}
-            noun="show"
-            selectedYear={params.year as string | undefined}
-            hrefFor={(year) => tableHref(pathname, params, { year })}
-          />
-        )}
+        {/* Every list of shows filters by year with its chart, never a dropdown. */}
+        <YearChart
+          counts={showStats(rows).byYear}
+          noun="show"
+          selectedYear={params.year as string | undefined}
+          hrefFor={(year) => tableHref(pathname, params, { year })}
+        />
       </PageHeader>
       <DataTable
         pathname={pathname}
@@ -91,7 +87,7 @@ export default async function ArtistShowList({
         rowHref={(r) => r.href}
         noun="show"
         searchPlaceholder="Search venues, cities, dates"
-        chipFilters={yearChart ? ['year'] : undefined}
+        chipFilters={['year']}
       />
     </div>
   );

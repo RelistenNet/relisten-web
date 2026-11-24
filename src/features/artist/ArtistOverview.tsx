@@ -48,7 +48,6 @@ export default async function ArtistOverview({ artistSlug }: { artistSlug: strin
       ]}
       defaultSort={{ id: 'date', dir: 'desc' }}
       pathname={href('/artists/[artistSlug]', { artistSlug })}
-      yearChart
     />
   );
 }
