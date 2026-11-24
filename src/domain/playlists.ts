@@ -100,8 +100,13 @@ export interface PublicPlaylistListItemWire {
   duration_seconds: number;
   updated_at: string;
   follower_count: number;
-  /** Plays started from the playlist over the last 30 days, today included. */
+  /** Plays started from the playlist over its last 30 materialized UTC days. */
   recent_play_count: number;
+  /**
+   * Typed v4 ids (`artist_…`) of the artists its tracks belong to, most tracks
+   * first. Absent from User Services older than the field.
+   */
+  artist_ids?: string[];
 }
 
 /** `GET /v1/public-playlists`. A null cursor is the last page. */

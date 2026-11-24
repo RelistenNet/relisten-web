@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { Link } from '@timber-js/app/client';
 import { href } from '@timber-js/app/routes';
 import { deny, redirect } from '@timber-js/app/server';
@@ -17,6 +18,7 @@ import {
   getPublicPlaylistPage,
   ownPlaylistRows,
   type OwnPlaylistStatus,
+  type PlaylistListArtist,
   type PlaylistListRow,
   type PublicPlaylistSort,
 } from '@/data/playlists';
@@ -40,7 +42,8 @@ import PlaylistScopeTabs from './PlaylistScopeTabs';
 // the signed-in listener's own (?scope=mine). Published ones come a page at a
 // time from the User Service, sorted and paged there; the listener's own come
 // from their library, whole. A column shows only where its source has the
-// field: the library has no creator (it's them), length, plays or followers.
+// field: the library has no creator (it’s them), artists, length, plays or
+// followers.
 
 /** The sortable columns, by the User Service sort each one is. */
 const API_SORTS: Record<string, PublicPlaylistSort> = {
@@ -81,29 +84,74 @@ const playlistHref = (p: PlaylistListRow) =>
   href('/playlists/[playlist]', { playlist: p.playlist });
 const count = (n: number | undefined) => (n === undefined ? '—' : numberFormat.format(n));
 
+/** How many artists a row names before "+N". */
+const SHOWN_ARTISTS = 2;
+
+/**
+ * The first artists, then how many more (all named on hover). `linked`: each
+ * name links to the artist's playlists; not on phones, where the row's own
+ * link is the tap target.
+ */
+function ArtistList({ artists, linked }: { artists: PlaylistListArtist[]; linked?: boolean }) {
+  const rest = artists.length - SHOWN_ARTISTS;
+  return (
+    <span title={artists.map((a) => a.name).join(', ')}>
+      {artists.slice(0, SHOWN_ARTISTS).map((a, i) => (
+        <Fragment key={a.slug}>
+          {i > 0 && ', '}
+          {linked ? (
+            <Link
+              href={href('/artists/[artistSlug]/playlists', { artistSlug: a.slug })}
+              className="hover:underline"
+            >
+              {a.name}
+            </Link>
+          ) : (
+            a.name
+          )}
+        </Fragment>
+      ))}
+      {rest > 0 && <span className="text-text-muted"> +{rest}</span>}
+    </span>
+  );
+}
+
 const columns: Column<PlaylistListRow>[] = [
   {
     id: 'name',
     label: 'Playlist',
-    cell: (p) => (
-      <span className="flex min-w-0 flex-col">
-        <Link href={playlistHref(p)} className="truncate font-medium hover:underline">
-          {p.name}
-        </Link>
-        {p.summary && <span className="truncate text-sm text-text-muted">{p.summary}</span>}
-        {/* The creator's column is hidden on phones: say it here instead. */}
-        {p.creator && (
-          <span className="truncate text-xs text-text-muted sm:hidden">By {p.creator}</span>
-        )}
-      </span>
-    ),
+    cell: (p) => {
+      // Who made it and what it's about share one line, so the artists get a column.
+      const byline = [p.creator && `By ${p.creator}`, p.summary].filter(Boolean).join(' · ');
+      return (
+        <span className="flex min-w-0 flex-col">
+          <Link href={playlistHref(p)} className="truncate font-medium hover:underline">
+            {p.name}
+          </Link>
+          {byline && <span className="truncate text-sm text-text-muted">{byline}</span>}
+          {/* The artists' column is hidden on phones: name them here instead. */}
+          {!!p.artists?.length && (
+            <span className="truncate text-xs text-text-muted sm:hidden">
+              <ArtistList artists={p.artists} />
+            </span>
+          )}
+        </span>
+      );
+    },
   },
   {
-    id: 'creator',
-    label: 'Creator',
-    width: 'w-36',
+    id: 'artists',
+    label: 'Artists',
+    width: 'w-44',
     hideBelow: 'sm',
-    cell: (p) => <span className="truncate text-text-secondary">{p.creator}</span>,
+    cell: (p) =>
+      p.artists?.length ? (
+        <span className="text-text-secondary">
+          <ArtistList artists={p.artists} linked />
+        </span>
+      ) : (
+        '—'
+      ),
   },
   {
     id: 'status',
@@ -173,7 +221,7 @@ const columns: Column<PlaylistListRow>[] = [
 /** The columns each source fills. */
 const PUBLISHED_COLUMNS = [
   'name',
-  'creator',
+  'artists',
   'tracks',
   'duration',
   'plays',

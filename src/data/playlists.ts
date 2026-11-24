@@ -25,6 +25,7 @@ import { oneLine } from '@/lib/guideMarkdown/plain';
 import { sanitizeGuide } from '@/lib/guideMarkdown/sanitize';
 import { sessionCookie } from '@/lib/session/sessionCookie';
 import { toTrack } from './adapters';
+import { getArtistDirectory } from './artists';
 import { MINUTES } from './resource';
 import { UserServiceError, userServiceFetch } from './session';
 import { toShowSummary } from './summaries';
@@ -207,9 +208,13 @@ export type PlaylistListRow = {
   followerCount?: number;
   /** Plays started from it over the last 30 days. */
   recentPlayCount?: number;
+  /** The artists its tracks belong to, most tracks first (published only). */
+  artists?: PlaylistListArtist[];
   /** The listener's own only. */
   status?: OwnPlaylistStatus;
 };
+
+export type PlaylistListArtist = { slug: string; name: string };
 
 /** A description as the listing shows it: one line of plain text, or absent. */
 const listingSummary = (description: string | null | undefined) =>
@@ -242,6 +247,12 @@ export type PublicPlaylistPage = {
   nextCursor: string | null;
 };
 
+/** A page as cached: artists by id, named per request from the artist directory. */
+type CachedPage = {
+  rows: (Omit<PlaylistListRow, 'artists'> & { artistIds: string[] })[];
+  nextCursor: string | null;
+};
+
 type PageQuery = { sort: PublicPlaylistSort; artist: string; cursor: string };
 
 const LISTING_PAGE_SIZE = 50;
@@ -252,7 +263,7 @@ const LISTING_PAGE_SIZE = 50;
  * like the snapshot. A refused query (422) throws, so nothing is cached for it.
  */
 const publicPlaylistPageCached = timberCache.data(
-  async ({ sort, artist, cursor }: PageQuery): Promise<PublicPlaylistPage> => {
+  async ({ sort, artist, cursor }: PageQuery): Promise<CachedPage> => {
     const query = new URLSearchParams({ sort, limit: String(LISTING_PAGE_SIZE) });
     if (artist) query.set('artist', artist);
     if (cursor) query.set('cursor', cursor);
@@ -275,13 +286,14 @@ const publicPlaylistPageCached = timberCache.data(
         updatedAt: p.updated_at,
         followerCount: p.follower_count,
         recentPlayCount: p.recent_play_count,
+        artistIds: p.artist_ids ?? [],
       })),
       nextCursor: body.next_cursor,
     };
   },
   {
     ttl: 60,
-    key: ({ sort, artist, cursor }: PageQuery) => `playlist-listing:${sort}:${artist}:${cursor}`,
+    key: ({ sort, artist, cursor }: PageQuery) => `playlist-listing:v2:${sort}:${artist}:${cursor}`,
   }
 );
 
@@ -292,13 +304,31 @@ const publicPlaylistPageCached = timberCache.data(
  * it's down.
  */
 export const getPublicPlaylistPage = requestCache(
-  async (sort: PublicPlaylistSort, artist?: string, cursor?: string) => {
+  async (
+    sort: PublicPlaylistSort,
+    artist?: string,
+    cursor?: string
+  ): Promise<PublicPlaylistPage | null> => {
+    let page: CachedPage;
     try {
-      return await publicPlaylistPageCached({ sort, artist: artist ?? '', cursor: cursor ?? '' });
+      page = await publicPlaylistPageCached({ sort, artist: artist ?? '', cursor: cursor ?? '' });
     } catch (err) {
       if (err instanceof UserServiceError && err.status === 422) return null;
       throw err;
     }
+    // The names are extra: without the directory the listing still renders, unnamed.
+    // An id the directory doesn't know (an artist without a slug) is left out.
+    const byId = (await getArtistDirectory().catch(() => null))?.byId ?? new Map();
+    return {
+      rows: page.rows.map(({ artistIds, ...row }) => ({
+        ...row,
+        artists: artistIds.flatMap((id) => {
+          const a = byId.get(id);
+          return a ? [{ slug: a.slug, name: a.name }] : [];
+        }),
+      })),
+      nextCursor: page.nextCursor,
+    };
   }
 );
 
