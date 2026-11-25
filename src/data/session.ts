@@ -79,11 +79,13 @@ export async function userServiceFetch(
   // Cookie-authenticated unsafe requests must carry the exact web origin.
   if (init.method && init.method !== 'GET') headers.set('origin', origin);
 
+  // A caller's own signal (a shorter budget) can abort it sooner.
+  const timeout = AbortSignal.timeout(USER_SERVICE_TIMEOUT_MS);
   return fetch(`${USER_SERVICE_URL}${path}`, {
     ...init,
     headers,
     cache: 'no-store',
-    signal: AbortSignal.timeout(USER_SERVICE_TIMEOUT_MS),
+    signal: init.signal ? AbortSignal.any([init.signal, timeout]) : timeout,
   });
 }
 

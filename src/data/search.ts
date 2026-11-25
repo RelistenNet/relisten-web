@@ -17,11 +17,14 @@ import {
 } from '@/lib/search';
 import { decodeEntities } from '@/lib/htmlEntities';
 import { USER_SERVICE_URL, userServiceRoutingHeaders } from '@/lib/session/config';
+import { sessionCookie } from '@/lib/session/sessionCookie';
 import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
 import { numberFormat, splitShowDate } from '@/lib/utils';
 import { formatShowDate } from '@/ui/shows/stats';
 import { trackHref } from '@/ui/shows/trackHref';
+import { cache as requestCache } from 'react';
 import { defineResource, MINUTES } from './resource';
+import { userServiceFetch } from './session';
 
 // Search. All and Playlists go to the User Service's /v1/search, which ranks
 // public playlists among the catalog's results; the catalog's own scopes (and
@@ -30,9 +33,10 @@ import { defineResource, MINUTES } from './resource';
 // source, track) or a playlist card. Only the fields read here are parsed, each
 // row on its own: one malformed row drops out, not the page.
 //
-// /v1/search is called without the visitor's cookies. It only adds a viewer's
-// own playlists for the native app, so every web visitor gets the same answer
-// and it can be cached across them.
+// A signed-in visitor's /v1/search carries their session, so it also finds
+// their own private playlists; that answer is theirs alone and is never cached
+// across requests. A guest's goes without cookies: every guest gets the same
+// answer, so it's cached across them.
 
 /** The page waits on search before its shell flushes; past this it says search is unavailable. */
 const SEARCH_TIMEOUT_MS = 5_000;
@@ -369,17 +373,15 @@ const catalogResults = defineResource({
   slim: (raw, _q, scope) => toSearchResults(raw, scope),
 });
 
-const mergedResults = defineResource({
+const mergedPath = (...[q, scope, page, typing]: SearchArgs) =>
+  `/v1/search?${new URLSearchParams({ q, scope, page: String(page), typing: String(typing === 1) })}`;
+
+/** A guest's merged search: public playlists only, the same for every guest. */
+const guestResults = defineResource({
   name: 'merged-search',
   ttl: 5 * MINUTES,
-  load: async (...[q, scope, page, typing]: SearchArgs) => {
-    const query = new URLSearchParams({
-      q,
-      scope,
-      page: String(page),
-      typing: String(typing === 1),
-    });
-    const res = await fetch(`${USER_SERVICE_URL}/v1/search?${query}`, {
+  load: async (...args: SearchArgs) => {
+    const res = await fetch(`${USER_SERVICE_URL}${mergedPath(...args)}`, {
       headers: { accept: 'application/json', ...userServiceRoutingHeaders() },
       cache: 'no-store',
       signal: AbortSignal.timeout(SEARCH_TIMEOUT_MS),
@@ -390,10 +392,31 @@ const mergedResults = defineResource({
   slim: (raw, _q, scope) => toSearchResults(raw, scope),
 });
 
+/**
+ * A signed-in visitor's merged search, with their own playlists: deduped within
+ * the request, never shared. Keyed on the token, as getCurrentUser is.
+ */
+const sessionResults = requestCache(
+  async (_token: string, ...args: SearchArgs): Promise<SearchResults> => {
+    const res = await userServiceFetch(mergedPath(...args), {
+      signal: AbortSignal.timeout(SEARCH_TIMEOUT_MS),
+    });
+    // A dead session searches as a guest; the nav clears the cookie.
+    if (res.status === 401) return guestResults.get(...args);
+    if (!res.ok) throw new RelistenApiError(res.status);
+    return toSearchResults(await res.json(), args[1]);
+  }
+);
+
+const mergedResults = (...args: SearchArgs): Promise<SearchResults> => {
+  const token = sessionCookie.get();
+  return token ? sessionResults(token, ...args) : guestResults.get(...args);
+};
+
 /** All with playlists ranked in; catalog-only when the User Service can't answer. */
 async function allResults(...args: SearchArgs): Promise<SearchResults> {
   try {
-    return await mergedResults.get(...args);
+    return await mergedResults(...args);
   } catch (err) {
     if (err instanceof RelistenApiError && err.status === 422) throw err;
     console.error('Playlist search unavailable; searching the catalog only', err);
@@ -404,7 +427,7 @@ async function allResults(...args: SearchArgs): Promise<SearchResults> {
 const results = (...args: SearchArgs): Promise<SearchResults> => {
   const scope = args[1];
   if (scope === 'all') return allResults(...args);
-  if (scope === 'playlists') return mergedResults.get(...args);
+  if (scope === 'playlists') return mergedResults(...args);
   return catalogResults.get(...args);
 };
 
