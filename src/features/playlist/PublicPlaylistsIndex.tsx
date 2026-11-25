@@ -62,7 +62,7 @@ const spec: TableSpec<PlaylistListRow> = {
     plays: (p) => p.recentPlayCount,
     followers: (p) => p.followerCount,
   },
-  defaultSort: { id: 'updated', dir: 'desc' },
+  defaultSort: { id: 'plays', dir: 'desc' },
   searchText: () => '',
   filters: [],
   pageSize: 50,
@@ -332,7 +332,15 @@ export default async function PublicPlaylistsIndex({ artistSlug }: { artistSlug?
           pathname={pathname}
           // Only the sort (and whose): a header link starts its order from the first page.
           params={mine ? { scope: 'mine' } : { sort: params.sort }}
-          spec={mine ? { ...spec, sorts: { updated: spec.sorts.updated } } : spec}
+          spec={
+            mine
+              ? {
+                  ...spec,
+                  sorts: { updated: spec.sorts.updated },
+                  defaultSort: { id: 'updated', dir: 'desc' },
+                }
+              : spec
+          }
           result={result}
           columns={columns.filter((c) => view.columns.includes(c.id))}
           rowKey={(p) => p.playlistId}
