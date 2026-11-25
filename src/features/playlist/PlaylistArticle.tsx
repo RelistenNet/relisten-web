@@ -13,7 +13,7 @@ import {
 import cn from '@/lib/cn';
 import GuideProse, { type RenderSeek } from '@/lib/guideMarkdown/GuideProse';
 import type { GuideBlock } from '@/lib/guideMarkdown/types';
-import { durationToHHMMSS, numberFormat } from '@/lib/utils';
+import { numberFormat } from '@/lib/utils';
 import { ShowQueueActions } from '@/player/QueueButtons';
 import { SongQueueProvider } from '@/player/SongQueue';
 import { songRowItem } from '@/player/queue/items';
@@ -696,19 +696,15 @@ function TrackCell({
           venueName: row.venueName,
         }}
         name={name}
+        length={row.songDuration ?? undefined}
         menu={slots?.cellMenu?.(row)}
       >
         <div className="flex min-w-0 flex-1 flex-col pt-0.5">
-          {/* The length beside the title, where the eye already is: the card's
-          right edge is far off on a wide page. */}
-          <span className="flex min-w-0 items-baseline gap-2">
+          <span className="flex min-w-0 items-center gap-2">
             <span className="truncate text-[15px] leading-snug font-medium">
               {row.trackTitle ?? 'Untitled'}
             </span>
-            <span className="flex shrink-0 items-center gap-1.5 text-[13px] text-text-muted tabular-nums">
-              {row.songDuration ? durationToHHMMSS(Math.round(row.songDuration)) : '—'}
-              <TrackLoadDot entryKey={row.queueKey} />
-            </span>
+            <TrackLoadDot entryKey={row.queueKey} />
           </span>
           <span className="truncate text-[13px] text-text-muted">
             <Link href={row.href} className="text-text-muted hover:text-accent">
