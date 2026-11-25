@@ -1,5 +1,5 @@
-// Catalog search results, as the app renders them. Built on the server from
-// /api/v4/search (src/data/search.ts); shared by the /search page, the
+// Catalog and playlist search results, as the app renders them. Built on the
+// server from /api/v4/search and the User Service's /v1/search (src/data/search.ts); shared by the /search page, the
 // /api/search route, and GlobalSearch (client).
 
 /** The result kinds the catalog returns that the app can link to. */
@@ -11,6 +11,7 @@ export const SEARCH_KINDS = [
   'performance',
   'recording',
   'review',
+  'playlist',
 ] as const;
 export type SearchKind = (typeof SEARCH_KINDS)[number];
 
@@ -23,6 +24,7 @@ export const SEARCH_SCOPES = [
   'shows',
   'sources',
   'reviews',
+  'playlists',
 ] as const;
 export type SearchScope = (typeof SEARCH_SCOPES)[number];
 export type ResultScope = Exclude<SearchScope, 'all'>;
@@ -57,8 +59,10 @@ export type SearchResults = {
   /** All: the evidence groups the ranking leaves out of `top`. */
   recordings: SearchHit[];
   reviews: SearchHit[];
-  /** One scope: this page of results. */
+  /** One scope: this page of results. All: every hit, ranked. */
   results: SearchHit[];
+  /** The page after this one, when the API has more. */
+  nextPage?: number;
 };
 
 export const EMPTY_SEARCH: SearchResults = {
@@ -84,6 +88,7 @@ export const KIND_LABEL: Record<SearchKind, string> = {
   performance: 'Track',
   recording: 'Recording',
   review: 'Review',
+  playlist: 'Playlist',
 };
 
 export const SCOPE_LABEL: Record<SearchScope, string> = {
@@ -94,4 +99,5 @@ export const SCOPE_LABEL: Record<SearchScope, string> = {
   shows: 'Shows',
   sources: 'Recordings',
   reviews: 'Reviews',
+  playlists: 'Playlists',
 };
