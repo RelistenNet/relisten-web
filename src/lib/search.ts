@@ -1,5 +1,5 @@
-// Catalog search results, as the app renders them. Built on the server from
-// /api/v4/search (src/data/search.ts); shared by the /search page, the
+// Catalog and playlist search results, as the app renders them. Built on the
+// server from /api/v4/search and the User Service's /v1/search (src/data/search.ts); shared by the /search page, the
 // /api/search route, and GlobalSearch (client).
 
 /** The result kinds the catalog returns that the app can link to. */
@@ -11,6 +11,7 @@ export const SEARCH_KINDS = [
   'performance',
   'recording',
   'review',
+  'playlist',
 ] as const;
 export type SearchKind = (typeof SEARCH_KINDS)[number];
 
@@ -23,6 +24,7 @@ export const SEARCH_SCOPES = [
   'shows',
   'sources',
   'reviews',
+  'playlists',
 ] as const;
 export type SearchScope = (typeof SEARCH_SCOPES)[number];
 export type ResultScope = Exclude<SearchScope, 'all'>;
@@ -57,8 +59,10 @@ export type SearchResults = {
   /** All: the evidence groups the ranking leaves out of `top`. */
   recordings: SearchHit[];
   reviews: SearchHit[];
-  /** One scope: this page of results. */
+  /** One scope: this page of results. All: every hit, ranked. */
   results: SearchHit[];
+  /** The page after this one, when the API has more. */
+  nextPage?: number;
 };
 
 export const EMPTY_SEARCH: SearchResults = {
@@ -73,6 +77,22 @@ export const EMPTY_SEARCH: SearchResults = {
 
 export const UNAVAILABLE_SEARCH: SearchResults = { ...EMPTY_SEARCH, availability: 'unavailable' };
 
+/** A catalog search request's limit, on the server. */
+export const SEARCH_TIMEOUT_MS = 5_000;
+
+/**
+ * A User Service search request's limit (it answers in well under a second).
+ * Shorter than the catalog's, so All's catalog fallback still fits the budget.
+ */
+export const MERGED_SEARCH_TIMEOUT_MS = 2_500;
+
+/**
+ * The most a search can take on the server: the User Service timing out, then
+ * the catalog fallback. Past this the page says search is unavailable, and a
+ * client waiting on /api/search should allow at least this long.
+ */
+export const SEARCH_BUDGET_MS = MERGED_SEARCH_TIMEOUT_MS + SEARCH_TIMEOUT_MS;
+
 /** Shortest query the catalog searches. */
 export const MIN_QUERY_LENGTH = 2;
 
@@ -84,6 +104,7 @@ export const KIND_LABEL: Record<SearchKind, string> = {
   performance: 'Track',
   recording: 'Recording',
   review: 'Review',
+  playlist: 'Playlist',
 };
 
 export const SCOPE_LABEL: Record<SearchScope, string> = {
@@ -94,4 +115,5 @@ export const SCOPE_LABEL: Record<SearchScope, string> = {
   shows: 'Shows',
   sources: 'Recordings',
   reviews: 'Reviews',
+  playlists: 'Playlists',
 };

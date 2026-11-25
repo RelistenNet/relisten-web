@@ -6,8 +6,10 @@ import { RelistenApiError, unwrap } from '@/api/fetcher';
 import { getApiV4Search } from '@/api/generated/client';
 import {
   EMPTY_SEARCH,
+  MERGED_SEARCH_TIMEOUT_MS,
   MIN_QUERY_LENGTH,
   SEARCH_SCOPES,
+  SEARCH_TIMEOUT_MS,
   UNAVAILABLE_SEARCH,
   type ExcerptRun,
   type ResultScope,
@@ -15,100 +17,104 @@ import {
   type SearchResults,
   type SearchScope,
 } from '@/lib/search';
-import type { VenueListItem } from '@/domain/types';
 import { decodeEntities } from '@/lib/htmlEntities';
+import { USER_SERVICE_URL, userServiceRoutingHeaders } from '@/lib/session/config';
+import { sessionCookie } from '@/lib/session/sessionCookie';
 import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
-import { splitShowDate } from '@/lib/utils';
+import { userServiceSearchParams } from '@/lib/searchParams/userServiceSearchParams';
+import { numberFormat, splitShowDate } from '@/lib/utils';
 import { formatShowDate } from '@/ui/shows/stats';
 import { trackHref } from '@/ui/shows/trackHref';
+import { cache as requestCache } from 'react';
 import { defineResource, MINUTES } from './resource';
-import { allVenues } from './venues';
+import { userServiceFetch } from './session';
 
-// Catalog search (/api/v4/search, Typesense-backed). The wire is snake_case,
-// though the OpenAPI document declares camelCase for SearchDocument, so the
-// response is parsed here rather than trusted from the generated types. Each
-// document is parsed on its own: one malformed document drops out, not the page.
-
-/** The page waits on search before its shell flushes; past this it says search is unavailable. */
-const SEARCH_TIMEOUT_MS = 5_000;
+// Search. All and Playlists go to the User Service's /v1/search, which ranks
+// public playlists among the catalog's results; the catalog's own scopes (and
+// Add Tracks) go straight to the catalog's /api/v4/search. Both answer with the
+// same rows: each embeds the v4 resources it points at (artist, song, show,
+// source, track) or a playlist card. Only the fields read here are parsed, each
+// row on its own: one malformed row drops out, not the page.
+//
+// A signed-in visitor's /v1/search carries their session, so it also finds
+// their own private playlists; that answer is theirs alone and is never cached
+// across requests. A guest's goes without cookies: every guest gets the same
+// answer, so it's cached across them.
 
 const text = z.string().nullish();
 
-const docSchema = z.object({
+const artistSchema = z.object({ slug: text, name: text });
+
+const venueSchema = z.object({
   id: text,
+  slug: text,
+  name: text,
+  city: text,
+  region: text,
+});
+
+const showSchema = z.object({
+  /** "YYYY-MM-DD". */
+  display_date: text,
+  has_soundboard_source: z.boolean().nullish(),
+  artist_venue: z.object({ venue: venueSchema.nullish() }).nullish(),
+  imported_venue: z.object({ name: text, location: text }).nullish(),
+});
+
+const sourceSchema = z.object({ id: text, is_soundboard: z.boolean().nullish() });
+
+const resultSchema = z.object({
   kind: text,
-  label: text,
-  artist_label: text,
-  artist_slug: text,
-  artist_id: text,
-  artist_slugs: z.array(z.string()).nullish(),
-  /** yyyymmdd, 0 when the document has no date. */
-  date: z.number().nullish(),
-  city_label: text,
-  venue_label: text,
-  source_id: text,
-  song_id: text,
-  soundboard: z.boolean().nullish(),
-  preview: z
+  key: text,
+  match: z.object({ highlights: z.record(z.string(), z.string()).nullish() }).nullish(),
+  artist: artistSchema.nullish(),
+  song: z.object({ id: text, name: text }).nullish(),
+  venue: venueSchema.nullish(),
+  show: showSchema.nullish(),
+  source: sourceSchema.nullish(),
+  performance: z.object({ song: text }).nullish(),
+  preview_track: z
     .object({
-      track_id: text,
+      id: text,
       source_id: text,
       slug: text,
-      set: text,
+      title: text,
       duration: z.number().nullish(),
     })
     .nullish(),
-  highlights: z.record(z.string(), z.string()).nullish(),
-});
-type Doc = z.infer<typeof docSchema>;
-
-const responseSchema = z.object({
-  availability: text,
-  interpretation: z
+  review: z.object({ title: text, source_id: text }).nullish(),
+  playlist: z
     .object({
-      artist: text,
-      country: text,
-      numbers: z.record(z.string(), z.number()).nullish(),
-      soundboard: z.boolean().nullish(),
-      matrix: z.boolean().nullish(),
-      chronological: z.boolean().nullish(),
-      tour_filter: text,
-      chips: z.array(z.object({ key: text, label: text })).nullish(),
+      id: text,
+      name: text,
+      track_count: z.number().nullish(),
+      owned: z.boolean().nullish(),
+      public_code: text,
+      curator: text,
     })
     .nullish(),
+});
+type Result = z.infer<typeof resultSchema>;
+
+const responseSchema = z.object({
+  availability: z.object({ catalog: text, playlists: text }).nullish(),
   counts: z.record(z.string(), z.number()).nullish(),
-  top: z.array(z.unknown()).nullish(),
-  sections: z
-    .object({ sources: z.array(z.unknown()).nullish(), reviews: z.array(z.unknown()).nullish() })
+  readings: z
+    .object({
+      applied: z
+        .object({ chips: z.array(z.object({ key: text, label: text })).nullish() })
+        .nullish(),
+    })
     .nullish(),
   results: z.array(z.unknown()).nullish(),
+  next_page: z.number().nullish(),
 });
 
-const docs = (list: unknown[] | null | undefined): Doc[] =>
-  (list ?? []).flatMap((d) => {
-    const parsed = docSchema.safeParse(d);
+const parseResults = (list: unknown[] | null | undefined): Result[] =>
+  (list ?? []).flatMap((r) => {
+    const parsed = resultSchema.safeParse(r);
     return parsed.success ? [parsed.data] : [];
   });
-
-/** Slugs for what search returns by id: canonical venues. Loaded only when needed. */
-type Lookups = {
-  venueSlug: (venueId: string) => string | undefined;
-};
-
-async function lookupsFor(list: Doc[]): Promise<Lookups> {
-  const needsVenues = list.some((d) => d.kind === 'venue' && d.id?.startsWith('venue_'));
-  // A failed lookup drops those hits, not the search.
-  const venues = needsVenues ? await allVenues.get().catch((): VenueListItem[] => []) : [];
-  const venueSlugs = new Map(venues.map((v): [string, string] => [v.id, v.slug]));
-  return { venueSlug: (id) => venueSlugs.get(id) };
-}
-
-/** yyyymmdd → "YYYY-MM-DD"; undefined for no date. */
-function isoDate(date: number | null | undefined): string | undefined {
-  if (!date || date < 1000_00_00) return undefined;
-  const s = String(date);
-  return `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
-}
 
 function showHref(artistSlug: string, date: string, sourceId?: string | null) {
   const { year, month, day } = splitShowDate(date);
@@ -119,17 +125,18 @@ function showHref(artistSlug: string, date: string, sourceId?: string | null) {
   );
 }
 
-/**
- * A performance's track on the recording it previews. Documents indexed before
- * the API returned the track's slug have none; those link to the show instead.
- */
-export function performanceHref(artistSlug: string, date: string, preview: Doc['preview']) {
-  if (!preview?.slug) return showHref(artistSlug, date, preview?.source_id);
+/** A performance's track on the recording it previews; the show when the track has no slug. */
+export function performanceHref(
+  artistSlug: string,
+  date: string,
+  track: { slug?: string | null; source_id?: string | null } | null | undefined
+) {
+  if (!track?.slug) return showHref(artistSlug, date, track?.source_id);
   const { year, month, day } = splitShowDate(date);
   return trackHref(
     'site',
-    { artistSlug, year, month, day, songSlug: preview.slug },
-    preview.source_id ? sourceQuery(preview.source_id) : undefined
+    { artistSlug, year, month, day, songSlug: track.slug },
+    track.source_id ? sourceQuery(track.source_id) : undefined
   );
 }
 
@@ -154,111 +161,142 @@ export function excerptRuns(html: string | undefined): ExcerptRun[] | undefined 
   return kept.length ? kept : undefined;
 }
 
-const firstHighlight = (d: Doc, preferred: string) =>
-  d.highlights?.[preferred] ?? Object.values(d.highlights ?? {})[0];
+/** The first highlight among `fields` (e.g. "review.review"), in that order. */
+const highlight = (r: Result, ...fields: string[]) =>
+  fields.map((f) => r.match?.highlights?.[f]).find(Boolean);
 
 const compact = (parts: (string | null | undefined | false)[]) =>
   parts.flatMap((p) => (p ? [p.trim()] : [])).filter(Boolean);
 
-/** One API document → a linkable hit, or undefined when it can't be linked. */
-function toHit(d: Doc, look: Lookups): SearchHit | undefined {
-  const id = d.id;
-  const artistSlug = d.artist_slug || undefined;
-  const date = isoDate(d.date);
-  const base = { id: id ?? '', soundboard: d.soundboard || undefined };
-  if (!id) return undefined;
+type Venue = z.infer<typeof venueSchema>;
 
-  switch (d.kind) {
+/** "Ithaca, NY". */
+const place = (v: Venue | null | undefined) =>
+  compact([v?.city, v?.region]).join(', ') || undefined;
+
+/** A show's venue and city: the canonical venue, else the artist's imported one. */
+function showPlace(show: Result['show']): string[] {
+  const venue = show?.artist_venue?.venue;
+  if (venue) return compact([venue.name, place(venue)]);
+  return compact([show?.imported_venue?.name, show?.imported_venue?.location]);
+}
+
+/**
+ * One API result → a linkable hit, or undefined when it can't be linked or the
+ * app has no page for it (tours, segue sequences).
+ */
+function toHit(r: Result): SearchHit | undefined {
+  const id = r.key;
+  if (!id) return undefined;
+  const artistSlug = r.artist?.slug || undefined;
+  const artistName = r.artist?.name;
+  const date = r.show?.display_date || undefined;
+
+  switch (r.kind) {
     case 'artist':
-      if (!artistSlug || !d.label) return undefined;
+      if (!artistSlug || !artistName) return undefined;
       return {
-        ...base,
+        id,
         kind: 'artist',
-        title: d.label,
+        title: artistName,
         detail: [],
         href: href('/artists/[artistSlug]', { artistSlug }),
       };
     case 'song': {
       // Song pages take a song id (canonical or imported) and redirect to the slug.
-      const songId = d.song_id || id;
-      if (!artistSlug || !d.label) return undefined;
+      const songId = r.song?.id;
+      if (!artistSlug || !songId || !r.song?.name) return undefined;
       if (!songId.startsWith('song_') && !songId.startsWith('imported_song_')) return undefined;
       return {
-        ...base,
+        id,
         kind: 'song',
-        title: d.label,
-        detail: compact([d.artist_label]),
+        title: r.song.name,
+        detail: compact([artistName]),
         href: href('/artists/[artistSlug]/songs/[songSlug]', { artistSlug, songSlug: songId }),
       };
     }
     case 'venue': {
-      // Imported venues' pages take their id; canonical venues need the slug.
-      const venueSlug = id.startsWith('imported_venue_') ? id : look.venueSlug(id);
-      if (!venueSlug || !d.label) return undefined;
-      const artists = d.artist_slugs?.length ?? 0;
+      // Imported venues' pages take their id; canonical venues their slug.
+      const venue = r.venue;
+      const venueSlug = venue?.id?.startsWith('imported_venue_') ? venue.id : venue?.slug;
+      if (!venueSlug || !venue?.name) return undefined;
       return {
-        ...base,
+        id,
         kind: 'venue',
-        title: d.label,
-        detail: compact([d.city_label, artists > 1 ? `${artists} artists` : d.artist_label]),
+        title: venue.name.trim(),
+        detail: compact([place(venue), artistName]),
         href: href('/venues/[venueSlug]', { venueSlug }),
       };
     }
     case 'show':
       if (!artistSlug || !date) return undefined;
       return {
-        ...base,
+        id,
         kind: 'show',
         title: formatShowDate(date),
-        detail: compact([d.artist_label, d.venue_label, d.city_label]),
+        detail: compact([artistName, ...showPlace(r.show)]),
+        soundboard: r.show?.has_soundboard_source || undefined,
         href: showHref(artistSlug, date),
       };
     case 'performance': {
-      if (!artistSlug || !date || !d.label) return undefined;
-      const set = d.preview?.set;
-      const duration = d.preview?.duration;
+      const track = r.preview_track;
+      const title = r.performance?.song || track?.title;
+      if (!artistSlug || !date || !title) return undefined;
       return {
-        ...base,
+        id,
         kind: 'performance',
-        title: d.label,
-        detail: compact([
-          d.artist_label,
-          formatShowDate(date),
-          d.venue_label,
-          // "Set" alone is a show with no set breaks.
-          set && set !== 'Set' && set,
-        ]),
-        duration: duration || undefined,
-        trackId: d.preview?.track_id || undefined,
-        href: performanceHref(artistSlug, date, d.preview),
+        title,
+        detail: compact([artistName, formatShowDate(date), showPlace(r.show)[0]]),
+        duration: track?.duration || undefined,
+        trackId: track?.id || undefined,
+        href: performanceHref(artistSlug, date, track),
       };
     }
     case 'recording':
       if (!artistSlug || !date) return undefined;
       return {
-        ...base,
+        id,
         kind: 'recording',
         title: formatShowDate(date),
-        detail: compact([d.artist_label, d.venue_label, d.city_label]),
-        excerpt: excerptRuns(firstHighlight(d, 'notes')) ?? excerptRuns(d.label ?? undefined),
-        href: showHref(artistSlug, date, id),
+        detail: compact([artistName, ...showPlace(r.show)]),
+        excerpt: excerptRuns(highlight(r, 'source.taper_notes', 'source.description')),
+        soundboard: r.source?.is_soundboard || undefined,
+        href: showHref(artistSlug, date, r.source?.id),
       };
     case 'review':
       if (!artistSlug || !date) return undefined;
       return {
-        ...base,
+        id,
         kind: 'review',
-        title: d.label || 'Review',
-        detail: compact([d.artist_label, formatShowDate(date), d.venue_label]),
-        excerpt: excerptRuns(firstHighlight(d, 'review_text')),
-        href: showHref(artistSlug, date, d.source_id),
+        title: r.review?.title ? plain(r.review.title) : 'Review',
+        detail: compact([artistName, formatShowDate(date), showPlace(r.show)[0]]),
+        excerpt: excerptRuns(highlight(r, 'review.review', 'review.title')),
+        href: showHref(artistSlug, date, r.source?.id ?? r.review?.source_id),
       };
+    case 'playlist': {
+      // The searcher's own playlists open by id, published or not (their page
+      // sends a published one on to its share code); others' by share code.
+      const playlist = r.playlist;
+      const param = playlist?.owned ? playlist.id : playlist?.public_code;
+      if (!param || !playlist?.name) return undefined;
+      const tracks = playlist.track_count;
+      return {
+        id,
+        kind: 'playlist',
+        title: playlist.name,
+        detail: compact([
+          playlist.curator,
+          tracks != null && `${numberFormat.format(tracks)} ${tracks === 1 ? 'track' : 'tracks'}`,
+        ]),
+        href: href('/playlists/[playlist]', { playlist: param }),
+      };
+    }
     default:
       return undefined;
   }
 }
 
-type Interpretation = z.infer<typeof responseSchema>['interpretation'];
+type Readings = z.infer<typeof responseSchema>['readings'];
 
 const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
 const regionName = (code: string) => {
@@ -270,36 +308,16 @@ const regionName = (code: string) => {
 };
 
 /**
- * The chips for what the API applied to the query. It also returns chips it
- * only suggests ("dark star" offers Dark Star Orchestra without filtering to
- * it); those are left out, so the page never claims a filter that isn't there.
+ * The chips for the reading the results enforce. The API's alternative
+ * readings (Dark Star Orchestra for "dark star") only boost results, so they
+ * aren't shown as filters.
  */
-function appliedChips(interp: Interpretation): string[] {
-  if (!interp) return [];
-  const applied = (key: string | null | undefined): boolean => {
-    switch (key) {
-      case 'artist':
-        return !!interp.artist;
-      case 'country':
-        return !!interp.country;
-      case 'soundboard':
-        return !!interp.soundboard;
-      case 'matrix':
-        return !!interp.matrix;
-      case 'chronological':
-        return !!interp.chronological;
-      case 'tour':
-        return !!interp.tour_filter;
-      default:
-        return !!key && interp.numbers?.[key] !== undefined;
-    }
-  };
-  return compact(
-    (interp.chips ?? []).map((c) =>
-      applied(c.key) ? (c.key === 'country' && c.label ? regionName(c.label) : c.label) : undefined
+const appliedChips = (readings: Readings): string[] =>
+  compact(
+    (readings?.applied?.chips ?? []).map((c) =>
+      c.key === 'country' && c.label ? regionName(c.label) : c.label
     )
   );
-}
 
 /** The catalog answered, but said search is unavailable (its index is down or rebuilding). */
 class SearchUnavailableError extends Error {
@@ -310,51 +328,117 @@ class SearchUnavailableError extends Error {
 
 const RESULT_SCOPES = SEARCH_SCOPES.filter((s): s is ResultScope => s !== 'all');
 
-const results = defineResource({
-  name: 'catalog-search',
+/**
+ * One response → the app's results. Throws when the part of search this scope
+ * needs reports itself unavailable: a returned value would be cached, and the
+ * outage would outlive its recovery. search() turns it into UNAVAILABLE_SEARCH.
+ */
+export function toSearchResults(raw: unknown, scope: SearchScope): SearchResults {
+  const r = responseSchema.parse(raw);
+  const needed = scope === 'playlists' ? r.availability?.playlists : r.availability?.catalog;
+  if (needed === 'unavailable') throw new SearchUnavailableError();
+  const seen = new Set<string>();
+  const hits = parseResults(r.results).flatMap((result) => {
+    const hit = toHit(result);
+    if (!hit || seen.has(hit.id)) return [];
+    seen.add(hit.id);
+    return [hit];
+  });
+  // Exact totals only: a lower bound would read as the whole count.
+  const counts: SearchResults['counts'] = {};
+  for (const s of RESULT_SCOPES) {
+    const n = r.counts?.[s];
+    if (typeof n === 'number') counts[s] = n;
+  }
+  // All ranks every kind in one list; the page groups recordings and reviews
+  // below the rest, keeping the ranking's order within each.
+  const isEvidence = (h: SearchHit) => h.kind === 'recording' || h.kind === 'review';
+  return {
+    availability: 'full',
+    chips: appliedChips(r.readings),
+    counts,
+    top: hits.filter((h) => !isEvidence(h)),
+    recordings: hits.filter((h) => h.kind === 'recording'),
+    reviews: hits.filter((h) => h.kind === 'review'),
+    results: hits,
+    nextPage: r.next_page ?? undefined,
+  };
+}
+
+type SearchArgs = [q: string, scope: SearchScope, page: number, typing: 0 | 1];
+
+const catalogResults = defineResource({
+  // v2: the typed-results response (RelistenApi#156).
+  name: 'catalog-search-v2',
   ttl: 5 * MINUTES,
-  load: (q: string, scope: SearchScope, page: number, typing: 0 | 1) =>
+  load: (...[q, scope, page, typing]: SearchArgs) =>
     unwrap(
       getApiV4Search(
-        { q, scope, page, typing: typing === 1 },
+        // The catalog has no playlists; the User Service's search does.
+        { q, scope: scope === 'playlists' ? 'all' : scope, page, typing: typing === 1 },
         { signal: AbortSignal.timeout(SEARCH_TIMEOUT_MS) }
       )
     ),
-  slim: async (raw): Promise<SearchResults> => {
-    const r = responseSchema.parse(raw);
-    // Thrown, not returned: a returned value would be cached, and the outage
-    // would outlive the API's recovery. search() turns it into UNAVAILABLE_SEARCH.
-    if (r.availability === 'unavailable') throw new SearchUnavailableError();
-    const top = docs(r.top);
-    const recordings = docs(r.sections?.sources);
-    const reviews = docs(r.sections?.reviews);
-    const page = docs(r.results);
-    const look = await lookupsFor([...top, ...page]);
-    const hits = (list: Doc[]) => {
-      const seen = new Set<string>();
-      return list.flatMap((d) => {
-        const hit = toHit(d, look);
-        if (!hit || seen.has(hit.id)) return [];
-        seen.add(hit.id);
-        return [hit];
-      });
-    };
-    const counts: SearchResults['counts'] = {};
-    for (const scope of RESULT_SCOPES) {
-      const n = r.counts?.[scope];
-      if (typeof n === 'number') counts[scope] = n;
-    }
-    return {
-      availability: 'full',
-      chips: appliedChips(r.interpretation),
-      counts,
-      top: hits(top),
-      recordings: hits(recordings),
-      reviews: hits(reviews),
-      results: hits(page),
-    };
-  },
+  slim: (raw, _q, scope) => toSearchResults(raw, scope),
 });
+
+const mergedPath = (...[q, scope, page, typing]: SearchArgs) =>
+  userServiceSearchParams.href('/v1/search', { q, scope, page, typing: typing === 1 });
+
+/** A guest's merged search: public playlists only, the same for every guest. */
+const guestResults = defineResource({
+  name: 'merged-search',
+  ttl: 5 * MINUTES,
+  load: async (...args: SearchArgs) => {
+    const res = await fetch(`${USER_SERVICE_URL}${mergedPath(...args)}`, {
+      headers: { accept: 'application/json', ...userServiceRoutingHeaders() },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(MERGED_SEARCH_TIMEOUT_MS),
+    });
+    if (!res.ok) throw new RelistenApiError(res.status);
+    return (await res.json()) as unknown;
+  },
+  slim: (raw, _q, scope) => toSearchResults(raw, scope),
+});
+
+/**
+ * A signed-in visitor's merged search, with their own playlists: deduped within
+ * the request, never shared. Keyed on the token, as getCurrentUser is.
+ */
+const sessionResults = requestCache(
+  async (_token: string, ...args: SearchArgs): Promise<SearchResults> => {
+    const res = await userServiceFetch(mergedPath(...args), {
+      signal: AbortSignal.timeout(MERGED_SEARCH_TIMEOUT_MS),
+    });
+    // A dead session searches as a guest; the nav clears the cookie.
+    if (res.status === 401) return guestResults.get(...args);
+    if (!res.ok) throw new RelistenApiError(res.status);
+    return toSearchResults(await res.json(), args[1]);
+  }
+);
+
+const mergedResults = (...args: SearchArgs): Promise<SearchResults> => {
+  const token = sessionCookie.get();
+  return token ? sessionResults(token, ...args) : guestResults.get(...args);
+};
+
+/** All with playlists ranked in; catalog-only when the User Service can't answer. */
+async function allResults(...args: SearchArgs): Promise<SearchResults> {
+  try {
+    return await mergedResults(...args);
+  } catch (err) {
+    if (err instanceof RelistenApiError && err.status === 422) throw err;
+    console.error('Playlist search unavailable; searching the catalog only', err);
+    return catalogResults.get(...args);
+  }
+}
+
+const results = (...args: SearchArgs): Promise<SearchResults> => {
+  const scope = args[1];
+  if (scope === 'all') return allResults(...args);
+  if (scope === 'playlists') return mergedResults(...args);
+  return catalogResults.get(...args);
+};
 
 type SearchOptions = {
   scope?: SearchScope;
@@ -365,7 +449,7 @@ type SearchOptions = {
 
 /**
  * Empty for queries under two characters. `unavailable` when the API fails or
- * takes longer than SEARCH_TIMEOUT_MS, so the UI never shows that as "no results".
+ * takes longer than SEARCH_BUDGET_MS, so the UI never shows that as "no results".
  */
 export async function search(
   q: string,
@@ -374,7 +458,7 @@ export async function search(
   const query = q.trim().toLowerCase();
   if (query.length < MIN_QUERY_LENGTH) return EMPTY_SEARCH;
   try {
-    return await results.get(query, scope, page, typing ? 1 : 0);
+    return await results(query, scope, page, typing ? 1 : 0);
   } catch (err) {
     // 422: a query the API won't search (a value it rejects). Nothing to show, not an outage.
     if (err instanceof RelistenApiError && err.status === 422) return EMPTY_SEARCH;

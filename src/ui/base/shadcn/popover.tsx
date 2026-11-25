@@ -77,23 +77,32 @@ function closeOnLinkClick(e: React.MouseEvent<HTMLElement>) {
 }
 
 /**
- * The panel. Its children mount when it opens and unmount when it closes, so
- * `autoFocus` and on-open effects inside it run each time it opens.
+ * The panel. Its children mount once the browser has shown it and unmount when
+ * it closes, so `autoFocus` and on-open effects inside it run each time it
+ * opens. Mounting on `open` alone isn't enough: an open from state (a keyboard
+ * shortcut) commits before the panel is shown, and focus can't land in a
+ * hidden panel.
  */
 function PopoverContent({
   className,
   arrowClassName,
   children,
   onClickCapture,
+  onToggle,
   ...props
 }: React.ComponentProps<'div'> & { arrowClassName?: string }) {
   const open = React.useContext(OpenContext);
+  const [shown, setShown] = React.useState(false);
   return (
     <AnchoredPopoverContent
       data-slot="popover-content"
       onClickCapture={(e: React.MouseEvent<HTMLDivElement>) => {
         onClickCapture?.(e);
         closeOnLinkClick(e);
+      }}
+      onToggle={(e: React.ToggleEvent<HTMLDivElement>) => {
+        onToggle?.(e);
+        setShown(e.newState === 'open');
       }}
       // Flex only while open: a closed [popover] is hidden by the browser's
       // display: none, which any display class would override, leaving the closed
@@ -116,7 +125,7 @@ function PopoverContent({
           arrowClassName
         )}
       />
-      {open && children}
+      {open && shown && children}
     </AnchoredPopoverContent>
   );
 }

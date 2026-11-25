@@ -1,6 +1,7 @@
 import {
   AudioLinesIcon,
   CalendarIcon,
+  ListMusicIcon,
   CassetteTapeIcon,
   MapPinIcon,
   MessageSquareQuoteIcon,
@@ -25,6 +26,7 @@ const KIND_ICON: Record<SearchKind, LucideIcon> = {
   performance: AudioLinesIcon,
   recording: CassetteTapeIcon,
   review: MessageSquareQuoteIcon,
+  playlist: ListMusicIcon,
 };
 
 export function KindIcon({ kind, className }: { kind: SearchKind; className?: string }) {

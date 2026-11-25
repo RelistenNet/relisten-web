@@ -129,15 +129,8 @@ function Results({
       <>
         {chips}
         <HitList hits={results.results} />
-        {/* Page sizes vary by kind and the counts are estimates, so: previous and next. */}
-        <Pager
-          q={q}
-          scope={scope}
-          page={page}
-          hasNext={
-            page < 100 && page * results.results.length < (results.counts[scope] ?? Infinity)
-          }
-        />
+        {/* Page sizes vary by kind and some counts are lower bounds, so: previous and next. */}
+        <Pager q={q} scope={scope} page={page} hasNext={page < 100 && !!results.nextPage} />
       </>
     );
   }
@@ -274,7 +267,7 @@ function Examples() {
   return (
     <div className="flex flex-col items-center gap-3 py-8 text-center">
       <p className="mb-0 text-text-muted">
-        Search every artist, song, venue, show, recording and review on Relisten.
+        Search every artist, song, venue, show, recording, review and playlist on Relisten.
       </p>
       <ul className="m-0 flex list-none flex-wrap justify-center gap-2 p-0">
         {EXAMPLES.map((example) => (
