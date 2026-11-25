@@ -30,9 +30,9 @@ import { defineResource, MINUTES } from './resource';
 import { userServiceFetch } from './session';
 
 // Search. All and Playlists go to the User Service's /v1/search, which ranks
-// public playlists among the catalog's results; the catalog's own scopes (and
-// Add Tracks) go straight to the catalog's /api/v4/search. Both answer with the
-// same rows: each embeds the v4 resources it points at (artist, song, show,
+// public playlists among the catalog's results; the catalog's own scopes go
+// straight to the catalog's /api/v4/search. Both answer with the same rows:
+// each embeds the v4 resources it points at (artist, song, show,
 // source, track) or a playlist card. Only the fields read here are parsed, each
 // row on its own: one malformed row drops out, not the page.
 //

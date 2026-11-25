@@ -11,9 +11,11 @@ import { durationToHHMMSS } from '@/lib/utils';
 // Add Tracks, in the editor's composer: search the catalog for tracks (a song
 // and a year, a venue, a tour: "twist 1997") and add one with a click or Enter,
 // which clears it, ready for the next, the search still focused. Escape or Done
-// closes it. The request is the nav bar search's (useSearchRequest),
-// scoped to shows, whose results are performances: each names the track its
-// recording plays, which is what a playlist entry holds.
+// closes it. The request is the nav bar search's (useSearchRequest), All
+// scope: its ranking reads a song and an artist, year or venue best ("phish
+// takin" finds Takin' Care of Business; the Shows scope matched text instead).
+// Only its performances are kept: each names the track its recording plays,
+// which is what a playlist entry holds.
 //
 // It's laid out as the playlist's next card, empty: the search icon where a play
 // button is, the query where a title is. Its results drop down over the rows
@@ -41,7 +43,7 @@ export default function AddTracks({
   onClose: () => void;
 }) {
   const [query, setQuery] = useState('');
-  const { request, isPending } = useSearchRequest(query, 'shows');
+  const { request, isPending } = useSearchRequest(query);
   // The highlighted row belongs to the results it was chosen in (as in GlobalSearch).
   const [selection, setSelection] = useState({ query: '', value: '' });
   const typed = query.trim();
