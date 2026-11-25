@@ -88,6 +88,23 @@ describe('toSearchResults', () => {
     ]);
   });
 
+  it("links the searcher's own playlist by id, so a private one opens", () => {
+    const own = {
+      ...merged,
+      results: [
+        {
+          kind: 'playlist',
+          key: 'playlist:playlist_own',
+          playlist: { id: 'playlist_own', name: 'Mine', track_count: 1, owned: true },
+        },
+      ],
+    };
+    expect(toSearchResults(own, 'playlists').results[0]).toMatchObject({
+      detail: ['1 track'],
+      href: '/playlists/playlist_own',
+    });
+  });
+
   it('shows exact counts only, and no next page when the API has none', () => {
     const results = toSearchResults(merged, 'all');
     expect(results.counts).toEqual({ shows: 3 });

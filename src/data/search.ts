@@ -6,8 +6,10 @@ import { RelistenApiError, unwrap } from '@/api/fetcher';
 import { getApiV4Search } from '@/api/generated/client';
 import {
   EMPTY_SEARCH,
+  MERGED_SEARCH_TIMEOUT_MS,
   MIN_QUERY_LENGTH,
   SEARCH_SCOPES,
+  SEARCH_TIMEOUT_MS,
   UNAVAILABLE_SEARCH,
   type ExcerptRun,
   type ResultScope,
@@ -19,6 +21,7 @@ import { decodeEntities } from '@/lib/htmlEntities';
 import { USER_SERVICE_URL, userServiceRoutingHeaders } from '@/lib/session/config';
 import { sessionCookie } from '@/lib/session/sessionCookie';
 import { sourceQuery } from '@/lib/searchParams/sourceSearchParam';
+import { userServiceSearchParams } from '@/lib/searchParams/userServiceSearchParams';
 import { numberFormat, splitShowDate } from '@/lib/utils';
 import { formatShowDate } from '@/ui/shows/stats';
 import { trackHref } from '@/ui/shows/trackHref';
@@ -37,9 +40,6 @@ import { userServiceFetch } from './session';
 // their own private playlists; that answer is theirs alone and is never cached
 // across requests. A guest's goes without cookies: every guest gets the same
 // answer, so it's cached across them.
-
-/** The page waits on search before its shell flushes; past this it says search is unavailable. */
-const SEARCH_TIMEOUT_MS = 5_000;
 
 const text = z.string().nullish();
 
@@ -84,7 +84,14 @@ const resultSchema = z.object({
     .nullish(),
   review: z.object({ title: text, source_id: text }).nullish(),
   playlist: z
-    .object({ name: text, track_count: z.number().nullish(), public_code: text, curator: text })
+    .object({
+      id: text,
+      name: text,
+      track_count: z.number().nullish(),
+      owned: z.boolean().nullish(),
+      public_code: text,
+      curator: text,
+    })
     .nullish(),
 });
 type Result = z.infer<typeof resultSchema>;
@@ -267,9 +274,11 @@ function toHit(r: Result): SearchHit | undefined {
         href: showHref(artistSlug, date, r.source?.id ?? r.review?.source_id),
       };
     case 'playlist': {
-      // Public playlists' pages take the share code.
+      // The searcher's own playlists open by id, published or not (their page
+      // sends a published one on to its share code); others' by share code.
       const playlist = r.playlist;
-      if (!playlist?.public_code || !playlist.name) return undefined;
+      const param = playlist?.owned ? playlist.id : playlist?.public_code;
+      if (!param || !playlist?.name) return undefined;
       const tracks = playlist.track_count;
       return {
         id,
@@ -279,7 +288,7 @@ function toHit(r: Result): SearchHit | undefined {
           playlist.curator,
           tracks != null && `${numberFormat.format(tracks)} ${tracks === 1 ? 'track' : 'tracks'}`,
         ]),
-        href: href('/playlists/[playlist]', { playlist: playlist.public_code }),
+        href: href('/playlists/[playlist]', { playlist: param }),
       };
     }
     default:
@@ -374,7 +383,7 @@ const catalogResults = defineResource({
 });
 
 const mergedPath = (...[q, scope, page, typing]: SearchArgs) =>
-  `/v1/search?${new URLSearchParams({ q, scope, page: String(page), typing: String(typing === 1) })}`;
+  userServiceSearchParams.href('/v1/search', { q, scope, page, typing: typing === 1 });
 
 /** A guest's merged search: public playlists only, the same for every guest. */
 const guestResults = defineResource({
@@ -384,7 +393,7 @@ const guestResults = defineResource({
     const res = await fetch(`${USER_SERVICE_URL}${mergedPath(...args)}`, {
       headers: { accept: 'application/json', ...userServiceRoutingHeaders() },
       cache: 'no-store',
-      signal: AbortSignal.timeout(SEARCH_TIMEOUT_MS),
+      signal: AbortSignal.timeout(MERGED_SEARCH_TIMEOUT_MS),
     });
     if (!res.ok) throw new RelistenApiError(res.status);
     return (await res.json()) as unknown;
@@ -399,7 +408,7 @@ const guestResults = defineResource({
 const sessionResults = requestCache(
   async (_token: string, ...args: SearchArgs): Promise<SearchResults> => {
     const res = await userServiceFetch(mergedPath(...args), {
-      signal: AbortSignal.timeout(SEARCH_TIMEOUT_MS),
+      signal: AbortSignal.timeout(MERGED_SEARCH_TIMEOUT_MS),
     });
     // A dead session searches as a guest; the nav clears the cookie.
     if (res.status === 401) return guestResults.get(...args);
@@ -440,7 +449,7 @@ type SearchOptions = {
 
 /**
  * Empty for queries under two characters. `unavailable` when the API fails or
- * takes longer than SEARCH_TIMEOUT_MS, so the UI never shows that as "no results".
+ * takes longer than SEARCH_BUDGET_MS, so the UI never shows that as "no results".
  */
 export async function search(
   q: string,

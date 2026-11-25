@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from 'react';
 import {
   MIN_QUERY_LENGTH,
+  SEARCH_BUDGET_MS,
   UNAVAILABLE_SEARCH,
   type SearchResults,
   type SearchScope,
@@ -15,7 +16,8 @@ import { searchSearchParams } from './searchParams/apiSearchParams';
 // state and read with `use()`; repeats are the browser's HTTP cache's.
 
 const REQUEST_DEBOUNCE_MS = 180;
-const FETCH_TIMEOUT_MS = 6_000;
+/** The server's whole budget, fallback included, plus a second for the trip. */
+const FETCH_TIMEOUT_MS = SEARCH_BUDGET_MS + 1_000;
 
 export type SearchRequest = { query: string; results: Promise<SearchResults> };
 

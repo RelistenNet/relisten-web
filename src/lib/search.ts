@@ -77,6 +77,22 @@ export const EMPTY_SEARCH: SearchResults = {
 
 export const UNAVAILABLE_SEARCH: SearchResults = { ...EMPTY_SEARCH, availability: 'unavailable' };
 
+/** A catalog search request's limit, on the server. */
+export const SEARCH_TIMEOUT_MS = 5_000;
+
+/**
+ * A User Service search request's limit (it answers in well under a second).
+ * Shorter than the catalog's, so All's catalog fallback still fits the budget.
+ */
+export const MERGED_SEARCH_TIMEOUT_MS = 2_500;
+
+/**
+ * The most a search can take on the server: the User Service timing out, then
+ * the catalog fallback. Past this the page says search is unavailable, and a
+ * client waiting on /api/search should allow at least this long.
+ */
+export const SEARCH_BUDGET_MS = MERGED_SEARCH_TIMEOUT_MS + SEARCH_TIMEOUT_MS;
+
 /** Shortest query the catalog searches. */
 export const MIN_QUERY_LENGTH = 2;
 
