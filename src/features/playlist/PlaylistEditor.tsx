@@ -576,7 +576,7 @@ export default function PlaylistEditor({
     ),
 
     // A section's or group's menu, at its box's corner.
-    // A group's Add Text: the composer at its end, the text going into it.
+    // Add Text: the composer after a lone track, or at a group's end (its text going into it).
     addText: ({ segmentId, after }) => setEditing({ kind: 'composer', after, into: segmentId }),
 
     boxMenu: ({ segmentId }) => (

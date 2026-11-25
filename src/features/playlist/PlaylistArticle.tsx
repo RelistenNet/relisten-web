@@ -67,8 +67,11 @@ export type ArticleSlots = {
    * Edit menu instead of the queue menu.
    */
   cellMenu?: (row: PlaylistTrackGroupRow) => ReactNode;
-  /** Opens the composer at the end of a group, its text going into the group. */
-  addText?: (group: { segmentId: string; after: string }) => void;
+  /**
+   * Opens the composer after a row: at the end of a group (its text going into
+   * the group), or after a track that's in none.
+   */
+  addText?: (at: { after: string; segmentId?: string }) => void;
   /** A section's or group's menu, at its box's top-right corner. */
   boxMenu?: (group: { segmentId: string; tone: 'section' | 'group' }) => ReactNode;
   /**
@@ -222,7 +225,18 @@ export default function PlaylistArticle({
                 ) : (
                   <Fragment key={group.key}>
                     {group.rows.map((row) => (
-                      <Row key={row.key} row={row} slots={slots} animate={animate} />
+                      <Row
+                        key={row.key}
+                        row={row}
+                        slots={slots}
+                        animate={animate}
+                        // A track in no group gets its own Add Text, as a group does.
+                        onAddText={
+                          row.kind === 'track' && slots?.addText
+                            ? () => slots.addText?.({ after: row.key })
+                            : undefined
+                        }
+                      />
                     ))}
                   </Fragment>
                 )
@@ -244,7 +258,17 @@ export const MOVE = 'playlist-move';
 /** Above this many rows, rows don't animate (measured: 308 rows cost 90–250ms a transition). */
 export const MAX_ANIMATED_ROWS = 150;
 
-function Row({ row, slots, animate }: { row: FlowRow; slots?: ArticleSlots; animate: boolean }) {
+function Row({
+  row,
+  slots,
+  animate,
+  onAddText,
+}: {
+  row: FlowRow;
+  slots?: ArticleSlots;
+  animate: boolean;
+  onAddText?: () => void;
+}) {
   // The editor: where a drop on this row lands (the drag wiring reads it), and the
   // indicator it draws while one's over it: over the row, so nothing moves.
   const drop = slots && row.drop ? JSON.stringify(row.drop) : undefined;
@@ -266,6 +290,7 @@ function Row({ row, slots, animate }: { row: FlowRow; slots?: ArticleSlots; anim
         )}
       >
         <RowContent row={row} slots={slots} drop={drop} />
+        {onAddText && <AddTextButton onClick={onAddText} reveal="row" />}
       </div>
     </div>
   );
@@ -334,25 +359,36 @@ function BoxFrame({ menu, onAddText }: { menu?: ReactNode; onAddText?: () => voi
         </>
       )}
       {menu && <div className="absolute -top-4 right-1 z-20">{menu}</div>}
-      {/* Add Text, on the bottom border (at the right: the next box's label is at the left of its top), over the frame, so
-      showing it (on hover, focus, and always on touch) moves nothing. */}
-      {onAddText && (
-        <button
-          type="button"
-          onClick={onAddText}
-          className="
-            absolute right-12 -bottom-[9px] z-20 inline-flex items-center gap-1 rounded-full
-            bg-surface px-1.5 text-[10px] leading-[18px] font-semibold tracking-wide
-            text-text-muted uppercase opacity-0 transition-opacity select-none
-            group-focus-within/box:opacity-100 group-hover/box:opacity-100
-            hover:text-text-primary focus-visible:opacity-100 focus-visible:outline-2
-            focus-visible:outline-accent pointer-coarse:opacity-100
-          "
-        >
-          <span aria-hidden>+</span> Add Text
-        </button>
-      )}
+      {onAddText && <AddTextButton onClick={onAddText} reveal="box" />}
     </>
+  );
+}
+
+/**
+ * Add Text, on a box's or a track's bottom edge at the left (under the titles),
+ * over the row below, so showing it (on hover, focus, and always on touch) moves
+ * nothing. `reveal`: which hover shows it.
+ */
+function AddTextButton({ onClick, reveal }: { onClick: () => void; reveal: 'box' | 'row' }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        `
+          absolute -bottom-[9px] left-12 z-20 inline-flex items-center gap-1 rounded-full
+          bg-surface px-1.5 text-[10px] leading-[18px] font-semibold tracking-wide
+          text-accent uppercase opacity-0 transition-opacity select-none
+          hover:brightness-125 focus-visible:opacity-100 focus-visible:outline-2
+          focus-visible:outline-accent pointer-coarse:opacity-100
+        `,
+        reveal === 'box'
+          ? 'group-focus-within/box:opacity-100 group-hover/box:opacity-100'
+          : 'group-focus-within/row:opacity-100 group-hover/row:opacity-100'
+      )}
+    >
+      <span aria-hidden>+</span> Add Text
+    </button>
   );
 }
 
