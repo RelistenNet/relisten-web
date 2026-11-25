@@ -376,11 +376,14 @@ function TimestampRow({
     const target = targets.find((t) => t.entryId === entryId);
     if (target?.duration && parsed.data.time >= target.duration)
       return setError(`${target.title} is ${formatTimestamp(target.duration)} long.`);
+    const own = entryId === ownEntryId;
+    const at = formatTimestamp(parsed.data.time);
     onInsert({
       entryId,
       seconds: parsed.data.time,
-      own: entryId === ownEntryId,
-      fallbackLabel: `${target?.title ?? 'Track'} at ${formatTimestamp(parsed.data.time)}`,
+      own,
+      // A note's own track goes without saying.
+      fallbackLabel: own ? at : `${target?.title ?? 'Track'} at ${at}`,
     });
   };
 
