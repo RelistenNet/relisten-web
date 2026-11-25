@@ -17,10 +17,13 @@ import PlaylistDetail from './PlaylistDetail';
 export default async function OwnPlaylist({
   playlistId,
   atPublicUrl = false,
+  creator,
 }: {
   playlistId: string;
   /** Rendered at its share code's URL (PlaylistPage), not its id's. */
   atPublicUrl?: boolean;
+  /** Its creator's username, for the byline the public page shows everyone else. */
+  creator?: string;
 }) {
   const pathname = href('/playlists/[playlist]', { playlist: playlistId });
   const result = await getOwnPlaylist(playlistId).catch(denyIfUnavailable);
@@ -37,6 +40,7 @@ export default async function OwnPlaylist({
       playlist={playlist}
       crumb={OWN_PLAYLISTS_CRUMB}
       byline={[
+        creator && `By ${creator}`,
         archived && 'Archived',
         publicCode ? (
           <Link key="public" href={href('/playlists/[playlist]', { playlist: publicCode })}>

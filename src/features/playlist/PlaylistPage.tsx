@@ -24,7 +24,9 @@ export default async function PlaylistPage({ playlist }: { playlist: string }) {
   if (isPlaylistId(playlist)) return <OwnPlaylist playlistId={playlist} />;
   const published = await getPublicPlaylist(playlist).catch(denyIfUnavailable);
   if (published && (await viewerCreated(published.creator))) {
-    return <OwnPlaylist playlistId={published.playlistId} atPublicUrl />;
+    return (
+      <OwnPlaylist playlistId={published.playlistId} atPublicUrl creator={published.creator} />
+    );
   }
   return <PublicPlaylist publicCode={playlist} />;
 }
