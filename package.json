@@ -42,7 +42,7 @@
     "@opentelemetry/semantic-conventions": "^1.45.0",
     "@switz/driver": "0.10.0",
     "@tanstack/react-virtual": "^3.14.28",
-    "@timber-js/app": "0.2.0-alpha.254",
+    "@timber-js/app": "0.2.0-alpha.256",
     "@xstate/react": "6.1.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
