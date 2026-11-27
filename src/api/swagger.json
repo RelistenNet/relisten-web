@@ -903,6 +903,265 @@
         }
       }
     },
+    "/api/v4/artists/{artistId}/reviews/search": {
+      "get": {
+        "tags": [
+          "CatalogPerformance"
+        ],
+        "parameters": [
+          {
+            "name": "artistId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "song_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "show_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "years",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "maximum": 25,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "description": "Revalidate a previously applied response using its ETag.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "ETag": {
+                "description": "Weak validator for the represented JSON; not an ordered revision.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CatalogReviewHit"
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not Modified; retain the previously applied response. No body.",
+            "headers": {
+              "ETag": {
+                "description": "Weak validator for the represented JSON; not an ordered revision.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v4/artists/{artistId}/performances": {
+      "get": {
+        "tags": [
+          "CatalogPerformance"
+        ],
+        "parameters": [
+          {
+            "name": "artistId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "song_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "years",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tour_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "venue_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "min_minutes",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "max_minutes",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "soundboard_only",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "segued_from",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "segued_into",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "date"
+            }
+          },
+          {
+            "name": "seed",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "exclude",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "description": "Revalidate a previously applied response using its ETag.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "ETag": {
+                "description": "Weak validator for the represented JSON; not an ordered revision.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogPerformancePage"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not Modified; retain the previously applied response. No body.",
+            "headers": {
+              "ETag": {
+                "description": "Weak validator for the represented JSON; not an ordered revision.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v4/popular/artists": {
       "get": {
         "tags": [
@@ -2148,6 +2407,22 @@
             }
           },
           {
+            "name": "scope",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "all"
+            }
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "explore"
+            }
+          },
+          {
             "name": "artist_id",
             "in": "query",
             "schema": {
@@ -2155,51 +2430,54 @@
             }
           },
           {
-            "name": "artists",
+            "name": "country",
             "in": "query",
             "schema": {
-              "type": "boolean",
-              "default": true
+              "type": "string"
             }
           },
           {
-            "name": "shows",
+            "name": "boost_artist_ids",
             "in": "query",
             "schema": {
-              "type": "boolean",
-              "default": true
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           },
           {
-            "name": "songs",
+            "name": "ignore",
             "in": "query",
             "schema": {
-              "type": "boolean",
-              "default": true
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           },
           {
-            "name": "sources",
+            "name": "typing",
             "in": "query",
             "schema": {
               "type": "boolean",
-              "default": true
+              "default": false
             }
           },
           {
-            "name": "tours",
+            "name": "page",
             "in": "query",
             "schema": {
-              "type": "boolean",
-              "default": true
+              "type": "integer",
+              "format": "int32",
+              "default": 1
             }
           },
           {
-            "name": "venues",
+            "name": "request_id",
             "in": "query",
             "schema": {
-              "type": "boolean",
-              "default": true
+              "type": "string"
             }
           },
           {
@@ -2225,7 +2503,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CatalogSearchResource"
+                  "$ref": "#/components/schemas/SearchResponse"
                 }
               }
             }
@@ -2237,6 +2515,81 @@
                 "description": "Weak validator for the represented JSON; not an ordered revision.",
                 "schema": {
                   "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v4/search/performance": {
+      "get": {
+        "tags": [
+          "CatalogSearch"
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "description": "Revalidate a previously applied response using its ETag.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "ETag": {
+                "description": "Weak validator for the represented JSON; not an ordered revision.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchPerformance"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not Modified; retain the previously applied response. No body.",
+            "headers": {
+              "ETag": {
+                "description": "Weak validator for the represented JSON; not an ordered revision.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -5813,6 +6166,141 @@
         },
         "additionalProperties": false
       },
+      "CatalogPerformance": {
+        "type": "object",
+        "properties": {
+          "show_id": {
+            "pattern": "^show_[0-7][0-9a-hjkmnp-tv-z]{25}$",
+            "type": "string"
+          },
+          "song_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "song": {
+            "type": "string",
+            "nullable": true
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "venue": {
+            "type": "string",
+            "nullable": true
+          },
+          "eligible_source_count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "has_soundboard_source": {
+            "type": "boolean"
+          },
+          "max_source_rating": {
+            "type": "number",
+            "format": "double"
+          },
+          "eligible_source_review_count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "track_ids": {
+            "type": "array",
+            "items": {
+              "pattern": "^track_[0-7][0-9a-hjkmnp-tv-z]{25}$",
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "representative": {
+            "$ref": "#/components/schemas/CatalogPerformanceRecording"
+          },
+          "plays_1y": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "days_with_plays": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatalogPerformanceNeighbor": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "song": {
+            "type": "string",
+            "nullable": true
+          },
+          "segue": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatalogPerformancePage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogPerformance"
+            },
+            "nullable": true
+          },
+          "next_cursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatalogPerformanceRecording": {
+        "type": "object",
+        "properties": {
+          "track_id": {
+            "pattern": "^track_[0-7][0-9a-hjkmnp-tv-z]{25}$",
+            "type": "string"
+          },
+          "source_id": {
+            "pattern": "^source_[0-7][0-9a-hjkmnp-tv-z]{25}$",
+            "type": "string"
+          },
+          "file_duration_seconds": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "previous": {
+            "$ref": "#/components/schemas/CatalogPerformanceNeighbor"
+          },
+          "next": {
+            "$ref": "#/components/schemas/CatalogPerformanceNeighbor"
+          },
+          "link": {
+            "type": "string",
+            "nullable": true
+          },
+          "source_plays_1y": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "source_days_with_plays": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "CatalogReferenceAvailability": {
         "enum": [
           "available",
@@ -6104,56 +6592,39 @@
         },
         "additionalProperties": false
       },
-      "CatalogSearchResource": {
-        "required": [
-          "artists",
-          "shows",
-          "songs",
-          "sources",
-          "tours",
-          "venues"
-        ],
+      "CatalogReviewHit": {
         "type": "object",
         "properties": {
-          "artists": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ArtistResource"
-            },
+          "id": {
+            "pattern": "^source_review_[0-7][0-9a-hjkmnp-tv-z]{25}$",
+            "type": "string"
+          },
+          "show_id": {
+            "pattern": "^show_[0-7][0-9a-hjkmnp-tv-z]{25}$",
+            "type": "string"
+          },
+          "source_id": {
+            "pattern": "^source_[0-7][0-9a-hjkmnp-tv-z]{25}$",
+            "type": "string"
+          },
+          "rating": {
+            "type": "integer",
+            "format": "int32",
             "nullable": true
           },
-          "shows": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ShowSummaryResource"
-            },
+          "excerpt": {
+            "type": "string",
             "nullable": true
           },
-          "songs": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ArtistSongEntryResource"
-            },
+          "link": {
+            "type": "string",
             "nullable": true
           },
-          "sources": {
+          "track_ids": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/SourceSummaryResource"
-            },
-            "nullable": true
-          },
-          "tours": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TourResource"
-            },
-            "nullable": true
-          },
-          "venues": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ArtistVenueEntryResource"
+              "pattern": "^track_[0-7][0-9a-hjkmnp-tv-z]{25}$",
+              "type": "string"
             },
             "nullable": true
           }
@@ -6952,6 +7423,10 @@
             "type": "string",
             "format": "uuid",
             "nullable": true
+          },
+          "playlist_id": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -7016,6 +7491,9 @@
             "$ref": "#/components/schemas/PopularityWindowResource"
           },
           "30d": {
+            "$ref": "#/components/schemas/PopularityWindowResource"
+          },
+          "1y": {
             "$ref": "#/components/schemas/PopularityWindowResource"
           }
         },
@@ -7656,6 +8134,523 @@
           "updated_at": {
             "type": "string",
             "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SearchChip": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "nullable": true
+          },
+          "label": {
+            "type": "string",
+            "nullable": true
+          },
+          "value": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SearchDocument": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "kind": {
+            "type": "string",
+            "nullable": true
+          },
+          "label": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "aliases": {
+            "type": "string",
+            "nullable": true
+          },
+          "artist": {
+            "type": "string",
+            "nullable": true
+          },
+          "artistLabel": {
+            "type": "string",
+            "nullable": true
+          },
+          "artistSlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "artistId": {
+            "type": "string",
+            "nullable": true
+          },
+          "artistSlugs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "date": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dayKey": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "place": {
+            "type": "string",
+            "nullable": true
+          },
+          "run": {
+            "type": "string",
+            "nullable": true
+          },
+          "country": {
+            "type": "string",
+            "nullable": true
+          },
+          "cityLabel": {
+            "type": "string",
+            "nullable": true
+          },
+          "venueLabel": {
+            "type": "string",
+            "nullable": true
+          },
+          "venueId": {
+            "type": "string",
+            "nullable": true
+          },
+          "showId": {
+            "type": "string",
+            "nullable": true
+          },
+          "tourLabel": {
+            "type": "string",
+            "nullable": true
+          },
+          "songId": {
+            "type": "string",
+            "nullable": true
+          },
+          "preview": {
+            "$ref": "#/components/schemas/SearchFile"
+          },
+          "soundboard": {
+            "type": "boolean"
+          },
+          "soundcheck": {
+            "type": "boolean"
+          },
+          "sourceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "sourceUpstream": {
+            "type": "string",
+            "nullable": true
+          },
+          "matrix": {
+            "type": "boolean"
+          },
+          "trackPlays": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "reviewMentions": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "longest": {
+            "type": "number",
+            "format": "double"
+          },
+          "popularity": {
+            "type": "number",
+            "format": "double"
+          },
+          "score": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "catalogMatch": {
+            "type": "string",
+            "nullable": true
+          },
+          "catalogQuality": {
+            "type": "number",
+            "format": "double"
+          },
+          "suggestedQuery": {
+            "type": "string",
+            "nullable": true
+          },
+          "browseReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "collection": {
+            "type": "string",
+            "nullable": true
+          },
+          "highlights": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "performanceKey": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SearchFile": {
+        "type": "object",
+        "properties": {
+          "trackId": {
+            "type": "string",
+            "nullable": true
+          },
+          "sourceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "set": {
+            "type": "string",
+            "nullable": true
+          },
+          "setIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "position": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "duration": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "plays": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "soundboard": {
+            "type": "boolean"
+          },
+          "soundcheck": {
+            "type": "boolean"
+          },
+          "label": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SearchInterpretation": {
+        "type": "object",
+        "properties": {
+          "terms": {
+            "type": "string",
+            "nullable": true
+          },
+          "selected": {
+            "type": "string",
+            "nullable": true
+          },
+          "artist": {
+            "type": "string",
+            "nullable": true
+          },
+          "country": {
+            "type": "string",
+            "nullable": true
+          },
+          "numbers": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "nullable": true
+          },
+          "order": {
+            "type": "string",
+            "nullable": true
+          },
+          "soundboard": {
+            "type": "boolean"
+          },
+          "matrix": {
+            "type": "boolean"
+          },
+          "chronological": {
+            "type": "boolean"
+          },
+          "tourFilter": {
+            "type": "string",
+            "nullable": true
+          },
+          "chips": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchChip"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SearchPassage": {
+        "type": "object",
+        "properties": {
+          "artistSlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "showId": {
+            "type": "string",
+            "nullable": true
+          },
+          "sourceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "set": {
+            "type": "string",
+            "nullable": true
+          },
+          "date": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "venue": {
+            "type": "string",
+            "nullable": true
+          },
+          "songIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "trackIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "parts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchPassagePart"
+            }
+          },
+          "kind": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SearchPassagePart": {
+        "type": "object",
+        "properties": {
+          "songId": {
+            "type": "string",
+            "nullable": true
+          },
+          "position": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "part": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "trackId": {
+            "type": "string",
+            "nullable": true
+          },
+          "segueAfter": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SearchPerformance": {
+        "type": "object",
+        "properties": {
+          "performanceKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "showId": {
+            "type": "string",
+            "nullable": true
+          },
+          "songId": {
+            "type": "string",
+            "nullable": true
+          },
+          "label": {
+            "type": "string",
+            "nullable": true
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchPerformanceSource"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SearchPerformanceSource": {
+        "type": "object",
+        "properties": {
+          "sourceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchFile"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SearchResponse": {
+        "type": "object",
+        "properties": {
+          "q": {
+            "type": "string",
+            "nullable": true
+          },
+          "requestId": {
+            "type": "string",
+            "nullable": true
+          },
+          "interpretation": {
+            "$ref": "#/components/schemas/SearchInterpretation"
+          },
+          "availability": {
+            "type": "string",
+            "nullable": true
+          },
+          "counts": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "nullable": true
+          },
+          "top": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchDocument"
+            },
+            "nullable": true
+          },
+          "sections": {
+            "$ref": "#/components/schemas/SearchSections"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchDocument"
+            },
+            "nullable": true
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SearchSections": {
+        "type": "object",
+        "properties": {
+          "artists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchDocument"
+            },
+            "nullable": true
+          },
+          "songs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchDocument"
+            },
+            "nullable": true
+          },
+          "venues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchDocument"
+            },
+            "nullable": true
+          },
+          "shows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchDocument"
+            },
+            "nullable": true
+          },
+          "performances": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchDocument"
+            },
+            "nullable": true
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchDocument"
+            },
+            "nullable": true
+          },
+          "reviews": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchDocument"
+            },
+            "nullable": true
+          },
+          "passages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchPassage"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -9806,6 +10801,7 @@
           "duration",
           "title",
           "slug",
+          "playable",
           "mp3_url",
           "mp3_md5",
           "flac_url",
@@ -9852,6 +10848,9 @@
           "slug": {
             "type": "string",
             "nullable": true
+          },
+          "playable": {
+            "type": "boolean"
           },
           "mp3_url": {
             "type": "string",
@@ -10307,6 +11306,9 @@
     },
     {
       "name": "CatalogLive"
+    },
+    {
+      "name": "CatalogPerformance"
     },
     {
       "name": "CatalogRanking"

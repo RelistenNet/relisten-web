@@ -23,6 +23,17 @@ describe('deployment rendering', () => {
     ).toBe('');
   });
 
+  it('identifies staging by name alone and badges it', () => {
+    const deployment = parseDeploymentEnvironment({
+      RELISTEN_DEPLOYMENT_ENV: 'staging',
+      RELISTEN_PREVIEW_URL: 'https://evil.example',
+    });
+    expect(deployment).toEqual({ kind: 'staging', url: 'https://soundcheck.relisten.net' });
+    const html = renderToStaticMarkup(createElement(PreviewIndicator, { deployment }));
+    expect(html).toContain('Soundcheck');
+    expect(html).toContain('Uses your real account');
+  });
+
   it('renders literal branch text and only allowlisted runtime fields', () => {
     const deployment = parseDeploymentEnvironment({ ...preview, SECRET: 'must-not-appear' });
     const html = renderToStaticMarkup(createElement(PreviewIndicator, { deployment }));

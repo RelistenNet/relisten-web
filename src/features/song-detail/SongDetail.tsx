@@ -6,6 +6,7 @@ import DataTable from '@/ui/table/DataTable';
 import { showColumns } from '@/ui/shows/columns';
 import ArtistCover from '@/ui/base/ArtistCover';
 import PageHeader, { type StatItem } from '@/ui/base/PageHeader';
+import { artistListCrumbs } from '@/ui/base/crumbs';
 import YearChart from '@/ui/base/YearChart';
 import { tableHref, toTableState, type TableParams } from '@/ui/table/params';
 import { formatShare, formatShowDate, showStats, timeAgo } from '@/ui/shows/stats';
@@ -95,6 +96,7 @@ export default async function SongDetail({
   return (
     <div className="detail-page flex flex-col gap-6">
       <PageHeader
+        crumbs={artist ? artistListCrumbs(artist, 'songs') : undefined}
         cover={artist && <ArtistCover artist={artist} />}
         title={song.name}
         meta={[

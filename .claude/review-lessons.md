@@ -161,3 +161,10 @@ Slugs, query params and sizes reach the API, the OG and album-art image routes, 
 
 - _Check:_ for each new input, where does it end up (an API path, a cache key, an image size, a header)? What does an oversized, malformed or encoded value do there?
 - _Seen:_ c822989 (unencoded API params), 65a1317 (unbounded album-art size), 04411d0 (Host-derived self-fetch).
+
+### 16. Client reads use React's primitives and the HTTP cache, not a hand-rolled cache
+
+A read the browser starts (typing, a click, opening a menu) goes to a GET route that sends `Cache-Control`. The promise is created in the event or a transition, held in state, and read with `use()` behind `<Suspense>`; `useTransition`'s `isPending` is the loading signal. The browser's HTTP cache answers repeats. A request several components share belongs to a context provider. Data the page already knows it needs comes from the server, as rendered output or a promise passed down as a prop. Never read through a server action: React runs actions one at a time, as POSTs nothing can cache.
+
+- _Check:_ does the diff add a module-level `Map`, promise or `let` holding request results, create a promise during render, or call a server action to read? Does its GET route send `Cache-Control`?
+- _Seen:_ b9d4f2a → 0214384 (search's request cache, rebuilt three times before it was removed), `src/lib/archiveArtists.ts` (module promise, RE-67), `showQueues` in `src/player/commands.ts` (a `Map` behind a server action, RE-66).

@@ -44,6 +44,11 @@ export type ShowRow = {
   track?: PlayableTrack;
   /** Song pages only, when the song was played more than once in the show: which one. */
   performance?: { index: number; of: number };
+  /**
+   * The row's queue key, when its track can appear more than once in the list
+   * (a playlist entry id). Otherwise the track id is the key.
+   */
+  queueKey?: string;
 };
 
 /** Artists by id, from the artist directory. */

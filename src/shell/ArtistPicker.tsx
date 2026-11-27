@@ -4,6 +4,7 @@ import { href } from '@timber-js/app/routes';
 import { usePathname } from '@timber-js/app/client';
 import { useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
+import cn from '@/lib/cn';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/base/shadcn/popover';
 import ArtistsSelectionTab from '@/features/browse/ArtistsSelectionTab';
 import { artistSections } from '@/lib/artistSections';
@@ -39,9 +40,8 @@ function sectionHref(pathname: string, fromSlug: string, to: ArtistListItem): st
     case 'venues':
       if (!has.venues) break;
       return href('/artists/[artistSlug]/venues', { artistSlug });
-    case 'tours':
-      if (!has.tours) break;
-      return href('/artists/[artistSlug]/tours', { artistSlug });
+    case 'playlists':
+      return href('/artists/[artistSlug]/playlists', { artistSlug });
     case 'recently-added':
       return href('/artists/[artistSlug]/recently-added', { artistSlug });
     case 'today-in-history':
@@ -53,11 +53,14 @@ function sectionHref(pathname: string, fromSlug: string, to: ArtistListItem): st
 }
 
 // A fixed width, so switching artist doesn't shift the tabs; a longer name is
-// truncated.
+// truncated. Accented when the page is the artist's; neutral on a site page,
+// where the artist is only context.
 const TRIGGER = `
-  flex h-6 w-36 cursor-pointer items-center gap-1 rounded-md border border-accent/40
-  bg-accent/10 pr-1.5 pl-2 text-[13px] font-medium text-text-primary hover:bg-accent/20
+  flex h-6 w-36 cursor-pointer items-center gap-1 rounded-md border pr-1.5 pl-2
+  text-[13px] font-medium text-text-primary
 `;
+const TRIGGER_ARTIST = 'border-accent/40 bg-accent/10 hover:bg-accent/20';
+const TRIGGER_SITE = 'border-hairline bg-surface-recessed hover:bg-surface-hover';
 
 export default function ArtistPicker({ current }: { current: { slug: string; name: string } }) {
   const pathname = usePathname();
@@ -84,7 +87,10 @@ export default function ArtistPicker({ current }: { current: { slug: string; nam
 
   return (
     <Popover align="start" sideOffset={6}>
-      <PopoverTrigger aria-label={`Artist: ${current.name}. Switch artist`} className={TRIGGER}>
+      <PopoverTrigger
+        aria-label={`Artist: ${current.name}. Switch artist`}
+        className={cn(TRIGGER, chooseInPlace ? TRIGGER_SITE : TRIGGER_ARTIST)}
+      >
         <span className="min-w-0 flex-1 truncate text-left">{current.name}</span>
         <ChevronDown className="size-3.5 shrink-0 text-text-secondary" />
       </PopoverTrigger>

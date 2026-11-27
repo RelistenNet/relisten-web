@@ -1,20 +1,28 @@
 import { search } from '@/data/search';
 import { searchSearchParams } from '@/lib/searchParams/apiSearchParams';
+import { sessionCookie } from '@/lib/session/sessionCookie';
 
-// Global search. The browser calls this instead of the API: v4 results carry
-// only artist ids, and trimming here sends ~5 KB instead of ~60 KB.
+// GlobalSearch's typeahead. The browser calls this instead of the API: the
+// results arrive slimmed and already linked.
 const searchParams = searchSearchParams;
 
 export async function GET() {
-  let q = '';
-  try {
-    q = searchParams.get().q;
-  } catch {
-    return new Response('q is too long', { status: 400 });
-  }
-
-  const results = await search(q);
+  const { q, scope } = searchParams.get();
+  const results = await search(q, { scope, typing: true });
+  // A signed-in visitor's results include their own playlists: private, and
+  // briefly, so a playlist they just made turns up. Vary: Cookie keeps a guest's
+  // cached answer from being reused after they sign in.
+  const signedIn = sessionCookie.get() !== null;
   return Response.json(results, {
-    headers: { 'Cache-Control': 'public, max-age=300, stale-while-revalidate=3600' },
+    headers: {
+      // An outage isn't cached: the next keystroke tries again.
+      'Cache-Control':
+        results.availability !== 'full'
+          ? 'no-store'
+          : signedIn
+            ? 'private, max-age=60'
+            : 'public, max-age=300, stale-while-revalidate=3600',
+      'Vary': 'Cookie',
+    },
   });
 }

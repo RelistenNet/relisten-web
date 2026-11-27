@@ -14,6 +14,7 @@ import {
 import { UndiciInstrumentation } from '@opentelemetry/instrumentation-undici';
 import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
 import type { Context, SpanKind, Attributes, Link } from '@opentelemetry/api';
+import { parseDeploymentEnvironment } from './deployment/environment';
 
 const staticExtensions = ['.js', '.css', '.map', '.png', '.jpg', '.svg', '.ico', '.woff', '.woff2'];
 // HTTP server spans come from timber itself (`http.server.request`), not
@@ -63,23 +64,30 @@ export function initTracing() {
 
   const headers = parseHeaders(process.env.OTEL_EXPORTER_OTLP_HEADERS);
   const baseUrl = process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? 'https://otlp.myfountain.io';
+  const tracesUrl = process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT ?? `${baseUrl}/v1/traces`;
+  // Metrics go wherever traces do (the in-cluster collector, which holds the
+  // Fountain token) unless told otherwise; straight to Fountain they're refused.
+  const metricsUrl =
+    process.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT ??
+    (tracesUrl.endsWith('/v1/traces')
+      ? tracesUrl.replace(/\/v1\/traces$/, '/v1/metrics')
+      : `${baseUrl}/v1/metrics`);
+  // Staging is the reviewers alone: keep every trace, so a slow request is there to look up.
+  const staging = parseDeploymentEnvironment(process.env).kind === 'staging';
 
   const sdk = new NodeSDK({
-    resource: resourceFromAttributes({ [ATTR_SERVICE_NAME]: 'relisten-web' }),
-    traceExporter: new OTLPTraceExporter({
-      url: process.env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT ?? `${baseUrl}/v1/traces`,
-      headers,
+    // The deployment names itself (relisten-web-staging), so its traces aren't production's.
+    resource: resourceFromAttributes({
+      [ATTR_SERVICE_NAME]: process.env.OTEL_SERVICE_NAME ?? 'relisten-web',
     }),
+    traceExporter: new OTLPTraceExporter({ url: tracesUrl, headers }),
     metricReaders: [
       new PeriodicExportingMetricReader({
-        exporter: new OTLPMetricExporter({
-          url: process.env.OTEL_EXPORTER_OTLP_METRICS_ENDPOINT ?? `${baseUrl}/v1/metrics`,
-          headers,
-        }),
+        exporter: new OTLPMetricExporter({ url: metricsUrl, headers }),
       }),
     ],
     sampler: new NoiseFilterSampler(
-      new ParentBasedSampler({ root: new TraceIdRatioBasedSampler(0.05) })
+      new ParentBasedSampler({ root: new TraceIdRatioBasedSampler(staging ? 1 : 0.05) })
     ),
     // Outgoing fetch() (the v4 client in src/api) runs on undici, which publishes to
     // diagnostics_channel, so this works inside the bundled server. It also

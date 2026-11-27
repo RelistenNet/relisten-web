@@ -14,7 +14,7 @@ export type QueueItem = {
   /**
    * Unique in the queue. A context entry's key is its trackId, so the same
    * track keeps its key (and gapless its loaded audio) when a page plays its
-   * context again.
+   * context again. A playlist can repeat a track, so its entries key by entry id.
    */
   key: string;
   trackId: string;
@@ -31,12 +31,23 @@ export type QueueItem = {
   venue?: string;
   /** The file, as the API gives it (proxied when played; see proxyStreamUrl). */
   mp3Url: string;
+  /**
+   * Added by the listener (Play Next, Add to Queue) from a public playlist's
+   * page: the playlist (`playlist_…`) its play counts for. See playlistCredit.
+   */
+  playlistId?: string;
 };
 
 export type QueueContext = {
   /** e.g. "Grateful Dead · 1977-05-08" */
   label: string;
   items: QueueItem[];
+  /**
+   * The public playlist the context was played from (its `playlist_…` id): its
+   * entries' plays are credited to it. Unset for every other context, a
+   * listener's own playlist page included.
+   */
+  playlistId?: string;
 };
 
 export type QueueState = {
@@ -55,6 +66,21 @@ export const emptyQueue: QueueState = {
   current: null,
   cursor: null,
 };
+
+/**
+ * The public playlist a play of `key` (the current entry) counts for: the one
+ * it came from. A playlist's own entry, playing from its context, counts for
+ * the context's playlist (none once another context replaced it). An entry the
+ * listener added (Play Next, Add to Queue: a Next up key, even once Add to Queue
+ * has appended it to the context) counts for the playlist whose page it was
+ * added from, if any; a track queued from anywhere else counts for none.
+ */
+export function playlistCredit(state: QueueState, key: string): string | undefined {
+  const { current, context } = state;
+  if (current?.key !== key) return undefined;
+  if (isNextUpKey(key)) return current.item.playlistId;
+  return current.from === 'context' ? context?.playlistId : undefined;
+}
 
 /**
  * The full list for gapless: context history, the current entry, Next up,
@@ -290,6 +316,9 @@ export function remove(state: QueueState, key: string): QueueState {
 
 /** A Next up entry's key: unique, and never a context entry's (which is its trackId). */
 export const nextUpKey = (trackId: string, id: string) => `next:${trackId}:${id}`;
+
+/** Whether an entry was added by the listener (Play Next, Add to Queue) rather than a context's own. */
+export const isNextUpKey = (key: string) => key.startsWith('next:');
 
 function unqueued(state: QueueState, items: QueueItem[]): QueueItem[] {
   const taken = new Set(compose(state).map((i) => i.key));

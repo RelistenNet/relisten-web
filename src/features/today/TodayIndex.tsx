@@ -4,12 +4,14 @@ import cn from '@/lib/cn';
 import { todayIndexSearchParams } from '@/lib/searchParams/todayIndexSearchParams';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
-import TodayDateNav from '@/ui/base/TodayDateNav';
+import { Link } from '@timber-js/app/client';
 
 export type TodayIndexItem = {
   name: string;
   anchor: string;
   count: number;
+  /** The table page the artist's shows start on, with `?anchor=`: the link when they aren't on this page. */
+  href: string;
 };
 
 type SortMode = 'default' | 'alpha' | 'count';
@@ -23,23 +25,22 @@ const sortComparators: Record<SortMode, ((a: TodayIndexItem, b: TodayIndexItem) 
 
 type TodayIndexProps = {
   items: TodayIndexItem[];
-  month: string;
-  day: string;
-  pathname: string;
 };
 
-const TodayIndex = ({ items, month, day, pathname }: TodayIndexProps) => {
-  const [{ sort: sortMode, dir: sortDir, anchor: rawAnchor }, setParams] =
+const TodayIndex = ({ items }: TodayIndexProps) => {
+  const [{ order: sortMode, dir: sortDir, anchor: rawAnchor }, setParams] =
     todayIndexSearchParams.useQueryStates({ shallow: true, scroll: false });
+  // The order goes through the server: the page's links (artists, pager, year
+  // chart) are built there and keep it. The anchor stays shallow: just a scroll.
   const activeAnchor = rawAnchor ?? items[0]?.anchor;
 
   const toggleSort = (mode: SortMode) => {
     if (mode === 'default') {
-      setParams({ sort: 'default' });
+      setParams({ order: 'default' }, { shallow: false });
     } else if (sortMode === mode) {
-      setParams({ dir: sortDir === 'asc' ? 'desc' : 'asc' });
+      setParams({ dir: sortDir === 'asc' ? 'desc' : 'asc' }, { shallow: false });
     } else {
-      setParams({ sort: mode, dir: 'asc' });
+      setParams({ order: mode, dir: 'asc' }, { shallow: false });
     }
   };
 
@@ -50,21 +51,19 @@ const TodayIndex = ({ items, month, day, pathname }: TodayIndexProps) => {
     return sortDir === 'asc' ? sorted : sorted.reverse();
   }, [items, sortMode, sortDir]);
 
+  // The artist in the URL, scrolled to: on load, after the index switches
+  // table pages, and after a click on this page.
   useEffect(() => {
     if (!rawAnchor) return;
-    document.getElementById(rawAnchor)?.scrollIntoView({ block: 'start' });
-    // oxlint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    document.getElementById(rawAnchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [rawAnchor]);
 
   return (
     <nav className="sticky top-4 hidden max-h-[calc(100vh-2rem)] w-48 shrink-0 flex-col self-start md:flex">
-      <div className="mb-4">
-        <h1 className="mb-2 text-lg font-semibold text-text-primary">Today in History</h1>
-        <TodayDateNav month={month} day={day} pathname={pathname} />
-      </div>
-
       <div className="mb-2">
-        <p className="mb-1 text-sm font-semibold text-white uppercase">Artists</p>
+        <p className="mb-1 text-[11px] font-semibold tracking-wide text-column-subheader-text uppercase">
+          Artists
+        </p>
         <div className="flex gap-1">
           {(
             [
@@ -105,21 +104,21 @@ const TodayIndex = ({ items, month, day, pathname }: TodayIndexProps) => {
         </div>
       </div>
       <ul className="min-h-0 flex-1 list-none space-y-1 overflow-y-auto pr-2 text-sm">
-        {sortedItems.map(({ name, anchor, count }) => {
+        {sortedItems.map(({ name, anchor, count, href }) => {
           const isActive = anchor === activeAnchor;
           return (
             <li key={anchor} className="ml-0 list-none">
-              <a
-                href={todayIndexSearchParams.href(pathname, {
-                  sort: sortMode,
-                  dir: sortDir,
-                  anchor,
-                })}
+              <Link
+                href={href}
+                scroll={false}
                 onClick={(e) => {
+                  // A new tab or window: the link as it is.
+                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                  // On this page: scroll there (even to the one already active), keeping the page.
+                  const target = document.getElementById(anchor);
+                  if (!target) return;
                   e.preventDefault();
-                  document
-                    .getElementById(anchor)
-                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   setParams({ anchor });
                 }}
                 className={`flex items-center justify-between gap-2 rounded px-2 py-1 transition-colors ${
@@ -130,7 +129,7 @@ const TodayIndex = ({ items, month, day, pathname }: TodayIndexProps) => {
               >
                 <span className="truncate">{name}</span>
                 <span className="text-xxs text-text-muted">{count}</span>
-              </a>
+              </Link>
             </li>
           );
         })}

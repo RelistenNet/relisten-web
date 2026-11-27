@@ -1,0 +1,338 @@
+{
+  "about": "Shared guide description cases. The User Service tests check `server`. Client sanitizer tests check that the sanitized result keeps exactly `links`, renders no image or HTML, and contains each string in `text`. `context` is the description's owner: a track entry (with `durationSeconds`), a segment, or a text block. Copies live in relisten-mobile and relisten-web; update them together. `device`, when present, is a client's own save-time verdict where its parser differs from the server's; it may only be stricter.",
+  "vectors": [
+    {
+      "name": "plain prose",
+      "context": "segment",
+      "markdown": "The second set of 5/8/77, start to finish.",
+      "server": "accept",
+      "links": [],
+      "text": ["The second set of 5/8/77"]
+    },
+    {
+      "name": "the supported subset",
+      "context": "segment",
+      "markdown": "## The opening run\n\n**Bold**, *italic*, and a list:\n\n- one\n- two\n\n> A quote",
+      "server": "accept",
+      "links": [],
+      "text": ["The opening run", "Bold", "italic", "one", "A quote"]
+    },
+    {
+      "name": "an https link",
+      "context": "segment",
+      "markdown": "Notes from [Relisten](https://relisten.net/grateful-dead).",
+      "server": "accept",
+      "links": ["https://relisten.net/grateful-dead"],
+      "text": ["Relisten"]
+    },
+    {
+      "name": "a timestamp link to another entry",
+      "context": "text",
+      "markdown": "[Hear the transition](#entry=playlist_entry_01k8000000e008000000000004&t=6:42)",
+      "server": "accept",
+      "links": ["#entry=playlist_entry_01k8000000e008000000000004&t=6:42"],
+      "text": ["Hear the transition"]
+    },
+    {
+      "name": "an hour timestamp link",
+      "context": "text",
+      "markdown": "[The peak](#entry=playlist_entry_01k8000000e008000000000004&t=1:02:03)",
+      "server": "accept",
+      "links": ["#entry=playlist_entry_01k8000000e008000000000004&t=1:02:03"],
+      "text": ["The peak"]
+    },
+    {
+      "name": "a labeled timestamp in a track description",
+      "context": "track",
+      "durationSeconds": 900,
+      "markdown": "[Bass enters](#t=6:42)",
+      "server": "accept",
+      "links": ["#t=6:42"],
+      "text": ["Bass enters"]
+    },
+    {
+      "name": "an entry-less timestamp outside a track description is text",
+      "context": "segment",
+      "markdown": "[Bass enters](#t=6:42)",
+      "server": "accept",
+      "links": [],
+      "text": ["Bass enters"]
+    },
+    {
+      "name": "bare timestamps within the track link",
+      "context": "track",
+      "durationSeconds": 900,
+      "markdown": "Try 2:00 and then 6:42, but not 20:00.",
+      "server": "accept",
+      "links": ["#t=2:00", "#t=6:42"],
+      "text": ["Try", "20:00"]
+    },
+    {
+      "name": "bare timestamps in a text block stay text",
+      "context": "text",
+      "markdown": "Try 2:00.",
+      "server": "accept",
+      "links": [],
+      "text": ["2:00"]
+    },
+    {
+      "name": "a tracking pixel",
+      "context": "segment",
+      "markdown": "Great show ![pixel](https://tracker.example/p.gif)",
+      "server": "reject",
+      "links": [],
+      "text": ["Great show", "pixel"]
+    },
+    {
+      "name": "an image inside a link",
+      "context": "segment",
+      "markdown": "[![poster](https://cdn.example/poster.png)](https://relisten.net)",
+      "server": "reject",
+      "links": ["https://relisten.net"],
+      "text": ["poster"]
+    },
+    {
+      "name": "a reference-style image",
+      "context": "segment",
+      "markdown": "![poster][art]\n\n[art]: https://cdn.example/poster.png",
+      "server": "reject",
+      "links": [],
+      "text": ["poster"]
+    },
+    {
+      "name": "a video block",
+      "context": "segment",
+      "markdown": "<video src=\"https://cdn.example/clip.mp4\"></video>",
+      "server": "reject",
+      "links": [],
+      "text": []
+    },
+    {
+      "name": "inline HTML",
+      "context": "segment",
+      "markdown": "Hello <img src=\"https://tracker.example/p.gif\"> there",
+      "server": "reject",
+      "links": [],
+      "text": ["Hello", "there"]
+    },
+    {
+      "name": "an HTML comment",
+      "context": "segment",
+      "markdown": "Before <!-- hidden --> after",
+      "server": "reject",
+      "links": [],
+      "text": ["Before", "after"]
+    },
+    {
+      "name": "a javascript link",
+      "context": "segment",
+      "markdown": "[click](javascript:alert(1))",
+      "server": "reject",
+      "links": [],
+      "text": ["click"]
+    },
+    {
+      "name": "an http link",
+      "context": "segment",
+      "markdown": "[old site](http://example.com)",
+      "server": "reject",
+      "links": [],
+      "text": ["old site"]
+    },
+    {
+      "name": "a data link",
+      "context": "segment",
+      "markdown": "[file](data:text/html;base64,PHNjcmlwdD4=)",
+      "server": "reject",
+      "links": [],
+      "text": ["file"]
+    },
+    {
+      "name": "a relative link",
+      "context": "segment",
+      "markdown": "[elsewhere](/grateful-dead)",
+      "server": "reject",
+      "links": [],
+      "text": ["elsewhere"]
+    },
+    {
+      "name": "another fragment",
+      "context": "segment",
+      "markdown": "[jump](#top)",
+      "server": "reject",
+      "links": [],
+      "text": ["jump"]
+    },
+    {
+      "name": "a malformed timestamp fragment",
+      "context": "text",
+      "markdown": "[later](#entry=playlist_entry_01k8000000e008000000000004&t=6:4)",
+      "server": "reject",
+      "links": [],
+      "text": ["later"]
+    },
+    {
+      "name": "a reference link to a javascript destination",
+      "context": "segment",
+      "markdown": "[click][x]\n\n[x]: javascript:alert(1)",
+      "server": "reject",
+      "links": [],
+      "text": ["click"]
+    },
+    {
+      "name": "a reference link to an https destination",
+      "context": "segment",
+      "markdown": "[Relisten][r]\n\n[r]: https://relisten.net",
+      "server": "accept",
+      "links": ["https://relisten.net"],
+      "text": ["Relisten"]
+    },
+    {
+      "name": "a repeated definition uses the first: javascript, then https",
+      "context": "segment",
+      "markdown": "[Relisten][r]\n\n[r]: javascript:alert(1)\n[r]: https://relisten.net",
+      "server": "reject",
+      "links": [],
+      "text": ["Relisten"]
+    },
+    {
+      "name": "a repeated definition uses the first: https, then javascript",
+      "context": "segment",
+      "markdown": "[Relisten][r]\n\n[r]: https://relisten.net\n[r]: javascript:alert(1)",
+      "server": "accept",
+      "links": ["https://relisten.net"],
+      "text": ["Relisten"]
+    },
+    {
+      "name": "an https autolink",
+      "context": "segment",
+      "markdown": "See <https://relisten.net>.",
+      "server": "accept",
+      "links": ["https://relisten.net"],
+      "text": ["See"]
+    },
+    {
+      "name": "an email autolink",
+      "context": "segment",
+      "markdown": "Write <team@relisten.net>.",
+      "server": "reject",
+      "links": [],
+      "text": ["team@relisten.net"]
+    },
+    {
+      "name": "image syntax inside a code span",
+      "context": "segment",
+      "markdown": "Write `![alt](https://cdn.example/a.png)` to embed.",
+      "server": "accept",
+      "links": [],
+      "text": ["![alt](https://cdn.example/a.png)", "to embed"]
+    },
+    {
+      "name": "an escaped image marker before a link",
+      "context": "segment",
+      "markdown": "\\![not an image](https://relisten.net)",
+      "server": "accept",
+      "links": ["https://relisten.net"],
+      "text": ["not an image"]
+    },
+    {
+      "name": "a less-than sign in prose",
+      "context": "segment",
+      "markdown": "Shorter than 5 minutes: x<y and a < b.",
+      "server": "accept",
+      "links": [],
+      "text": ["x<y", "a < b"]
+    },
+    {
+      "name": "a fenced code block",
+      "context": "segment",
+      "markdown": "```\n<video src=\"https://cdn.example/clip.mp4\">\n```",
+      "server": "accept",
+      "links": [],
+      "text": ["<video src="]
+    },
+    {
+      "name": "a definition-shaped prose line",
+      "context": "segment",
+      "markdown": "[Encore]: Brokedown",
+      "server": "accept",
+      "links": [],
+      "text": ["[Encore]: Brokedown"]
+    },
+    {
+      "name": "a timestamp in a code span in a track description",
+      "context": "track",
+      "durationSeconds": 900,
+      "markdown": "Count in at `2:00`.",
+      "server": "accept",
+      "links": ["#t=2:00"],
+      "text": ["Count in at"]
+    },
+    {
+      "name": "a timestamp in an image's alt text",
+      "context": "track",
+      "durationSeconds": 900,
+      "markdown": "![drop at 2:00](https://cdn.example/a.png)",
+      "server": "reject",
+      "links": ["#t=2:00"],
+      "text": ["drop at"]
+    },
+    {
+      "name": "a nested quote",
+      "context": "segment",
+      "markdown": "> outer\n>\n> > inner [ok](https://relisten.net)",
+      "server": "accept",
+      "links": ["https://relisten.net"],
+      "text": ["outer", "inner"]
+    },
+    {
+      "name": "a setext heading",
+      "context": "segment",
+      "markdown": "Big title\n=========",
+      "server": "accept",
+      "links": [],
+      "text": ["Big title"]
+    },
+    {
+      "name": "indented code with HTML",
+      "context": "segment",
+      "markdown": "Note:\n\n    <video src=\"https://cdn.example/clip.mp4\">",
+      "server": "accept",
+      "links": [],
+      "text": ["<video src="]
+    },
+    {
+      "name": "a link title",
+      "context": "segment",
+      "markdown": "[Relisten](https://relisten.net \"home\")",
+      "server": "accept",
+      "links": ["https://relisten.net"],
+      "text": ["Relisten"]
+    },
+    {
+      "name": "an uppercase https scheme",
+      "context": "segment",
+      "markdown": "[Relisten](HTTPS://relisten.net)",
+      "server": "accept",
+      "links": ["HTTPS://relisten.net"],
+      "text": ["Relisten"]
+    },
+    {
+      "name": "a next-line character in a URL",
+      "context": "segment",
+      "markdown": "[Relisten](https://relisten.net/ab)",
+      "server": "accept",
+      "links": [],
+      "text": ["Relisten"],
+      "device": "reject"
+    },
+    {
+      "name": "a code block ending in blank lines",
+      "context": "segment",
+      "markdown": "```\na\n\n```",
+      "server": "accept",
+      "links": [],
+      "text": ["a"]
+    }
+  ]
+}

@@ -1,2 +1,44 @@
 #!/usr/bin/env bash
-gh workflow run 157368325
+# Deploys relisten.net. GitHub Actions builds the timber image from a pushed
+# ref (with the server action key), publishes it to GHCR and rolls out
+# relisten-web-timber on relisten3 (.github/workflows/build-and-push.yml).
+#
+#   ./deploy                    the current branch, which must match what's pushed
+#   ./deploy <ref>              any pushed branch or tag
+#   ./deploy --staging [ref]    the same, to soundcheck.relisten.net instead
+set -euo pipefail
+
+WORKFLOW=build-and-push.yml
+
+target=production
+if [ "${1:-}" = "--staging" ]; then
+  target=staging
+  shift
+fi
+
+if [ $# -gt 0 ]; then
+  ref="$1"
+else
+  ref="$(git rev-parse --abbrev-ref HEAD)"
+  git fetch -q origin "$ref"
+  # Actions builds what's on GitHub, not this checkout.
+  if [ "$(git rev-parse HEAD)" != "$(git rev-parse "origin/$ref")" ]; then
+    echo "$ref doesn't match origin/$ref: push it first, or pass a ref." >&2
+    exit 1
+  fi
+fi
+
+echo "Deploying ${ref} to ${target}…"
+out="$(gh workflow run "$WORKFLOW" --ref "$ref" -f target="$target" 2>&1)" || {
+  echo "$out" >&2
+  exit 1
+}
+url="$(grep -oE 'https://github\.com/[^ ]+/actions/runs/[0-9]+' <<<"$out" || true)"
+if [ -z "$url" ]; then
+  echo "$out"
+  echo "Started; follow it with: gh run list --workflow=$WORKFLOW" >&2
+  exit 0
+fi
+
+echo "$url"
+gh run watch "${url##*/}" --exit-status

@@ -38,10 +38,10 @@ async function handleRequest(req: Request, next: () => Promise<Response>) {
 
 export default async (req: Request, next: () => Promise<Response>) => {
   const response = await handleRequest(req, next);
-  if (!getDeploymentEnvironment().isPreview) return response;
+  if (getDeploymentEnvironment().kind === 'production') return response;
 
   // Redirect responses may have immutable headers. Preserve their status/body
-  // while adding noindex to every preview response, including short circuits.
+  // while adding noindex to every preview and staging response, including short circuits.
   const headers = new Headers(response.headers);
   headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
   return new Response(response.body, {

@@ -7,11 +7,13 @@
 
 export type GetApiV4SearchParams = {
   q?: string;
+  scope?: string;
+  mode?: string;
   artist_id?: string;
-  artists?: boolean;
-  shows?: boolean;
-  songs?: boolean;
-  sources?: boolean;
-  tours?: boolean;
-  venues?: boolean;
+  country?: string;
+  boost_artist_ids?: string[];
+  ignore?: string[];
+  typing?: boolean;
+  page?: number;
+  request_id?: string;
 };

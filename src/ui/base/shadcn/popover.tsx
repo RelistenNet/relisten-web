@@ -77,17 +77,22 @@ function closeOnLinkClick(e: React.MouseEvent<HTMLElement>) {
 }
 
 /**
- * The panel. Its children mount when it opens and unmount when it closes, so
- * `autoFocus` and on-open effects inside it run each time it opens.
+ * The panel. Its children mount once the browser has shown it and unmount when
+ * it closes, so `autoFocus` and on-open effects inside it run each time it
+ * opens. Mounting on `open` alone isn't enough: an open from state (a keyboard
+ * shortcut) commits before the panel is shown, and focus can't land in a
+ * hidden panel.
  */
 function PopoverContent({
   className,
   arrowClassName,
   children,
   onClickCapture,
+  onToggle,
   ...props
 }: React.ComponentProps<'div'> & { arrowClassName?: string }) {
   const open = React.useContext(OpenContext);
+  const [shown, setShown] = React.useState(false);
   return (
     <AnchoredPopoverContent
       data-slot="popover-content"
@@ -95,12 +100,19 @@ function PopoverContent({
         onClickCapture?.(e);
         closeOnLinkClick(e);
       }}
+      onToggle={(e: React.ToggleEvent<HTMLDivElement>) => {
+        onToggle?.(e);
+        setShown(e.newState === 'open');
+      }}
+      // Flex only while open: a closed [popover] is hidden by the browser's
+      // display: none, which any display class would override, leaving the closed
+      // panel laid out (invisible) over the page, taking clicks.
       className={cn(
         `
-          z-50 flex w-72 flex-col gap-2.5 overflow-visible rounded-lg bg-surface-raised p-2.5
+          z-50 w-72 flex-col gap-2.5 overflow-visible rounded-lg bg-surface-raised p-2.5
           text-sm text-text-primary shadow-lg ring-1 ring-hairline outline-hidden
           transition-[opacity,display,overlay] transition-discrete duration-100
-          not-open:opacity-0 starting:open:opacity-0
+          not-open:opacity-0 open:flex starting:open:opacity-0
         `,
         className
       )}
@@ -113,7 +125,7 @@ function PopoverContent({
           arrowClassName
         )}
       />
-      {open && children}
+      {open && shown && children}
     </AnchoredPopoverContent>
   );
 }

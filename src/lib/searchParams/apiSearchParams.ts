@@ -1,5 +1,6 @@
 import { defineSearchParams } from '@timber-js/app/search-params';
 import { z } from 'zod/v4';
+import { SEARCH_SCOPES } from '@/lib/search';
 
 // The app's own /api routes' queries, shared so the client builds the same URLs
 // the route handlers parse.
@@ -16,7 +17,8 @@ export const liveHistorySearchParams = defineSearchParams({
   after: z.coerce.number().int().min(0).default(0),
 });
 
-/** /api/search: catalog search. */
+/** /api/search: catalog search, All or one scope's first page. */
 export const searchSearchParams = defineSearchParams({
   q: z.string().trim().max(100).default(''),
+  scope: z.enum(SEARCH_SCOPES).default('all'),
 });

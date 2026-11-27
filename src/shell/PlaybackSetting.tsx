@@ -16,12 +16,13 @@ const OPTIONS: { value: PlaybackMode; label: string; description: string }[] = [
   {
     value: 'auto',
     label: 'Auto',
-    description: 'Gapless, preloading the next 2 tracks.',
+    description: 'Gapless, preloading the next track.',
   },
   {
-    value: 'preload-1',
-    label: 'Preload 1',
-    description: 'Gapless, preloading only the next track. Uses less data and memory.',
+    value: 'preload-2',
+    label: 'Preload 2',
+    description:
+      'Gapless, preloading the next 2 tracks. Rides out a flaky connection, but uses more data and memory.',
   },
   {
     value: 'no-gapless',

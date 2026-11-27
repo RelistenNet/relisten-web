@@ -104,6 +104,8 @@ const importedSong = defineResource({
 
 /** A song id (`song_…`): track menus link by id, since the API's track songs carry no slug. */
 const SONG_ID = /^song_[0-9a-hjkmnp-tv-z]{8}$/;
+/** A setlist-only song's id (`imported_song_…`), as search links them. */
+const IMPORTED_SONG_ID = /^imported_song_[0-9a-hjkmnp-tv-z]{26}$/;
 
 /**
  * A song's page data: one request for canonical songs. A song id (from a track
@@ -120,6 +122,18 @@ export async function songDetail(artistSlug: string, songSlug: string): Promise<
     const slug = (await songs.orDeny(artistId)).find((s) => s.id === songSlug)?.slug;
     if (!slug) deny(404);
     return songBySlug.orDeny(artistId, slug);
+  }
+  if (IMPORTED_SONG_ID.test(songSlug)) {
+    // Search links setlist-only songs by id: the canonical song it's linked
+    // to, otherwise the imported song (the page redirects to either's slug).
+    const list = await songs.orDeny(artistId);
+    const song = list.find((s) => s.id === songSlug);
+    if (!song) deny(404);
+    const canonicalSlug = song.canonicalId
+      ? list.find((s) => s.id === song.canonicalId)?.slug
+      : undefined;
+    if (canonicalSlug) return songBySlug.orDeny(artistId, canonicalSlug);
+    return denyIfMissing(importedSong.get(song.id));
   }
   try {
     return await songBySlug.get(artistId, songSlug);

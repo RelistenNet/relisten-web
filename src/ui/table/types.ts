@@ -9,6 +9,11 @@ export type Column<Row> = {
   /** Direction on first click (default ascending). */
   firstDir?: 'asc' | 'desc';
   /**
+   * Sorted one way only (by a server that offers no other): the header always
+   * links to `firstDir` rather than flipping on a second click.
+   */
+  oneWay?: boolean;
+  /**
    * For a column showing several fields: one sort link per field in the
    * header ("Date · Venue"). Replaces `label`/`sortable` for the header.
    */

@@ -122,7 +122,7 @@ function QueueContents() {
   if (!current) {
     return (
       <p className="px-4 py-6 text-center text-sm text-text-muted">
-        Nothing playing. Add tracks with Play next or Add to queue.
+        Nothing playing. Add tracks with Play Next or Add to Queue.
       </p>
     );
   }

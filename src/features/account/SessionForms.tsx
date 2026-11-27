@@ -3,7 +3,7 @@
 import { useActionState } from 'react';
 import { signOut, switchAccount, type SessionFormState } from './actions';
 
-const MESSAGES: Record<NonNullable<SessionFormState>['error'], string> = {
+export const SESSION_ERRORS: Record<NonNullable<SessionFormState>['error'], string> = {
   rejected: 'The account service rejected the request. Reload and try again.',
   unavailable: 'The account service is temporarily unavailable.',
 };
@@ -15,7 +15,7 @@ function SessionButton({ action, label }: { action: typeof signOut; label: strin
       <button type="submit" disabled={pending} className="underline disabled:opacity-50">
         {pending ? `${label}…` : label}
       </button>
-      {state && <p className="mt-1 text-sm text-destructive">{MESSAGES[state.error]}</p>}
+      {state && <p className="mt-1 text-sm text-destructive">{SESSION_ERRORS[state.error]}</p>}
     </form>
   );
 }

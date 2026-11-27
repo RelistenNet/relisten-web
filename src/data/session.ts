@@ -1,17 +1,15 @@
 import 'server-only';
 
 import { cache } from 'react';
-import type {
-  AccountProfile,
-  SessionNavigation,
-  SessionNavigationResult,
-} from '@/domain/account';
+import { deny } from '@timber-js/app/server';
+import type { AccountProfile, SessionNavigation, SessionNavigationResult } from '@/domain/account';
 import {
   CSRF_HEADER,
   USER_SERVICE_TIMEOUT_MS,
   USER_SERVICE_URL,
   WEB_ORIGIN_HEADER,
   localSession,
+  userServiceRoutingHeaders,
   webOrigin,
 } from '@/lib/session/config';
 import { sessionReturnSearchParams } from '@/lib/searchParams/sessionSearchParams';
@@ -24,7 +22,7 @@ import { setCookieValue } from '@/lib/session/setCookieValue';
  * within one request only.
  */
 
-class UserServiceError extends Error {
+export class UserServiceError extends Error {
   constructor(
     readonly status: number,
     readonly path: string
@@ -42,10 +40,22 @@ export class SessionUnavailableError extends Error {
 }
 
 /**
+ * For a page's getCurrentUser().catch: an account service outage is a 503, shown
+ * in the page's own layout ((content)/503.tsx, with Try Again), not the root
+ * error page outside the shell. Anything else is rethrown as it was.
+ */
+export function denyIfSessionUnavailable(err: unknown): never {
+  if (err instanceof SessionUnavailableError) {
+    deny(503, { dangerouslyPassData: { title: 'Your account isn’t available right now' } });
+  }
+  throw err;
+}
+
+/**
  * Forward the browser's session cookies to the User Service. Never cached; times out.
  * `csrf` replaces the browser's CSRF cookie: the one csrfToken() was just issued.
  */
-async function userServiceFetch(
+export async function userServiceFetch(
   path: string,
   init: RequestInit = {},
   csrf: string | null = csrfCookie.get()
@@ -60,6 +70,7 @@ async function userServiceFetch(
 
   const origin = webOrigin();
   const headers = new Headers(init.headers);
+  for (const [name, value] of Object.entries(userServiceRoutingHeaders())) headers.set(name, value);
   headers.set('accept', 'application/json');
   // Only the local accounts host needs telling which web origin this is. The
   // preview gateway sets it itself, and relisten.net uses its own host.
@@ -68,11 +79,13 @@ async function userServiceFetch(
   // Cookie-authenticated unsafe requests must carry the exact web origin.
   if (init.method && init.method !== 'GET') headers.set('origin', origin);
 
+  // A caller's own signal (a shorter budget) can abort it sooner.
+  const timeout = AbortSignal.timeout(USER_SERVICE_TIMEOUT_MS);
   return fetch(`${USER_SERVICE_URL}${path}`, {
     ...init,
     headers,
     cache: 'no-store',
-    signal: AbortSignal.timeout(USER_SERVICE_TIMEOUT_MS),
+    signal: init.signal ? AbortSignal.any([init.signal, timeout]) : timeout,
   });
 }
 
@@ -96,7 +109,7 @@ const userForSession = cache(async (_token: string): Promise<AccountProfile | nu
 /**
  * The signed-in user for this request, or null when there is no (valid) session.
  * Throws SessionUnavailableError on outages rather than pretending the user is
- * signed out, so the error boundary renders that state.
+ * signed out: pages catch it with denyIfSessionUnavailable.
  */
 export async function getCurrentUser(): Promise<AccountProfile | null> {
   const token = sessionCookie.get();
@@ -152,4 +165,6 @@ async function endSession(path: string): Promise<SessionNavigationResult> {
 export const logoutSession = () => endSession('/auth/session/logout');
 
 export const switchAccountSession = (returnTo: string) =>
-  endSession(sessionReturnSearchParams.href('/auth/session/switch-account', { return_to: returnTo }));
+  endSession(
+    sessionReturnSearchParams.href('/auth/session/switch-account', { return_to: returnTo })
+  );

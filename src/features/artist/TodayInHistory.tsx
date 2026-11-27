@@ -2,6 +2,7 @@ import { href } from '@timber-js/app/routes';
 import { loadOnDate } from './load';
 import { findArtistBySlug } from '@/data/artists';
 import ArtistShowList from './ArtistShowList';
+import { artistCrumb } from '@/ui/base/crumbs';
 import { showColumns } from '@/ui/shows/columns';
 import { playShowColumn, queueShowColumn } from '@/player/showColumns';
 import TodayDateNav from '@/ui/base/TodayDateNav';
@@ -30,7 +31,8 @@ export default async function TodayInHistory({ artistSlug }: { artistSlug: strin
   return (
     <ArtistShowList
       artist={artist}
-      title="Today In History"
+      crumbs={[artistCrumb(artist)]}
+      title="Today in History"
       stats={[
         { label: 'Shows', value: numberFormat.format(rows.length) },
         ...(years.length > 1 ? [{ label: 'Years', value: `${years[0]}–${years.at(-1)}` }] : []),
@@ -60,5 +62,5 @@ export default async function TodayInHistory({ artistSlug }: { artistSlug: strin
 
 export async function todayInHistoryMetadata({ artistSlug }: { artistSlug: string }) {
   const artist = await findArtistBySlug(artistSlug);
-  return artist ? { title: `Today In History | ${artist.name}` } : {};
+  return artist ? { title: `Today in History | ${artist.name}` } : {};
 }

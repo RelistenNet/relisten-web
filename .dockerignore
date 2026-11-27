@@ -31,5 +31,4 @@ coverage/
 Dockerfile
 .dockerignore
 deploy
-deploy-timber
 nginx.conf.d/

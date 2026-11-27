@@ -1,0 +1,118 @@
+import type { GuideBlock } from '@/lib/guideMarkdown/types';
+import { plainBlocks } from '@/lib/guideMarkdown/plain';
+import type { PlaylistRow } from './spec';
+
+// A playlist read as an article: prose in the flow, tracks as embedded cards.
+// Every segment of two or more entries is a box, as the app draws it; one with a
+// description is a section, its description introducing its entries. A lone
+// track or lone text is loose. An unavailable track keeps its place.
+
+export type PlaylistTrackGroupRow = Exclude<PlaylistRow, { kind: 'text' }>;
+
+export type PlaylistItem =
+  /** A text-only entry. */
+  | { kind: 'text'; key: string; segmentId: string; prose: GuideBlock[] }
+  | { kind: 'tracks'; key: string; rows: PlaylistTrackGroupRow[] };
+
+export type PlaylistBlock =
+  | PlaylistItem
+  /**
+   * A described segment (a section): its description first, introducing its
+   * entries (RelistenApi docs/design/2026-11-18-playlist-guide-content.md).
+   */
+  | {
+      kind: 'section';
+      key: string;
+      segmentId: string;
+      items: PlaylistItem[];
+      intro: GuideBlock[];
+    };
+
+/** Appends rows as items. A track joins the run of tracks before it. */
+function addItems(
+  into: PlaylistItem[] | PlaylistBlock[],
+  rows: readonly PlaylistRow[],
+  {
+    keepEmpty = false,
+  }: {
+    /** Keep text that sanitizes to nothing, shown as written (the editor). */
+    keepEmpty?: boolean;
+  } = {}
+) {
+  for (const row of rows) {
+    if (row.kind === 'text') {
+      // Text that sanitizes to nothing (an image alone) is skipped for readers; the
+      // editor shows it as written, so it can still be fixed or removed.
+      const prose = row.prose?.length
+        ? row.prose
+        : keepEmpty
+          ? plainBlocks(row.description ?? '')
+          : [];
+      if (prose.length) into.push({ kind: 'text', key: row.id, segmentId: row.segmentId, prose });
+      continue;
+    }
+    const last = into.at(-1);
+    if (last?.kind === 'tracks') last.rows.push(row);
+    else into.push({ kind: 'tracks', key: row.id, rows: [row] });
+  }
+}
+
+/**
+ * The flow's blocks: the same for readers and the editor, so opening the editor
+ * moves nothing (it outlines its groups over these rows: flow.ts). With
+ * `keepEmpty` (the editor), text that sanitizes to nothing still shows, as
+ * written, so it can be fixed.
+ */
+export function playlistBlocks(
+  rows: readonly PlaylistRow[],
+  { keepEmpty = false }: { keepEmpty?: boolean } = {}
+): PlaylistBlock[] {
+  const blocks: PlaylistBlock[] = [];
+  let i = 0;
+  while (i < rows.length) {
+    // A run of rows from one segment (undescribed segments run together: they're loose).
+    const heading = rows[i].segment;
+    let end = i;
+    while (end < rows.length && rows[end].segment?.id === heading?.id) end++;
+    const run = rows.slice(i, end);
+    if (heading) {
+      const items: PlaylistItem[] = [];
+      addItems(items, run, { keepEmpty });
+      blocks.push({
+        kind: 'section',
+        key: `section:${heading.id}`,
+        segmentId: heading.id,
+        items,
+        // An intro that sanitizes to nothing still shows in the editor, as written.
+        intro:
+          heading.prose.length || !keepEmpty ? heading.prose : plainBlocks(heading.description),
+      });
+    } else {
+      // Undescribed segments: one of two or more entries is boxed; a lone
+      // track or lone text is loose.
+      for (let j = 0; j < run.length;) {
+        let k = j;
+        while (k < run.length && run[k].segmentId === run[j].segmentId) k++;
+        const segment = run.slice(j, k);
+        if (segment.length > 1) {
+          const items: PlaylistItem[] = [];
+          addItems(items, segment, { keepEmpty });
+          const segmentId = segment[0].segmentId;
+          blocks.push({
+            kind: 'section',
+            key: `section:${segmentId}`,
+            segmentId,
+            items,
+            intro: [],
+          });
+        } else addItems(blocks, segment, { keepEmpty });
+        j = k;
+      }
+    }
+    i = end;
+  }
+  return blocks;
+}
+
+/** An entry's (or a prose-only segment's) place: the row a drop or new text goes next to. */
+export type BlockEdge = { id: string; segmentId: string };

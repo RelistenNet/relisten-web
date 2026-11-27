@@ -4,6 +4,7 @@ import Player from '@/player/PlayerBar';
 import TooltipThemeProvider from '@/ui/base/TooltipThemeProvider';
 import { ReactNode } from 'react';
 import { Toaster } from 'sonner';
+import { TOASTER_ID } from '@/player/toasts';
 
 export default async function EmbedLayout({ children }: { children: ReactNode }) {
   return (
@@ -12,7 +13,7 @@ export default async function EmbedLayout({ children }: { children: ReactNode })
         column
         className="embed-force-light h-[calc(100dvh-var(--preview-banner-height,0px))] bg-white"
       >
-        <Toaster id="audio-error" position="top-center" offset="54px" richColors closeButton />
+        <Toaster id={TOASTER_ID} position="top-center" offset="54px" richColors closeButton />
         <EmbedHeader />
         <div className="flex h-[50px] min-h-[50px] items-center justify-center border-b border-gray-300 bg-white">
           <div className="w-full max-w-2xl">

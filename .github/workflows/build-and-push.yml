@@ -1,15 +1,30 @@
 name: Build and publish GHCR image
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: relisten.net (production) or soundcheck.relisten.net (staging)
+        type: choice
+        options:
+          - production
+          - staging
+        default: production
 
 permissions:
   contents: read
+  id-token: write
   packages: write
 
 env:
-  IMAGE_NAME: relistennet/relisten-web
+  IMAGE_NAME: relistennet/relisten-web-timber
   REGISTRY: ghcr.io
   KEEP_GHCR_SHA_VERSIONS: '5'
+  # Staging is its own Deployment with its own server action key, so a staging
+  # build never moves :latest or breaks actions in open relisten.net tabs.
+  DEPLOYMENT: ${{ inputs.target == 'staging' && 'relisten-web-staging' || 'relisten-web-timber' }}
+  ACTIONS_SECRET: ${{ inputs.target == 'staging' && 'relisten-web-staging-actions' || 'relisten-web-timber-actions' }}
+  CHANNEL_TAG: ${{ inputs.target == 'staging' && 'staging' || 'latest' }}
 
 jobs:
   build_and_publish:
@@ -39,13 +54,58 @@ jobs:
           echo "image=${REGISTRY}/${IMAGE_NAME}" >> "$GITHUB_OUTPUT"
           echo "package=${IMAGE_NAME#relistennet/}" >> "$GITHUB_OUTPUT"
 
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c # v4.4.0
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          audience: ${{ secrets.TS_AUDIENCE }}
+          ping: 100.99.27.11
+          use-cache: 'true'
+          tags: tag:ci
+          version: '1.104.1'
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@bda439f5f36b99b262ebdcd3613869bddb064c8e # v5.2.0
+        with:
+          version: v1.36.2
+
+      - name: Configure relisten3 kubeconfig
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.kube"
+          printf '%s' "$KUBE_CONFIG" > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
+          kubectl config use-context relisten3-k3s
+
+      # Server action IDs are salted with this key, and the deployment reads
+      # the same Secret at runtime (relisten-flux). Without it, timber picks
+      # random IDs and every deploy breaks actions in tabs that were already
+      # open, so a missing or empty key fails the build. It's written to a
+      # temp file for the BuildKit secret, never to an output or the log.
+      - name: Read the server action key
+        run: |
+          set -euo pipefail
+          key="$(kubectl -n default get secret "$ACTIONS_SECRET" \
+            -o jsonpath='{.data.TIMBER_ACTIONS_ENCRYPTION_KEY}' | base64 -d)"
+          if [ -z "$key" ]; then
+            echo "::error::default/$ACTIONS_SECRET has no TIMBER_ACTIONS_ENCRYPTION_KEY"
+            exit 1
+          fi
+          echo "::add-mask::$key"
+          umask 077
+          printf '%s' "$key" > "$RUNNER_TEMP/timber_actions_key"
+
       - name: Build and push image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           platforms: linux/amd64
+          secret-files: |
+            timber_actions_key=${{ runner.temp }}/timber_actions_key
           tags: |
-            ${{ steps.meta.outputs.image }}:latest
+            ${{ steps.meta.outputs.image }}:${{ env.CHANNEL_TAG }}
             ${{ steps.meta.outputs.image }}:sha-${{ steps.meta.outputs.short_sha }}
           labels: |
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
@@ -83,7 +143,7 @@ jobs:
               sort_by(.created_at) | reverse
               | map(select(any(.tags[]?; startswith("sha-"))))
               | .[$keep:]
-              | map(select((.tags | index("latest")) | not))
+              | map(select((.tags | index("latest") or index("staging")) | not))
               | .[].id
             '
           )"
@@ -97,33 +157,8 @@ jobs:
             gh api -X DELETE "/orgs/$ORG/packages/container/$PACKAGE/versions/$id"
           done <<< "$ids"
 
-      - name: Connect to Tailscale
-        uses: tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c # v4.4.0
-        with:
-          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          audience: ${{ secrets.TS_AUDIENCE }}
-          ping: 100.99.27.11
-          use-cache: 'true'
-          tags: tag:ci
-          version: '1.104.1'
-
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@bda439f5f36b99b262ebdcd3613869bddb064c8e # v5.2.0
-        with:
-          version: v1.36.2
-
-      - name: Configure relisten3 kubeconfig
-        env:
-          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
-        run: |
-          set -euo pipefail
-          mkdir -p "$HOME/.kube"
-          printf '%s' "$KUBE_CONFIG" > "$HOME/.kube/config"
-          chmod 600 "$HOME/.kube/config"
-          kubectl config use-context relisten3-k3s
-
       - name: Restart relisten3 deployment
         run: |
           set -euo pipefail
-          kubectl -n default rollout restart deployment/relisten-web
-          kubectl -n default rollout status deployment/relisten-web --timeout=10m
+          kubectl -n default rollout restart "deployment/$DEPLOYMENT"
+          kubectl -n default rollout status "deployment/$DEPLOYMENT" --timeout=10m

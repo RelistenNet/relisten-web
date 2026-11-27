@@ -13,22 +13,26 @@ import { type ReactNode, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import cn from '@/lib/cn';
 import Tooltip from '@/ui/base/Tooltip';
+import { AddToPlaylistButton } from './AddToPlaylist';
 import {
   addToQueue,
   playNext,
+  playPlaylist,
   playShowById,
   playSongRows,
   queueShow,
   togglePlayPause,
 } from './commands';
-import { useCurrentItem, useIsPlaying } from './hooks';
+import { useCurrentItem, useIsPlaying, useQueue } from './hooks';
 import type { QueueItem } from './queue/model';
 import { useSongQueue } from './SongQueue';
+import { TOASTER_ID } from './toasts';
 
 /** What a row queues: one track, or a whole show (its tracks fetched on click). */
 export type QueueTarget = { item: QueueItem | null } | { showId: string };
 
 const SHOW_FAILED = "Couldn't load that show";
+const PLAYLIST_FAILED = "Couldn't load that playlist";
 
 /**
  * Play next / Add to queue as inline buttons, beside a row's play button (the
@@ -43,20 +47,22 @@ export default function QueueButtons({
   name: string;
   className?: string;
 }) {
+  // On a public playlist's page, what's queued counts for that playlist.
+  const playlistId = useSongQueue()?.playlistId;
   if ('item' in target && !target.item) return null;
   const run = (where: 'next' | 'end') => async () => {
     if ('showId' in target) {
       const ok = await queueShow(target.showId, where);
-      if (!ok) toast.error(SHOW_FAILED);
+      if (!ok) toast.error(SHOW_FAILED, { toasterId: TOASTER_ID });
       return ok;
     }
-    if (target.item) (where === 'next' ? playNext : addToQueue)([target.item]);
+    if (target.item) (where === 'next' ? playNext : addToQueue)([target.item], playlistId);
     return true;
   };
   return (
     <span className={cn('inline-flex items-center', className)}>
-      <QueueButton icon={ListStartIcon} label="Play next" name={name} onClick={run('next')} />
-      <QueueButton icon={ListEndIcon} label="Add to queue" name={name} onClick={run('end')} />
+      <QueueButton icon={ListStartIcon} label="Play Next" name={name} onClick={run('next')} />
+      <QueueButton icon={ListEndIcon} label="Add to Queue" name={name} onClick={run('end')} />
     </span>
   );
 }
@@ -148,9 +154,10 @@ export function PlayShowButton({ showId, name }: { showId: string; name: string 
   const [pending, startTransition] = useTransition();
 
   const play = () => {
+    if (pending) return;
     if (isCurrent) return togglePlayPause();
     startTransition(async () => {
-      if (!(await playShowById(showId))) toast.error(SHOW_FAILED);
+      if (!(await playShowById(showId))) toast.error(SHOW_FAILED, { toasterId: TOASTER_ID });
     });
   };
 
@@ -159,7 +166,8 @@ export function PlayShowButton({ showId, name }: { showId: string; name: string 
     <button
       type="button"
       onClick={play}
-      disabled={pending}
+      // aria-disabled, not disabled: disabling the focused button would drop keyboard focus.
+      aria-disabled={pending}
       aria-label={`${isPlaying ? 'Pause' : 'Play'} ${name}`}
       aria-pressed={isCurrent}
       className={cn(BUTTON, 'text-accent')}
@@ -167,9 +175,64 @@ export function PlayShowButton({ showId, name }: { showId: string; name: string 
       <Icon className={cn('size-4 shrink-0', pending && 'animate-spin')} aria-hidden />
     </button>
   );
-  if (isCurrent) return button;
+  // Always the same wrapper, so the button keeps its identity (and focus) as it becomes current.
   return (
-    <Tooltip content="Play (replaces queue)" align="top">
+    <Tooltip content={isCurrent ? null : 'Play (replaces queue)'} align="top">
+      {button}
+    </Tooltip>
+  );
+}
+
+/**
+ * Plays a whole playlist from a playlists table (from the top), replacing the
+ * queue. While a public playlist's own entries are playing, it pauses and
+ * resumes: the queue knows which public playlist it came from. A listener's own
+ * playlist isn't credited, so its button always starts it over.
+ */
+export function PlayPlaylistButton({
+  playlist,
+  playlistId,
+  name,
+}: {
+  /** The playlists route's param: a share code, or the listener's own id. */
+  playlist: string;
+  playlistId: string;
+  name: string;
+}) {
+  const isCurrent = useQueue(
+    (q) => q.current?.from === 'context' && q.context?.playlistId === playlistId
+  );
+  const isPlaying = useIsPlaying() && isCurrent;
+  const [pending, startTransition] = useTransition();
+
+  const play = () => {
+    if (pending) return;
+    if (isCurrent) return togglePlayPause();
+    startTransition(async () => {
+      // A superseded load (another Play, or something else played meanwhile) says nothing.
+      if ((await playPlaylist(playlist)) === 'failed') {
+        toast.error(PLAYLIST_FAILED, { toasterId: TOASTER_ID });
+      }
+    });
+  };
+
+  const Icon = pending ? LoaderCircleIcon : isPlaying ? Pause : Play;
+  const button = (
+    <button
+      type="button"
+      onClick={play}
+      // aria-disabled, not disabled: disabling the focused button would drop keyboard focus.
+      aria-disabled={pending}
+      aria-label={`${isPlaying ? 'Pause' : 'Play'} ${name}`}
+      aria-pressed={isCurrent}
+      className={cn(BUTTON, 'text-accent')}
+    >
+      <Icon className={cn('size-4 shrink-0', pending && 'animate-spin')} aria-hidden />
+    </button>
+  );
+  // Always the same wrapper, so the button keeps its identity (and focus) as it becomes current.
+  return (
+    <Tooltip content={isCurrent ? null : 'Play (replaces queue)'} align="top">
       {button}
     </Tooltip>
   );
@@ -185,12 +248,29 @@ const PILL = `
  * A show page's buttons for the tape on screen (the SongQueueProvider's rows): Play show (from the top,
  * replacing the queue; pauses and resumes while the tape is playing), Play
  * next and Add to queue for all of its tracks.
+ *
+ * A playlist's (`playlist`): Play playlist, current while one of its own
+ * entries is (a track of the same tape played from elsewhere isn't).
+ *
+ * A show's also has Add to Playlist: the tape on screen, as one segment.
  */
-export function ShowQueueActions() {
-  const { label = '', items = [] } = useSongQueue() ?? {};
+export function ShowQueueActions({ playlist = false }: { playlist?: boolean }) {
+  const { label: queueLabel = '', items = [], playlistId } = useSongQueue() ?? {};
+  // The player's store reads the same on the server and in the first client
+  // render (nothing restored yet), so this hydrates as the idle button; when the
+  // saved queue restores, the label changes in place.
   const current = useCurrentItem();
-  const isCurrent = !!items[0] && current?.sourceId === items[0].sourceId;
+  const isCurrent =
+    !!items[0] &&
+    !!current &&
+    (playlist ? items.some((i) => i.key === current.key) : current.sourceId === items[0].sourceId);
   const isPlaying = useIsPlaying() && isCurrent;
+  const idle = playlist ? 'Play Playlist' : 'Play Show';
+  const label = isPlaying ? 'Pause' : isCurrent ? 'Resume' : idle;
+  // The label it rolls away from (null until the first change, so nothing rolls
+  // on mount), updated in render as the label changes.
+  const [roll, setRoll] = useState({ label, prev: null as string | null });
+  if (roll.label !== label) setRoll({ label, prev: roll.label });
   if (!items[0]) return null;
   const start = items[0];
 
@@ -199,25 +279,55 @@ export function ShowQueueActions() {
     <button
       type="button"
       onClick={() =>
-        isCurrent ? togglePlayPause() : playSongRows({ items, label, startTrackId: start.trackId })
+        isCurrent
+          ? togglePlayPause()
+          : playSongRows({ items, label: queueLabel, playlistId, startKey: start.key })
       }
       className={cn(PILL, 'border-transparent bg-accent/15 hover:bg-accent/25')}
     >
       <PlayIcon className="size-4 text-accent" aria-hidden />
-      {isPlaying ? 'Pause' : isCurrent ? 'Resume' : 'Play show'}
+      {/* Every label in one grid cell, to size the button to the widest: its width
+      never changes. label-roll (globals.css): the old label rotates up and away as
+      the new one rolls in from below. */}
+      <span className="label-roll" data-rolled={roll.prev === null ? undefined : ''}>
+        {[idle, 'Resume', 'Pause'].map((text) => (
+          <span
+            key={text}
+            aria-hidden={text !== label || undefined}
+            data-state={text === label ? 'on' : text === roll.prev ? 'out' : 'in'}
+          >
+            {text}
+          </span>
+        ))}
+      </span>
     </button>
   );
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      {isCurrent ? (
-        play
-      ) : (
-        <Tooltip content="Replaces the queue" align="top">
-          {play}
-        </Tooltip>
+    <div className={cn('flex flex-wrap items-center', playlist ? 'gap-1' : 'gap-2')}>
+      {/* Always the same wrapper, so the button keeps its identity (and its label
+      animates) as it becomes current. */}
+      <Tooltip content={isCurrent ? null : 'Replaces the queue'} align="top">
+        {play}
+      </Tooltip>
+      <ShowQueuePill
+        icon={ListStartIcon}
+        text="Play Next"
+        iconOnly={playlist}
+        onClick={() => playNext(items, playlistId)}
+      />
+      <ShowQueuePill
+        icon={ListEndIcon}
+        text="Add to Queue"
+        iconOnly={playlist}
+        onClick={() => addToQueue(items, playlistId)}
+      />
+      {!playlist && (
+        <AddToPlaylistButton
+          className={PILL}
+          defaultName={queueLabel}
+          tracks={async () => ({ trackIds: items.map((i) => i.trackId) })}
+        />
       )}
-      <ShowQueuePill icon={ListStartIcon} text="Play next" onClick={() => playNext(items)} />
-      <ShowQueuePill icon={ListEndIcon} text="Add to queue" onClick={() => addToQueue(items)} />
     </div>
   );
 }
@@ -225,16 +335,37 @@ export function ShowQueueActions() {
 function ShowQueuePill({
   icon: Icon,
   text,
+  iconOnly = false,
   onClick,
 }: {
   icon: LucideIcon;
   text: string;
+  /** Just the icon, the text as its label and tooltip (a playlist's quieter header). */
+  iconOnly?: boolean;
   onClick: () => void;
 }) {
   const { flash, run } = useQueueAction(() => {
     onClick();
     return true;
   });
+  if (iconOnly) {
+    return (
+      <Tooltip content={text} align="top">
+        <button
+          type="button"
+          onClick={run}
+          aria-label={`${text}: all tracks`}
+          className={cn(BUTTON, 'p-2 text-text-muted hover:text-text-primary')}
+        >
+          <Queued
+            flash={flash}
+            idle={<Icon className="size-4.5 shrink-0" aria-hidden />}
+            done={<CheckIcon className="size-4.5 shrink-0 text-accent" />}
+          />
+        </button>
+      </Tooltip>
+    );
+  }
   return (
     <button type="button" onClick={run} className={PILL}>
       <Queued

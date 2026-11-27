@@ -12,7 +12,7 @@ import { createActor } from 'xstate';
 import { replaceUrl } from '@timber-js/app/client';
 import { playerLogic, restores } from './queueLogic';
 import { playbackLogic } from './playback';
-import { compose, type QueueItem, type QueueState } from './queue/model';
+import { compose, playlistCredit, type QueueItem, type QueueState } from './queue/model';
 import { createQueueStorage, type QueueStorage } from './queue/storage';
 import { createEngine, type Engine, type EngineEntry } from './engine';
 import {
@@ -124,7 +124,9 @@ if (isBrowser) {
         const item = itemFor(key);
         if (!item) return;
         watchStall(item, currentTime, isPaused);
-        if (listens.progress(key, { currentTime, isPaused })) scrobblePlay(item.trackId);
+        if (listens.progress(key, { currentTime, isPaused })) {
+          scrobblePlay(item.trackId, playlistCredit(queueOf(), key));
+        }
         if (saving()) {
           storage?.savePosition({
             key,

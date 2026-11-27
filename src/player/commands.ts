@@ -4,12 +4,20 @@
 // engine directly. Components don't touch gapless or the actors.
 // ---------------------------------------------------------------------------
 
+import { href } from '@timber-js/app/routes';
 import { showContext, type PlayableTape, type ShowInfo } from './queue/items';
 import { nextUpKey, type QueueContext, type QueueItem } from './queue/model';
 import { loadShowQueue } from './showQueueAction';
 import { browserRefusesAutoplay, canAutoplay } from './autoplay';
 import { followCurrent, getEngine, playbackActor, playerActor, startPlayback } from './runtime';
 import { showPlayPrompt } from './toasts';
+
+/**
+ * Bumped by every command that starts something playing (a context, an entry).
+ * A load that sees it change while awaiting was superseded by the listener; a
+ * saved queue restoring (or a track ending) doesn't bump it.
+ */
+let playIntent = 0;
 
 /**
  * Play a tape from one of its tracks (a show page, or an embed). Next up is
@@ -58,6 +66,7 @@ export function playShow({
   if (alreadyCurrent) return;
   // The entry isn't loaded yet: start it at `startTime` when the engine makes it current.
   if (startTime && startTime > 0) getEngine()?.startAt(start.key, startTime);
+  playIntent++;
   playerActor.send({ type: 'PLAY_CONTEXT', ctx, startKey: start.key });
   if (!play) return;
   if (!canAutoplay()) showPlayPrompt({ blockedByBrowser: false, playNow: startPlayback });
@@ -74,15 +83,25 @@ export function playShow({
 export function playSongRows({
   items,
   label,
-  startTrackId,
+  playlistId,
+  startKey,
+  startTime,
 }: {
   items: QueueItem[];
   label: string;
-  startTrackId: string;
+  /** The public playlist the rows are (QueueContext.playlistId). */
+  playlistId?: string;
+  startKey: string;
+  /** Seconds into the start entry (a playlist's timestamp link). */
+  startTime?: number;
 }): void {
-  const start = items.find((i) => i.trackId === startTrackId);
+  const start = items.find((i) => i.key === startKey);
   if (!start) return;
-  playerActor.send({ type: 'PLAY_CONTEXT', ctx: { label, items }, startKey: start.key });
+  // The entry isn't loaded yet: start it at `startTime` when the engine makes it current.
+  if (startTime && startTime > 0) getEngine()?.startAt(start.key, startTime);
+  const ctx = playlistId ? { label, items, playlistId } : { label, items };
+  playIntent++;
+  playerActor.send({ type: 'PLAY_CONTEXT', ctx, startKey: start.key });
   startPlayback();
 }
 
@@ -96,20 +115,28 @@ export function playFromTrackList(args: Parameters<typeof playShow>[0]): void {
   followCurrent();
 }
 
-/** Give Next up entries keys of their own (the same track can also be in the context). */
-const asNextUp = (items: QueueItem[]) =>
-  items.map((item) => ({ ...item, key: nextUpKey(item.trackId, newId()) }));
+/**
+ * Give Next up entries keys of their own (the same track can also be in the
+ * context), and the public playlist they were added from, if any: their plays
+ * count for it (playlistCredit).
+ */
+const asNextUp = (items: QueueItem[], playlistId?: string) =>
+  items.map((item) => ({
+    ...item,
+    key: nextUpKey(item.trackId, newId()),
+    ...(playlistId ? { playlistId } : {}),
+  }));
 
 const newId = () =>
   crypto.randomUUID?.() ?? `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
 
-/** Add to the front of Next up. */
-export const playNext = (items: QueueItem[]) =>
-  playerActor.send({ type: 'PLAY_NEXT', items: asNextUp(items) });
+/** Add to the front of Next up. `playlistId`: the public playlist whose page they're added from. */
+export const playNext = (items: QueueItem[], playlistId?: string) =>
+  playerActor.send({ type: 'PLAY_NEXT', items: asNextUp(items, playlistId) });
 
-/** Add to the end of the queue (after the rest of the context). */
-export const addToQueue = (items: QueueItem[]) =>
-  playerActor.send({ type: 'ADD_TO_QUEUE', items: asNextUp(items) });
+/** Add to the end of the queue (after the rest of the context). `playlistId`: as playNext's. */
+export const addToQueue = (items: QueueItem[], playlistId?: string) =>
+  playerActor.send({ type: 'ADD_TO_QUEUE', items: asNextUp(items, playlistId) });
 
 /** Move an entry to just after another in the queue panel's list (null: the top); see move(). */
 export const moveInQueue = (key: string, after: string | null) =>
@@ -119,6 +146,7 @@ export const removeFromQueue = (key: string) => playerActor.send({ type: 'REMOVE
 
 /** Play an entry of the queue. */
 export function jumpTo(key: string, play = true): void {
+  playIntent++;
   playerActor.send({ type: 'GOTO', key });
   if (play) startPlayback();
 }
@@ -152,6 +180,47 @@ export function setVolume(volume: number): void {
   }
 }
 
+// ---- whole playlists (a playlists table's rows) ------------------------------------
+
+/** How long a playlist's queue may take before its Play fails. */
+const PLAYLIST_LOAD_TIMEOUT_MS = 10_000;
+
+/** The playlist load in flight; a newer Play aborts it. */
+let playlistLoad: AbortController | null = null;
+
+/**
+ * Play a playlist from its first track, replacing the context (Next up stays).
+ * Its queue comes from the playlist's GET route, within a timeout. A load is
+ * dropped, not played, when it's superseded while loading: by another
+ * playlist's Play (which aborts it) or by the listener playing something else.
+ */
+export async function playPlaylist(playlist: string): Promise<'played' | 'failed' | 'superseded'> {
+  playlistLoad?.abort();
+  const load = new AbortController();
+  playlistLoad = load;
+  const intent = ++playIntent;
+  const superseded = () => load.signal.aborted || playIntent !== intent;
+  try {
+    // Superseded or slow: a stalled request fails after a while instead of spinning forever.
+    const res = await fetch(href('/api/playlists/[playlist]/queue', { playlist }), {
+      signal: AbortSignal.any([load.signal, AbortSignal.timeout(PLAYLIST_LOAD_TIMEOUT_MS)]),
+    });
+    if (superseded()) return 'superseded';
+    if (!res.ok) return 'failed';
+    const ctx = (await res.json()) as QueueContext;
+    if (superseded()) return 'superseded';
+    const start = ctx.items[0];
+    if (!start) return 'failed';
+    playerActor.send({ type: 'PLAY_CONTEXT', ctx, startKey: start.key });
+    startPlayback();
+    return 'played';
+  } catch {
+    return superseded() ? 'superseded' : 'failed';
+  } finally {
+    if (playlistLoad === load) playlistLoad = null;
+  }
+}
+
 // ---- whole shows (a shows table's rows) -----------------------------------------
 
 /** The last few shows loaded, so a row's Play then Add to queue fetch once. */
@@ -176,12 +245,20 @@ export async function playShowById(showId: string): Promise<boolean> {
   const ctx = await showQueue(showId);
   const start = ctx?.items[0];
   if (!ctx || !start) return false;
+  playIntent++;
   playerActor.send({ type: 'PLAY_CONTEXT', ctx, startKey: start.key });
   startPlayback();
   return true;
 }
 
+/** A show's tracks (the tape its page opens on), to add to a playlist. */
+export async function showTrackIds(showId: string): Promise<{ trackIds: string[] } | null> {
+  const ctx = await showQueue(showId);
+  return ctx?.items.length ? { trackIds: ctx.items.map((i) => i.trackId) } : null;
+}
+
 /** Play next / Add to queue for a whole show. False if it couldn't load. */
+
 export async function queueShow(showId: string, where: 'next' | 'end'): Promise<boolean> {
   const ctx = await showQueue(showId);
   if (!ctx?.items.length) return false;

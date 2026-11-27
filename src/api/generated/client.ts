@@ -10,10 +10,13 @@ import type {
   ArtistSongEntryResource,
   ArtistVenueEntryResource,
   ArtistVenueWithShowsResource,
+  CatalogPerformancePage,
   CatalogResolveRequest,
   CatalogResolveResource,
-  CatalogSearchResource,
+  CatalogReviewHit,
   EraResource,
+  GetApiV4ArtistsArtistIdPerformancesParams,
+  GetApiV4ArtistsArtistIdReviewsSearchParams,
   GetApiV4ArtistsArtistIdShowsOnDateParams,
   GetApiV4ArtistsArtistIdShowsPopularTrendingParams,
   GetApiV4ArtistsArtistIdShowsRecentlyAddedParams,
@@ -29,6 +32,7 @@ import type {
   GetApiV4PopularShowsParams,
   GetApiV4PopularYearsParams,
   GetApiV4SearchParams,
+  GetApiV4SearchPerformanceParams,
   GetApiV4ShowsMomentumParams,
   GetApiV4ShowsOnDateParams,
   GetApiV4ShowsPopularTrendingParams,
@@ -52,6 +56,8 @@ import type {
   RankedArtistResource,
   RankedShowResource,
   RankedYearResource,
+  SearchPerformance,
+  SearchResponse,
   ShowResource,
   ShowSummaryResource,
   SongWithShowsResource,
@@ -68,6 +74,26 @@ import type {
 } from './model';
 
 import { relistenFetch } from '../fetcher';
+const getHeaders = (...sources: (RequestInit['headers'] | Record<string, string | undefined>)[]) => {
+  const seen = new Set<string>();
+  const layers: [string, string | readonly string[]][][] = [];
+  for (const source of sources.reverse()) {
+    if (!source) continue;
+    const entries = source instanceof Headers
+      ? source.entries()
+      : Symbol.iterator in source
+        ? Array.from(source as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string])
+        : Object.entries<string | readonly string[] | undefined>(source);
+    const layer: [string, string | readonly string[]][] = [];
+    for (const [name, value] of entries) {
+      if (value !== undefined && !seen.has(name.toLowerCase())) layer.push([name, value]);
+    }
+    for (const [name] of layer) seen.add(name.toLowerCase());
+    layers.push(layer);
+  }
+  return Object.fromEntries(layers.reverse().flat()) as Extract<RequestInit['headers'], Record<string, unknown>>;
+};
+
 export type getApiV4ArtistsResponse200 = {
   data: ArtistResource[]
   status: 200
@@ -560,25 +586,11 @@ export const getPostApiV4LivePlayUrl = () => {
 
 export const postApiV4LivePlay = async (playRequest?: PlayRequest, options?: Parameters<typeof relistenFetch>[1]): Promise<postApiV4LivePlayResponse> => {
 
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return relistenFetch<postApiV4LivePlayResponse>(getPostApiV4LivePlayUrl(),
+  return relistenFetch<postApiV4LivePlayResponse>(getPostApiV4LivePlayUrl(),
   {
     ...options,
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    headers: getHeaders({ 'Content-Type': 'application/json' }, options?.headers),
     body: JSON.stringify(playRequest)
   }
 );}
@@ -635,6 +647,104 @@ export const getGetApiV4LiveHistoryUrl = (params?: GetApiV4LiveHistoryParams,) =
 export const getApiV4LiveHistory = async (params?: GetApiV4LiveHistoryParams, options?: Parameters<typeof relistenFetch>[1]): Promise<getApiV4LiveHistoryResponse> => {
 
   return relistenFetch<getApiV4LiveHistoryResponse>(getGetApiV4LiveHistoryUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+export type getApiV4ArtistsArtistIdReviewsSearchResponse200 = {
+  data: CatalogReviewHit[]
+  status: 200
+}
+
+export type getApiV4ArtistsArtistIdReviewsSearchResponse304 = {
+  data: void
+  status: 304
+}
+
+export type getApiV4ArtistsArtistIdReviewsSearchResponseSuccess = (getApiV4ArtistsArtistIdReviewsSearchResponse200) & {
+  headers: Headers;
+};
+export type getApiV4ArtistsArtistIdReviewsSearchResponseError = (getApiV4ArtistsArtistIdReviewsSearchResponse304) & {
+  headers: Headers;
+};
+
+export type getApiV4ArtistsArtistIdReviewsSearchResponse = (getApiV4ArtistsArtistIdReviewsSearchResponseSuccess | getApiV4ArtistsArtistIdReviewsSearchResponseError)
+
+export const getGetApiV4ArtistsArtistIdReviewsSearchUrl = (artistId: string,
+    params?: GetApiV4ArtistsArtistIdReviewsSearchParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v4/artists/${artistId}/reviews/search?${stringifiedParams}` : `/api/v4/artists/${artistId}/reviews/search`
+}
+
+export const getApiV4ArtistsArtistIdReviewsSearch = async (artistId: string,
+    params?: GetApiV4ArtistsArtistIdReviewsSearchParams, options?: Parameters<typeof relistenFetch>[1]): Promise<getApiV4ArtistsArtistIdReviewsSearchResponse> => {
+
+  return relistenFetch<getApiV4ArtistsArtistIdReviewsSearchResponse>(getGetApiV4ArtistsArtistIdReviewsSearchUrl(artistId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+export type getApiV4ArtistsArtistIdPerformancesResponse200 = {
+  data: CatalogPerformancePage
+  status: 200
+}
+
+export type getApiV4ArtistsArtistIdPerformancesResponse304 = {
+  data: void
+  status: 304
+}
+
+export type getApiV4ArtistsArtistIdPerformancesResponseSuccess = (getApiV4ArtistsArtistIdPerformancesResponse200) & {
+  headers: Headers;
+};
+export type getApiV4ArtistsArtistIdPerformancesResponseError = (getApiV4ArtistsArtistIdPerformancesResponse304) & {
+  headers: Headers;
+};
+
+export type getApiV4ArtistsArtistIdPerformancesResponse = (getApiV4ArtistsArtistIdPerformancesResponseSuccess | getApiV4ArtistsArtistIdPerformancesResponseError)
+
+export const getGetApiV4ArtistsArtistIdPerformancesUrl = (artistId: string,
+    params?: GetApiV4ArtistsArtistIdPerformancesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v4/artists/${artistId}/performances?${stringifiedParams}` : `/api/v4/artists/${artistId}/performances`
+}
+
+export const getApiV4ArtistsArtistIdPerformances = async (artistId: string,
+    params?: GetApiV4ArtistsArtistIdPerformancesParams, options?: Parameters<typeof relistenFetch>[1]): Promise<getApiV4ArtistsArtistIdPerformancesResponse> => {
+
+  return relistenFetch<getApiV4ArtistsArtistIdPerformancesResponse>(getGetApiV4ArtistsArtistIdPerformancesUrl(artistId,params),
   {
     ...options,
     method: 'GET'
@@ -1445,25 +1555,11 @@ export const getPostApiV4CatalogResolveUrl = () => {
 
 export const postApiV4CatalogResolve = async (catalogResolveRequest: CatalogResolveRequest, options?: Parameters<typeof relistenFetch>[1]): Promise<postApiV4CatalogResolveResponse> => {
 
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return relistenFetch<postApiV4CatalogResolveResponse>(getPostApiV4CatalogResolveUrl(),
+  return relistenFetch<postApiV4CatalogResolveResponse>(getPostApiV4CatalogResolveUrl(),
   {
     ...options,
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    headers: getHeaders({ 'Content-Type': 'application/json' }, options?.headers),
     body: JSON.stringify(catalogResolveRequest)
   }
 );}
@@ -1471,7 +1567,7 @@ return relistenFetch<postApiV4CatalogResolveResponse>(getPostApiV4CatalogResolve
 
 
 export type getApiV4SearchResponse200 = {
-  data: CatalogSearchResource
+  data: SearchResponse
   status: 200
 }
 
@@ -1485,15 +1581,10 @@ export type getApiV4SearchResponse422 = {
   status: 422
 }
 
-export type getApiV4SearchResponse503 = {
-  data: ProblemDetails
-  status: 503
-}
-
 export type getApiV4SearchResponseSuccess = (getApiV4SearchResponse200) & {
   headers: Headers;
 };
-export type getApiV4SearchResponseError = (getApiV4SearchResponse304 | getApiV4SearchResponse422 | getApiV4SearchResponse503) & {
+export type getApiV4SearchResponseError = (getApiV4SearchResponse304 | getApiV4SearchResponse422) & {
   headers: Headers;
 };
 
@@ -1503,6 +1594,14 @@ export const getGetApiV4SearchUrl = (params?: GetApiV4SearchParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
+    const explodeParameters = ["boost_artist_ids","ignore"];
+
+    if (Array.isArray(value) && explodeParameters.includes(key)) {
+      value.forEach((v) => {
+        normalizedParams.append(key, v === null ? 'null' : String(v));
+      });
+      return;
+    }
 
     if (value !== undefined) {
       normalizedParams.append(key, value === null ? 'null' : String(value))
@@ -1517,6 +1616,68 @@ export const getGetApiV4SearchUrl = (params?: GetApiV4SearchParams,) => {
 export const getApiV4Search = async (params?: GetApiV4SearchParams, options?: Parameters<typeof relistenFetch>[1]): Promise<getApiV4SearchResponse> => {
 
   return relistenFetch<getApiV4SearchResponse>(getGetApiV4SearchUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+export type getApiV4SearchPerformanceResponse200 = {
+  data: SearchPerformance
+  status: 200
+}
+
+export type getApiV4SearchPerformanceResponse304 = {
+  data: void
+  status: 304
+}
+
+export type getApiV4SearchPerformanceResponse404 = {
+  data: ProblemDetails
+  status: 404
+}
+
+export type getApiV4SearchPerformanceResponse422 = {
+  data: ProblemDetails
+  status: 422
+}
+
+export type getApiV4SearchPerformanceResponse503 = {
+  data: ProblemDetails
+  status: 503
+}
+
+export type getApiV4SearchPerformanceResponseSuccess = (getApiV4SearchPerformanceResponse200) & {
+  headers: Headers;
+};
+export type getApiV4SearchPerformanceResponseError = (getApiV4SearchPerformanceResponse304 | getApiV4SearchPerformanceResponse404 | getApiV4SearchPerformanceResponse422 | getApiV4SearchPerformanceResponse503) & {
+  headers: Headers;
+};
+
+export type getApiV4SearchPerformanceResponse = (getApiV4SearchPerformanceResponseSuccess | getApiV4SearchPerformanceResponseError)
+
+export const getGetApiV4SearchPerformanceUrl = (params?: GetApiV4SearchPerformanceParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v4/search/performance?${stringifiedParams}` : `/api/v4/search/performance`
+}
+
+export const getApiV4SearchPerformance = async (params?: GetApiV4SearchPerformanceParams, options?: Parameters<typeof relistenFetch>[1]): Promise<getApiV4SearchPerformanceResponse> => {
+
+  return relistenFetch<getApiV4SearchPerformanceResponse>(getGetApiV4SearchPerformanceUrl(params),
   {
     ...options,
     method: 'GET'

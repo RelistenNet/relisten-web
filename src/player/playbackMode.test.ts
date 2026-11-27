@@ -16,8 +16,8 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe('savedPlaybackSettings', () => {
   it('round-trips what was saved', () => {
-    savePlaybackSettings({ mode: 'preload-1', forceGaplessOnMobile: true });
-    expect(savedPlaybackSettings()).toEqual({ mode: 'preload-1', forceGaplessOnMobile: true });
+    savePlaybackSettings({ mode: 'preload-2', forceGaplessOnMobile: true });
+    expect(savedPlaybackSettings()).toEqual({ mode: 'preload-2', forceGaplessOnMobile: true });
   });
 
   it('falls back per field, keeping the valid ones', () => {

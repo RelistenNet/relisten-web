@@ -5,6 +5,7 @@ import { showColumns, showFilters, showSearchText, showSorts } from '@/ui/shows/
 import { playShowColumn, queueShowColumn } from '@/player/showColumns';
 import ArtistCover from '@/ui/base/ArtistCover';
 import PageHeader, { type StatItem } from '@/ui/base/PageHeader';
+import { ALL_ARTISTS_CRUMB, artistListCrumbs } from '@/ui/base/crumbs';
 import YearChart from '@/ui/base/YearChart';
 import { tableHref, tableSearchParams, toTableState, type TableParams } from '@/ui/table/params';
 import { queryTable, type TableSpec } from '@/ui/table/query';
@@ -37,7 +38,7 @@ export default async function VenueDetail({
   venueSlug: string;
   artistSlug?: string;
 }) {
-  const [{ venue, rows, artistName }, params, artist] = await Promise.all([
+  const [{ venue, rows }, params, artist] = await Promise.all([
     loadScopedVenue(venueSlug, artistSlug),
     searchParams.get(),
     findArtistBySlug(artistSlug),
@@ -74,7 +75,7 @@ export default async function VenueDetail({
         detail: !artistSlug && artists.length > 1 ? stats.first.artistName : undefined,
       },
       {
-        label: 'Most recent',
+        label: 'Last show',
         value: <DateLink row={stats.last} />,
         detail: timeAgo(stats.last.date),
       }
@@ -84,8 +85,13 @@ export default async function VenueDetail({
   return (
     <div className="detail-page flex flex-col gap-6">
       <PageHeader
+        crumbs={
+          artist
+            ? artistListCrumbs(artist, 'venues')
+            : [ALL_ARTISTS_CRUMB, { label: 'Venues', href: href('/venues') }]
+        }
         cover={artist && <ArtistCover artist={artist} />}
-        title={artistSlug ? `${artistName} at ${venue.name}` : venue.name}
+        title={venue.name}
         meta={[
           venue.location,
           // venue.otherNames.length > 0 && `Also known as ${venue.otherNames.join(', ')}`,
@@ -114,8 +120,10 @@ export default async function VenueDetail({
           playShowColumn,
           // One column without a width takes the rest of the row (the artist's, or
           // else the date's); with every width fixed the slack spreads to all of them.
-          artistSlug ? { ...showColumns.date, width: undefined } : showColumns.date,
-          ...(artistSlug ? [] : [showColumns.artist]),
+          // The date, then "Artist · Venue"; one artist's rows sort by date only.
+          artistSlug
+            ? { ...showColumns.dateArtist, sorts: showColumns.dateArtist.sorts?.slice(0, 1) }
+            : showColumns.dateArtist,
           showColumns.tapes,
           showColumns.rating,
           showColumns.plays,

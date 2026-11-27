@@ -9,6 +9,7 @@ import type { SongListItem } from '@/domain/types';
 import { Link } from '@timber-js/app/client';
 import ArtistCover from '@/ui/base/ArtistCover';
 import PageHeader from '@/ui/base/PageHeader';
+import { artistCrumb } from '@/ui/base/crumbs';
 import { deny } from '@timber-js/app/server';
 import { artistIdForSlug } from '@/data/artists';
 
@@ -62,6 +63,7 @@ export default async function SongsIndex({ artistSlug }: { artistSlug: string })
   return (
     <div className="detail-page flex flex-col gap-6">
       <PageHeader
+        crumbs={[artistCrumb(artist)]}
         cover={<ArtistCover artist={artist} />}
         title="Songs"
         stats={[{ label: 'Songs', value: numberFormat.format(songs.length) }]}

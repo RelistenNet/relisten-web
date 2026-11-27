@@ -2,6 +2,7 @@ import { href } from '@timber-js/app/routes';
 import { loadRecentlyAdded } from './load';
 import { findArtistBySlug } from '@/data/artists';
 import ArtistShowList from './ArtistShowList';
+import { artistCrumb } from '@/ui/base/crumbs';
 import { showColumns } from '@/ui/shows/columns';
 import { playShowColumn, queueShowColumn } from '@/player/showColumns';
 import { deny } from '@timber-js/app/server';
@@ -16,6 +17,7 @@ export default async function RecentlyAdded({ artistSlug }: { artistSlug: string
   return (
     <ArtistShowList
       artist={artist}
+      crumbs={[artistCrumb(artist)]}
       title="Recently Added"
       // meta={['Shows most recently added to Relisten']}
       rows={rows}

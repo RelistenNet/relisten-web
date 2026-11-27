@@ -1,0 +1,2719 @@
+{
+  "description": "Playlist operations applied to a playlist: each vector is a playlist before, a batch, each operation’s status, and the playlist after (live segments and entries in order). Shared by relisten-web (src/domain/playlistOps.ts, applyOp) and the User Service (PlaylistEditor), so the optimistic edit shows what the server stores.",
+  "vectors": [
+    {
+      "name": "renames, trimmed and NFC-normalized",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "update_metadata",
+          "payload": {
+            "name": "  Café mix "
+          }
+        }
+      ],
+      "statuses": ["applied"],
+      "after": {
+        "name": "Café mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "clears the playlist description with null",
+      "before": {
+        "name": "Mix",
+        "description": "Hello",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "update_metadata",
+          "payload": {
+            "description": null
+          }
+        }
+      ],
+      "statuses": ["applied"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "blank text clears like null",
+      "before": {
+        "name": "Mix",
+        "description": "Hello",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "update_metadata",
+          "payload": {
+            "description": "   "
+          }
+        }
+      ],
+      "statuses": ["applied"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "same name is a no-op",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "update_metadata",
+          "payload": {
+            "name": "Mix"
+          }
+        }
+      ],
+      "statuses": ["no_op"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "inserts a segment after an anchor",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "insert_segment",
+          "payload": {
+            "segment_id": "playlist_segment_01jeg00000e008000000000004",
+            "entries": [
+              {
+                "entry_id": "playlist_entry_01jeg00000e00800000000000a",
+                "track_id": "track_01jeg00000e00800000000000c"
+              }
+            ],
+            "after_segment_id": "playlist_segment_01jeg00000e008000000000001"
+          }
+        }
+      ],
+      "statuses": ["applied"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000004",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e00800000000000a",
+                "track_id": "track_01jeg00000e00800000000000c"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "a missing after-anchor falls back to the before-anchor",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "insert_segment",
+          "payload": {
+            "segment_id": "playlist_segment_01jeg00000e008000000000004",
+            "entries": [
+              {
+                "entry_id": "playlist_entry_01jeg00000e00800000000000a",
+                "track_id": "track_01jeg00000e00800000000000c"
+              }
+            ],
+            "after_segment_id": "playlist_segment_01jeg00000e00800000000000g",
+            "before_segment_id": "playlist_segment_01jeg00000e008000000000002"
+          }
+        }
+      ],
+      "statuses": ["applied"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000004",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e00800000000000a",
+                "track_id": "track_01jeg00000e00800000000000c"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "missing anchors fall back to the end",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "insert_segment",
+          "payload": {
+            "segment_id": "playlist_segment_01jeg00000e008000000000004",
+            "entries": [
+              {
+                "entry_id": "playlist_entry_01jeg00000e00800000000000a",
+                "track_id": "track_01jeg00000e00800000000000c"
+              }
+            ],
+            "after_segment_id": "playlist_segment_01jeg00000e00800000000000g"
+          }
+        }
+      ],
+      "statuses": ["applied"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000004",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e00800000000000a",
+                "track_id": "track_01jeg00000e00800000000000c"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "inserts prose alone",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "insert_segment",
+          "payload": {
+            "segment_id": "playlist_segment_01jeg00000e008000000000004",
+            "entries": [],
+            "description": "Interlude",
+            "before_segment_id": "playlist_segment_01jeg00000e008000000000001"
+          }
+        }
+      ],
+      "statuses": ["applied"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000004",
+            "description": "Interlude",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "an insert reusing a live id conflicts",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "insert_segment",
+          "payload": {
+            "segment_id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [],
+            "description": "x"
+          }
+        }
+      ],
+      "statuses": ["id_conflict"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "clearing a section’s comment keeps its entries",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "update_segment",
+          "payload": {
+            "segment_id": "playlist_segment_01jeg00000e008000000000002",
+            "description": null
+          }
+        }
+      ],
+      "statuses": ["applied"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "clearing prose alone removes the segment",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "update_segment",
+          "payload": {
+            "segment_id": "playlist_segment_01jeg00000e008000000000003",
+            "description": null
+          }
+        }
+      ],
+      "statuses": ["applied"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "updating a missing segment is skipped",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "update_segment",
+          "payload": {
+            "segment_id": "playlist_segment_01jeg00000e00800000000000g",
+            "description": "x"
+          }
+        }
+      ],
+      "statuses": ["target_missing"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "moves a segment before another",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "move_segment",
+          "payload": {
+            "segment_id": "playlist_segment_01jeg00000e008000000000005",
+            "before_segment_id": "playlist_segment_01jeg00000e008000000000001"
+          }
+        }
+      ],
+      "statuses": ["applied"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "moving a segment where it is is a no-op",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "move_segment",
+          "payload": {
+            "segment_id": "playlist_segment_01jeg00000e008000000000002",
+            "after_segment_id": "playlist_segment_01jeg00000e008000000000001"
+          }
+        }
+      ],
+      "statuses": ["no_op"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "deletes a segment and its entries",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "delete_segment",
+          "payload": {
+            "segment_id": "playlist_segment_01jeg00000e008000000000001"
+          }
+        }
+      ],
+      "statuses": ["applied"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "inserts a text entry before an entry",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "insert_entries",
+          "payload": {
+            "segment_id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "entry_id": "playlist_entry_01jeg00000e00800000000000b",
+                "description": "Listen for the tease"
+              }
+            ],
+            "before_entry_id": "playlist_entry_01jeg00000e008000000000007"
+          }
+        }
+      ],
+      "statuses": ["applied"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e00800000000000b",
+                "track_id": null,
+                "description": "Listen for the tease"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "inserting into a missing segment is skipped",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "insert_entries",
+          "payload": {
+            "segment_id": "playlist_segment_01jeg00000e00800000000000g",
+            "entries": [
+              {
+                "entry_id": "playlist_entry_01jeg00000e00800000000000a",
+                "track_id": "track_01jeg00000e00800000000000c"
+              }
+            ]
+          }
+        }
+      ],
+      "statuses": ["parent_missing"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "sets a track note; clearing a note that isn’t there is a no-op",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "update_entry",
+          "payload": {
+            "entry_id": "playlist_entry_01jeg00000e008000000000006",
+            "description": " Great jam "
+          }
+        },
+        {
+          "operation_type": "update_entry",
+          "payload": {
+            "entry_id": "playlist_entry_01jeg00000e008000000000007",
+            "description": null
+          }
+        }
+      ],
+      "statuses": ["applied", "no_op"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c",
+                "description": "Great jam"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "moves an entry into another segment after an entry",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "move_entry",
+          "payload": {
+            "entry_id": "playlist_entry_01jeg00000e008000000000006",
+            "destination": {
+              "segment_id": "playlist_segment_01jeg00000e008000000000002",
+              "after_entry_id": "playlist_entry_01jeg00000e008000000000008"
+            }
+          }
+        }
+      ],
+      "statuses": ["applied"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "moving the last entry out prunes its undescribed segment",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "move_entry",
+          "payload": {
+            "entry_id": "playlist_entry_01jeg00000e008000000000009",
+            "destination": {
+              "segment_id": "playlist_segment_01jeg00000e008000000000001"
+            }
+          }
+        }
+      ],
+      "statuses": ["applied"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "moving the last entry out keeps a described segment",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "move_entry",
+          "payload": {
+            "entry_id": "playlist_entry_01jeg00000e008000000000008",
+            "destination": {
+              "segment_id": "playlist_segment_01jeg00000e008000000000001"
+            }
+          }
+        }
+      ],
+      "statuses": ["applied"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "moves an entry into a new segment anchored on the one it empties",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "move_entry",
+          "payload": {
+            "entry_id": "playlist_entry_01jeg00000e008000000000009",
+            "destination": {
+              "new_segment_id": "playlist_segment_01jeg00000e008000000000004",
+              "after_segment_id": "playlist_segment_01jeg00000e008000000000005"
+            }
+          }
+        }
+      ],
+      "statuses": ["applied"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000004",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "moves an entry into a new segment before another",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "move_entry",
+          "payload": {
+            "entry_id": "playlist_entry_01jeg00000e008000000000007",
+            "destination": {
+              "new_segment_id": "playlist_segment_01jeg00000e008000000000004",
+              "before_segment_id": "playlist_segment_01jeg00000e008000000000003"
+            }
+          }
+        }
+      ],
+      "statuses": ["applied"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000004",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "moving an entry where it is is a no-op",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "move_entry",
+          "payload": {
+            "entry_id": "playlist_entry_01jeg00000e008000000000007",
+            "destination": {
+              "segment_id": "playlist_segment_01jeg00000e008000000000001",
+              "after_entry_id": "playlist_entry_01jeg00000e008000000000006"
+            }
+          }
+        }
+      ],
+      "statuses": ["no_op"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "moving a missing entry is skipped",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "move_entry",
+          "payload": {
+            "entry_id": "playlist_entry_01jeg00000e00800000000000h",
+            "destination": {
+              "segment_id": "playlist_segment_01jeg00000e008000000000001"
+            }
+          }
+        }
+      ],
+      "statuses": ["target_missing"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "deleting the last entry prunes an undescribed segment",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "delete_entry",
+          "payload": {
+            "entry_id": "playlist_entry_01jeg00000e008000000000009"
+          }
+        }
+      ],
+      "statuses": ["applied"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "a batch applies in order",
+      "before": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      },
+      "operations": [
+        {
+          "operation_type": "insert_segment",
+          "payload": {
+            "segment_id": "playlist_segment_01jeg00000e008000000000004",
+            "entries": [
+              {
+                "entry_id": "playlist_entry_01jeg00000e00800000000000a",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ],
+            "after_segment_id": "playlist_segment_01jeg00000e008000000000005"
+          }
+        },
+        {
+          "operation_type": "move_entry",
+          "payload": {
+            "entry_id": "playlist_entry_01jeg00000e008000000000006",
+            "destination": {
+              "segment_id": "playlist_segment_01jeg00000e008000000000004",
+              "before_entry_id": "playlist_entry_01jeg00000e00800000000000a"
+            }
+          }
+        },
+        {
+          "operation_type": "move_segment",
+          "payload": {
+            "segment_id": "playlist_segment_01jeg00000e008000000000004",
+            "before_segment_id": "playlist_segment_01jeg00000e008000000000001"
+          }
+        }
+      ],
+      "statuses": ["applied", "applied", "applied"],
+      "after": {
+        "name": "Mix",
+        "segments": [
+          {
+            "id": "playlist_segment_01jeg00000e008000000000004",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000006",
+                "track_id": "track_01jeg00000e00800000000000c"
+              },
+              {
+                "id": "playlist_entry_01jeg00000e00800000000000a",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000001",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000007",
+                "track_id": "track_01jeg00000e00800000000000d"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000002",
+            "description": "Set two",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000008",
+                "track_id": "track_01jeg00000e00800000000000e"
+              }
+            ]
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000003",
+            "description": "Just words",
+            "entries": []
+          },
+          {
+            "id": "playlist_segment_01jeg00000e008000000000005",
+            "entries": [
+              {
+                "id": "playlist_entry_01jeg00000e008000000000009",
+                "track_id": "track_01jeg00000e00800000000000f"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

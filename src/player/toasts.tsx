@@ -1,3 +1,4 @@
+import { isStaleActionError } from '@timber-js/app/client';
 import { toast } from 'sonner';
 
 // The player's toasts. gapless calls back synchronously from inside player
@@ -5,6 +6,30 @@ import { toast } from 'sonner';
 // updates are deferred: sonner's Toaster can't be setState'd mid-render.
 
 const defer = (fn: () => void) => queueMicrotask(fn);
+
+/**
+ * The site's one <Toaster> (src/shell/NavBar.tsx; the embeds have their own).
+ * sonner only shows a toast that names it, so every toast passes this.
+ */
+export const TOASTER_ID = 'site';
+
+/**
+ * A server action from an earlier build: Relisten was deployed since this tab
+ * loaded, and the action is gone or changed. Says so and offers a reload,
+ * rather than reloading on its own (timber's default for an unhandled one) and
+ * losing what the listener was doing. True if `err` was one.
+ */
+export function reportStaleAction(err: unknown): boolean {
+  if (!isStaleActionError(err)) return false;
+  toast.error('Relisten has been updated', {
+    id: 'stale-action',
+    description: 'Reload the page to keep going.',
+    action: { label: 'Reload', onClick: () => location.reload() },
+    duration: Infinity,
+    toasterId: TOASTER_ID,
+  });
+  return true;
+}
 
 let autoplayToastVisible = false;
 let failureToastVisible = false;
@@ -30,7 +55,7 @@ export function showPlaybackFailure({
   const show = stalled ? toast.warning : toast.error;
   defer(() =>
     show(stalled ? `"${title}" is taking a while to load` : `Can't play "${title}"`, {
-      toasterId: 'audio-error',
+      toasterId: TOASTER_ID,
       id: 'playback-failure',
       description,
       duration: Infinity,
@@ -84,7 +109,7 @@ export function showPlayPrompt({
   autoplayToastVisible = true;
   defer(() =>
     toast.warning(blockedByBrowser ? 'Autoplay blocked' : 'Ready to play', {
-      toasterId: 'audio-error',
+      toasterId: TOASTER_ID,
       id: 'autoplay-blocked',
       duration: Infinity,
       description: (
